@@ -70,172 +70,28 @@ def _youtube_channel(value: str) -> dict:
     return {"id" if YOUTUBE_ID_REGEX.fullmatch(value) is not None else "forUsername": value}
 
 
-class SteamAccount:
-    """A read-only class that represents a Steam account.
-    The converter aspect of this class takes Steam IDs, usernames and URLs.
+_STEAM_URL_REGEX = re.compile(r"(?:https?\:\/\/)?(?:www\.)?steamcommunity\.com\/(?:profile|id)\/([\w\-]{2,})\/?")
+
+_STEAM_PERSONA_STATES = {
+    0: "Offline",
+    1: "Online",
+    2: "Busy",
+    3: "Away",
+    4: "Snooze",
+    5: "Looking to Trade",
+    6: "Looking to Play",
+}
+
+
+def _resolve_steam_identifier(value: str) -> str:
+    """Psuedo-converter that resolves the Steam account identifier from the URL, if given.
+    Otherwise, the string is returned as-is.
     """
-    __slots__ = (
-        "_steam_id64",
-        "_persona_name",
-        "_profile_url",
-        "_avatar_hash",
-        "_status",
-        "__id_y_component",
-        "__id_w_component",
-    )
+    url_match = _STEAM_URL_REGEX.fullmatch(value.strip("<>"))
+    if url_match is not None:
+        return url_match.group(1)
 
-
-    _URL_REGEX = re.compile(r"(?:https?\:\/\/)?(?:www\.)?steamcommunity\.com\/(?:profile|id)\/([\w\-]{2,})\/?")
-
-    _AVATAR_URL_BASE = "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/{path}/{name}.jpg"
-
-    _PERSONA_STATES = {
-        0: "Offline",
-        1: "Online",
-        2: "Busy",
-        3: "Away",
-        4: "Snooze",
-        5: "Looking to Trade",
-        6: "Looking to Play",
-    }
-
-
-    def __init__(self, **data):
-        self._steam_id64 = int(data["steamid"])
-        self._persona_name = data["personaname"]
-        self._profile_url = data["profileurl"]
-        self._avatar_hash = data["avatarhash"]
-        self._status = data["personastate"]
-
-        # Used for calculating the SteamID and SteamID3.
-        self.__id_y_component = self._steam_id64 % 2
-        self.__id_w_component = self._steam_id64 - (self.__id_y_component + 76561197960265728)
-
-
-    def __str__(self):
-        return self._persona_name
-
-
-    @classmethod
-    async def convert(cls, ctx, argument):
-        url_match = cls._URL_REGEX.fullmatch(argument.strip("<>"))
-
-        if url_match is not None:
-            argument = url_match.group(1)
-
-        api_key = ctx.bot.config["Secrets"]["steam_api_key"]
-
-        await ctx.trigger_typing()
-
-        # The endpoint only takes Steam ID 64s, we'll have to try to resolve an ID if we get a vanity.
-        # For reference, Steam IDs are usually 17 digit decimals with a hex starting with 0x1100001.
-        # We check the latter case since it's more likely to be a steam ID than a vanity.
-        if not (argument.isdigit() and hex(int(argument)).startswith("0x1100001")):
-            try:
-                get_steam_id = await ctx.get(
-                    "https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/?&url_type=1",
-                    key=api_key,
-                    vanityurl=argument,
-                    cache=True
-                )
-            except HTTPError as e:
-                raise commands.BadArgument(f"Steam API failed with HTTP status code {e.status}.") from None
-
-            argument = get_steam_id["response"].get("steamid")
-
-            if argument is None:
-                raise commands.BadArgument(
-                    "Could not find a Steam user associated with that Steam ID 64, vanity username, or URL."
-                )
-
-        try:
-            get_account_data = await ctx.get(
-                "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?",
-                key=api_key,
-                steamids=argument,
-                cache=True
-            )
-        except HTTPError as e:
-            raise commands.BadArgument(f"Steam API failed with HTTP status code {e.status}.") from None
-
-        accounts = get_account_data["response"].get("players")
-
-        if accounts is None:
-            raise commands.BadArgument(
-                "Could not find a Steam user associated with that Steam ID 64, vanity username, or URL."
-            )
-
-        return cls(**accounts[0])
-
-
-    def get_avatar(self, *, avatar_type: str = "standard"):
-        """Gets the account's avatar.
-
-        Parameters
-        ----------
-        *, avatar_type: :class:`str`
-            The type of avatar to return.
-            Must be either `standard`, `medium`, or `full`.
-            Defaults to `standard`.
-
-        Returns
-        -------
-        :class:`str`
-            The avatar URL.
-
-        Raises
-        ------
-        :exc:`ValueError`
-            The avatar type was invalid.
-        """
-        if not isinstance(avatar_type, str):
-            raise TypeError(f"avatar_type must be of type `str`, not `{type(avatar_type)}`")
-
-        if avatar_type not in ("standard", "medium", "full"):
-            raise ValueError("avatar_type must be either `standard`, `medium` or `full`.")
-
-        avatar_hash = self._avatar_hash
-
-        return self._AVATAR_URL_BASE.format(
-            path=avatar_hash[:2],
-            name=f"{avatar_hash}_{avatar_type}" if avatar_type != "standard" else avatar_hash
-        )
-
-
-    @property
-    def steam_id64(self):
-        """:class:`int`: The Steam account's SteamID 64."""
-        return self._steam_id64
-
-
-    @property
-    def name(self):
-        """:class:`str`: The Steam account's display name."""
-        return self._persona_name
-
-
-    @property
-    def profile_url(self):
-        """:class:`str`: The Steam account's profile URL."""
-        return self._profile_url
-
-
-    @property
-    def steam_id(self):
-        """:class:`str`: The Steam account's SteamID."""
-        return f"STEAM_0:{self.__id_y_component}:{round(self.__id_w_component / 2)}"
-
-
-    @property
-    def steam_id3(self):
-        """:class:`str`: The Steam account's SteamID3."""
-        return f"[U:1:{self.__id_y_component + self.__id_w_component}]"
-
-
-    @property
-    def status(self):
-        """:class:`str`: The string online status of the Steam account."""
-        return self._PERSONA_STATES.get(self._status, "Unknown")
+    return value
 
 
 class Web(commands.Cog,
@@ -552,6 +408,13 @@ class Web(commands.Cog,
         await ctx.send(f"**Exchange Rates**\n{rates}\n`Powered by api.exchangeratesapi.io`")
 
 
+    @exchangerate.error
+    async def on_exchangerate_error(self, ctx: commands.Context, error):
+        if isinstance(error, commands.BadArgument):
+            await ctx.send(str(error))
+            error.handled = True
+
+
     @commands.group(invoke_without_command=True, aliases=["search"])
     @checks.bot_has_permissions(embed_links=True, add_reactions=True, read_message_history=True)
     @commands.cooldown(rate=1, per=5, type=commands.BucketType.member)
@@ -708,7 +571,7 @@ class Web(commands.Cog,
 
     @commands.command()
     @checks.bot_has_permissions(embed_links=True)
-    async def steaminfo(self, ctx: commands.Context, *, account: SteamAccount):
+    async def steaminfo(self, ctx: commands.Context, *, account: _resolve_steam_identifier):
         """Gets information about a Steam account.
         Argument can either be a Steam ID 64, vanity username, or link.
         (Bot Needs: Embed Links)
@@ -719,21 +582,74 @@ class Web(commands.Cog,
         (Ex. 3) steaminfo 76561192109582121
         (Ex. 4) steaminfo SomeUser
         """
-        avatar_url = account.get_avatar(avatar_type="full")
+        await ctx.trigger_typing()
+
+        steam_api_key = ctx.bot.config["Secrets"]["steam_api_key"]
+
+        # The endpoint only takes Steam ID 64s, we'll have to try to resolve an ID if we get a vanity.
+        # For reference, Steam IDs are usually 17 digit decimals with a hex starting with 0x1100001.
+        # We check the latter case since it's more likely to be a steam ID than a vanity.
+        if not (account.isdigit() and hex(int(account)).startswith("0x1100001")):
+            try:
+                resolve_steam_id = await ctx.get(
+                    "https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/?&url_type=1",
+                    key=steam_api_key,
+                    vanityurl=account,
+                    cache=True
+                )
+            except HTTPError as e:
+                await ctx.send(f"Steam API failed with HTTP status code {e.status}.")
+                return
+
+            account = resolve_steam_id["response"].get("steamid")
+
+            if account is None:
+                await ctx.send("Could not find a Steam user associated with that Steam ID 64, vanity username, or URL.")
+                return
+
+        try:
+            resolve_account_data = await ctx.get(
+                "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?",
+                key=steam_api_key,
+                steamids=account,
+                cache=True
+            )
+        except HTTPError as e:
+            await ctx.send(f"Steam API failed with HTTP status code {e.status}.")
+            return
+
+        accounts = resolve_account_data["response"].get("players")
+
+        if accounts is None:
+            await ctx.send("Could not find a Steam user associated with that Steam ID 64, vanity username, or URL.")
+            return
+
+        account_data = accounts[0]
+
+        av_hash = account_data["avatarhash"]
+
+        avatar_url = f"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/{av_hash[:2]}/{av_hash}_full.jpg"
+
+        status = account_data["personastate"]
 
         embed = Embed(
             description=f"**[Steam Avatar link]({avatar_url})**\n",
-            colour=0x53A4C4 if account.status == "Online" else 0x555555
+            colour=0x53A4C4 if status != 0 else 0x555555
         )
-        embed.set_author(name=account.name, url=account.profile_url)
+        embed.set_author(name=account_data["personaname"], url=account_data["profileurl"])
         embed.set_thumbnail(url=avatar_url)
         embed.set_footer(text="Powered by Steam | Only showing basic public information.")
 
+        # Used to calculate the SteamID & SteamID3.
+        steam_id64 = int(account_data["steamid"])
+        id_y_component = steam_id64 % 2
+        id_w_component = steam_id64 - (id_y_component + 76561197960265728)
+
         description = (
-            f"**Steam ID 64:** {account.steam_id64}",
-            f"**Steam ID:** {account.steam_id}",
-            f"**Steam ID 3:** {account.steam_id3}",
-            f"**Status:** {account.status}",
+            f"**Steam ID 64:** {steam_id64}",
+            f"**Steam ID:** STEAM_0:{id_y_component}:{round(id_w_component / 2)}",
+            f"**Steam ID 3:** [U:1:{id_y_component + id_w_component}]",
+            f"**Status:** {_STEAM_PERSONA_STATES.get(status, 'Unknown')}",
         )
 
         embed.description += "\n".join(f"<:arrow:713872522608902205> {entry}" for entry in description)
@@ -993,14 +909,6 @@ class Web(commands.Cog,
         embed.add_field(name="Channel ID", value=data['id'])
 
         await ctx.send(embed=embed)
-
-
-    @exchangerate.error
-    @steaminfo.error
-    async def on_entity_error(self, ctx: commands.Context, error):
-        if isinstance(error, commands.BadArgument):
-            await ctx.send(str(error))
-            error.handled = True
 
 
 def setup(bot):
