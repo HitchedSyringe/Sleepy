@@ -293,13 +293,12 @@ class Fun(commands.Cog):
 
         EXAMPLE: clap hello there!
         """
-        clap = "\N{CLAPPING HANDS SIGN}"
-        content = f"{clap}{clap.join(text.split())}{clap}"
+        clapped = re.sub(r"\s", "\N{CLAPPING HANDS SIGN}", text)
 
-        if len(content) > 2000:
+        if len(clapped) > 1998:
             await ctx.send("The result is too long to post.")
         else:
-            await ctx.send(content)
+            await ctx.send(f"\N{CLAPPING HANDS SIGN}{clapped}\N{CLAPPING HANDS SIGN}")
 
 
     @commands.command(aliases=["pun"])
