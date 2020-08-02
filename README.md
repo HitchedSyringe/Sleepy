@@ -24,8 +24,8 @@ following; Create pull requests and make modifications to this repository.
 The version number has a 3-digit format: `major.minor.micro`
 
 * `major` updates are rare and only used for massive rewrites affecting huge parts of the bot.
-* `minor` updates are any breaking or backwards incompatible change to the bot. This is usually the removal or renaming of methods, attributes, or commands.
-* `micro` updates are any backwards compatible changes. This is usually an important bugfix (or a bunch of smaller ones), adjustment or a feature addition.
+* `minor` updates are any breaking or backwards incompatible change to the bot. This is usually the removal or renaming of classes, methods, attributes, or commands.
+* `micro` updates are any backwards compatible changes. This is usually an important bug fix (or a bunch of smaller ones), adjustment, or feature addition.
 
 ## Contributing
 
@@ -58,14 +58,12 @@ When adding commands, look at the other commands in the cog and pick which cog t
 
 3. **Setup configuration**
 
-    The next step is to set up configuration.
-
-    * Edit the file `config_template.ini`. This file should already be included. If not, you can get it from [here](https://bitbucket.org/SleepyDevelopment/slee.py-discord/src/master/config_template.ini).
+    The next step is to set the configuration variables found in the `config_template.ini` file. If necessary, a raw copy/paste-able version can be found [here](https://raw.githubusercontent.com/HitSyr/Sleepy/master/config_template.ini).
     * Set the variables as desired. Descriptions for each variable are provided in the file.
-        * In order to run the bot, `discord_bot_token` (under `Secrets`) must have a valid bot token. You can get one from [here](https://www.discord.com/developers).
-        * `webhook_url` (under `Secrets`) must also have a valid webhook url. See [here](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) for more information.
+        * In order to run the bot, `discord_bot_token` (under `Secrets`) must have a valid bot token. You can acquire one from Discord's [developer portal](https://www.discord.com/developers).
+        * `webhook_url` (under `Secrets`) must also have a valid webhook URL. Read Discord's [support article](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) on webhooks for more information.
     * When finished, rename `config_template.ini` to `config.ini`.
-        * You can also rename this file to whatever you like, however, you must follow the special running instructions specified below.
+        * You may also rename this file to whatever you like, however, you must follow the special running instructions specified below.
 
 4. **Running**
 
@@ -73,7 +71,7 @@ When adding commands, look at the other commands in the cog and pick which cog t
     > **NOTE**
     >
     > The above will attempt to load `config.ini` by default.
-    > For custom named configuration files, an optional third argument can be passed to the above in order to specify a configuration file to load.
+    > For custom named configuration files, an optional third argument can be passed to the above in order to specify a configuration file to load. Quotation marks must be used if the file name has spaces.
     >
     > Example: `python -m SleepyBot myrenamedconfig.ini` attempts to load the configuration file named `myrenamedconfig.ini` instead of the default `config.ini`.
 
@@ -81,5 +79,5 @@ When adding commands, look at the other commands in the cog and pick which cog t
 
 * The bot's extension loader has special behaviour that allows for easy handling of extensions at startup, without the hassle having to hardcode the names of any extensions. For ease of understanding, the extension loading behaviour is as follows:
   * When `autoload_enabled` is set to `true`, the loader assumes that **ANY** `.py` files in the extensions directory are valid extensions and will attempt to load them on startup. Extensions are ignored **IF AND ONLY IF** their filenames begin with a double underscore (i.e. `__structures.py`).
-  * When `autoload_enabled` is set to `false`, extensions are ignored if they are not listed in `exts`.
+  * When `autoload_enabled` is set to `false`, extensions are ignored if they are not listed in `exts` (under `Extension Config`).
   * Any successfully loaded extensions are included in the bot's `all_exts` attribute.
