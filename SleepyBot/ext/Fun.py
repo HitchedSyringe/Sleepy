@@ -147,7 +147,7 @@ class PollMenu(menus.Menu):
         return await ctx.send(content=self._question, embed=embed)
 
 
-    async def finalize(self):
+    async def finalize(self, timed_out):
         votes = +self.votes
 
         embed = Embed(

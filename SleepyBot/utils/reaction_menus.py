@@ -99,15 +99,6 @@ class ConfirmationPrompt(menus.Menu):
         self._result = None
 
 
-    def reaction_check(self, payload) -> bool:
-        checks = (
-            payload.message_id == self.message.id,
-            payload.user_id in (self._author_id, *self.bot.owner_ids),  # bot.owner_id -> bot.owner_ids
-            payload.emoji in self.buttons,
-        )
-        return all(checks)
-
-
     async def send_initial_message(self, ctx, channel):
         return await self.ctx.send(self._prompt_message)
 
@@ -165,15 +156,6 @@ class PaginatorInterface(menus.MenuPages):
         self._update_lock = asyncio.Semaphore(value=2)
 
 
-    def reaction_check(self, payload) -> bool:
-        checks = (
-            payload.message_id == self.message.id,
-            payload.user_id in (self._author_id, *self.bot.owner_ids),  # bot.owner_id -> bot.owner_ids
-            payload.emoji in self.buttons,
-        )
-        return all(checks)
-
-
     async def update(self, payload):
         async with self._update_lock:
             if self._update_lock.locked():
@@ -196,7 +178,7 @@ class PaginatorInterface(menus.MenuPages):
             await self.show_page(self.current_page)
 
 
-    async def finalize(self):
+    async def finalize(self, timed_out):
         # In case of an outstanding task.
         if isinstance(self._task, asyncio.Task):
             self._task.cancel()
