@@ -67,10 +67,10 @@ class EmbedSource(menus.ListPageSource):
     anything you can do with :class:`menus.ListPageSource`, you can also do with this page source.
     """
 
-    def __init__(self, data, *, per_page: int = 1, show_page_numbers: bool = True):
+    def __init__(self, data, *, show_page_numbers: bool = True):
         self._show_page_numbers = show_page_numbers
 
-        super().__init__(data, per_page=per_page)
+        super().__init__(data, per_page=1)
 
 
     async def format_page(self, menu, page):
