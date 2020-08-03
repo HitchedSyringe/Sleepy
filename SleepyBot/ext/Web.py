@@ -540,33 +540,32 @@ class Web(commands.Cog,
         await ctx.send(embed=embed)
 
 
-    # XXX Probably Borked. RIP.
-    # @commands.command(aliases=["ss", "snapshot"])
-    # @checks.bot_has_permissions(embed_links=True)
-    # @commands.cooldown(rate=1, per=10, type=commands.BucketType.member)  # So we don't overload magmafuck.
-    # async def screenshot(self, ctx: commands.Context, url: str):
-    #     """Screenshots a website.
-    #     NOTE: This does not take NSFW channel status into consideration.
-    #     (Bot Needs: Embed Links)
+    @commands.command(aliases=["ss", "snapshot"])
+    @checks.bot_has_permissions(embed_links=True)
+    @commands.cooldown(rate=1, per=10, type=commands.BucketType.member)  # So we don't overload magmachain.
+    async def screenshot(self, ctx: commands.Context, url: str):
+        """Screenshots a website.
+        NOTE: This does not take NSFW channel status into consideration.
+        (Bot Needs: Embed Links)
 
-    #     EXAMPLE: screenshot google.com
-    #     """
-    #     async with ctx.typing():
-    #         response = await ctx.get(
-    #             "https://magmafuck.herokuapp.com/api/v1",
-    #             headers__=dict(website=url.strip("<>")),
-    #             cache=True
-    #         )
+        EXAMPLE: screenshot google.com
+        """
+        async with ctx.typing():
+            response = await ctx.get(
+                "https://magmachain.herokuapp.com/api/v1",
+                headers__=dict(website=url.strip("<>")),
+                cache=True
+            )
 
-    #     embed = Embed(
-    #         title="Snapshot",
-    #         description=f"[Link to Website]({response['website']})",
-    #         color=0x2F3136,
-    #         timestamp=datetime.utcnow()
-    #     )
-    #     embed.set_image(url=response["snapshot"])
-    #     embed.set_footer(text="Powered by magmafuck.herokuapp.com")
-    #     await ctx.send(embed=embed)
+        embed = Embed(
+            title="Snapshot",
+            description=f"[Link to Website]({response['website']})",
+            color=0x2F3136,
+            timestamp=datetime.utcnow()
+        )
+        embed.set_image(url=response["snapshot"])
+        embed.set_footer(text="Powered by magmachain.herokuapp.com")
+        await ctx.send(embed=embed)
 
 
     @commands.command()

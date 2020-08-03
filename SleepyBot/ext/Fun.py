@@ -264,18 +264,17 @@ class Fun(commands.Cog):
             error.handled = True
 
 
-    # XXX Probably Borked. RIP.
-    # @commands.command(aliases=["cb"])
-    # @commands.cooldown(rate=1, per=3, type=commands.BucketType.member)
-    # async def chatbot(self, ctx: commands.Context, *, message: str):
-    #     """Allows you to interact with a highly intelligent chatbot AI.
+    @commands.command(aliases=["cb"])
+    @commands.cooldown(rate=1, per=3, type=commands.BucketType.member)
+    async def chatbot(self, ctx: commands.Context, *, message: str):
+        """Allows you to interact with a highly intelligent chatbot AI.
 
-    #     EXAMPLE: chatbot hello there!
-    #     """
-    #     async with ctx.typing():
-    #         chatbot = await ctx.get("https://some-random-api.ml/chatbot", message=message)
+        EXAMPLE: chatbot hello there!
+        """
+        async with ctx.typing():
+            chatbot = await ctx.get("https://some-random-api.ml/chatbot", message=message)
 
-    #     await ctx.send(f"{chatbot['response']}\n`Powered by some-random-api.ml`.")
+        await ctx.send(f"{chatbot['response']}\n`Powered by some-random-api.ml`.")
 
 
     @commands.command(aliases=["cnorris"])

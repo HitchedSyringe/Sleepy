@@ -218,19 +218,18 @@ class Weeb(commands.Cog,
         await self._format_nekobot_image(ctx, url=response["message"], colour=0x2F3136)
 
 
-    # XXX As of right now, this is disabled due to the feature being DOA on NekoBot's end.
-    # @commands.command()
-    # @checks.bot_has_permissions(embed_links=True)
-    # @commands.cooldown(rate=1, per=5, type=commands.BucketType.member)
-    # async def trash(self, ctx: commands.Context, image: converters.ImageAssetConverter):
-    #     """Generates a trash waifu meme.
-    #     Image can either be a link or attachment.
-    #     (Bot Needs: Embed Links)
-    #     """
-    #     async with ctx.typing():
-    #         response = await ctx.get(f"https://nekobot.xyz/api/imagegen?url={urlquote(str(image))}", type="trash")
+    @commands.command()
+    @checks.bot_has_permissions(embed_links=True)
+    @commands.cooldown(rate=1, per=5, type=commands.BucketType.member)
+    async def trash(self, ctx: commands.Context, image: converters.ImageAssetConverter):
+        """Generates a trash waifu meme.
+        Image can either be a link or attachment.
+        (Bot Needs: Embed Links)
+        """
+        async with ctx.typing():
+            response = await ctx.get(f"https://nekobot.xyz/api/imagegen?url={urlquote(str(image))}", type="trash")
 
-    #     await self._format_nekobot_image(ctx, url=response["message"], colour=0x2F3136)
+        await self._format_nekobot_image(ctx, url=response["message"], colour=0x2F3136)
 
 
 def setup(bot):
