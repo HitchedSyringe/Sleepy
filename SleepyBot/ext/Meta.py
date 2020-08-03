@@ -23,6 +23,14 @@ from typing import Optional
 from SleepyBot.utils import checks, converters, formatting, reaction_menus
 
 
+_STATUS_EMOJI = {
+    discord.Status.online: "<:online:713579666031509624>",
+    discord.Status.offline: "<:offline:713579699351060612>",
+    discord.Status.dnd: "<:dnd:713579761129095278>",
+    discord.Status.idle: "<:idle:713579726026965052>",
+}
+
+
 # We're using :class:`menus.GroupByPageSource` as the primary source for the
 # help command in order to ensure compatibility with :meth`HelpCommand.show_bot_help`.
 # Although :class:`menus.ListPageSource` would work as well, there's a bit more overhead
@@ -633,7 +641,7 @@ class Meta(commands.Cog):
         now = datetime.utcnow()
         created_ago = formatting.parse_duration(now - user.created_at, brief=True)
         joined_ago = formatting.parse_duration(now - user.joined_at, brief=True)
-        shared_servers = sum(1 for member in ctx.bot.get_all_members() if member == user)
+        shared_servers = sum(1 for guild in ctx.bot.guilds if user in guild.members)
 
         description = [
             f"**User ID:** {user.id}",
@@ -661,19 +669,13 @@ class Meta(commands.Cog):
                 inline=False
             )
 
-        status_icons = {
-            discord.Status.online: "<:online:713579666031509624>",
-            discord.Status.offline: "<:offline:713579699351060612>",
-            discord.Status.dnd: "<:dnd:713579761129095278>",
-            discord.Status.idle: "<:idle:713579726026965052>",
-        }
-        status_info = (
-            # Match the icon with the status.
-            f"{status_icons[user.mobile_status]}  |  :iphone: Mobile Status",
-            f"{status_icons[user.desktop_status]}  |  :desktop: Desktop Status",
-            f"{status_icons[user.web_status]}  |  :globe_with_meridians: Web Status",
+        # Match the icon with the status.
+        statuses = (
+            f"{_STATUS_EMOJI[user.mobile_status]}  |  \N{MOBILE PHONE} Mobile Status",
+            f"{_STATUS_EMOJI[user.desktop_status]}  |  \N{DESKTOP COMPUTER}\ufe0f Desktop Status",
+            f"{_STATUS_EMOJI[user.web_status]}  |  \N{GLOBE WITH MERIDIANS} Web Status",
         )
-        embed.add_field(name="**Status**", value="\n".join(status_info))
+        embed.add_field(name="**Status**", value="\n".join(statuses))
 
         if user.activity is not None:
             if isinstance(user.activity, discord.CustomActivity) and user.activity.emoji is not None:
