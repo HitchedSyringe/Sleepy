@@ -348,6 +348,17 @@ class NSFW(commands.Cog,
 
     @commands.command()
     @checks.bot_has_permissions(embed_links=True)
+    async def paizuri(self, ctx: commands.Context):
+        """Shows a random image of p41zur1.
+        (Bot Needs: Embed Links)
+        """
+        response = await ctx.get("https://nekobot.xyz/api/image", type="paizuri")
+
+        await self._format_generic_image(ctx, url=response["message"], provider="nekobot.xyz", colour=0x2F3136)
+
+
+    @commands.command()
+    @checks.bot_has_permissions(embed_links=True)
     async def pgif(self, ctx: commands.Context):
         """Sends a random pr0n GIF.
         (Bot Needs: Embed Links)
@@ -469,6 +480,17 @@ class NSFW(commands.Cog,
             embeds.append(embed)
 
         await ctx.paginate(reaction_menus.EmbedSource(embeds))
+
+
+    @commands.command()
+    @checks.bot_has_permissions(embed_links=True)
+    async def tentacle(self, ctx: commands.Context):
+        """You've seen enough hentai to know what this entails.
+        (Bot Needs: Embed Links)
+        """
+        response = await ctx.get("https://nekobot.xyz/api/image", type="tentacle")
+
+        await self._format_generic_image(ctx, url=response["message"], provider="nekobot.xyz", colour=0x2F3136)
 
 
     @commands.command()
