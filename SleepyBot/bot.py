@@ -51,8 +51,6 @@ class Sleepy(commands.AutoShardedBot):
         .. note::
 
             This attribute is ``None`` upon initialisation and is only set upon ready.
-    version: :class:`str`
-        A string representing the current build version of the bot.
     http_requester: :class:`requester.CachedHTTPRequester`
         The HTTP requester class used for making and caching HTTP requests.
         .. note::
@@ -82,7 +80,6 @@ class Sleepy(commands.AutoShardedBot):
         self.app_info = None
 
         self.start_time = None
-        self.version = __version__
 
         self.http_requester = None
 

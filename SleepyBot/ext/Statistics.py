@@ -25,6 +25,7 @@ import psutil
 from discord import Colour, Embed
 from discord.ext import commands, tasks
 
+from SleepyBot import __version__
 from SleepyBot.utils import checks, formatting, reaction_menus
 
 
@@ -234,7 +235,7 @@ class Statistics(commands.Cog,
         general_info = (
             f"**Owner:** {ctx.bot.app_owner}",
             f"**Created:** {created_ago} ago ({ctx.me.created_at:%a, %b %d, %Y @ %#I:%M %p} UTC)",
-            f"**Version:** {ctx.bot.version}",
+            f"**Version:** {__version__}",
             f"**Servers:** {guilds:,d}",
             (
                 f"**Channels:** {text:,d} <:text_channel:587389191550271488> | "
