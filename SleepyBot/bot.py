@@ -48,6 +48,9 @@ class Sleepy(commands.AutoShardedBot):
             Additionally, this attribute does **not** automatically update.
     start_time: :class:`datetime.datetime`
         A UTC datetime representing when the bot was initialised.
+        .. note::
+
+            This attribute is ``None`` upon initialisation and is only set upon ready.
     version: :class:`str`
         A string representing the current build version of the bot.
     http_requester: :class:`requester.CachedHTTPRequester`
@@ -78,7 +81,7 @@ class Sleepy(commands.AutoShardedBot):
         self.config = config
         self.app_info = None
 
-        self.start_time = datetime.datetime.utcnow()
+        self.start_time = None
         self.version = __version__
 
         self.http_requester = None
@@ -141,6 +144,8 @@ class Sleepy(commands.AutoShardedBot):
         self.owner_ids |= frozenset(self.config["Discord Bot Config"].getjson("owner_ids"))
 
         await self.wait_until_ready()
+
+        self.start_time = datetime.datetime.utcnow()
 
         self._load_configured_extensions()
 
