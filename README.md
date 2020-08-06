@@ -35,16 +35,16 @@ When adding commands, look at the other commands in the cog and pick which cog t
 
 ## Requirements
 
-* [Python 3.7+](https://www.python.org)
-* [discord.py 1.4+](https://www.github.com/Rapptz/discord.py)
-* [discord-ext-menus](https://www.github.com/Rapptz/discord-ext-menus)
-* [discord-flags 2.1+](https://github.com/XuaTheGrate/Flag-Parsing)
-* [pyyaml 5.1+](https://github.com/yaml/pyyaml)
-* [aiofiles 0.4.0+](https://github.com/Tinche/aiofiles)
-* [emoji](https://github.com/carpedm20/emoji/)
+* [Python 3.7.0+](https://www.python.org)
+* [aiofiles](https://github.com/Tinche/aiofiles)
 * [cachetools](https://github.com/tkem/cachetools/)
-* [psutil](https://github.com/giampaolo/psutil)
+* [discord.py 1.4.0+](https://www.github.com/Rapptz/discord.py)
+* [discord-ext-menus](https://www.github.com/Rapptz/discord-ext-menus)
+* [discord-flags 2.1.0+](https://github.com/XuaTheGrate/Flag-Parsing)
+* [emoji](https://github.com/carpedm20/emoji/)
 * [matplotlib](https://github.com/matplotlib/matplotlib)
+* [psutil](https://github.com/giampaolo/psutil)
+* [pyyaml](https://github.com/yaml/pyyaml)
 
 ## Installation
 
