@@ -448,7 +448,7 @@ class Owner(commands.Cog, command_attrs=dict(hidden=True)):
         """Runs shell commands."""
         # The reason we're not using :func:`asyncio.create_subprocess_shell` here is
         # because it's deprecated in Python 3.8 and doesn't even work on Windows.
-        _partial_runner = partial(subprocess.run, body, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        _partial_runner = partial(subprocess.run, body, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         async with ctx.typing():
             result = await ctx.bot.loop.run_in_executor(None, _partial_runner)
@@ -457,7 +457,7 @@ class Owner(commands.Cog, command_attrs=dict(hidden=True)):
         stderr = result.stderr.decode()
         output = f"stdout:\n{stdout}\nstderr:\n{stderr}" if stderr else stdout
 
-        await ctx.safe_send(f"```sh\n{output}\n```", filename="bash_result")
+        await ctx.safe_send(f"```sh\n{output}\n```", filename="shell_result")
 
 
     @commands.command(aliases=["die", "kys"])
