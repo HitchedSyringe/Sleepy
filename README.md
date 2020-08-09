@@ -38,7 +38,7 @@ When adding commands, look at the other commands in the cog and pick which cog t
 * [Python 3.7.0+](https://www.python.org)
 * [aiofiles](https://github.com/Tinche/aiofiles)
 * [cachetools](https://github.com/tkem/cachetools/)
-* [discord.py 1.4.0+](https://www.github.com/Rapptz/discord.py)
+* [discord.py 1.4.1+](https://www.github.com/Rapptz/discord.py)
 * [discord-ext-menus](https://www.github.com/Rapptz/discord-ext-menus)
 * [discord-flags 2.1.0+](https://github.com/XuaTheGrate/Flag-Parsing)
 * [emoji](https://github.com/carpedm20/emoji/)

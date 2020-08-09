@@ -1,6 +1,6 @@
 aiofiles
 cachetools
-discord.py>=1.4.0
+discord.py>=1.4.1
 git+https://github.com/Rapptz/discord-ext-menus
 discord-flags>=2.1.0
 emoji
