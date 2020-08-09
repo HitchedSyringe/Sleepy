@@ -410,6 +410,8 @@ class Web(commands.Cog,
 
     @exchangerate.error
     async def on_exchangerate_error(self, ctx: commands.Context, error):
+        error = getattr(error, "original", error)
+
         if isinstance(error, commands.BadArgument):
             await ctx.send(str(error))
             error.handled = True
