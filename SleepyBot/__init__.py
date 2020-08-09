@@ -1,9 +1,8 @@
 """
 Sleepy Discord Bot
 ~~~~~~~~~~~~~~~~~~
-A simple, Python-based Discord bot written using discord.py.
+A Discord bot for those who like to sleep.
 :copyright: (c) 2018-2020 HitchedSyringe
-:license: See LICENSE for more details.
 
 """
 
