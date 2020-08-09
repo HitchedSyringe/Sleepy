@@ -42,6 +42,7 @@ When adding commands, look at the other commands in the cog and pick which cog t
 * [discord-ext-menus](https://www.github.com/Rapptz/discord-ext-menus)
 * [discord-flags 2.1.0+](https://github.com/XuaTheGrate/Flag-Parsing)
 * [emoji](https://github.com/carpedm20/emoji/)
+* [googletrans](https://github.com/ssut/py-googletrans)
 * [matplotlib](https://github.com/matplotlib/matplotlib)
 * [psutil](https://github.com/giampaolo/psutil)
 * [pyyaml](https://github.com/yaml/pyyaml)

@@ -19,6 +19,7 @@ from typing import Optional
 from urllib.parse import quote as urlquote
 
 import discord
+import googletrans
 from discord import Embed
 from discord.ext import commands
 
@@ -94,6 +95,39 @@ def _resolve_steam_identifier(value: str) -> str:
     return value
 
 
+# Unfortinately, we have to have two separate but similar psuedo-converter
+# functions due to the weird syntax of the translate command.
+def _parse_source(value: str) -> str:
+    """Psuedo-converter that resolves the source language code.
+    Raises :exc:`commands.BadArgument` if the input doesn't begin with `]` or the language code is invalid.
+    """
+    # Raising BadArgument probably shouldn't matter here since this gets wrapped in ``Optional`` anyway.
+    if not value.startswith("]"):
+        raise commands.BadArgument("You must specify a language to translate from.")
+
+    code = value[1:].lower()
+
+    if len(code) != 2 and code not in ("zh-cn", "zh-tw") and not code.isalpha():
+        raise commands.BadArgument("Invalid language code.")
+
+    return code
+
+
+def _parse_destination(value: str) -> str:
+    """Psuedo-converter that resolves the destination language code.
+    Raises :exc:`commands.BadArgument` if the input doesn't begin with `}` or the language code is invalid.
+    """
+    if not value.startswith("}"):
+        raise commands.BadArgument("You must specify a language to translate to.")
+
+    code = value[1:].lower()
+
+    if len(code) != 2 and code not in ("zh-cn", "zh-tw") and not code.isalpha():
+        raise commands.BadArgument("Invalid language code.")
+
+    return code
+
+
 class Web(commands.Cog,
           command_attrs=dict(cooldown=commands.Cooldown(rate=2, per=5, type=commands.BucketType.member))):
     """Commands that grab data from various websites/APIs.
@@ -102,6 +136,7 @@ class Web(commands.Cog,
 
     def __init__(self, bot):
         self._google_api_keys = defaultdict(lambda: set(bot.config["Secrets"].getjson("google_api_keys")))
+        self._translator = googletrans.Translator()
 
 
     @staticmethod
@@ -408,15 +443,6 @@ class Web(commands.Cog,
         await ctx.send(f"**Exchange Rates**\n{rates}\n`Powered by api.exchangeratesapi.io`")
 
 
-    @exchangerate.error
-    async def on_exchangerate_error(self, ctx: commands.Context, error):
-        error = getattr(error, "original", error)
-
-        if isinstance(error, commands.BadArgument):
-            await ctx.send(str(error))
-            error.handled = True
-
-
     @commands.group(invoke_without_command=True, aliases=["search"])
     @checks.bot_has_permissions(embed_links=True, add_reactions=True, read_message_history=True)
     @commands.cooldown(rate=1, per=5, type=commands.BucketType.member)
@@ -654,6 +680,49 @@ class Web(commands.Cog,
         )
 
         embed.description += "\n".join(f"<:arrow:713872522608902205> {entry}" for entry in description)
+
+        await ctx.send(embed=embed)
+
+
+    @commands.command()
+    @checks.bot_has_permissions(embed_links=True)
+    @commands.cooldown(rate=1, per=5, type=commands.BucketType.member)  # Curb possibility of being blocked.
+    async def translate(self, ctx: commands.Context,
+                        destination: _parse_destination, source: Optional[_parse_source] = "auto",
+                        *, message: commands.clean_content(fix_channel_mentions=True)):
+        """Translates a message using Google translate.
+        The supported language codes are listed [here](https://cloud.google.com/translate/docs/languages).
+
+        To specify a language to translate to, prefix the language code with `}`.
+        Optionally, to specify a source language to translate from, prefix the language code with `]`.
+        Please note that both the source language and destination language must be specified **BEFORE** the message.
+
+        EXAMPLE:
+        (Ex. 1) translate }es ]en Hello!
+        (Ex. 2) translate }en Hola!
+        """
+        await ctx.trigger_typing()
+        try:
+            transl = await ctx.bot.loop.run_in_executor(None, self._translator.translate, message, destination, source)
+        except ValueError as exc:
+            await ctx.send(str(exc).capitalize())
+            return
+        except Exception as exc:
+            await ctx.send(f"An error occurred while translating: {exc}")
+            return
+
+        embed = Embed(description=formatting.simple_shorten(transl.text, 2048), colour=0x4C8BF5)
+        embed.set_author(name=str(ctx.author), icon_url=ctx.author.avatar_url)
+        embed.set_thumbnail(
+            url="https://media.discordapp.net/attachments/507971834570997765/741472907103961158/translate.png"
+        )
+
+        src = googletrans.LANGUAGES.get(transl.src, '(Auto-detected)').title()
+        dest = googletrans.LANGUAGES.get(transl.dest, 'Unknown').title()
+
+        embed.set_footer(
+            text=f"{src} ({transl.src}) \N{RIGHTWARDS ARROW} {dest} ({transl.dest}) | Powered by Google Translate"
+        )
 
         await ctx.send(embed=embed)
 
@@ -910,6 +979,16 @@ class Web(commands.Cog,
         embed.add_field(name="Channel ID", value=data['id'])
 
         await ctx.send(embed=embed)
+
+
+    @exchangerate.error
+    @translate.error
+    async def on_entity_error(self, ctx: commands.Context, error):
+        error = getattr(error, "original", error)
+
+        if isinstance(error, commands.BadArgument):
+            await ctx.send(str(error))
+            error.handled = True
 
 
 def setup(bot):
