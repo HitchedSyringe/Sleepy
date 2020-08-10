@@ -207,6 +207,7 @@ class Sleepy(commands.AutoShardedBot):
 
             data["name"] = data["name"].format(
                 bot=self,
+                version=__version__,
                 unique=len(self.users),
                 members=members,
                 channels=channels,
