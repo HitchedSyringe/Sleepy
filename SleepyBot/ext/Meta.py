@@ -216,6 +216,24 @@ class SleepyHelpCommand(commands.HelpCommand):
         await self._paginate(source)
 
 
+class DefaultMemberMocker:
+    """A class that mocks a member with no roles.
+    This is useful for finding which channels are "secret."
+    This class is only meant to be used in :meth:`abc.GuildChannel.permissions_for`.
+
+    Attributes
+    ----------
+    id: :class:`int`
+        This is always ``0``.
+    """
+    id = 0
+
+    def __init__(self, guild):
+        # Unfortunately, mocking default members isn't as easy in 1.4 due to changes to permissions_for.
+        # We have to actually build a SnowflakeList ourself in order to properly mock.
+        self._roles = discord.utils.SnowflakeList((guild.id,))
+
+
 class Meta(commands.Cog):
     """Commands relating to me or Discord itself."""
 
@@ -463,11 +481,7 @@ class Meta(commands.Cog):
         # Humanize features list.
         guild_features = ", ".join(feature.title().replace("_", " ") for feature in guild.features) or None
 
-        class MockDefaultMember:
-            id = 0
-            roles = (guild.default_role,)
-
-        mock_member = MockDefaultMember()
+        mock_member = DefaultMemberMocker(ctx.guild)
         secret = Counter()
         totals = Counter()
         for channel in guild.channels:
@@ -578,12 +592,7 @@ class Meta(commands.Cog):
         """Shows a tree-like view of the server's channels.
         (Bot Needs: Embed Links, Add Reactions and Read Message History)
         """
-        # We need this in order to find the hidden channels.
-        class MockDefaultMember():
-            id = 0
-            roles = (ctx.guild.default_role,)
-
-        mock_member = MockDefaultMember()
+        mock_member = DefaultMemberMocker(ctx.guild)
         paginator = commands.Paginator(prefix="", suffix="")
 
         for category, channels in ctx.guild.by_category():
