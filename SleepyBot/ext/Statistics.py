@@ -64,8 +64,12 @@ class Statistics(commands.Cog,
         logging.getLogger("discord").addHandler(handler)
 
         self._old_on_error = bot.on_error
-        # Monkey patch the on_error.
-        type(bot).on_error = on_error
+        self._old_before_identify_hook = bot.before_identify_hook
+
+        # Modify some of the bot's stuff.
+        bot_obj = type(bot)
+        bot_obj.on_error = on_error
+        bot_obj.before_identify_hook = before_identify_hook
 
         self._links = {
             "Invite": discord.utils.oauth_url(bot.user.id, discord.Permissions(388166)),
@@ -80,7 +84,10 @@ class Statistics(commands.Cog,
         self._notify_gateway_status.cancel()  # pylint: disable=maybe-no-member
         logging.getLogger("discord").removeHandler(self._gateway_handler)
 
-        type(self.bot).on_error = self._old_on_error
+        # Restore the bot's original state.
+        bot_obj = type(self.bot)
+        bot_obj.on_error = self._old_on_error
+        bot_obj.before_identify_hook = self._old_before_identify_hook
 
 
     @tasks.loop()
@@ -194,6 +201,11 @@ class Statistics(commands.Cog,
             # Don't log our insta-leave.
             return
         await self.hook.send(embed=self._get_brief_guild_info(guild, joined=False))
+
+
+    @commands.Cog.listener()
+    async def on_shard_resumed(self, shard_id: int) -> None:
+        self.bot.resume_stats[shard_id] += 1
 
 
     @commands.Cog.listener()
@@ -373,6 +385,42 @@ class Statistics(commands.Cog,
             await ctx.send("No commands have been used yet.\nTry this command again later.")
 
 
+    @commands.command(aliases=["gws"], hidden=True)
+    @commands.is_owner()
+    @checks.bot_has_permissions(embed_links=True)
+    async def gatewaystats(self, ctx: commands.Context):
+        """Shows gateway identifies/resumes for the current session. (Owner only)"""
+        total_resumes = 0
+        total_identifies = 0
+
+        stats = []
+        for shard_id, shardinfo in ctx.bot.shards.items():
+            shard = shardinfo._parent
+
+            if shard._task.done():  # Task failure/complete
+                if shard._task.exception() is not None:
+                    status = "\N{FIRE}"
+                else:
+                    status = "\N{ANTICLOCKWISE DOWNWARDS AND UPWARDS OPEN CIRCLE ARROWS}"
+
+            elif not shard.ws.open:  # WS closed
+                status = "<:xmark:512814698136076299>"
+            else:
+                status = "<:checkmark:512814665705979914>"
+
+            resume_count = ctx.bot.resume_stats.get(shard_id, 0)
+            identify_count = ctx.bot.identify_stats.get(shard_id, 0)
+
+            total_resumes += resume_count
+            total_identifies += identify_count
+
+            stats.append(f"{status} `Shard ID {shard_id} (RESUMEs: {resume_count} | IDENTIFYs: {identify_count})`")
+
+        embed = Embed(title="Gateway Statistics", description="\n".join(stats), colour=0x2F3136)
+        embed.set_footer(text=f"Total RESUMEs: {total_resumes} | Total IDENTIFYs: {total_identifies}")
+        await ctx.send(embed=embed)
+
+
     @commands.command(aliases=["wss"])
     @checks.bot_has_permissions(add_reactions=True, read_message_history=True)
     @commands.cooldown(rate=1, per=5, type=commands.BucketType.member)
@@ -393,6 +441,11 @@ class Statistics(commands.Cog,
         """Shows my uptime, including the time I was booted up."""
         uptime = formatting.parse_duration(datetime.utcnow() - ctx.bot.start_time)
         await ctx.send(f"```ldif\nUptime: {uptime}\nBooted: {ctx.bot.start_time:%a, %b %d, %Y @ %#I:%M %p} UTC\n```")
+
+
+async def before_identify_hook(self, shard_id: int, *, initial: bool) -> None:
+    self.identify_stats[shard_id] += 1
+    await super().before_identify_hook(shard_id, initial=initial)
 
 
 async def on_error(self, event: str, *args, **kwargs) -> None:
@@ -420,5 +473,11 @@ def setup(bot):
 
     if not hasattr(bot, "socket_stats"):
         bot.socket_stats = Counter()
+
+    if not hasattr(bot, "resume_stats"):
+        bot.resume_stats = Counter()
+
+    if not hasattr(bot, "identify_stats"):
+        bot.identify_stats = Counter()
 
     bot.add_cog(Statistics(bot))
