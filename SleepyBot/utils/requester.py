@@ -166,7 +166,7 @@ class CachedHTTPRequester:
             The HTTP request failed.
         """
         async with self.lock:
-            cache_key = f"{method}:{url}:<{''.join(f'{key}={value}' for key, value in parameters.items())}>"
+            cache_key = f"{method}:{url}:<{' '.join(f'{k}={v}' for k, v in parameters.items())}>"
 
             cached_entry = self.cache.get(cache_key)
             if cache and cached_entry is not None:
