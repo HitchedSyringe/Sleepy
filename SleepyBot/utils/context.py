@@ -30,8 +30,10 @@ _TICK_MATCHES = {
 
 
 class Context(commands.Context):
-    """Inherits from :class:`commands.Context`.
-    This essentially just provides more useful methods.
+    """A custom context class that provides some more helpful and useful methods.
+
+    This class is a subclass of :class:`commands.Context` and as a result,
+    anything that you can do with a :class:`commands.Context`, you can do with this context.
     """
 
     @property
@@ -94,14 +96,14 @@ class Context(commands.Context):
             The time (in seconds) before the prompt expires.
             Defaults to ``30``.
         delete_message_after: :class:`bool`
-            Whether or not to delete the message if the menu either expires or gets a response.
+            Whether or not to delete the message if the prompt either expires or gets a response.
             Defaults to ``True``.
 
         Returns
         -------
         Optional[:class:`bool`]
             Whether or not the prompt was confirmed by the user.
-            Returns ``None`` if the prompt expired.
+            ``None`` if the prompt expired.
         """
         prompt = ConfirmationPrompt(prompt_message, timeout=timeout, delete_message_after=delete_message_after)
         return await prompt.prompt(self)
@@ -175,7 +177,7 @@ class Context(commands.Context):
 
         Same as :meth:`send`, but with a few safeguards added in.
         1) If the message content is too long, then it is sent as a ``.txt`` file instead.
-        2) If ``disable_mentions`` is ``True``, then all mentions are disabled.
+        2) If ``disable_mentions`` is ``True``, then all user mentions are disabled.
 
         .. note::
 

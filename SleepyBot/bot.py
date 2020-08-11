@@ -31,9 +31,8 @@ _LOG = logging.getLogger(__name__)
 class Sleepy(commands.AutoShardedBot):
     """The main Slee.py Discord bot class.
 
-    This class is a subclass of :class:`commands.AutoShardedBot` and as a result
-    anything that you can do with a :class:`commands.AutoShardedBot` you can do with
-    this bot.
+    This class is a subclass of :class:`commands.AutoShardedBot` and as a result,
+    anything that you can do with a :class:`commands.AutoShardedBot`, you can do with this bot.
 
     Attributes
     ----------
