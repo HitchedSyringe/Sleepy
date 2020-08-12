@@ -168,8 +168,7 @@ class Sleepy(commands.AutoShardedBot):
         else:
             to_load = frozenset(exts_config.getjson("exts"))
 
-            exts_dir = exts_config["exts_directory"]
-            if exts_dir is not None:
+            if exts_config["exts_directory"] is not None:
                 cleaned = self.exts_directory.as_posix().replace("/", ".")
                 to_load = frozenset(f"{cleaned}.{ext}" for ext in to_load)
 
