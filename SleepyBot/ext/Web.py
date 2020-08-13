@@ -71,9 +71,9 @@ def _youtube_channel(value: str) -> dict:
     return {"id" if YOUTUBE_ID_REGEX.fullmatch(value) is not None else "forUsername": value}
 
 
-_STEAM_URL_REGEX = re.compile(r"(?:https?\:\/\/)?(?:www\.)?steamcommunity\.com\/(?:profile|id)\/([\w\-]{2,})\/?")
+STEAM_URL_REGEX = re.compile(r"(?:https?\:\/\/)?(?:www\.)?steamcommunity\.com\/(?:profile|id)\/([\w\-]{2,})\/?")
 
-_STEAM_PERSONA_STATES = {
+STEAM_PERSONA_STATES = {
     0: "Offline",
     1: "Online",
     2: "Busy",
@@ -88,7 +88,7 @@ def _resolve_steam_identifier(value: str) -> str:
     """Psuedo-converter that resolves the Steam account identifier from the URL, if given.
     Otherwise, the string is returned as-is.
     """
-    url_match = _STEAM_URL_REGEX.fullmatch(value.strip("<>"))
+    url_match = STEAM_URL_REGEX.fullmatch(value.strip("<>"))
     if url_match is not None:
         return url_match.group(1)
 
@@ -676,7 +676,7 @@ class Web(commands.Cog,
             f"**Steam ID 64:** {steam_id64}",
             f"**Steam ID:** STEAM_0:{id_y_component}:{round(id_w_component / 2)}",
             f"**Steam ID 3:** [U:1:{id_y_component + id_w_component}]",
-            f"**Status:** {_STEAM_PERSONA_STATES.get(status, 'Unknown')}",
+            f"**Status:** {STEAM_PERSONA_STATES.get(status, 'Unknown')}",
         )
 
         embed.description += "\n".join(f"<:arrow:713872522608902205> {entry}" for entry in description)
