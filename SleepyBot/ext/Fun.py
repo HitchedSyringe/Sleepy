@@ -150,19 +150,14 @@ class PollMenu(menus.Menu):
     async def finalize(self, timed_out):
         votes = +self.votes
 
-        embed = Embed(
-            title="Voting has concluded and the results are in!",
-            colour=0x2F3136
-        )
+        embed = Embed(title="Voting has concluded and the results are in!", colour=0x2F3136)
 
         if votes:
             embed.description = f"```\n{formatting.tchart(votes.most_common())}\n```"
-            embed.set_footer(
-                text=f"Total: {sum(votes.values())} | Started by: {self.ctx.author} (ID: {self.ctx.author.id})"
-            )
+            embed.set_footer(text=f"Total: {sum(votes.values())} | Started by: {self.ctx.author}")
         else:
             embed.description = "Looks like nobody casted a single vote..."
-            embed.set_footer(text=f"Started by: {self.ctx.author} (ID: {self.ctx.author.id})")
+            embed.set_footer(text=f"Started by: {self.ctx.author}")
 
         await self.ctx.send(content=self._question, embed=embed)
 
