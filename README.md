@@ -44,6 +44,8 @@ When adding commands, look at the other commands in the cog and pick which cog t
 * [emoji](https://github.com/carpedm20/emoji/)
 * [googletrans](https://github.com/ssut/py-googletrans)
 * [matplotlib](https://github.com/matplotlib/matplotlib)
+* [numpy](https://github.com/numpy/numpy)
+* [Pillow](https://github.com/python-pillow/Pillow)
 * [psutil](https://github.com/giampaolo/psutil)
 * [pyyaml](https://github.com/yaml/pyyaml)
 
