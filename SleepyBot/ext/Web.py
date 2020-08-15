@@ -570,7 +570,7 @@ class Web(commands.Cog,
 
     @commands.command(aliases=["ss", "snapshot"])
     @checks.bot_has_permissions(embed_links=True)
-    @commands.cooldown(rate=1, per=10, type=commands.BucketType.member)  # So we don't overload magmachain.
+    @commands.cooldown(rate=1, per=10, type=commands.BucketType.member)  # So we don't overload magmafuck.
     async def screenshot(self, ctx: commands.Context, url: str):
         """Screenshots a website.
         NOTE: This does not take NSFW channel status into consideration.
@@ -580,7 +580,7 @@ class Web(commands.Cog,
         """
         async with ctx.typing():
             response = await ctx.get(
-                "https://magmachain.herokuapp.com/api/v1",
+                "https://magmafuck.herokuapp.com/api/v1",
                 headers__=dict(website=url.strip("<>")),
                 cache=True
             )
@@ -592,7 +592,7 @@ class Web(commands.Cog,
             timestamp=datetime.utcnow()
         )
         embed.set_image(url=response["snapshot"])
-        embed.set_footer(text="Powered by magmachain.herokuapp.com")
+        embed.set_footer(text="Powered by magmafuck.herokuapp.com")
         await ctx.send(embed=embed)
 
 
