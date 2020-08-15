@@ -33,13 +33,15 @@ class Weeb(commands.Cog,
 
 
     @staticmethod
-    async def _format_nekobot_image(ctx, *, url: str, colour=None):
+    async def _format_nekobot_image(ctx, *, url: str, colour=None, show_requester: bool = False):
         """Sends the generic image message format for nekobot images.
         For internal use only.
         """
         embed = Embed(colour=colour)
         embed.set_image(url=url)
-        embed.set_footer(text="Powered by nekobot.xyz")
+        embed.set_footer(
+            text=f"Powered by nekobot.xyz | Requested by: {ctx.author}" if show_requester else "Powered by nekobot.xyz"
+        )
         await ctx.send(embed=embed)
 
 
@@ -68,7 +70,7 @@ class Weeb(commands.Cog,
         async with ctx.typing():
             response = await ctx.get(f"https://nekobot.xyz/api/imagegen?url={urlquote(str(image))}", type="awooify")
 
-        await self._format_nekobot_image(ctx, url=response["message"], colour=0x2F3136)
+        await self._format_nekobot_image(ctx, url=response["message"], colour=0x2F3136, show_requester=True)
 
 
     @commands.command(aliases=["france"])
@@ -82,7 +84,7 @@ class Weeb(commands.Cog,
         async with ctx.typing():
             response = await ctx.get(f"https://nekobot.xyz/api/imagegen?url={urlquote(str(image))}", type="baguette")
 
-        await self._format_nekobot_image(ctx, url=response["message"], colour=0x2F3136)
+        await self._format_nekobot_image(ctx, url=response["message"], colour=0x2F3136, show_requester=True)
 
 
     @commands.command(aliases=["bp"])
@@ -96,7 +98,7 @@ class Weeb(commands.Cog,
         async with ctx.typing():
             response = await ctx.get(f"https://nekobot.xyz/api/imagegen?url={urlquote(str(image))}", type="bodypillow")
 
-        await self._format_nekobot_image(ctx, url=response["message"], colour=0x2F3136)
+        await self._format_nekobot_image(ctx, url=response["message"], colour=0x2F3136, show_requester=True)
 
 
     @commands.command()
@@ -191,7 +193,7 @@ class Weeb(commands.Cog,
         async with ctx.typing():
             response = await ctx.get(f"https://nekobot.xyz/api/imagegen?url={urlquote(str(image))}", type="lolice")
 
-        await self._format_nekobot_image(ctx, url=response["message"], colour=0x2F3136)
+        await self._format_nekobot_image(ctx, url=response["message"], colour=0x2F3136, show_requester=True)
 
 
     @commands.command()
@@ -204,7 +206,7 @@ class Weeb(commands.Cog,
         async with ctx.typing():
             data = await ctx.get(f"https://i.ode.bz/auto/nichijou?text={urlquote(text)}", cache=True)
 
-        await ctx.send(file=File(io.BytesIO(data), filename="nichijou.gif"))
+        await ctx.send(f"Requested by: {ctx.author}", file=File(io.BytesIO(data), filename="nichijou.gif"))
 
 
     @commands.command(aliases=["catgirl", "nekomimi"])
@@ -229,7 +231,7 @@ class Weeb(commands.Cog,
         async with ctx.typing():
             response = await ctx.get(f"https://nekobot.xyz/api/imagegen?url={urlquote(str(image))}", type="trash")
 
-        await self._format_nekobot_image(ctx, url=response["message"], colour=0x2F3136)
+        await self._format_nekobot_image(ctx, url=response["message"], colour=0x2F3136, show_requester=True)
 
 
 def setup(bot):

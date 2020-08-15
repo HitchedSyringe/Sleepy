@@ -215,7 +215,7 @@ class Fun(commands.Cog):
 
         ascii_text = await ctx.get("https://artii.herokuapp.com/make", text=text, font=font, cache=True)
 
-        output = f"```\n{ascii_text}\nPowered by artii.herokuapp.com | Font: {font}```"
+        output = f"```\n{ascii_text}\nPowered by artii.herokuapp.com | Requested by: {ctx.author} | Font: {font}```"
         if len(output) > 2000:
             await ctx.send("The result is too long to post.")
         else:

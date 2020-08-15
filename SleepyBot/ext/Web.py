@@ -592,7 +592,7 @@ class Web(commands.Cog,
             timestamp=datetime.utcnow()
         )
         embed.set_image(url=response["snapshot"])
-        embed.set_footer(text="Powered by magmafuck.herokuapp.com")
+        embed.set_footer(text=f"Powered by magmafuck.herokuapp.com | Requested by: {ctx.author}")
         await ctx.send(embed=embed)
 
 
