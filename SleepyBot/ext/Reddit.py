@@ -22,12 +22,15 @@ from SleepyBot.utils import checks, formatting, reaction_menus
 from SleepyBot.utils.requester import HTTPError
 
 
+SUBREDDIT_REGEX = re.compile(r"(?:\/?r\/)?([\w\-]{1,21})")
+
+
 # Merely an attempt to save requests.
 def _clean_subreddit(value: str) -> str:
     """Pseudo-converter that cleans up any r/ and /r/ arguments and returns the raw subreddit name.
     Raises :exc:`commands.BadArgument` if the name doesn't meet Reddit's subreddit naming convention.
     """
-    reddit_match = re.fullmatch(r"(?:\/?r\/)?([\w\-]{1,21})", value)
+    reddit_match = SUBREDDIT_REGEX.fullmatch(value)
 
     if reddit_match is None:
         raise commands.BadArgument("Invalid subreddit.")
