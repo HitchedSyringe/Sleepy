@@ -160,10 +160,11 @@ class Reddit(commands.Cog,
 
 
     @commands.command(aliases=["vredditdownloader"])
+    @checks.bot_has_permissions(attach_files=True)
     async def vreddit(self, ctx: commands.Context, *, url: MediaSubmissionURL):
         """Downloads a Reddit video submission.
-
         Both v.redd.it and regular Reddit links are supported.
+        (Bot Needs: Attach Files)
         """
         # We have to directly use the session since our requester doesn't return response headers.
         async with ctx.session.get(url) as response:
