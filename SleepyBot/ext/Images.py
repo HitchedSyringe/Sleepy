@@ -44,7 +44,7 @@ _ASCII_MAPPING = {
 }
 
 
-TTI_FONTS = (
+_TTI_FONTS = (
     "arial",
     "comic",
     "dyslexic",
@@ -963,7 +963,7 @@ class Images(commands.Cog,
         await ctx.send(embed=embed, file=File(buffer, filename="ship.png"))
 
 
-    @flags.add_flag("--font", type=str.lower, default="arial", choices=TTI_FONTS)
+    @flags.add_flag("--font", type=str.lower, default="arial", choices=_TTI_FONTS)
     @flags.add_flag("--textcolour", "--textcolor", dest="fcolor", type=Colour, default="FFFFFF")
     @flags.add_flag("--bgcolour", "--bgcolor", dest="bcolor", type=Colour)
     @flags.add_flag("--size", type=int, default=35)

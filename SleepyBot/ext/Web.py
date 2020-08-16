@@ -27,7 +27,7 @@ from SleepyBot.utils import checks, formatting, reaction_menus
 from SleepyBot.utils.requester import HTTPError
 
 
-BRACKET_REGEX = re.compile(r"(\[(.+?)\])")
+URBAN_BRACKET_REGEX = re.compile(r"(\[(.+?)\])")
 
 
 def _repl_brackets(match):
@@ -746,7 +746,7 @@ class Web(commands.Cog,
         embeds = []
         for entry in response["list"]:
             embed = Embed(
-                description=textwrap.shorten(BRACKET_REGEX.sub(_repl_brackets, entry["definition"]), 2000),
+                description=textwrap.shorten(URBAN_BRACKET_REGEX.sub(_repl_brackets, entry["definition"]), 2000),
                 timestamp=discord.utils.parse_time(entry['written_on'][0:-1]),
                 colour=0x1D2439
             )
@@ -754,7 +754,7 @@ class Web(commands.Cog,
 
             embed.add_field(
                 name="**Example**",
-                value=textwrap.shorten(BRACKET_REGEX.sub(_repl_brackets, entry["example"]), 1000),
+                value=textwrap.shorten(URBAN_BRACKET_REGEX.sub(_repl_brackets, entry["example"]), 1000),
                 inline=False
             )
             embed.add_field(name=":thumbsup:", value=entry["thumbs_up"])
