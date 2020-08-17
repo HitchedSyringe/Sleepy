@@ -243,7 +243,7 @@ class Moderation(commands.Cog):
         EXAMPLE: cleanup 100
         """
         if ctx.channel.permissions_for(ctx.me).manage_messages:
-            prefixes = tuple(await ctx.bot.get_prefixes(ctx.message))  # thanks startswith
+            prefixes = tuple(await ctx.bot.get_prefix(ctx.message))  # thanks startswith
             check = lambda m: m.author == ctx.me or m.content.startswith(prefixes)
         else:
             check = lambda m: m.author == ctx.me
