@@ -41,7 +41,7 @@ def _clean_currency(value: str) -> str:
     Raises :exc:`commands.BadArgument` if the currency code doesn't follow the ISO 4217 standard.
     """
     if not value.isalpha() or len(value) != 3:
-        raise commands.BadArgument("Currency codes must follow the ISO 4217 standard.")
+        raise commands.BadArgument("Invalid currency code.\nCurrency codes must follow the ISO 4217 standard.")
     return value.upper()
 
 
@@ -103,12 +103,15 @@ def _parse_source(value: str) -> str:
     """
     # Raising BadArgument probably shouldn't matter here since this gets wrapped in ``Optional`` anyway.
     if not value.startswith("]"):
-        raise commands.BadArgument("You must specify a language to translate from.")
+        raise commands.BadArgument("You must specify a source language.")
 
     code = value[1:].lower()
 
-    if len(code) != 2 and code not in ("zh-cn", "zh-tw") and not code.isalpha():
-        raise commands.BadArgument("Invalid language code.")
+    if code not in googletrans.LANGUAGES:
+        raise commands.BadArgument(
+            "Invalid source language.\n"
+            "Please see <https://cloud.google.com/translate/docs/languages> for a list of valid language codes."
+        )
 
     return code
 
@@ -118,12 +121,15 @@ def _parse_destination(value: str) -> str:
     Raises :exc:`commands.BadArgument` if the input doesn't begin with `}` or the language code is invalid.
     """
     if not value.startswith("}"):
-        raise commands.BadArgument("You must specify a language to translate to.")
+        raise commands.BadArgument("You must specify a destination language.")
 
     code = value[1:].lower()
 
-    if len(code) != 2 and code not in ("zh-cn", "zh-tw") and not code.isalpha():
-        raise commands.BadArgument("Invalid language code.")
+    if code not in googletrans.LANGUAGES:
+        raise commands.BadArgument(
+            "Invalid destination language.\n"
+            "Please see <https://cloud.google.com/translate/docs/languages> for a list of valid language codes."
+        )
 
     return code
 
@@ -692,8 +698,8 @@ class Web(commands.Cog,
         """Translates a message using Google translate.
         The supported language codes are listed [here](https://cloud.google.com/translate/docs/languages).
 
-        To specify a language to translate to, prefix the language code with `}`.
-        Optionally, to specify a source language to translate from, prefix the language code with `]`.
+        To specify a destination language, prefix the language code with `}`.
+        Optionally, to specify a source language, prefix the language code with `]`.
         Please note that both the source language and destination language must be specified **BEFORE** the message.
 
         EXAMPLE:
@@ -703,9 +709,6 @@ class Web(commands.Cog,
         await ctx.trigger_typing()
         try:
             transl = await ctx.bot.loop.run_in_executor(None, self._translator.translate, message, destination, source)
-        except ValueError as exc:
-            await ctx.send(str(exc).capitalize())
-            return
         except Exception as exc:
             await ctx.send(f"An error occurred while translating: {exc}")
             return
