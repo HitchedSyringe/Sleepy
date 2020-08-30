@@ -189,6 +189,16 @@ class SleepyHelpCommand(commands.HelpCommand):
         key = lambda c: c.cog_name
         entries = await self.filter_commands(cog.get_commands(), sort=True, key=key)
 
+        # Handle case where no commands can be shown under that extension.
+        if not entries:
+            embed = Embed(
+                title=f"{cog.qualified_name} Commands",
+                description=(cog and cog.description) or None,
+                colour=0x2F3136
+            )
+            await self.context.send(embed=embed)
+            return
+
         source = _HelpSource(entries, key=key, per_page=6)
         await self._paginate(source)
 
