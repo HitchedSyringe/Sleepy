@@ -1,7 +1,7 @@
 
 # Sleepy
 
-[![img.shields.io](https://img.shields.io/badge/Version-v2.1.0-dbc476?style=for-the-badge&labelColor=f0d273)](https://img.shields.io)
+[![img.shields.io](https://img.shields.io/badge/Version-v2.1.1-dbc476?style=for-the-badge&labelColor=f0d273)](https://img.shields.io)
 [![forthebadge](https://forthebadge.com/images/badges/made-with-python.svg)](https://forthebadge.com)
 [![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](https://forthebadge.com)
 
