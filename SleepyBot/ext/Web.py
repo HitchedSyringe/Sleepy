@@ -386,7 +386,7 @@ class Web(commands.Cog,
 
 
     # I don't know what I was on when I actually considered adding this. ok lol.
-    @commands.command()
+    @commands.command(aliases=["er", "forex", "foreignexchange"])
     async def exchangerate(self, ctx: commands.Context,
                            base: _clean_currency, amount: Optional[float] = 1, *currencies: _clean_currency):
         """Calculates the exchange rate between two or more currencies.
