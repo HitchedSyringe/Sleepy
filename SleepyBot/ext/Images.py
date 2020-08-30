@@ -275,15 +275,14 @@ class Images(commands.Cog,
             The image result buffer.
         """
         buffer = io.BytesIO()
-        font = ImageFont.truetype(str(self.image_fonts / "Roboto-Black.ttf"), size=14)
+        font = ImageFont.truetype(str(self.image_fonts / "Roboto-Black.ttf"), size=28)
 
         with Image.open(self.image_templates / "captcha.png") as template:
-            ImageDraw.Draw(template).text((25, 42), self.wrap_text(text, font, width=175), font=font)
+            ImageDraw.Draw(template).text((28, 46), text, font=font)
 
             with Image.new("RGBA", template.size, 255) as binder:
                 with Image.open(image_buffer) as image:
-                    binder.paste(image.resize((292, 292)), (7, 99))
-                    binder.paste(image.resize((78, 78)), (213, 13))
+                    binder.paste(image.resize((386, 386)), (5, 127))
 
                 binder.alpha_composite(template)
 
