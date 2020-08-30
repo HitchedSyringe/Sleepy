@@ -22,25 +22,17 @@ from .bot import Sleepy
 
 
 # --- Load config ---
-# Allows the user to specify a config file to load instead of looking for the default.
-config_file = sys.argv[1] if len(sys.argv) > 1 else "config.ini"
 config = configparser.ConfigParser(allow_no_value=True, converters={"json": lambda x: json.loads(x)})
-config.read(config_file)
-
-# Get bot token, prefixes and description.
-token = config["Secrets"]["discord_bot_token"]
-prefixes = config["Discord Bot Config"].getjson("prefixes")
-description = config["Discord Bot Config"]["description"]
-
+# Allows the user to specify a config file to load instead of looking for the default.
+config.read(sys.argv[1] if len(sys.argv) > 1 else "config.ini")
 
 # --- Setup the bot ---
 bot = Sleepy(
     config,
-    command_prefix=commands.when_mentioned_or(*prefixes),
-    description=description,
+    command_prefix=commands.when_mentioned_or(*config["Discord Bot Config"].getjson("prefixes")),
+    description=config["Discord Bot Config"]["description"],
     allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=False)
 )
-
 
 # --- Setup logging ---
 logging.basicConfig(
@@ -59,6 +51,5 @@ logging.getLogger("SleepyBot").setLevel(logging.DEBUG)
 logging.getLogger(str(bot.exts_directory.as_posix()).replace("/", ".")).setLevel(logging.DEBUG)
 logging.getLogger("SleepyBot.utils.requester").setLevel(logging.INFO)
 
-
 # --- Run the bot ---
-bot.run(token, reconnect=True)
+bot.run(config["Secrets"]["discord_bot_token"], reconnect=True)
