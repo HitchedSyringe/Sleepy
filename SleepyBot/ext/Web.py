@@ -449,7 +449,6 @@ class Web(commands.Cog,
     async def google(self, ctx: commands.Context, *, query: str):
         """Searches for something on Google, returning the top 10 results.
         Safe mode is enabled based on whether or not you're in an NSFW channel.
-        Subcommand "imagesearch" searches through Google images.
         (Bot Needs: Embed Links, Add Reactions and Read Message History)
 
         EXAMPLE: google lectures
@@ -877,7 +876,6 @@ class Web(commands.Cog,
     async def xkcd(self, ctx: commands.Context, number: int = None):
         """Shows a comic from xkcd.
         If no comic number is given, then a random comic is shown instead.
-        Subcommand "latest" shows the latest xkcd comic.
         (Bot Needs: Embed Links)
 
         EXAMPLE: xkcd 407
