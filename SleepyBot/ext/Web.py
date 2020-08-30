@@ -684,7 +684,7 @@ class Web(commands.Cog,
         await ctx.send(embed=embed)
 
 
-    @commands.command()
+    @commands.command(aliases=["tr"])
     @checks.bot_has_permissions(embed_links=True)
     @commands.cooldown(rate=1, per=5, type=commands.BucketType.member)  # Curb possibility of being blocked.
     async def translate(self, ctx: commands.Context,
