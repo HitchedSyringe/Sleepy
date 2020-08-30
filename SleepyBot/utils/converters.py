@@ -45,8 +45,7 @@ class GuildChannelConverter(commands.Converter):
 
 
 async def _is_image_mimetype(session, url) -> bool:
-    """Returns whether or not the given URL is an image URL.
-    This checks via mimetype.
+    """Returns whether or not the given URL is an image mimetype.
     For internal use only.
 
     Parameters
@@ -69,10 +68,11 @@ async def _is_image_mimetype(session, url) -> bool:
 
 
 class ImageAssetConverter(commands.Converter):
-    """Converts to a :class:`discord.Asset`, while ensuring that the asset is an image.
-    This also allows checking for attachments.
+    """Converts to a :class:`discord.Asset`, while also ensuring that the asset is an image.
+    This converter allows a user to pass attachments, in addition to URLs, effectively making this
+    a URL-or-image attachment converter.
 
-    :exc:`commands.BadArgument` is raised if no asset could be resolved from the given URL.
+    :exc:`commands.BadArgument` is raised if no asset could be resolved from the given URL or attachment.
     """
 
     @staticmethod
@@ -85,8 +85,9 @@ class ImageAssetConverter(commands.Converter):
         raise commands.BadArgument("Not a valid Image attachment or link.")
 
 
-# Most of this Asset modifying stuff was derived from discord-ext-alternatives by NCPlayz.
-Asset.__str__ = lambda x: '' if x._url is None else (x._url if x._url.startswith("http") else x.BASE + x._url)
+# -- Most of this Asset modifying stuff was derived from discord-ext-alternatives by NCPlayz. --
+
+Asset.__str__ = lambda x: "" if x._url is None else (x._url if x._url.startswith("http") else x.BASE + x._url)
 
 # Although this isn't necessary, it's probably better to just make it work with the new str() behaviour.
 Asset.__len__ = lambda x: len(str(x))
@@ -94,10 +95,10 @@ Asset.__len__ = lambda x: len(str(x))
 
 async def _new_read(self):
     if not self._url:
-        raise DiscordException('Invalid asset (no URL provided)')
+        raise DiscordException("Invalid asset (no URL provided)")
 
     if self._state is None:
-        raise DiscordException('Invalid state (no ConnectionState provided)')
+        raise DiscordException("Invalid state (no ConnectionState provided)")
 
     return await self._state.http.get_from_cdn(str(self))
 
