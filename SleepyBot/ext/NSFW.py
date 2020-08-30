@@ -234,15 +234,16 @@ class NSFW(commands.Cog,
             await ctx.send("All results either involve banned content on Discord or lack image links for some reason.")
             return
 
-        base_embed = Embed(title="Danbooru", colour=0x9EECFF)
-        base_embed.set_footer(text="Powered by danbooru.donmai.us")
-
         embeds = []
         for post in posts:
-            embed = base_embed.copy()
+            embed = Embed(
+                title="Danbooru",
+                colour=0x9EECFF,
+                timezone=datetime.strptime(post["created_at"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+            )
+            embed.set_footer(text="Powered by danbooru.donmai.us")
             embed.set_author(name=post["author"])
             embed.set_image(url=post["file_url"])
-            embed.timestamp = datetime.strptime(post["created_at"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
 
             sauce = post["source"]
             if sauce:
@@ -294,15 +295,15 @@ class NSFW(commands.Cog,
             await ctx.send("All results either involve banned content on Discord or lack image links for some reason.")
             return
 
-        base_embed = Embed(title="E621", colour=0x3B6AA3)
-        base_embed.set_footer(text="Powered by e621.net")
-
         embeds = []
         for post in posts:
-            embed = base_embed.copy()
+            embed = Embed(
+                title="E621",
+                colour=0x3B6AA3,
+                timestamp=datetime.strptime(post["created_at"], "%Y-%m-%dT%H:%M:%S.%f-04:00").replace(tzinfo=timezone.utc)
+            )
+            embed.set_footer(text="Powered by e621.net")
             embed.set_image(url=post["file"]["url"])
-            embed.timestamp = datetime.strptime(post["created_at"], "%Y-%m-%dT%H:%M:%S.%f-04:00")
-            embed.timestamp.replace(tzinfo=timezone.utc)
 
             sauces = "\n".join(post["sources"])
             if sauces:
@@ -419,12 +420,10 @@ class NSFW(commands.Cog,
             await ctx.send("All results involve banned content on Discord.")
             return
 
-        base_embed = Embed(title="Rule 34", colour=0x77E371)
-        base_embed.set_footer(text="Powered by rule34.xxx")
-
         embeds = []
         for post in posts:
-            embed = base_embed.copy()
+            embed = Embed(title="Rule 34", colour=0x77E371)
+            embed.set_footer(text="Powered by rule34.xxx")
             embed.set_author(name=post["owner"])
             embed.set_image(url=f"https://img.rule34.xxx/images/{post['directory']}/{post['image']}")
 
@@ -532,15 +531,12 @@ class NSFW(commands.Cog,
             await ctx.send("All results involve banned content on Discord.")
             return
 
-        base_embed = Embed(title="Yande.re", colour=0xFF9ED0)
-        base_embed.set_footer(text="Powered by yande.re")
-
         embeds = []
         for post in posts:
-            embed = base_embed.copy()
+            embed = Embed(title="Yandere", colour=0xFF9ED0, timestamp=datetime.utcfromtimestamp(post["created_at"]))
+            embed.set_footer(text="Powered by yande.re")
             embed.set_author(name=post["author"])
             embed.set_image(url=post["file_url"])
-            embed.timestamp = datetime.utcfromtimestamp(post["created_at"])
 
             sauce = post["source"]
             if sauce:

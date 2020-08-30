@@ -199,21 +199,17 @@ class Web(commands.Cog,
             await ctx.send("No results found.")
             return
 
-        base_embed = Embed(colour=0x4C8BF5)
-        base_embed.set_author(
-            name=f"Results for '{formatting.simple_shorten(query, 64)}'",
-            url=f"https://www.google.com/search?q={urlquote(query)}"
-        )
-
         total_results = response["searchInformation"]["formattedTotalResults"]
         query_time = response["searchInformation"]["formattedSearchTime"]
-        base_embed.set_footer(
-            text=f"About {total_results} results. ({query_time} seconds) | Powered by Google"
-        )
 
         embeds = []
         for result in results:
-            embed = base_embed.copy()
+            embed = Embed(colour=0x4C8BF5)
+            embed.set_author(
+                name=f"Results for '{formatting.simple_shorten(query, 64)}'",
+                url=f"https://www.google.com/search?q={urlquote(query)}"
+            )
+            embed.set_footer(text=f"About {total_results} results. ({query_time} seconds) | Powered by Google")
 
             if images:
                 embed.title = result["snippet"]  # title and snippet are essentially the same in this case.
