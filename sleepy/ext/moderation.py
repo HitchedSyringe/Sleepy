@@ -764,11 +764,10 @@ class Moderation(commands.Cog):
         <2> purge users @HitchedSyringe#0598 140540589329481728 100
         ```
         """
-        if not users:
+        if users:
+            await self.do_purge_strategy(ctx, limit=amount, check=lambda m: m.author in users)
+        else:
             await ctx.send("You must specify at least **1 user** to purge messages for.")
-            return
-
-        await self.do_purge_strategy(ctx, limit=amount, check=lambda m: m.author in users)
 
     @commands.command()
     @checks.has_guild_permissions(kick_members=True)
