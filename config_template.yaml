@@ -92,3 +92,5 @@ enable_autoload: true
 #     Example: core/* -> Load ALL extensions in `core`.
 extensions_list:
   - $/jishaku
+  - $/meta
+  - $/statistics
