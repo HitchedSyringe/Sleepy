@@ -1,0 +1,825 @@
+AUTHOR: HitchedSyringe
+
+
+What is the capital city of Afghanistan?:
+  answers:
+    - Kabul
+
+What is the capital city of Albania?:
+  answers:
+    - Tirana
+
+What is the capital city of Algeria?:
+  answers:
+    - Algiers
+
+What is the capital city of Andorra?:
+  answers:
+    - Andorra la Vella
+
+What is the capital city of Angola?:
+  answers:
+    - Luanda
+
+What is the capital city of Antigua and Barbuda?:
+  answers:
+    - Saint John's
+    - Saint Johns
+    - St Johns
+    - St. Johns
+    - St John's
+    - St. John's
+
+What is the capital city of Argentina?:
+  answers:
+    - Buenos Aires
+
+What is the capital city of Armenia?:
+  answers:
+    - Yerevan
+
+What is the capital city of Australia?:
+  answers:
+    - Canberra
+
+What is the capital city of Austria?:
+  answers:
+    - Vienna
+
+What is the capital city of Azerbaijan?:
+  answers:
+    - Baku
+
+What is the capital city of Bahamas?:
+  answers:
+    - Nassau
+
+What is the capital city of Bahrain?:
+  answers:
+    - Manama
+
+What is the capital city of Bangladesh?:
+  answers:
+    - Dhaka
+
+What is the capital city of Barbados?:
+  answers:
+    - Bridgetown
+
+What is the capital city of Belarus?:
+  answers:
+    - Minsk
+
+What is the capital city of Belgium?:
+  answers:
+    - Brussels
+
+What is the capital city of Belize?:
+  answers:
+    - Belmopan
+
+What is the capital city of Benin?:
+  answers:
+    - Porto-Novo
+    - Porto Novo
+
+What is the capital city of Bhutan?:
+  answers:
+    - Thimphu
+
+Name one of the capital cities of Bolivia.:
+  answers:
+    - La Paz
+    - Sucre
+
+What is the capital city of Bosnia and Herzegovina?:
+  answers:
+    - Sarajevo
+
+What is the capital city of Botswana?:
+  answers:
+    - Gaborone
+
+What is the capital city of Brazil?:
+  answers:
+    - Brasilia
+
+What is the capital city of Brunei:
+  answers:
+    - Bandar Seri Begawan
+
+What is the capital city of Bulgaria?:
+  answers:
+    - Sofia
+
+What is the capital city of Burkina Faso?:
+  answers:
+    - Ouagadougou
+
+What is the capital city of Burundi?:
+  answers:
+    - Gitega
+    - Bujumbura
+
+What is the capital city of Cabo Verde?:
+  answers:
+    - Praia
+
+What is the capital city of Cambodia?:
+  answers:
+    - Phnom Penh
+
+What is the capital city of Cameroon?:
+  answers:
+    - Yaoundé
+    - Yaounde
+
+What is the capital city of Canada?:
+  answers:
+    - Ottawa
+
+What is the capital city of Central African Republic?:
+  answers:
+    - Bangui
+
+What is the capital city of Chad?:
+  answers:
+    - N'Djamena
+    - NDjamena
+    - N Djamena
+
+What is the capital city of Chile?:
+  answers:
+    - Santiago
+
+What is the capital city of China?:
+  answers:
+    - Beijing
+
+What is the capital city of Colombia?:
+  answers:
+    - Bogotá
+    - Bogota
+
+What is the capital city of Comoros?:
+  answers:
+    - Moroni
+
+What is the capital city of Costa Rica:
+  answers:
+    - San Jose
+
+What is the capital city of Cote d'Ivoire?:
+  answers:
+    - Yamoussoukro
+
+What is the capital city of Croatia?:
+  answers:
+    - Zagreb
+
+What is the capital city of Cuba?:
+  answers:
+    - Havana
+
+What is the capital city of Cyprus?:
+  answers:
+    - Nicosia
+
+What is the capital city of Czech Republic?:
+  answers:
+    - Prague
+
+What is the capital city of the Democratic Republic of the Congo?:
+  answers:
+    - Kinshasa
+
+What is the capital city of Denmark?:
+  answers:
+    - Copenhagen
+
+What is the capital city of Djibouti?:
+  answers:
+    - Djibouti
+
+What is the capital city of Dominica?:
+  answers:
+    - Roseau
+
+What is the capital city of Dominican Republic?:
+  answers:
+    - Santo Domingo
+
+What is the capital city of Ecuador?:
+  answers:
+    - Quito
+
+What is the capital city of Egypt?:
+  answers:
+    - Cairo
+
+What is the capital city of El Salvador?:
+  answers:
+    - San Salvador
+
+What is the capital city of Equatorial Guinea?:
+  answers:
+    - Malabo
+
+What is the capital city of Eritrea?:
+  answers:
+    - Asmara
+
+What is the capital city of Estonia?:
+  answers:
+    - Tallinn
+
+What is the capital city of eSwatini (Swaziland)?:
+  answers:
+    - Mbabane
+
+What is the capital city of Ethiopia?:
+  answers:
+    - Addis Ababa
+
+What is the capital city of Fiji?:
+  answers:
+    - Suva
+
+What is the capital city of Finland?:
+  answers:
+    - Helsinki
+
+What is the capital city of France?:
+  answers:
+    - Paris
+
+What is the capital city of Gabon?:
+  answers:
+    - Libreville
+
+What is the capital city of Gambia?:
+  answers:
+    - Banjul
+
+What is the capital city of Georgia?:
+  answers:
+    - Tbilisi
+
+What is the capital city of Germany?:
+  answers:
+    - Berlin
+
+What is the capital city of Ghana?:
+  answers:
+    - Accra
+
+What is the capital city of Greece?:
+  answers:
+    - Athens
+
+What is the capital city of Grenada?:
+  answers:
+    - St. George's
+    - St George's
+    - St Georges
+    - Saint George's
+    - Saint Georges
+
+What is the capital city of Guatemala?:
+  answers:
+    - Guatemala City
+
+What is the capital city of Guinea-Bissau?:
+  answers:
+    - Bissau
+
+What is the capital city of Guinea?:
+  answers:
+    - Conakry
+
+What is the capital city of Guyana?:
+  answers:
+    - Georgetown
+
+What is the capital city of Haiti?:
+  answers:
+    - Port-au-Prince
+    - Port au Prince
+
+What is the capital city of Honduras?:
+  answers:
+    - Tegucigalpa
+
+What is the capital city of Hungary?:
+  answers:
+    - Budapest
+
+What is the capital city of Iceland?:
+  answers:
+    - Reykjavik
+
+What is the capital city of India?:
+  answers:
+    - New Delhi
+
+What is the capital city of Indonesia?:
+  answers:
+    - Jakarta
+
+What is the capital city of Iran?:
+  answers:
+    - Tehran
+
+What is the capital city of Iraq?:
+  answers:
+    - Baghdad
+
+What is the capital city of Ireland?:
+  answers:
+    - Dublin
+
+What is the capital city of Israel?:
+  answers:
+    - Jerusalem
+
+What is the capital city of Italy?:
+  answers:
+    - Rome
+
+What is the capital city of Jamaica?:
+  answers:
+    - Kingston
+
+What is the capital city of Japan?:
+  answers:
+    - Tokyo
+
+What is the capital city of Jordan?:
+  answers:
+    - Amman
+
+What is the capital city of Kazakhstan?:
+  answers:
+    - Nur-Sultan
+    - Nur Sultan
+    - Astana
+
+What is the capital city of Kenya?:
+  answers:
+    - Nairobi
+
+What is the capital city of Kiribati?:
+  answers:
+    - South Tarawa
+
+What is the capital city of Kosovo?:
+  answers:
+    - Pristina
+
+What is the capital city of Kuwait?:
+  answers:
+    - Kuwait City
+
+What is the capital city of Kyrgyzstan?:
+  answers:
+    - Bishkek
+
+What is the capital city of Laos?:
+  answers:
+    - Vientiane
+
+What is the capital city of Latvia?:
+  answers:
+    - Riga
+
+What is the capital city of Lebanon?:
+  answers:
+    - Beirut
+
+What is the capital city of Lesotho?:
+  answers:
+    - Maseru
+
+What is the capital city of Liberia?:
+  answers:
+    - Monrovia
+
+What is the capital city of Libya?:
+  answers:
+    - Tripoli
+
+What is the capital city of Liechtenstein?:
+  answers:
+    - Vaduz
+
+What is the capital city of Lithuania?:
+  answers:
+    - Vilnius
+
+What is the capital city of Luxembourg?:
+  answers:
+    - Luxembourg
+
+What is the capital city of Madagascar?:
+  answers:
+    - Antananarivo
+
+What is the capital city of Malawi?:
+  answers:
+    - Lilongwe
+
+What is the capital city of Malaysia?:
+  answers:
+    - Kuala Lumpur
+
+What is the capital city of Maldives?:
+  answers:
+    - Male
+
+What is the capital city of Mali?:
+  answers:
+    - Bamako
+
+What is the capital city of Malta?:
+  answers:
+    - Valletta
+
+What is the capital city of the Marshall Islands?:
+  answers:
+    - Majuro
+
+What is the capital city of Mauritania?:
+  answers:
+    - Nouakchott
+
+What is the capital city of Mauritius?:
+  answers:
+    - Port Louis
+
+What is the capital city of Mexico?:
+  answers:
+    - Mexico City
+
+What is the capital city of Micronesia?:
+  answers:
+    - Palikir
+
+What is the capital city of Moldova?:
+  answers:
+    - Chisinau
+
+What is the capital city of Monaco?:
+  answers:
+    - Monaco
+
+What is the capital city of Mongolia?:
+  answers:
+    - Ulaanbaatar
+
+What is the capital city of Montenegro?:
+  answers:
+    - Podgorica
+
+What is the capital city of Morocco?:
+  answers:
+    - Rabat
+
+What is the capital city of Mozambique?:
+  answers:
+    - Maputo
+
+What is the capital city of Myanmar (Burma)?:
+  answers:
+    - Naypyidaw
+
+What is the capital city of Namibia?:
+  answers:
+    - Windhoek
+
+What is the capital city of Nauru?:
+  answers:
+    - Yaren District
+
+What is the capital city of Nepal?:
+  answers:
+    - Kathmandu
+
+What is the capital city of the Netherlands?:
+  answers:
+    - Amsterdam
+
+What is the capital city of New Zealand?:
+  answers:
+    - Wellington
+
+What is the capital city of Nicaragua?:
+  answers:
+    - Managua
+
+What is the capital city of Niger?:
+  answers:
+    - Niamey
+
+What is the capital city of Nigeria?:
+  answers:
+    - Abuja
+
+What is the capital city of North Korea?:
+  answers:
+    - Pyongyang
+    - Pyong Yang
+
+What is the capital city of North Macedonia?:
+  answers:
+    - Skopje
+
+What is the capital city of Norway?:
+  answers:
+    - Oslo
+
+What is the capital city of Oman?:
+  answers:
+    - Muscat
+
+What is the capital city of Pakistan?:
+  answers:
+    - Islamabad
+
+What is the capital city of Palau?:
+  answers:
+    - Ngerulmud
+
+What is the capital city of Palestine?:
+  answers:
+    - Ramallah
+
+What is the capital city of Panama?:
+  answers:
+    - Panama City
+
+What is the capital city of Papua New Guinea?:
+  answers:
+    - Port Moresby
+
+What is the capital city of Paraguay?:
+  answers:
+    - Asunción
+    - Asuncion
+
+What is the capital city of Peru?:
+  answers:
+    - Lima
+
+What is the capital city of Philippines?:
+  answers:
+    - Manila
+
+What is the capital city of Poland?:
+  answers:
+    - Warsaw
+
+What is the capital city of Portugal?:
+  answers:
+    - Lisbon
+
+What is the capital city of Qatar?:
+  answers:
+    - Doha
+
+What is the capital city of the Republic of the Congo?:
+  answers:
+    - Brazzaville
+
+What is the capital city of Romania?:
+  answers:
+    - Bucharest
+
+What is the capital city of Russia?:
+  answers:
+    - Moscow
+
+What is the capital city of Rwanda?:
+  answers:
+    - Kigali
+
+What is the capital city of Saint Kitts and Nevis?:
+  answers:
+    - Basseterre
+
+What is the capital city of Saint Lucia?:
+  answers:
+    - Castries
+
+What is the capital city of Saint Vincent and the Grenadines?:
+  answers:
+    - Kingstown
+
+What is the capital city of Samoa?:
+  answers:
+    - Apia
+
+What is the capital city of San Marino?:
+  answers:
+    - San Marino
+
+What is the capital city of São Tomé and Príncipe?:
+  answers:
+    - São Tomé
+    - Sao Tome
+
+What is the capital city of Saudi Arabia?:
+  answers:
+    - Riyadh
+
+What is the capital city of Senegal?:
+  answers:
+    - Dakar
+
+What is the capital city of Serbia?:
+  answers:
+    - Belgrade
+
+What is the capital city of Seychelles?:
+  answers:
+    - Victoria
+
+What is the capital city of Sierra Leone?:
+  answers:
+    - Freetown
+
+What is the capital city of Singapore?:
+  answers:
+    - Singapore
+
+What is the capital city of Slovakia?:
+  answers:
+    - Bratislava
+
+What is the capital city of Slovenia?:
+  answers:
+    - Ljubljana
+
+What is the capital city of Solomon Islands?:
+  answers:
+    - Honiara
+
+What is the capital city of Somalia?:
+  answers:
+    - Mogadishu
+
+Name one of the capital cities of South Africa.:
+  answers:
+    - Pretoria
+    - Cape Town
+    - Capetown
+    - Bloemfontein
+
+What is the capital city of South Korea?:
+  answers:
+    - Seoul
+
+What is the capital city of South Sudan?:
+  answers:
+    - Juba
+
+What is the capital city of Spain?:
+  answers:
+    - Madrid
+
+What is the capital city of Sri Lanka?:
+  answers:
+    - Sri Jayawardenepura Kotte
+    - Kotte
+
+What is the capital city of Sudan?:
+  answers:
+    - Khartoum
+
+What is the capital city of Suriname?:
+  answers:
+    - Paramaribo
+
+What is the capital city of Sweden?:
+  answers:
+    - Stockholm
+
+What is the capital city of Switzerland?:
+  answers:
+    - Bern
+
+What is the capital city of Syria?:
+  answers:
+    - Damascus
+
+What is the capital city of Taiwan?:
+  answers:
+    - Taipei
+
+What is the capital city of Tajikistan?:
+  answers:
+    - Dushanbe
+
+What is the capital city of Tanzania?:
+  answers:
+    - Dodoma
+
+What is the capital city of Thailand?:
+  answers:
+    - Bangkok
+
+What is the capital city of Timor-Leste?:
+  answers:
+    - Dili
+
+What is the capital city of Togo?:
+  answers:
+    - Lomé
+    - Lome
+
+What is the capital city of Tonga?:
+  answers:
+    - Nuku'alofa
+    - Nuku alofa
+    - Nukualofa
+
+What is the capital city of Trinidad and Tobago?:
+  answers:
+    - Port of Spain
+
+What is the capital city of Tunisia?:
+  answers:
+    - Tunis
+
+What is the capital city of Turkey?:
+  answers:
+    - Ankara
+
+What is the capital city of Turkmenistan?:
+  answers:
+    - Ashgabat
+
+What is the capital city of Tuvalu?:
+  answers:
+    - Funafuti
+
+What is the capital city of Uganda?:
+  answers:
+    - Kampala
+
+What is the capital city of Ukraine?:
+  answers:
+    - Kyiv
+
+What is the capital city of United Arab Emirates?:
+  answers:
+    - Abu Dhabi
+
+What is the capital city of the United Kingdom?:
+  answers:
+    - London
+
+What is the capital city of the United States of America?:
+  answers:
+    - Washington
+    - Washington, D.C.
+    - Washington, DC
+    - Washington D.C.
+    - Washington DC
+
+What is the capital city of Uruguay?:
+  answers:
+    - Montevideo
+
+What is the capital city of Uzbekistan?:
+  answers:
+    - Tashkent
+
+What is the capital city of Vanuatu?:
+  answers:
+    - Port Vila
+
+What is the capital city of the Vatican City (Holy See)?:
+  answers:
+    - Vatican City
+
+What is the capital city of Venezuela?:
+  answers:
+    - Caracas
+
+What is the capital city of Vietnam?:
+  answers:
+    - Hanoi
+
+What is the capital city of Yemen?:
+  answers:
+    - Sana'a
+    - Sana a
+    - Sanaa
+
+What is the capital city of Zambia?:
+  answers:
+    - Lusaka
+
+What is the capital city of Zimbabwe?:
+  answers:
+    - Harare

@@ -1,12 +1,24 @@
 aiofiles
 cachetools
-discord.py>=1.4.1
+discord.py>=1.7.0,<2.0.0
 git+https://github.com/Rapptz/discord-ext-menus
-discord-flags>=2.1.0
-emoji
-googletrans
+# Essentially, this is a fork of XuaTheGrate's Flag-Parsing
+# package because the maintainer has deprecated it and plans
+# on removing it in favour of Rapptz's upcoming implementation.
+# This is here so things won't break until Sleepy can fully
+# port to discord.py 2.0. Also, this contains the PyPI
+# unreleased fix for converters as well as a few other fixes
+# I've implemented myself pertaining to some headaches I've
+# had with this package.
+git+https://github.com/HitSyr/Flag-Parsing@fixes
+emoji>=1.1.0
+# See https://github.com/ssut/py-googletrans/issues/280
+googletrans>=4.0.0rc1
+jishaku>=2.2.0
 matplotlib
-Pillow
-numpy
+opencv-python
+Pillow>=8.0.0
+pyfiglet
 psutil
 pyyaml
+scikit-image

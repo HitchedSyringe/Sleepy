@@ -1,0 +1,97 @@
+# --- Sleepy Configuration ---
+# This configuration file is compatible for versions 3.x or higher.
+
+
+# -- [Secrets] --
+
+# The Discord token to authenticate with. (required)
+# Get one from: https://discord.com/developers
+discord_auth_token: your_discord_bot_token_here
+
+# The bot's Discord webhook for statistics and logging. (required)
+# With the webhook URL, the ID and token can be taken like so:
+# https://discord.com/api/webhooks/<id>/<token>
+discord_webhook:
+  id: 12345  # Replace with your Discord webhook ID.
+  token: your_discord_webhook_token_here
+
+# The API key to interact with Google's APIs.
+# Get one from: https://console.cloud.google.com/apis
+google_api_key: your_google_api_key_here
+
+# The custom search engine ID for use with Google Search.
+# Get one from: https://cse.google.com
+google_search_engine_id: your_google_search_engine_id_here
+
+# The API key to interact with WeatherAPI.
+# Get one from: https://weatherapi.com
+weatherapi_api_key: your_weatherapi_api_key_here
+
+# The API key to interact with Steam's APIs.
+# Get one from: https://steamcommunity.com/dev/apikey
+steam_api_key: your_steam_api_key_here
+
+# The API key to interact with SauceNAO.
+# Get one from: https://saucenao.com/user.php?page=search-api
+saucenao_api_key: your_saucenao_api_key_here
+
+
+# -- [General Config] --
+
+# The bot's description.
+description: |-
+  A Discord bot for those who like to sleep.
+  This bot is running an instance of Sleepy (<https://github.com/HitSyr/Sleepy>).
+
+# The bot's command prefixes.
+# Users will have to prefix commands with these.
+prefixes:
+  - $*
+  - list_more_prefixes_here
+
+# Whether or not the bot's mention should be a valid prefix.
+# If no prefixes are listed in `prefixes`, then mentions
+# are used regardless of this setting.
+mentionable: true
+
+# Whether or not the cog names are case-insensitive.
+# This is useful for making help more user-friendly.
+# This setting cannot be changed once initialised.
+case_insensitive_cogs: false
+
+# The user IDs that own the bot.
+# These users can use any commands, including those restricted
+# to the bot owner. Additionally, these users can bypass all
+# cooldowns and every user command check. This can be used even
+# if the bot is a team app. If no owners are listed, then they
+# are fetched automatically on startup.
+owner_ids:
+  - 12345
+  - list_more_user_ids_here
+
+
+# -- [Extensions Config] --
+
+# Directory to the folder the extensions are stored in.
+# Folders should be separated via forward slashes (/).
+# Example: botfiles/important/extensions
+extensions_directory: sleepy/ext
+
+# Whether or not the bot should automatically detect and load all
+# extensions in the extensions folder upon start up.
+enable_autoload: true
+
+# The extensions to load when ``enable_autoload`` is ``false``.
+# This allows for finer grained control of which extensions to load
+# or ignore. Folders should be separated via forward slashes (/).
+# Example: botfiles/important/extensions
+# Furthermore, this configuration uses special syntax:
+# * The dollar sign ($) can prefix a directory to specify loading
+#   the extension from the configured extensions directory.
+#     Example: $/jishaku -> Load extensions_directory/jishaku
+# * The astrisk (*) can suffix a directory to specify loading all
+#   extensions in the given directory.
+#     Example: core/* -> Load ALL extensions in `core`.
+extensions_list:
+  - $/jishaku
+  - list_more_extensions_here
