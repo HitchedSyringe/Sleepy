@@ -173,14 +173,8 @@ class ImageAssetConverter(commands.Converter):
     """
 
     def __init__(self, *, max_filesize=100_000_000):
-        if max_filesize is not None:
-            if not isinstance(max_filesize, int):
-                raise TypeError(
-                    f"Expected max_filesize to be int, not {type(max_filesize).__name__}"
-                )
-
-            if max_filesize <= 0:
-                raise ValueError(f"invalid max_filesize {max_filesize} (must be > 0).")
+        if max_filesize is not None and max_filesize <= 0:
+            raise ValueError(f"invalid max_filesize {max_filesize} (must be > 0).")
 
         self.max_filesize = max_filesize
 
@@ -251,11 +245,6 @@ def real_float(*, max_decimal_places):
     ValueError
         An invalid ``max_decimal_places`` value was given.
     """
-    if not isinstance(max_decimal_places, int):
-        raise TypeError(
-            f"Expected max_decimal_places to be int, not {type(max_decimal_places).__name__}."
-        )
-
     if max_decimal_places <= 0:
         raise ValueError(f"invalid max_decimal_places {max_decimal_places} (must be > 0).")
 
