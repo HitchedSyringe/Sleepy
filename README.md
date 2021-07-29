@@ -19,6 +19,8 @@ I would prefer that you don't run an instance of my bot. The source code here is
 
 This project is licensed under the [Mozilla Public License, v. 2.0](https://mozilla.org/en-US/MPL/2.0/). See [LICENSE](LICENSE) for more information.
 
+The license as of commit `6337f3cde11450b5ca637183009f91b0483b7fdb` also applies to commits prior, regardless of the license(s) stated.
+
 ## Versioning
 
 The version number has a 3-digit format: `major.minor.micro`
