@@ -47,7 +47,6 @@ description: |-
 # Users will have to prefix commands with these.
 prefixes:
   - $*
-  - list_more_prefixes_here
 
 # Whether or not the bot's mention should be a valid prefix.
 # If no prefixes are listed in `prefixes`, then mentions
@@ -66,8 +65,7 @@ case_insensitive_cogs: false
 # if the bot is a team app. If no owners are listed, then they
 # are fetched automatically on startup.
 owner_ids:
-  - 12345
-  - list_more_user_ids_here
+  - 12345  # Replace with your user ID.
 
 
 # -- [Extensions Config] --
@@ -94,4 +92,3 @@ enable_autoload: true
 #     Example: core/* -> Load ALL extensions in `core`.
 extensions_list:
   - $/jishaku
-  - list_more_extensions_here
