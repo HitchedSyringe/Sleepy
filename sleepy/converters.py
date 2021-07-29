@@ -180,7 +180,7 @@ class ImageAssetConverter(commands.Converter):
                 )
 
             if max_filesize <= 0:
-                raise ValueError("invalid max_filesize (must be > 0).")
+                raise ValueError(f"invalid max_filesize {max_filesize} (must be > 0).")
 
         self.max_filesize = max_filesize
 
@@ -257,7 +257,7 @@ def real_float(*, max_decimal_places):
         )
 
     if max_decimal_places <= 0:
-        raise ValueError("invalid max_decimal_places (must be > 0).")
+        raise ValueError(f"invalid max_decimal_places {max_decimal_places} (must be > 0).")
 
     def converter(arg):
         if arg.lower() in ("nan", "inf", "infinity") or arg.count(".") > 1:

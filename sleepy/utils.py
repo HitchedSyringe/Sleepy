@@ -611,13 +611,13 @@ def progress_bar(maximum, progress, /, *, per=1):
         value was given.
     """
     if maximum <= 0:
-        raise ValueError("invalid maximum (must be > 0)")
+        raise ValueError(f"invalid maximum {maximum} (must be > 0)")
 
     if per > maximum or per <= 0:
-        raise ValueError("invalid per (must be > 0 and < `maximum` value)")
+        raise ValueError(f"invalid per {per} (must be > 0 and < `maximum` value)")
 
     if progress > maximum:
-        raise ValueError("invalid progress (must be < `maximum` value)")
+        raise ValueError(f"invalid progress {progress} (must be < `maximum` value)")
 
     total = maximum // per
     filled = int(progress // per)
