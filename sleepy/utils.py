@@ -55,7 +55,7 @@ _EB = "<:pb_b_e:786093986233188363>"
 
 
 class plural:
-    """Formatting helper class that pluralises a string
+    """A formatting helper class that pluralises a string
     based on the given numerical value.
 
     .. versionadded:: 1.7
@@ -644,7 +644,7 @@ def tchart(items, /, formatter=None):
 
         * Function now takes only mapping objects.
         * Empty mappings are now allowed.
-        * ``items`` and ``formatter` are now positional-only
+        * ``items`` and ``formatter`` are now positional-only
           arguments.
 
     Parameters
