@@ -733,8 +733,8 @@ def truncate(text, width, /, *, placeholder="..."):
     """
     placeholder_length = len(placeholder)
 
-    if width <= placeholder_length:
-        raise ValueError("invalid width (must be > length of `placeholder`)")
+    if placeholder_length >= width:
+        raise ValueError("placeholder is too large for maximum width.")
 
     if len(text) < width:
         return text
