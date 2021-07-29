@@ -205,7 +205,7 @@ def find_extensions_in(path):
         yield ".".join(extension.with_suffix("").parts).lstrip(".")
 
 
-def human_delta(delta, *, absolute_only=False):
+def human_delta(delta, *, brief=False, absolute_only=False):
     """Humanizes a given delta.
 
     .. versionadded:: 1.9
@@ -225,6 +225,12 @@ def human_delta(delta, *, absolute_only=False):
 
         .. versionchanged:: 3.0
             Renamed to ``delta``.
+    brief: :class:`bool`
+        Whether or not to only return the first component of
+        the humanised delta.
+        Defaults to ``False``.
+
+        .. versionadded:: 2.0
     absolute_only: :class:`bool`
         Whether or not to return the humanised delta only,
         without indicating whether it is past or future tense.
@@ -288,13 +294,15 @@ def human_delta(delta, *, absolute_only=False):
     if seconds > 0:
         difference.append(f"{plural(seconds):second}")
 
+    humanised = difference[0] if brief else human_join(difference)
+
     if absolute_only:
-        return human_join(difference)
+        return humanised
 
     if delta < 0:
-        return "In " + human_join(difference)
+        return "In " + humanised
 
-    return human_join(difference) + " ago"
+    return humanised + " ago"
 
 
 def human_join(sequence, /, *, joiner="and"):
