@@ -511,12 +511,14 @@ class Moderation(commands.Cog):
         <2> purge bots ! 100
         ```
         """
-        check = lambda m: m.webhook_id is None and m.author.bot
-
-        if prefix is not None:
-            check = lambda m: check(m) or m.content.startswith(prefix)
-
-        await self.do_purge_strategy(ctx, limit=amount, check=check)
+        await self.do_purge_strategy(
+            ctx,
+            limit=amount,
+            check=lambda m: (
+                (m.webhook_id is None and m.author.bot)
+                or (prefix is not None and m.content.startswith(prefix))
+            )
+        )
 
     @purge.command(name="contains")
     async def purge_contains(self, ctx, substring, amount: int = 10):
