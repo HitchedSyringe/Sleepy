@@ -47,6 +47,7 @@ When adding commands, look at the other commands in the category and pick which 
 * [googletrans 4.0.0rc1+](https://github.com/ssut/py-googletrans)
 * [jishaku 2.2.0+](https://github.com/Gorialis/jishaku)
 * [matplotlib](https://github.com/matplotlib/matplotlib)
+* [opencv-python-headless](https://github.com/opencv/opencv-python)
 * [Pillow 8.0.0+](https://github.com/python-pillow/Pillow)
 * [psutil](https://github.com/giampaolo/psutil)
 * [pyyaml](https://github.com/yaml/pyyaml)
