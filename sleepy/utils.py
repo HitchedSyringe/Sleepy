@@ -205,7 +205,7 @@ def find_extensions_in(path):
         yield ".".join(extension.with_suffix("").parts).lstrip(".")
 
 
-def human_delta(delta, *, brief=False, absolute_only=False):
+def human_delta(delta, *, brief=False, absolute=False):
     """Humanizes a given delta.
 
     .. versionadded:: 1.9
@@ -216,7 +216,7 @@ def human_delta(delta, *, brief=False, absolute_only=False):
         * Return ``"Just now"`` if the delta is 0, otherwise,
           indicate if the delta is negative or positive in the
           returned string. This behaviour can be disabled via
-          passing ``absolute_only=True``.
+          passing ``absolute=True``.
 
     Parameters
     ----------
@@ -231,7 +231,7 @@ def human_delta(delta, *, brief=False, absolute_only=False):
         Defaults to ``False``.
 
         .. versionadded:: 2.0
-    absolute_only: :class:`bool`
+    absolute: :class:`bool`
         Whether or not to return the humanised delta only,
         without indicating whether it is past or future tense.
         Defaults to ``False``.
@@ -296,7 +296,7 @@ def human_delta(delta, *, brief=False, absolute_only=False):
 
     humanised = difference[0] if brief else human_join(difference)
 
-    if absolute_only:
+    if absolute:
         return humanised
 
     if delta < 0:

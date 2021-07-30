@@ -41,7 +41,7 @@ def human_delta(
     delta: timedelta | float,
     *,
     brief: bool = False,
-    absolute_only: bool = False
+    absolute: bool = False
 ) -> str: ...
 
 
