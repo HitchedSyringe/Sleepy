@@ -529,11 +529,12 @@ class Moderation(commands.Cog):
     async def purge_contains(self, ctx, substring, amount: int = 10):
         """Deletes messages that contain a substring.
 
-        Substrings must be at least 3 characters long.
+        Substring is case-sensitive and must be at
+        least 3 characters long.
 
-        If no amount is specified, then the previous 10
-        messages that meet the above criteria will be
-        deleted.
+        If no amount is specified, then the previous
+        10 messages that meet the above criteria will
+        be deleted.
 
         (Permissions Needed: Manage Messages)
         (Bot Needs: Manage Messages)
