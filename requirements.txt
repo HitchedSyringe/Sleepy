@@ -16,7 +16,7 @@ emoji>=1.1.0
 googletrans>=4.0.0rc1
 jishaku>=2.2.0
 matplotlib
-opencv-python
+opencv-python-headless
 Pillow>=8.0.0
 pyfiglet
 psutil
