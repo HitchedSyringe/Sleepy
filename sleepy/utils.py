@@ -259,18 +259,16 @@ def human_delta(delta, *, brief=False, absolute=False):
         "1 hour and 3 minutes"
     """
     if isinstance(delta, timedelta):
-        delta = delta.total_seconds()
+        delta -= timedelta(microseconds=delta.microseconds)
+        delta = int(delta.total_seconds())
+    else:
+        delta = round(delta)
 
-    # We want to get rid of possibility for float
-    # values. Also, the output will be unreadable
-    # if we're doing calculations with negatives.
-    abs_delta = abs(round(delta))
-
-    if abs_delta == 0:
+    if delta == 0:
         return "Just now"
 
     # Seconds to years/months values are estimates.
-    years, seconds = divmod(abs_delta, 31536000)
+    years, seconds = divmod(abs(delta), 31536000)
     months, seconds = divmod(seconds, 2404800)
     weeks, seconds = divmod(seconds, 604800)
     days, seconds = divmod(seconds, 86400)
