@@ -318,10 +318,13 @@ class Moderation(commands.Cog):
         > The number of days worth of a banned user's messages to delete.
         `--contains`:
         > Target members whose usernames contain the given substring(s).
+        > Substrings are case-sensitive.
         `--endswith` or `--ends`:
         > Target members whose usernames end with the given substring(s).
+        > Substrings are case-sensitive.
         `--startswith` or `--starts`:
         > Target members whose usernames start with the given substring(s).
+        > Substrings are case-sensitive.
         `--matches` or `--regex`:
         > Target members whose usernames match with the given regex.
         `--created`:
@@ -597,10 +600,13 @@ class Moderation(commands.Cog):
         > Target messages after the given message ID.
         `--startswith` or `--starts`:
         > Target messages that start with the given substring(s).
+        > Substrings are case-sensitive.
         `--endswith` or `--ends`:
         > Target messages that end with the given substring(s).
+        > Substrings are case-sensitive.
         `--contains`:
         > Target messages that contain the given substring(s).
+        > Substrings are case-sensitive.
         `--matches` or `--regex`:
         > Target messages whose content matches the given regex.
         `--users` or `--user`:
