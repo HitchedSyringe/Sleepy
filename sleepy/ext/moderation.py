@@ -814,8 +814,8 @@ class Moderation(commands.Cog):
         if reason is None:
             reason = f"{ctx.author} (ID: {ctx.author.id}): No reason provided."
 
-        await member.ban(reason=reason, delete_message_days=delete_message_days)
-        await member.unban(reason=reason)
+        await ctx.guild.ban(member, reason=reason, delete_message_days=delete_message_days)
+        await ctx.guild.unban(member, reason=reason)
 
         await ctx.send("<a:sapphire_ok_hand:786093988679516160>")
 
