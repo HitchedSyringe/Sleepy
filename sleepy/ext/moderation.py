@@ -135,7 +135,10 @@ class Moderation(commands.Cog):
         elif isinstance(error, (commands.UserNotFound, commands.MemberNotFound)):
             await ctx.send("That user wasn't found.")
             error.handled__ = True
-        elif isinstance(error, (BanEntryNotFound, CannotPerformAction, ReasonTooLong)):
+        elif isinstance(error, BanEntryNotFound):
+            await ctx.send("That user isn't banned.")
+            error.handled__ = True
+        elif isinstance(error, (CannotPerformAction, ReasonTooLong)):
             await ctx.send(error)
             error.handled__ = True
 
