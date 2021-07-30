@@ -221,7 +221,7 @@ def human_delta(delta, *, brief=False, absolute=False):
     Parameters
     ----------
     delta: Union[:class:`datetime.timedelta`, :class:`float`]
-        The delta to humanize.
+        The delta to humanize (in seconds).
 
         .. versionchanged:: 3.0
             Renamed to ``delta``.
