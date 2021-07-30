@@ -174,6 +174,8 @@ class Moderation(commands.Cog):
             await ctx.send("Aborted.")
             return
 
+        await ctx.trigger_typing()
+
         failed = 0
         for user in users:
             try:
