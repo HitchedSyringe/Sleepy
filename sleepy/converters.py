@@ -336,10 +336,13 @@ _old_command_transform = commands.Command.transform
 
 
 async def _new_command_transform(self, ctx, param):
-    annotation_inst = type(param.annotation)
+    if isinstance(param.annotation, type):
+        converter_type = param.annotation
+    else:
+        converter_type = type(param.annotation)
 
     if (
-        annotation_inst is ImageAssetConverter
+        issubclass(converter_type, ImageAssetConverter)
         and param.default is param.empty
         and ctx.message.attachments
     ):
@@ -356,7 +359,7 @@ async def _new_command_transform(self, ctx, param):
         if mime is None or "image/" not in mime:
             raise ImageAssetConversionFailure(url)
 
-        max_filesize = param.annotation.max_filesize
+        max_filesize = getattr(param.annotation, "max_filesize", None)
 
         if max_filesize is not None and attachment.size > max_filesize:
             raise ImageAssetTooLarge(url, attachment.size, max_filesize)
@@ -365,7 +368,7 @@ async def _new_command_transform(self, ctx, param):
             name=param.name,
             kind=param.kind,
             default=Asset(ctx.bot._connection, url),
-            annotation=Optional[annotation_inst]
+            annotation=Optional[converter_type]
         )
 
     return await _old_command_transform(self, ctx, param)
