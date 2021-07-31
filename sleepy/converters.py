@@ -341,11 +341,7 @@ async def _new_command_transform(self, ctx, param):
     else:
         converter_type = type(param.annotation)
 
-    if (
-        issubclass(converter_type, ImageAssetConverter)
-        and param.default is param.empty
-        and ctx.message.attachments
-    ):
+    if issubclass(converter_type, ImageAssetConverter) and ctx.message.attachments:
         # Figured I should include this here for completeness.
         if not self.ignore_extra and len(ctx.message.attachments) > 1:
             raise commands.TooManyArguments(
