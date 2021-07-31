@@ -182,7 +182,7 @@ class ImageAssetConverter(commands.Converter):
     ----------
     max_filesize: Optional[:class:`int`]
         The maximum conversion filesize in bytes.
-        ``None`` if this check is disabled.
+        ``None`` if filesize checking is disabled.
 
         .. versionadded:: 3.0
     """
