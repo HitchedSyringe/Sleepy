@@ -176,7 +176,7 @@ class Statistics(
         if not isinstance(error, (commands.CommandInvokeError, commands.ConversionError)):
             return
 
-        error = getattr(error, "original", error)
+        error = error.original
 
         if hasattr(error, "handled__"):
             return

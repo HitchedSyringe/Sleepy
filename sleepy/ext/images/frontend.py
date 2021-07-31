@@ -833,8 +833,6 @@ class Images(
 
     @texttoimage.error
     async def on_texttoimage_error(self, ctx, error):
-        error = getattr(error, "original", error)
-
         if isinstance(error, flags.ArgumentParsingError):
             await ctx.send(
                 "An error occurred while processing your flag arguments."

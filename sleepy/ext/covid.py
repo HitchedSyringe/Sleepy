@@ -49,8 +49,6 @@ class Covid(
     """Commands related to the COVID-19 pandemic."""
 
     async def cog_command_error(self, ctx, error):
-        error = getattr(error, "original", error)
-
         if isinstance(error, (commands.BadArgument, commands.MaxConcurrencyReached)):
             await ctx.send(error)
             error.handled__ = True

@@ -1007,8 +1007,6 @@ class Web(
 
     @screenshot.error
     async def on_screenshot_error(self, ctx, error):
-        error = getattr(error, "original", error)
-
         if isinstance(error, commands.NSFWChannelRequired):
             await ctx.send("This command can only be used in an NSFW channel.")
             error.handled__ = True
@@ -1150,8 +1148,6 @@ class Web(
 
     @translate.error
     async def on_translate_error(self, ctx, error):
-        error = getattr(error, "original", error)
-
         if isinstance(error, commands.BadArgument):
             await ctx.send("Destination language must begin with `>`.")
             error.handled__ = True
@@ -1250,8 +1246,6 @@ class Web(
     @steaminfo.error
     @vreddit.error
     async def on_entity_command_error(self, ctx, error):
-        error = getattr(error, "original", error)
-
         if isinstance(error, commands.BadArgument):
             await ctx.send(error)
             error.handled__ = True

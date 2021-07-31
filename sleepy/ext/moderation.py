@@ -124,8 +124,6 @@ class Moderation(commands.Cog):
         return True
 
     async def cog_command_error(self, ctx, error):
-        error = getattr(error, "original", error)
-
         if isinstance(error, flags.ArgumentParsingError):
             await ctx.send(
                 "An error occurred while processing your flag arguments."

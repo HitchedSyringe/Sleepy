@@ -230,8 +230,6 @@ class NSFW(
         return True
 
     async def cog_command_error(self, ctx, error):
-        error = getattr(error, "original", error)
-
         if isinstance(error, commands.NSFWChannelRequired):
             await ctx.send("This command can only be used in an NSFW channel.")
             error.handled__ = True

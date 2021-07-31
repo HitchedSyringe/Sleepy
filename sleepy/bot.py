@@ -330,8 +330,6 @@ class Sleepy(commands.Bot):
             ctx.command.reset_cooldown(ctx)
 
     async def on_command_error(self, ctx, error):
-        error = getattr(error, "original", error)
-
         ignored = (
             commands.CommandNotFound,
             commands.DisabledCommand,

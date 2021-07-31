@@ -67,8 +67,6 @@ class TriviaMinigame(
         self.active_sessions.clear()
 
     async def cog_command_error(self, ctx, error):
-        error = getattr(error, "original", error)
-
         if isinstance(error, NoActiveSession):
             await ctx.send("There is no active trivia session in this channel.")
             error.handled__ = True
@@ -237,8 +235,6 @@ class TriviaMinigame(
 
     @trivia.error
     async def on_trivia_error(self, ctx, error):
-        error = getattr(error, "original", error)
-
         if isinstance(error, flags.ArgumentParsingError):
             await ctx.send(
                 "An error occurred while processing your flag arguments."
