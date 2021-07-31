@@ -208,11 +208,11 @@ class ImageAssetConverter(commands.Converter):
         if "image/" not in resp.content_type:
             raise ImageAssetConversionFailure(argument)
 
-        if self.max_filesize is not None:
-            filesize = int(resp.headers["Content-Length"])
-
-            if filesize > self.max_filesize:
-                raise ImageAssetTooLarge(url, filesize, self.max_filesize)
+        if (
+            self.max_filesize is not None
+            and (filesize := int(resp.headers["Content-Length"])) > self.max_filesize
+        ):
+            raise ImageAssetTooLarge(url, filesize, self.max_filesize)
 
         return Asset(ctx.bot._connection, url)
 
