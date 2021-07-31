@@ -161,8 +161,15 @@ class ImageAssetConverter(commands.Converter):
         The maximum filesize, in bytes, an attachment or URL
         can be. This will raise :exc:`.ImageAssetTooLarge` if
         an attachment or URL exceeds this filesize limit.
-        Passing ``None`` disables this check.
-        Defaults to ``100_000_000`` (100 MB).
+        ``None`` (the default) denotes disabling filesize
+        checking.
+
+        .. danger::
+
+            Disabling filesize checking leaves you vulnerable to
+            a denial-of-service attack. Unless you are doing your
+            own internal checks, it is **highly recommended** to
+            set a maximum filesize.
 
         .. note::
 
@@ -180,7 +187,7 @@ class ImageAssetConverter(commands.Converter):
         .. versionadded:: 3.0
     """
 
-    def __init__(self, *, max_filesize=100_000_000):
+    def __init__(self, *, max_filesize=None):
         if max_filesize is not None and max_filesize <= 0:
             raise ValueError(f"invalid max_filesize {max_filesize} (must be > 0).")
 
