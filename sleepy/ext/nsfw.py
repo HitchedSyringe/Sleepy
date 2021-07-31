@@ -305,9 +305,7 @@ class NSFW(
             embed.set_image(url=url)
             embed.set_footer(text="Powered by danbooru.donmai.us")
 
-            sauce = post["source"]
-
-            if sauce:
+            if (sauce := post["source"]):
                 embed.add_field(name="Source", value=sauce)
 
             embeds.append(embed)
@@ -379,10 +377,8 @@ class NSFW(
             embed.set_image(url=url)
             embed.set_footer(text="Powered by e621.net")
 
-            sauces = "\n".join(post["sources"])
-
-            if sauces:
-                embed.add_field(name="Source(s)", value=sauces)
+            if (sauces := post["sources"]):
+                embed.add_field(name="Source(s)", value="\n".join(sauces))
 
             embeds.append(embed)
 
@@ -487,9 +483,8 @@ class NSFW(
             )
 
             data = result["data"]
-            urls = data.pop("ext_urls", None)
 
-            if urls is not None:
+            if (urls := data.pop("ext_urls", None)) is not None:
                 embed.add_field(name="External Links", value="\n".join(urls))
 
             embed.description = "\n".join(
@@ -560,9 +555,7 @@ class NSFW(
             embed.set_image(url=media_url)
             embed.set_footer(text="Powered by yande.re")
 
-            sauce = post["source"]
-
-            if sauce:
+            if (sauce := post["source"]):
                 embed.add_field(name="Source", value=sauce)
 
             embeds.append(embed)
