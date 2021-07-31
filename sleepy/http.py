@@ -87,6 +87,8 @@ class HTTPRequester:
     ----------
     cache: Optional[:class:`MutableMapping`]
         The mapping to use for caching the received data.
+        ``None`` (the default) denotes disabling caching
+        HTTP requests entirely.
 
         .. versionadded:: 3.0
     loop: :class:`asyncio.AbstractEventLoop`
