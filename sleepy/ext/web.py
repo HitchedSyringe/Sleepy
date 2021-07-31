@@ -960,15 +960,14 @@ class Web(
             await ctx.paginate(menus.EmbedSource(embeds))
 
     @commands.command(aliases=("ss", "snapshot"))
-    @commands.is_nsfw()
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 10, commands.BucketType.member)  # So we don't overload magmafuck.
     async def screenshot(self, ctx, url):
         """Screenshots a website.
 
-        Due to the nature of this command, combined with
-        a lack of content scanning, it is locked to NSFW
-        channels only.
+        **DISCLAIMER:** Due to a limitation with the service,
+        websites are not checked for any NSFW content before
+        screenshotting.
 
         (Bot Needs: Embed Links)
 
@@ -1004,12 +1003,6 @@ class Web(
         )
 
         await ctx.send(embed=embed)
-
-    @screenshot.error
-    async def on_screenshot_error(self, ctx, error):
-        if isinstance(error, commands.NSFWChannelRequired):
-            await ctx.send("This command can only be used in an NSFW channel.")
-            error.handled__ = True
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
