@@ -122,17 +122,24 @@ class ImageAssetConverter(commands.Converter):
 
     .. note::
 
-        Due to a limitation of this system, only the first
-        attachment in the message is converted to an asset.
-        Furthermore, attachments also take precedence over
-        the other conversion types. This means attachments
-        will always be converted and returned before users,
+        Due to an implementation detail, attachment conversion
+        takes precedence over the other conversion types. This
+        means that passed arguments will attempt to convert to
+        attachments first before attemping to convert to users,
         emojis, or URLs.
 
     .. warning::
 
-        Due to limitations with the checks, attachments
-        and URLs are not guaranteed to be valid images.
+        Due to a limitation with the argument parser, only the
+        first attachment in the message will be converted. This
+        means that the attachment conversion behaviour will not
+        work with the :class:`commands.Greedy` converter or the
+        positional vars handling (i.e. *args).
+
+    .. warning::
+
+        Due to limitations with the checks, attachments and URLs
+        are not guaranteed to be valid images.
 
     .. versionadded:: 2.0
 
@@ -151,15 +158,16 @@ class ImageAssetConverter(commands.Converter):
     Parameters
     ----------
     max_filesize: Optional[:class:`int`]
-        The maximum filesize, in bytes, an attachment or
-        URL can be. If an attachment or URL exceeds this
-        filesize, then :exc:`.ImageAssetTooLarge` is
-        raised. Passing ``None`` disables this check.
+        The maximum filesize, in bytes, an attachment or URL
+        can be. This will raise :exc:`.ImageAssetTooLarge` if
+        an attachment or URL exceeds this filesize limit.
+        Passing ``None`` disables this check.
         Defaults to ``100_000_000`` (100 MB).
 
         .. note::
 
-            Users and emojis skip this check regardless.
+            Users and emojis always skip this check regardless of
+            this setting.
 
         .. versionadded:: 3.0
 
