@@ -280,7 +280,7 @@ class TriviaSession:
             else:
                 msg = "Good game everyone! \N{SMILING FACE WITH SMILING EYES}"
 
-            msg += f"\n\n**Trivia Results** (Top 10)```hs\n{tchart(dict(top_ten))}```"
+            msg += f"\n\n**Trivia Results** (Top 10)\n```hs\n{tchart(dict(top_ten))}```"
 
             await self.channel.send(msg, allowed_mentions=discord.AllowedMentions(users=False))
 
