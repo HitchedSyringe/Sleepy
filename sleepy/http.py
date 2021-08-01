@@ -99,7 +99,7 @@ class HTTPRequester:
 
     __slots__ = ("_cache", "_loop", "_request_lock", "__session")
 
-    def __init__(self, cache=None, **kwargs):
+    def __init__(self, *, cache=None, **kwargs):
         if cache is not None and not isinstance(cache, MutableMapping):
             raise TypeError(
                 f"Expected cache to be MutableMapping or NoneType, not {type(cache).__name__}."
