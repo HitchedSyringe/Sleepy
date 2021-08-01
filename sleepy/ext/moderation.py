@@ -310,37 +310,37 @@ class Moderation(commands.Cog):
 
         __The following options are valid:__
 
-        `--reason` or `-r`:
+        `--reason` or `-r`
         > The reason for the ban.
-        `--delete-message-days` or `-dmd`:
+        `--delete-message-days` or `-dmd`
         > The number of days worth of a banned user's messages to delete.
-        `--contains`:
+        `--contains`
         > Target members whose usernames contain the given substring(s).
         > Substrings are case-sensitive.
-        `--endswith` or `--ends`:
+        `--endswith` or `--ends`
         > Target members whose usernames end with the given substring(s).
         > Substrings are case-sensitive.
-        `--startswith` or `--starts`:
+        `--startswith` or `--starts`
         > Target members whose usernames start with the given substring(s).
         > Substrings are case-sensitive.
-        `--matches` or `--regex`:
+        `--matches` or `--regex`
         > Target members whose usernames match with the given regex.
-        `--created`:
+        `--created`
         > Target members whose accounts were created less than specified minutes ago.
-        `--joined`:
+        `--joined`
         > Target members who joined less than specified minutes ago.
-        `--joined-before`:
+        `--joined-before`
         > Target members who joined before the member given.
-        `--joined-after`:
+        `--joined-after`
         > Target members who joined after the member given.
 
         __The remaining options do not take any arguments and are simply just flags:__
 
-        `--no-avatar`:
+        `--no-avatar`
         > Target members that have a default avatar.
-        `--no-roles`:
+        `--no-roles`
         > Target members that do not have a role.
-        `--show` or `-s`:
+        `--show` or `-s`
         > Show members that meet the criteria for banning instead of actually banning them.
 
         (Permissions Needed: Ban Members)
@@ -588,41 +588,41 @@ class Moderation(commands.Cog):
 
         __The following options are valid **(All options are optional.)**:__
 
-        `--amount`:
+        `--amount`
         > The number of messages to search for and delete.
         > Must be between 1 and 2000, inclusive.
         > Defaults to `10` if omitted.
-        `--before`:
+        `--before`
         > Target messages before the given message ID.
-        `--after`:
+        `--after`
         > Target messages after the given message ID.
-        `--startswith` or `--starts`:
+        `--startswith` or `--starts`
         > Target messages that start with the given substring(s).
         > Substrings are case-sensitive.
-        `--endswith` or `--ends`:
+        `--endswith` or `--ends`
         > Target messages that end with the given substring(s).
         > Substrings are case-sensitive.
-        `--contains`:
+        `--contains`
         > Target messages that contain the given substring(s).
         > Substrings are case-sensitive.
-        `--matches` or `--regex`:
+        `--matches` or `--regex`
         > Target messages whose content matches the given regex.
-        `--users` or `--user`:
+        `--users` or `--user`
         > Target messages sent by the given user(s).
 
         __The remaining options do not take any arguments and are simply just flags:__
 
-        `--bot`:
+        `--bot`
         > Target messages sent by a bot user.
-        `--embeds`:
+        `--embeds`
         > Target messages that contain embeds.
-        `--emoji`:
+        `--emoji`
         > Target messages that contain a custom emoji.
-        `--files` or `--attachments`:
+        `--files` or `--attachments`
         > Target messages that contain file attachments.
-        `--any`:
+        `--any`
         > Targeted messages are only deleted if ANY conditions given are met.
-        `--not`:
+        `--not`
         > Delete messages that do NOT meet the conditions given.
 
         (Permissions Needed: Manage Messages)
