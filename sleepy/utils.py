@@ -715,6 +715,7 @@ def truncate(text, /, width, *, placeholder="..."):
     .. versionchanged:: 3.0
 
         * Renamed to ``truncate``.
+        * Renamed ``max_width`` argument to ``width``.
         * Raise :exc:`ValueError` if ``width`` is less
           than the length of the placeholder.
 
