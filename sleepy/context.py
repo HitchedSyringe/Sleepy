@@ -75,7 +75,7 @@ class Context(commands.Context):
     async def get(self, url, /, *, cache__=False, **kwargs):
         """|coro|
 
-        Same as :meth:`request`, but slimmed down to only do GET requests.
+        Similar to :meth:`request`, but slimmed down to only do GET requests.
 
         .. versionadded:: 1.10
 
@@ -87,7 +87,7 @@ class Context(commands.Context):
     async def post(self, url, /, *, cache__=False, **kwargs):
         """|coro|
 
-        Same as :meth:`request`, but slimmed down to only do POST requests.
+        Similar to :meth:`request`, but slimmed down to only do POST requests.
 
         .. versionadded:: 1.10
 
@@ -106,13 +106,13 @@ class Context(commands.Context):
 
         .. versionadded:: 2.0
 
-        .. versionchanged:: 3.0
-            ``source`` is now a positional-only argument.
-
         Parameters
         ----------
         source: :class:`menus.PageSource`
             The page source to paginate.
+
+            .. versionchanged:: 3.0
+                This is now a positional-only argument.
         """
         menu = PaginationMenu(source, **kwargs)
         await menu.start(self)
@@ -130,15 +130,15 @@ class Context(commands.Context):
         .. versionchanged:: 2.0
             Rewrote to use `discord.ext.menus`.
 
-        .. versionchanged:: 3.0
-            ``message`` is now a positional-only argument.
-
         Parameters
         ----------
         message: Union[:class:`str`, :class:`discord.Message`]
             The message to attach the menu to.
             If the message is a :class:`str`, then the menu
             will send a new message with the given content.
+
+            .. versionchanged:: 3.0
+                This is now a positional-only argument.
         timeout: :class:`float`
             The time, in seconds, before the prompt expires.
             Defaults to ``30``.
@@ -169,15 +169,15 @@ class Context(commands.Context):
         .. versionadded:: 1.7
 
         .. versionchanged:: 2.0
-            Renamed ``entry`` to ``formatter``.
-
-        .. versionchanged:: 3.0
-            ``matches`` is now a positional-only argument.
+            Renamed ``entry`` argument to ``formatter``.
 
         Parameters
         ----------
         matches: Sequence[Any]
             The matching items to disambiguate.
+
+            .. versionchanged:: 3.0
+                This is now a positional-only argument.
         formatter: Optional[Callable[[Any], :class:`str`]]
             A function that returns a string-like result.
         timeout: :class:`float`

@@ -39,6 +39,7 @@ def find_extensions_in(path: Path | str) -> Iterable[str]: ...
 
 def human_delta(
     delta: timedelta | float,
+    /,
     *,
     brief: bool = False,
     absolute: bool = False
@@ -50,8 +51,8 @@ def human_join(sequence: Sequence[Any], /, *, joiner: str = "and") -> str: ...
 
 def human_number(
     number: float,
-    sigfigs: int = 3,
     /,
+    sigfigs: int = 3,
     *,
     strip_trailing_zeroes: bool = True,
     suffixes: Sequence[str] = ...
@@ -70,13 +71,7 @@ def measure_performance(
 ) -> Callable[..., tuple[Any, float]] | Coroutine[Any, Any, tuple[Any, float]]: ...
 
 
-def progress_bar(
-    maximum: int,
-    progress: float,
-    /,
-    *,
-    per: int = 1,
-) -> str: ...
+def progress_bar(*, maximum: int, progress: float, per: int = 1) -> str: ...
 
 
 def tchart(
@@ -88,8 +83,8 @@ def tchart(
 
 def truncate(
     text: str,
-    width: int,
     /,
+    width: int,
     *,
     placeholder: str = "..."
 ) -> str: ...

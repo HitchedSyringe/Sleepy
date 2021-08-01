@@ -68,6 +68,9 @@ class plural:
     ----------
     value: :class:`float`
         The value which the pluralisation is based on.
+
+        .. versionchanged:: 3.0
+            This is now a positional-only argument.
     value_format_spec: Optional[:class:`str`]
         The formatting spec for the numerical value
         itself.
@@ -205,7 +208,7 @@ def find_extensions_in(path):
         yield ".".join(extension.with_suffix("").parts).lstrip(".")
 
 
-def human_delta(delta, *, brief=False, absolute=False):
+def human_delta(delta, /, *, brief=False, absolute=False):
     """Humanizes a given delta.
 
     .. versionadded:: 1.9
@@ -213,6 +216,7 @@ def human_delta(delta, *, brief=False, absolute=False):
     .. versionchanged:: 3.0
 
         * Renamed to ``human_delta``.
+        * Renamed ``duration`` argument to ``delta``.
         * Return ``"Just now"`` if the delta is 0, otherwise,
           indicate if the delta is negative or positive in the
           returned string. This behaviour can be disabled via
@@ -224,7 +228,7 @@ def human_delta(delta, *, brief=False, absolute=False):
         The delta to humanize (in seconds).
 
         .. versionchanged:: 3.0
-            Renamed to ``delta``.
+            This is now a positional-only argument.
     brief: :class:`bool`
         Whether or not to only return the first component of
         the humanised delta.
@@ -325,12 +329,14 @@ def human_join(sequence, /, *, joiner="and"):
         * Passing empty sequences will now return an empty
           string.
         * Allow passing sequences with non-string values.
-        * ``sequence`` is now a positional-only argument.
 
     Parameters
     ----------
     sequence: Sequence[Any]
         The sequence of items to join.
+
+        .. versionchanged:: 3.0
+            This is now a positional-only argument.
     joiner: :class:`str`
         The string that joins the last item with the rest
         of the sequence.
@@ -374,8 +380,8 @@ def human_join(sequence, /, *, joiner="and"):
 
 def human_number(
     number,
-    sigfigs=3,
     /,
+    sigfigs=3,
     *,
     strip_trailing_zeroes=True,
     suffixes=_DEFAULT_SHORT_NUMBER_SUFFIXES
@@ -389,27 +395,34 @@ def human_number(
     .. versionchanged:: 3.0
 
         * Renamed to ``human_number``.
-        * Rename ``precision`` to ``sigfigs``.
-        * Rename ``remove_trailing_zeroes`` to ``strip_trailing_zeroes``.
-        * ``strip_trailing_zeroes`` and ``suffixes`` are now keyword-only
-          arguments.
-        * ``number`` and ``sigfigs`` are now positional-only arguments.
+        * Renamed ``precision`` argument to ``sigfigs``.
+        * Renamed ``remove_trailing_zeroes`` argument to
+        ``strip_trailing_zeroes``.
         * Raise :exc:`ValueError` if ``suffixes`` is an empty sequence.
 
     Parameters
     ----------
     number: :class:`float`
         The number to humanize.
+
+        .. versionchanged:: 3.0
+            This is now a positional-only argument.
     sigfigs: :class:`int`
         The number of significant figures to round to.
         Defaults to ``3``.
     strip_trailing_zeroes: :class:`bool`
         Whether or not to strip trailing zeroes.
         Defaults to ``True``.
+
+        .. versionchanged:: 3.0
+            This is now a keyword-only argument.
     suffixes: Sequence[:class:`str`]
         The suffixes to use for each power of 1000.
         The order of the sequence is in ascending order.
         Defaults to ``("", "K", "M", "B", "T", "P", "E", "Z", "Y")``.
+
+        .. versionchanged:: 3.0
+            This is now a keyword-only argument.
 
     Returns
     -------
@@ -571,16 +584,15 @@ def measure_performance(func):
     return decorator
 
 
-def progress_bar(maximum, progress, /, *, per=1):
+def progress_bar(*, progress, maximum, per=1):
     """Constructs a progress bar.
 
     .. versionadded:: 2.0
 
     .. versionchanged:: 3.0
 
-        * ``per`` is now a keyword-only argument.
-        * ``maximum`` and ``progress`` are now positional-only
-          arguments.
+        * Re-ordered the arguments to ``progress``, ``maximum``,
+        and ``per``.
         * Raise :exc:`ValueError` if any of the following apply:
 
             * ``maximum`` is negative or 0.
@@ -589,13 +601,22 @@ def progress_bar(maximum, progress, /, *, per=1):
 
     Parameters
     ----------
-    maximum: :class:`int`
-        The maximum value of the progress bar.
     progress: :class:`float`
         The value the progress bar is currently at.
+
+        .. versionchanged:: 3.0
+            This is now a keyword-only argument.
+    maximum: :class:`int`
+        The maximum value of the progress bar.
+
+        .. versionchanged:: 3.0
+            This is now a keyword-only argument.
     per: :class:`int`
         The value of each portion of the progress bar.
         Defaults to ``1``.
+
+        .. versionchanged:: 3.0
+            This is now a keyword-only argument.
 
     Returns
     -------
@@ -642,13 +663,14 @@ def tchart(items, /, formatter=None):
 
         * Function now takes only mapping objects.
         * Empty mappings are now allowed.
-        * ``items`` and ``formatter`` are now positional-only
-          arguments.
 
     Parameters
     ----------
     items: :class:`Mapping`
         The items to form into a T-Chart.
+
+        .. versionchanged:: 3.0
+            This is now a positional-only argument.
     formatter: Optional[Callable[[Any], :class:`str`]]
         A function that returns a string-like result.
 
@@ -670,7 +692,7 @@ def tchart(items, /, formatter=None):
     return "\n".join(f"{formatter(k):<{width}} | {v}" for k, v in items.items())
 
 
-def truncate(text, width, /, *, placeholder="..."):
+def truncate(text, /, width, *, placeholder="..."):
     """Truncates a long string to the given width.
 
     If the string does not exceed the given width,
@@ -694,13 +716,14 @@ def truncate(text, width, /, *, placeholder="..."):
         * Renamed to ``truncate``.
         * Raise :exc:`ValueError` if ``width`` is less
           than the length of the placeholder.
-        * ``text`` and ``width`` are now positional-only
-          arguments.
 
     Parameters
     ----------
     text: :class:`str`
         The string to truncate.
+
+        .. versionchanged:: 3.0
+            This is now a positional-only argument.
     width: :class:`int`
         The maximum length of the string.
     placeholder: :class:`str`

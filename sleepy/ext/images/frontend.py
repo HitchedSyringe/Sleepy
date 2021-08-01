@@ -671,8 +671,8 @@ class Images(
         embed.set_footer(text=f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.")
 
         embed.add_field(
-            name="Confidence",
-            value=f"**{score}%** \N{BULLET} 0 {progress_bar(100, score, per=10)} 100"
+            name="Confidence \N{BULLET} **{score}%**",
+            value=f"0 {progress_bar(progress=score, maximum=100, per=10)} 100"
         )
 
         await ctx.send(embed=embed, file=File(buffer, "ship.png"))

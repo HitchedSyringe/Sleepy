@@ -165,14 +165,20 @@ class HTTPRequester:
             takes must be suffixed with a dunder.
 
         .. versionchanged:: 3.0
-            ``method`` and ``url`` are now positional-only arguments.
+            Renamed ``cache`` argument to ``cache__``.
 
         Parameters
         ----------
         method: :class:`str`
             The HTTP method.
+
+            .. versionchanged:: 3.0
+                This is now a positional-only argument.
         url: Union[:class:`str`, :class:`yarl.URL`]
             The URL to make a request to.
+
+            .. versionchanged:: 3.0
+                This is now a positional-only argument.
         cache__: :class:`bool`
             Whether or not to cache the response data.
             If :attr:`cache` is ``None``, then caching
