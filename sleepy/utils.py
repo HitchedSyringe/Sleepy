@@ -654,7 +654,7 @@ def progress_bar(*, progress, maximum, per=1):
     return _FR + (_FB * (filled - 1)) + (_EB * (total - filled - 1)) + _EL
 
 
-def tchart(items, /, formatter=None):
+def tchart(items, /, keys_formatter=None):
     """Renders a T-Chart.
 
     .. versionadded:: 1.13.3
@@ -671,8 +671,9 @@ def tchart(items, /, formatter=None):
 
         .. versionchanged:: 3.0
             This is now a positional-only argument.
-    formatter: Optional[Callable[[Any], :class:`str`]]
+    keys_formatter: Optional[Callable[[Any], :class:`str`]]
         A function that returns a string-like result.
+        This is used to format the left hand column values.
 
         .. versionadded:: 3.0
 
@@ -684,12 +685,12 @@ def tchart(items, /, formatter=None):
     if not items:
         return ""
 
-    if formatter is None:
-        formatter = str
+    if keys_formatter is None:
+        keys_formatter = str
 
-    width = len(max(map(formatter, items), key=len))
+    width = len(max(map(keys_formatter, items), key=len))
 
-    return "\n".join(f"{formatter(k):<{width}} | {v}" for k, v in items.items())
+    return "\n".join(f"{keys_formatter(k):<{width}} | {v}" for k, v in items.items())
 
 
 def truncate(text, /, width, *, placeholder="..."):

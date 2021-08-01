@@ -77,7 +77,7 @@ def progress_bar(*, maximum: int, progress: float, per: int = 1) -> str: ...
 def tchart(
     items: Mapping[Any, Any],
     /,
-    formatter: Optional[Callable[[Any], str]] = None
+    keys_formatter: Optional[Callable[[Any], str]] = None
 ) -> str: ...
 
 
