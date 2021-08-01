@@ -4,7 +4,7 @@
 
 [![Bot Version](https://img.shields.io/github/v/release/HitSyr/Sleepy?color=F0D273&label=version)](https://github.com/HitSyr/Sleepy)
 [![Supported Python Versions](https://img.shields.io/badge/python-3.8%2b-blue?logo=python)](https://python.org/)
-[![Project License](https://img.shields.io/github/license/HitSyr/Sleepy)](LICENSE)
+[![Project License](https://img.shields.io/badge/license-MPL--2.0-orange)](LICENSE)
 [![Discord Server](https://discord.com/api/guilds/495593721371295755/widget.png?style=shield)](https://discord.com/invite/xHgh2Xg)
 
 </div>
