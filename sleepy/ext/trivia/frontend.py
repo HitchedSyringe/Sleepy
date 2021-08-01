@@ -138,7 +138,7 @@ class TriviaMinigame(
     @flags.add_flag("--no-bot", action="store_false", dest="bot_plays")
     @flags.add_flag("--no-reveal-answer", action="store_false", dest="reveal_answer")
     @flags.add_flag("--no-hints", action="store_false", dest="give_hints")
-    @flags.group(invoke_without_command=True, usage="[options...]")
+    @flags.group(invoke_without_command=True, usage="<--categories> [options...]")
     @commands.bot_has_permissions(embed_links=True)
     async def trivia(self, ctx, **flags):
         """Starts a new trivia session.
