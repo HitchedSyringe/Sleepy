@@ -180,6 +180,7 @@ class Context(commands.Context):
                 This is now a positional-only argument.
         formatter: Optional[Callable[[Any], :class:`str`]]
             A function that returns a string-like result.
+            This is used to format the displayed matches.
         timeout: :class:`float`
             How long, in seconds, the user has to respond.
             Defaults to ``30``.
