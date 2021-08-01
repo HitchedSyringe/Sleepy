@@ -55,7 +55,7 @@ class GatewayWebhookHandler(logging.Handler):
             lvl = levels.get(rec.levelname, "\N{CROSS MARK}")
 
             await self._webhook.send(
-                f"{lvl} [{human_ts(created, 'F')}] `{textwrap.shorten(rec.message, 2000)}`",
+                textwrap.shorten(f"{lvl} [{human_ts(created, 'F')}] `{rec.message}`", 2000),
                 username="Gateway Status",
                 avatar_url="https://i.imgur.com/4PnCKB3.png"
             )
