@@ -382,7 +382,7 @@ class Meta(commands.Cog):
         As for me, I'm no better than any of you.
         """
         msg_ts = ctx.message.edited_at or ctx.message.created_at
-        delta = abs(datetime.utcnow() - msg_ts).total_seconds()
+        delta = abs(datetime.utcnow() - msg_ts).total_seconds() * 1000
 
         await ctx.send(
             "\N{TABLE TENNIS PADDLE AND BALL} **Pong!**```ldif"
