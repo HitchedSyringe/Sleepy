@@ -240,10 +240,6 @@ class Statistics(
         await self.send_brief_guild_info(guild, joined=False)
 
     @commands.Cog.listener()
-    async def on_resumed(self):
-        self.bot.resumes += 1
-
-    @commands.Cog.listener()
     async def on_socket_response(self, response):
         self.bot.socket_events[response.get("t")] += 1
 
@@ -414,7 +410,7 @@ class Statistics(
 
         This command can only be used by my higher-ups.
         """
-        resumes = ctx.bot.resumes
+        resumes = ctx.bot.socket_events["RESUMED"]
         identifies = ctx.bot.identifies
 
         await ctx.send(
@@ -502,8 +498,5 @@ def setup(bot):
 
     if not hasattr(bot, "identifies"):
         bot.identifies = 0
-
-    if not hasattr(bot, "resumes"):
-        bot.resumes = 0
 
     bot.add_cog(Statistics(bot))
