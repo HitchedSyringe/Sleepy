@@ -18,7 +18,7 @@ import aiofiles
 import logging
 import traceback
 import yaml
-from discord import Embed, HTTPException, utils
+from discord import Embed, HTTPException
 from discord.ext import commands, flags
 from sleepy.utils import human_join, tchart
 
@@ -37,9 +37,7 @@ class NoActiveSession(commands.CheckFailure):
 def has_active_session():
 
     async def predicate(ctx):
-        session = utils.get(ctx.cog.active_sessions, channel=ctx.channel)
-
-        if session is None:
+        if ctx.channel.id not in ctx.cog.active_sessions:
             raise NoActiveSession(ctx.channel)
 
         return True
@@ -58,10 +56,10 @@ class TriviaMinigame(
     """Commands having to do with the Trivia minigame."""
 
     def __init__(self):
-        self.active_sessions = set()
+        self.active_sessions = {}
 
     def cog_unload(self):
-        for session in self.active_sessions:
+        for session in self.active_sessions.values():
             session.stop()
 
         self.active_sessions.clear()
@@ -91,7 +89,7 @@ class TriviaMinigame(
             session.channel.id
         )
 
-        self.active_sessions.remove(session)
+        self.active_sessions.pop(session, None)
 
     @commands.Cog.listener()
     async def on_trivia_session_error(self, session, error):
@@ -177,7 +175,7 @@ class TriviaMinigame(
 
         (Bot Needs: Embed Links)
         """
-        if utils.get(self.active_sessions, channel=ctx.channel) is not None:
+        if ctx.channel.id in self.active_sessions:
             await ctx.send("There's already an active trivia session in this channel.")
             return
 
@@ -230,8 +228,7 @@ class TriviaMinigame(
 
         await ctx.send(embed=embed)
 
-        session = TriviaSession.start(ctx, questions, **flags)
-        self.active_sessions.add(session)
+        self.active_sessions[ctx.channel.id] = TriviaSession.start(ctx, questions, **flags)
 
     @trivia.error
     async def on_trivia_error(self, ctx, error):
@@ -251,7 +248,7 @@ class TriviaMinigame(
         user with the `Manage Messages` permission in order
         to do this.
         """
-        session = utils.get(self.active_sessions, channel=ctx.channel)
+        session = self.active_sessions[ctx.channel.id]
 
         if (
             ctx.channel.permissions_for(ctx.author).manage_messages
@@ -267,7 +264,7 @@ class TriviaMinigame(
     @has_active_session()
     async def trivia_scores(self, ctx):
         """Shows the player scores in the current trivia session."""
-        session = utils.get(self.active_sessions, channel=ctx.channel)
+        session = self.active_sessions[ctx.channel.id]
 
         if session.scores:
             await ctx.send(
