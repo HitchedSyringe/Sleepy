@@ -187,12 +187,11 @@ class TriviaMinigame(
             await ctx.send("Answer time limit must be between 15 and 50, inclusive.")
             return
 
-        categories = flags.pop("categories")
         creds = []
         questions = []
 
         async with ctx.typing():
-            for category in categories:
+            for category in set(flags.pop("categories")):
                 category_path = CATEGORIES.joinpath(category + ".yaml").resolve()
 
                 if not category_path.is_relative_to(CATEGORIES):
