@@ -4,11 +4,12 @@ labels: unconfirmed bug
 body:
   - type: markdown
     attributes:
-      value: >-
+      value: >
         Thanks for taking the time to fill out this bug report!
         If you have any questions or need real-time support,
         please join our [Discord server](https://discord.gg/xHgh2Xg).
-        **This form is for bugs only!**
+
+        **Please note that this form is for bugs only!**
   - type: input
     id: version-info
     attributes:
@@ -21,7 +22,7 @@ body:
     id: command-info
     attributes:
       label: Command/Category
-      description: >
+      description: |
         Please include the full name of the involved command and its category.
         Omit this section if this bug does not pertain to any command.
     validations:
@@ -38,7 +39,7 @@ body:
     attributes:
       label: Reproduction Steps
       description: Please explain the steps taken to produce this bug.
-      placeholder: >
+      placeholder: |
         1. Do [this]
         2. Do [that]
         3. See result.
@@ -70,7 +71,7 @@ body:
     id: additional-information
     attributes:
       label: Extra Information
-      description: >-
+      description: >
         If there is any extra information pertaining to this bug
         that is not addressed above, please include it here.
     validations:

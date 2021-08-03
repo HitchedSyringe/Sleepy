@@ -6,14 +6,14 @@ body:
     id: feature
     attributes:
       label: What part of the bot does this feature request or enhancement pertain to?
-      description: |
+      description: >
         Please specify whether this involves a command, a category, or the API itself.
     validations:
       required: true
   - type: textarea
     id: request-info
     attributes:
-      label: |
+      label: >
         Please describe, in as much detail as you wish, the enhancement or
         feature you're suggesting.
     validations:
@@ -30,7 +30,8 @@ body:
     id: additional-information
     attributes:
       label: Additional Information
-      description: |
-        If there is any additional information you would like to include, please do so here.
+      description: >
+        If there is any additional information you would like to include,
+        please do so here.
     validations:
       required: false
