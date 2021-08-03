@@ -1,0 +1,38 @@
+name: Feature Request/Enhancement
+description: Request a feature or enhancement with the bot.
+title: ""
+labels: enhancement
+assignees: []
+body:
+  - type: input
+    id: feature
+    attributes:
+      label: What part of the bot does this feature request or enhancement pertain to?
+      description: |
+        Please specify whether this involves a command, a category, or the API itself.
+    validations:
+      required: true
+  - type: textarea
+    id: request-info
+    attributes:
+      label: |
+        Please describe, in as much detail as you wish, the enhancement or
+        feature you're suggesting.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: "Please double-check the following:"
+      options:
+        - label: I have searched the open issues for duplicates.
+          required: true
+  - type: textarea
+    id: additional-information
+    attributes:
+      label: Additional Information
+      description: |
+        If there is any additional information you would like to include, please do so here.
+    validations:
+      required: false
