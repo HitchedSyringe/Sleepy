@@ -1,8 +1,6 @@
 name: Feature Request/Enhancement
 description: Request a feature or enhancement with the bot.
-title: ""
 labels: enhancement
-assignees: []
 body:
   - type: input
     id: feature

@@ -1,8 +1,6 @@
 name: Bug Report
 description: Report a bug with the bot.
-title: ""
 labels: unconfirmed bug
-assignees: []
 body:
   - type: markdown
     attributes:
