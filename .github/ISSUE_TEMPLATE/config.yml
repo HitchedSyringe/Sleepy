@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
+  - name: Discussions Board
+    url: https://github.com/HitSyr/Sleepy/discussions
+    about: Ask or answer any questions pertaining to the bot.
   - name: Support Server
     url: https://discord.gg/xHgh2Xg
-    about: Ask any questions you have here.
+    about: Feel free to ask or answer any questions you have in the official Discord as well.
