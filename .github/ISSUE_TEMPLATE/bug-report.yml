@@ -1,0 +1,78 @@
+name: Bug Report
+description: Report a bug with the bot.
+labels: unconfirmed bug
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Thanks for taking the time to fill out this bug report!
+        If you have any questions or need real-time support,
+        please join our [Discord server](https://discord.gg/xHgh2Xg).
+
+        **Please note that this form is for bugs only!**
+  - type: input
+    id: version-info
+    attributes:
+      label: What version of Sleepy are you using?
+      description: Please state the version and commit hash.
+      placeholder: "Ex: v3.0.1; commit: 3af9254ff6b98f82011b16357e3957c49c13c34b"
+    validations:
+      required: true
+  - type: input
+    id: command-info
+    attributes:
+      label: Command/Category
+      description: |
+        Please include the full name of the involved command and its category.
+        Omit this section if this bug does not pertain to any command.
+    validations:
+      required: false
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Reproduction Steps
+      description: Please explain the steps taken to produce this bug.
+      placeholder: |
+        1. Do [this]
+        2. Do [that]
+        3. See result.
+    validations:
+      required: true
+  - type: textarea
+    id: expected-result
+    attributes:
+      label: Expected Result(s)
+      description: A clear and concise description of what you expected to occur.
+    validations:
+      required: true
+  - type: textarea
+    id: actual-result
+    attributes:
+      label: Actual Result(s)
+      description: A clear and concise description of what actually occurred.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: "Please double-check the following:"
+      options:
+        - label: I have searched the open issues for duplicates.
+          required: true
+  - type: textarea
+    id: additional-information
+    attributes:
+      label: Extra Information
+      description: >
+        If there is any extra information pertaining to this bug
+        that is not addressed above, please include it here.
+    validations:
+      required: false
