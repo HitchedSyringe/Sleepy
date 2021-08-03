@@ -89,7 +89,7 @@ class TriviaMinigame(
             session.channel.id
         )
 
-        self.active_sessions.pop(session, None)
+        self.active_sessions.pop(session.channel.id, None)
 
     @commands.Cog.listener()
     async def on_trivia_session_error(self, session, error):
