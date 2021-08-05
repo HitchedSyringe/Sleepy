@@ -232,8 +232,6 @@ class Fun(
     @commands.command()
     async def advice(self, ctx):
         """Gives some advice."""
-        await ctx.trigger_typing()
-
         resp = await ctx.get("https://api.adviceslip.com/advice")
         data = json.loads(resp)
 
@@ -265,8 +263,6 @@ class Fun(
         ```
         """
         font = random.choice(pyfiglet.FigletFont.getFonts()) if font is None else font.lower()
-
-        await ctx.trigger_typing()
 
         try:
             output, delta = await self.figlet_format(text, font)
@@ -373,8 +369,6 @@ class Fun(
     @commands.command(aliases=("cnorris",))
     async def chucknorris(self, ctx):
         """Tells a Chuck Norris joke/fact."""
-        await ctx.trigger_typing()
-
         resp = await ctx.get("https://api.icndb.com/jokes/random?escape=javascript")
 
         await ctx.send(f"{resp['value']['joke']}\n`Powered by icndb.com`")
@@ -475,8 +469,6 @@ class Fun(
     @commands.command(aliases=("pun",))
     async def dadjoke(self, ctx):
         """Tells a dad joke (or a pun, whatever you want to call it.)"""
-        await ctx.trigger_typing()
-
         resp = await ctx.get(
             "https://icanhazdadjoke.com/",
             headers__={"Accept": "application/json"}
@@ -611,8 +603,6 @@ class Fun(
                 "you more of a bot than I."
             )
         else:
-            await ctx.trigger_typing()
-
             insult = await ctx.get("https://evilinsult.com/generate_insult.php?lang=en")
 
             await ctx.send(
@@ -906,8 +896,6 @@ class Fun(
     @commands.command()
     async def uselessfact(self, ctx):
         """Gives an utterly useless and pointless fact."""
-        await ctx.trigger_typing()
-
         resp = await ctx.get("https://useless-facts.sameerkumar.website/api")
 
         await ctx.send(f"{resp['data']}\n`Powered by sameerkumar.website`")
@@ -940,8 +928,6 @@ class Fun(
                 "You really must be some kind of comedic genius."
             )
         else:
-            await ctx.trigger_typing()
-
             resp = await ctx.get("https://api.yomomma.info/")
 
             await ctx.send(

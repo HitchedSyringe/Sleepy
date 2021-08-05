@@ -205,8 +205,6 @@ class NSFW(
             @commands.command(**attrs)
             @commands.bot_has_permissions(embed_links=True)
             async def nekobot_image_command(cog, ctx):
-                await ctx.trigger_typing()
-
                 resp = await ctx.get(
                     "https://nekobot.xyz/api/image",
                     # Same reasoning here as in `weeb`.

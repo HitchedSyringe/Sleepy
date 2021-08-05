@@ -415,8 +415,6 @@ class Covid(
         covid19 unitedstates New York
         ```
         """
-        await ctx.trigger_typing()
-
         try:
             latest = await ctx.get(
                 f"https://disease.sh/v3/covid-19/states/{quote(state)}",

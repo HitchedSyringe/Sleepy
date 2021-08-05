@@ -82,8 +82,6 @@ class DeveloperUtilities(
         colour=None,
         **params
     ):
-        await ctx.trigger_typing()
-
         resp = await ctx.get(
             f"https://idevision.net/api/public/{endpoint}",
             cache__=True,
@@ -297,8 +295,6 @@ class DeveloperUtilities(
         pypi discord.py
         ```
         """
-        await ctx.trigger_typing()
-
         try:
             resp = await ctx.get(
                 f"https://pypi.org/pypi/{quote(package, safe='')}/json",

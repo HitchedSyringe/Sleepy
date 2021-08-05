@@ -322,8 +322,6 @@ class Web(
             if (cached := http_cache.get(key)) is not None:
                 return cached
 
-        await ctx.trigger_typing()
-
         poke = await ctx.get(f"https://pokeapi.co/api/v2/pokemon/{name}")
         spec = await ctx.get(poke["species"]["url"])
         pokemon_name = poke["name"]
@@ -490,8 +488,6 @@ class Web(
         <2> countryinfo China
         <3> countryinfo UK
         """
-        await ctx.trigger_typing()
-
         resp = await ctx.get(
             f"https://restcountries.com/v2/name/{quote(country)}",
             cache__=True
@@ -581,8 +577,6 @@ class Web(
         define aloof
         ```
         """
-        await ctx.trigger_typing()
-
         try:
             resp = await ctx.get(
                 f"https://api.dictionaryapi.dev/api/v2/entries/en/{quote(term)}",
@@ -708,8 +702,6 @@ class Web(
         if len(currencies) > 15:
             await ctx.send("You may only convert to 15 different currencies at a time.")
             return
-
-        await ctx.trigger_typing()
 
         try:
             resp = await ctx.get(
@@ -906,8 +898,6 @@ class Web(
         <2> reddit r/help
         ```
         """
-        await ctx.trigger_typing()
-
         try:
             resp = await ctx.get(
                 f"https://reddit.com/r/{subreddit}/hot.json",
@@ -1021,8 +1011,6 @@ class Web(
         <4> steaminfo ReallyCoolExampleVanity
         ```
         """
-        await ctx.trigger_typing()
-
         resp = await ctx.get(
             "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2",
             key=self.steam_api_key,
@@ -1113,8 +1101,6 @@ class Web(
                 await ctx.send("You must provide a message to translate.")
                 return
 
-        await ctx.trigger_typing()
-
         try:
             tsl = await self.translator.translate(text, destination, source)
         except ValueError:
@@ -1158,8 +1144,6 @@ class Web(
         urbandict gl2u
         ```
         """
-        await ctx.trigger_typing()
-
         resp = await ctx.get(
             "https://api.urbandictionary.com/v0/define",
             cache__=True,
@@ -1266,8 +1250,6 @@ class Web(
         <8> weather 35.73 51.33
         ```
         """
-        await ctx.trigger_typing()
-
         try:
             resp = await ctx.get(
                 "https://api.weatherapi.com/v1/current.json",
@@ -1343,8 +1325,6 @@ class Web(
         <2> wikipedia Python (Programming Language)
         ```
         """
-        await ctx.trigger_typing()
-
         try:
             resp = await ctx.get(
                 f"https://en.wikipedia.org/api/rest_v1/page/summary/{quote(article)}?redirect=true",
@@ -1398,8 +1378,6 @@ class Web(
             return
         else:
             comic_url = f"https://xkcd.com/{number}/info.0.json"
-
-        await ctx.trigger_typing()
 
         try:
             comic = await ctx.get(comic_url, cache__=True)

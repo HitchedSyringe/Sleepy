@@ -212,7 +212,6 @@ class Images(
 
         (Bot Needs: Embed Links, Add Reactions, and Read Message History)
         """
-        await ctx.trigger_typing()
         cats = await ctx.get("https://api.thecatapi.com/v1/images/search?limit=50")
 
         embeds = [
@@ -350,7 +349,6 @@ class Images(
 
         (Bot Needs: Embed Links, Add Reactions, and Read Message History)
         """
-        await ctx.trigger_typing()
         dogs = await ctx.get("https://dog.ceo/api/breeds/image/random/50")
 
         embeds = [
@@ -370,7 +368,6 @@ class Images(
 
         (Bot Needs: Embed Links)
         """
-        await ctx.trigger_typing()
         duck = await ctx.get("https://random-d.uk/api/random")
 
         embed = Embed(title="\N{DUCK}", colour=0x2F3136)
@@ -387,7 +384,6 @@ class Images(
 
         (Bot Needs: Embed Links)
         """
-        await ctx.trigger_typing()
         fox = await ctx.get("https://randomfox.ca/floof/")
 
         embed = Embed(title="\N{FOX FACE}", colour=0x2F3136)
