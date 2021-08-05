@@ -1458,8 +1458,6 @@ class Web(
         <6> youtubeinfo SomeReallyCoolVanityHere
         ```
         """
-        await ctx.trigger_typing()
-
         resp = await ctx.get(
             "https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet",
             cache__=True,
