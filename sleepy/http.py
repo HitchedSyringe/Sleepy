@@ -154,6 +154,32 @@ class HTTPRequester:
         await self.__session.close()
         _LOG.info("Session closed.")
 
+    async def __request(self, method, url, /, **kwargs):
+        # Allows this to work with params__ in case an API requires
+        # a parameter that is the same name as a reserved keyword.
+        params = kwargs.pop("params__", {})
+        params.update(kwargs.copy())
+
+        kwargs = {k[:-2]: params.pop(k) for k in kwargs if k.endswith("__")}
+
+        async with self.__session.request(method, url, params=params, **kwargs) as resp:
+            if "application/json" in resp.content_type:
+                data = await resp.json()
+            elif "text/" in resp.content_type:
+                data = await resp.text("utf-8")
+            else:
+                data = await resp.read()
+
+            # aiohttp takes care of HTTP 1xx and 3xx internally, so
+            # it's probably safe to exclude these from the range of
+            # successful status codes.
+            if not 200 <= resp.status < 300:
+                _LOG.warning("%s %s failed with HTTP status %s.", method, url, resp.status)
+                raise HTTPRequestFailed(resp, data)
+
+            _LOG.info("%s %s succeeded with HTTP status %s.", method, url, resp.status)
+            return data
+
     async def request(self, method, url, /, *, cache__=False, **kwargs):
         """|coro|
 
@@ -196,50 +222,19 @@ class HTTPRequester:
         :exc:`.HTTPRequestFailed`
             The request returned a status code of either 4xx or 5xx.
         """
+        if not cache__ or self._cache is None:
+            return await self.__request(method, url, **kwargs)
+
         async with self._request_lock:
-            if cache__ and self._cache is not None:
-                key = f"{method}:{url}:<{' '.join(f'{k}={v}' for k, v in kwargs.items())}>"
+            key = f"{method}:{url}:<{' '.join(f'{k}={v}' for k, v in kwargs.items())}>"
 
-                if (cached := self._cache.get(key)) is not None:
-                    _LOG.debug("%s %s got %s from the cache.", method, url, cached)
-                    return cached
+            if (cached := self._cache.get(key)) is not None:
+                _LOG.debug("%s %s got %s from the cache.", method, url, cached)
+                return cached
 
-            # Allows this to work with params__ in case an API requires
-            # a parameter that is the same name as a reserved keyword.
-            params = kwargs.pop("params__", {})
-            params.update(kwargs.copy())
+            data = await self.__request(method, url, **kwargs)
 
-            kwargs = {k[:-2]: params.pop(k) for k in kwargs if k.endswith("__")}
+            self._cache[key] = data
+            _LOG.debug("Inserted %s into the cache.", data)
 
-            async with self.__session.request(method, url, params=params, **kwargs) as resp:
-                if "application/json" in resp.content_type:
-                    data = await resp.json()
-                elif "text/" in resp.content_type:
-                    data = await resp.text("utf-8")
-                else:
-                    data = await resp.read()
-
-                # aiohttp takes care of HTTP 1xx and 3xx internally, so
-                # it's probably safe to exclude these from the range of
-                # successful status codes.
-                if 200 <= resp.status < 300:
-                    _LOG.info(
-                        "%s %s succeeded with HTTP status code %s.",
-                        method,
-                        url,
-                        resp.status
-                    )
-
-                    if cache__ and self._cache is not None:
-                        self._cache[key] = data
-                        _LOG.debug("Inserted %s into the cache.", data)
-
-                    return data
-
-                _LOG.warning(
-                    "%s %s failed with HTTP status code %s.",
-                    method,
-                    url,
-                    resp.status
-                )
-                raise HTTPRequestFailed(resp, data)
+            return data
