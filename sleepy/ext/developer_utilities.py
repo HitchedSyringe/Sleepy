@@ -363,6 +363,28 @@ class DeveloperUtilities(
             query=query
         )
 
+    @rtfm.command(name="master", aliases=("main",))
+    @commands.bot_has_permissions(embed_links=True)
+    async def rtfm_master(self, ctx, *, query):
+        """Gives a documentation link for a discord.py entity (master branch).
+
+        (Bot Needs: Embed Links)
+
+        **EXAMPLES:**
+        ```bnf
+        <1> rtfm Messageable
+        <2> rtfm Context.invoke()
+        ```
+        """
+        await self.send_formatted_nodes_embed(
+            ctx,
+            "rtfm.sphinx",
+            embed_author_name="RTFM: discord.py (master branch)",
+            colour=0x5865F2,
+            location="https://discordpy.readthedocs.io/en/master",
+            query=query
+        )
+
     @rtfm.command(name="python", aliases=("py",))
     @commands.bot_has_permissions(embed_links=True)
     async def rtfm_python(self, ctx, *, query):
