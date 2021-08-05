@@ -359,6 +359,27 @@ class Web(
 
         return slimmed_data
 
+    @staticmethod
+    async def send_formatted_comic_embed(ctx, comic):
+        number = comic["num"]
+
+        embed = Embed(
+            title=comic['title'],
+            description=comic["alt"],
+            url=f"https://xkcd.com/{number}",
+            colour=0x708090
+        )
+        embed.timestamp = datetime(
+            month=int(comic["month"]),
+            year=int(comic["year"]),
+            day=int(comic["day"])
+        )
+        embed.set_author(name=f"#{number}")
+        embed.set_image(url=comic["img"])
+        embed.set_footer(text="Powered by xkcd.com")
+
+        await ctx.send(embed=embed)
+
     # NOTE: Endpoints not included due to either limited
     # functionality or existing functional equivalent: `abs`,
     # `arccos`, `arcsin`, `arctan`, `cosine`, `sine`, `tan`.
@@ -1388,22 +1409,7 @@ class Web(
 
             raise
 
-        embed = Embed(
-            title=comic['title'],
-            description=comic["alt"],
-            url=f"https://xkcd.com/{number}",
-            colour=0x708090
-        )
-        embed.timestamp = datetime(
-            month=int(comic["month"]),
-            year=int(comic["year"]),
-            day=int(comic["day"])
-        )
-        embed.set_author(name=f"#{number}")
-        embed.set_image(url=comic["img"])
-        embed.set_footer(text="Powered by xkcd.com")
-
-        await ctx.send(embed=embed)
+        await self.send_formatted_comic_embed(ctx, comic)
 
     @xkcd.command(name="random", aliases=("r",))
     async def xkcd_random(self, ctx):
@@ -1411,17 +1417,26 @@ class Web(
 
         (Bot Needs: Embed Links)
         """
-        # Because of how xkcd's API is designed, we need to get the
-        # total number of comics on the site. We can get the total
-        # number by getting the latest comic.
-        resp = await ctx.get("https://xkcd.com/info.0.json", cache__=True)
-        latest = resp["num"]
+        # This command is written this way in order to avoid
+        # picking comic 404, since it doesn't actually exist.
+        # Getting the 1-403 bound doesn't need a request and
+        # also has the benefit of skipping a cache lookup as
+        # opposed to the previous (non-working) approach.
+        if random.random() < 0.5:
+            number = random.randint(1, 403)
+        else:
+            # Because of how xkcd's API is designed, we need
+            # to get the total number of comics on the site.
+            # This can be done by getting the latest comic.
+            resp = await ctx.get("https://xkcd.com/info.0.json", cache__=True)
+            number = random.randint(405, resp["num"])
 
-        # This hack is here in order to ensure comic number 404
-        # is never picked as it doesn't actually exist.
-        number = random.randint(1, random.choice((403, latest)))
+        comic = await ctx.get(
+            f"https://xkcd.com/{number}/info.0.json",
+            cache__=True
+        )
 
-        await self.xkcd(ctx, number=number)
+        await self.send_formatted_comic_embed(ctx, comic)
 
     @commands.command(aliases=("ytinfo",))
     @commands.bot_has_permissions(embed_links=True)
