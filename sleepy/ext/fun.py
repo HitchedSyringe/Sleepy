@@ -564,7 +564,7 @@ class Fun(
     @commands.command()
     async def flipcoin(self, ctx):
         """Flips a coin."""
-        await ctx.send(f"You flipped **{random.choice(('Heads', 'Tails'))}**!")
+        await ctx.send(f"You flipped **{'Heads' if random.random() < 0.5 else 'Tails'}**!")
 
     @commands.command(aliases=("bored", "boredidea"))
     @commands.bot_has_permissions(embed_links=True)
