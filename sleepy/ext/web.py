@@ -346,8 +346,8 @@ class Web(
                 "weight": poke["weight"],
                 "height": poke["height"],
                 "colour": spec["color"]["name"].title(),
-                "abilities": (a["ability"]["name"].title() for a in poke["abilities"]),
-                "types": (t["type"]["name"].title() for t in poke["types"]),
+                "abilities": "\n".join(a["ability"]["name"].title() for a in poke["abilities"]),
+                "types": "\n".join(t["type"]["name"].title() for t in poke["types"]),
                 "stats": {s["stat"]["name"].title(): s["base_stat"] for s in poke["stats"]},
             }
 
@@ -895,8 +895,8 @@ class Web(
         if (evolves_from := data["evolves_from"]) is not None:
             embed.add_field(name="Previous Evolution", value=evolves_from)
 
-        embed.add_field(name="Abilities", value="\n".join(data["abilities"]))
-        embed.add_field(name="Types", value="\n".join(data["types"]))
+        embed.add_field(name="Abilities", value=data["abilities"])
+        embed.add_field(name="Types", value=data["types"])
         embed.add_field(
             name="Stats",
             value=f"```dns\n{utils.tchart(data['stats'])}```",
