@@ -993,7 +993,6 @@ class Web(
             try:
                 resp = await ctx.get(
                     "https://magmafuck.herokuapp.com/api/v1",
-                    cache__=True,
                     headers__={"website": url.strip("<>")}
                 )
             except HTTPRequestFailed as exc:
