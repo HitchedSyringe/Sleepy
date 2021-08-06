@@ -314,50 +314,52 @@ class Web(
     # I can come back and revisit this.
     @staticmethod
     async def get_pokemon_info(ctx, name):
-        http_cache = ctx.bot.http_requester.cache
+        http = ctx.bot.http_requester
 
-        if http_cache is not None:
-            key = f"<GET:PokeAPI:{name}>"
+        async with http._request_lock:
+            if http.cache is not None:
+                key = f"<GET:PokeAPI:{name}>"
 
-            if (cached := http_cache.get(key)) is not None:
-                return cached
+                if (cached := http.cache.get(key)) is not None:
+                    return cached
 
-        poke = await ctx.get(f"https://pokeapi.co/api/v2/pokemon/{name}")
-        spec = await ctx.get(poke["species"]["url"])
-        pokemon_name = poke["name"]
+            poke = await ctx.get(f"https://pokeapi.co/api/v2/pokemon/{name}")
+            spec = await ctx.get(poke["species"]["url"])
 
-        slimmed_data = {
-            "name": pokemon_name.title(),
-            "pokedex_url": f"https://pokemon.com/us/pokedex/{pokemon_name}",
-            "flavour_text": next(
-                (
-                    f["flavor_text"] for f in spec["flavor_text_entries"]
-                    if f["language"]["name"] == "en"
+            pokemon_name = poke["name"]
+
+            slimmed_data = {
+                "name": pokemon_name.title(),
+                "pokedex_url": f"https://pokemon.com/us/pokedex/{pokemon_name}",
+                "flavour_text": next(
+                    (
+                        f["flavor_text"] for f in spec["flavor_text_entries"]
+                        if f["language"]["name"] == "en"
+                    ),
+                    None
                 ),
-                None
-            ),
-            "front_sprite_url": poke["sprites"]["front_default"],
-            "order": poke["order"],
-            "base_experience": poke["base_experience"],
-            "base_happiness": spec["base_happiness"],
-            "capture_rate": spec["capture_rate"],
-            "weight": poke["weight"],
-            "height": poke["height"],
-            "colour": spec["color"]["name"].title(),
-            "abilities": (a["ability"]["name"].title() for a in poke["abilities"]),
-            "types": (t["type"]["name"].title() for t in poke["types"]),
-            "stats": {s["stat"]["name"].title(): s["base_stat"] for s in poke["stats"]},
-        }
+                "front_sprite_url": poke["sprites"]["front_default"],
+                "order": poke["order"],
+                "base_experience": poke["base_experience"],
+                "base_happiness": spec["base_happiness"],
+                "capture_rate": spec["capture_rate"],
+                "weight": poke["weight"],
+                "height": poke["height"],
+                "colour": spec["color"]["name"].title(),
+                "abilities": (a["ability"]["name"].title() for a in poke["abilities"]),
+                "types": (t["type"]["name"].title() for t in poke["types"]),
+                "stats": {s["stat"]["name"].title(): s["base_stat"] for s in poke["stats"]},
+            }
 
-        try:
-            slimmed_data["evolves_from"] = spec["evolves_from_species"]["name"].title()
-        except TypeError:
-            slimmed_data["evolves_from"] = None
+            try:
+                slimmed_data["evolves_from"] = spec["evolves_from_species"]["name"].title()
+            except TypeError:
+                slimmed_data["evolves_from"] = None
 
-        if http_cache is not None:
-            http_cache[key] = slimmed_data
+            if http.cache is not None:
+                http.cache[key] = slimmed_data
 
-        return slimmed_data
+            return slimmed_data
 
     @staticmethod
     async def send_formatted_comic_embed(ctx, comic):
