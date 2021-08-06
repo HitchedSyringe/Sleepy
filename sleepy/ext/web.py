@@ -1003,6 +1003,13 @@ class Web(
 
                 raise
 
+        # Sometimes, a TypeError gets thrown internally on MagmaChain's
+        # end and, for some reason, causes the API to return a response
+        # containing the traceback (as a string) on HTTP status 200.
+        if not isinstance(resp, dict):
+            await ctx.send("Something went wrong internally on MagmaChain's end. Try again later?")
+            return
+
         embed = Embed(
             title="Snapshot",
             description=f"[Link to Website]({resp['website']})",
