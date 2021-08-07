@@ -28,7 +28,6 @@ import math
 import time
 from datetime import datetime, timedelta
 from functools import partial, wraps
-from inspect import isawaitable
 from pathlib import Path
 
 from dateutil.relativedelta import relativedelta
@@ -545,12 +544,6 @@ def measure_performance(func):
 
         result, delta = await foo()
     """
-    # The reason I don't use a proper if-else here
-    # is because, for some dumb reason (that I am
-    # probably unaware of), Python keeps returning
-    # the else result regardless of what type the
-    # function actually is.
-
     # I'm using `asyncio.iscoroutinefunction` instead of
     # `inspect.iscoroutinefunction` here in case someone
     # out there, for whatever reason, decides to use this
@@ -558,7 +551,7 @@ def measure_performance(func):
     # I highly doubt that anyone out there still uses the
     # decorator given that it has been deprecated since
     # Python 3.8.
-    if asyncio.iscoroutinefunction(func) or isawaitable(func):
+    if asyncio.iscoroutinefunction(func):
 
         @wraps(func)
         async def decorator(*args, **kwargs):
@@ -566,13 +559,13 @@ def measure_performance(func):
             result = await func(*args, **kwargs)
             return result, (time.perf_counter() - start) * 1000
 
-        return decorator
+    else:
 
-    @wraps(func)
-    def decorator(*args, **kwargs):
-        start = time.perf_counter()
-        result = func(*args, **kwargs)
-        return result, (time.perf_counter() - start) * 1000
+        @wraps(func)
+        def decorator(*args, **kwargs):
+            start = time.perf_counter()
+            result = func(*args, **kwargs)
+            return result, (time.perf_counter() - start) * 1000
 
     return decorator
 
