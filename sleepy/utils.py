@@ -141,10 +141,10 @@ def awaitable(func):
 
         await blocking_sync_func()
     """
-    loop = asyncio.get_event_loop()
 
     @wraps(func)
     def decorator(*args, **kwargs):
+        loop = asyncio.get_event_loop()
         return loop.run_in_executor(None, partial(func, *args, **kwargs))
 
     return decorator
