@@ -30,8 +30,6 @@ from datetime import datetime, timedelta
 from functools import partial, wraps
 from pathlib import Path
 
-from dateutil.relativedelta import relativedelta
-
 
 _DEFAULT_SHORT_NUMBER_SUFFIXES = (
     "",
@@ -272,23 +270,32 @@ def human_delta(delta, /, *, brief=False, absolute=False):
     if delta == 0:
         return "Just now"
 
-    relative_delta = relativedelta(seconds=abs(delta)).normalized()
+    # Seconds to years/months values are estimates.
+    years, seconds = divmod(abs(delta), 31536000)
+    months, seconds = divmod(seconds, 2404800)
+    weeks, seconds = divmod(seconds, 604800)
+    days, seconds = divmod(seconds, 86400)
+    hours, seconds = divmod(seconds, 3600)
+    minutes, seconds = divmod(seconds, 60)
 
-    # This is written this way instead of using the much
-    # more obvious getattr approach to allow for ease in
-    # transitioning to i18n at some point in the future.
-    attrs = (
-        (relative_delta.years, "year"),
-        (relative_delta.months, "month"),
-        (relative_delta.weeks, "week"),
-        (relative_delta.days, "day"),
-        (relative_delta.hours, "hour"),
-        (relative_delta.minutes, "minute"),
-        (relative_delta.seconds, "second"),
-    )
+    difference = []
 
-    counts = [format(plural(v, ",d"), n) for v, n in attrs if v > 0]
-    humanised = counts[0] if brief else human_join(counts)
+    if years > 0:
+        difference.append(f"{plural(years, ',d'):year}")
+    if months > 0:
+        difference.append(f"{plural(months):month}")
+    if weeks > 0:
+        difference.append(f"{plural(weeks):week}")
+    if days > 0:
+        difference.append(f"{plural(days):day}")
+    if hours > 0:
+        difference.append(f"{plural(hours):hour}")
+    if minutes > 0:
+        difference.append(f"{plural(minutes):minute}")
+    if seconds > 0:
+        difference.append(f"{plural(seconds):second}")
+
+    humanised = difference[0] if brief else human_join(difference)
 
     if absolute:
         return humanised
