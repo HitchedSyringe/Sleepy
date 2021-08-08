@@ -1,4 +1,3 @@
-from asyncio import Future
 from collections.abc import (
     Callable,
     Coroutine,
@@ -13,6 +12,7 @@ from typing_extensions import Literal
 
 
 _AnyCallable = Callable[..., Any]
+_AnyCoro = Coroutine[Any, Any, Any]
 _DatetimeFormatStyle = Literal["f", "F", "d", "D", "t", "T", "R"]
 
 
@@ -28,7 +28,7 @@ class plural:
     def __format__(self, spec: str) -> str: ...
 
 
-def awaitable(func: _AnyCallable) -> Callable[..., Future[Any]]: ...
+def awaitable(func: _AnyCallable) -> _AnyCoro: ...
 
 
 def bool_to_emoji(value: Optional[Any]) -> str: ...
@@ -67,7 +67,7 @@ def human_timestamp(
 
 
 def measure_performance(
-    func: _AnyCallable | Coroutine[Any, Any, Any]
+    func: _AnyCallable | _AnyCoro
 ) -> Callable[..., tuple[Any, float]] | Coroutine[Any, Any, tuple[Any, float]]: ...
 
 

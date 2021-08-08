@@ -121,10 +121,11 @@ def awaitable(func):
     """A decorator that transforms a sync function into
     an awaitable function.
 
-    This wraps the function in a :class:`asyncio.Future`
-    via :meth:`loop.run_in_executor`.
-
     .. versionadded:: 3.0
+
+    .. versionchanged:: 3.1
+        This now returns a coroutine instead of a
+        :class:`asyncio.Future`.
 
     Example
     -------
@@ -140,9 +141,9 @@ def awaitable(func):
     """
 
     @wraps(func)
-    def decorator(*args, **kwargs):
+    async def decorator(*args, **kwargs):
         loop = asyncio.get_event_loop()
-        return loop.run_in_executor(None, partial(func, *args, **kwargs))
+        return await loop.run_in_executor(None, partial(func, *args, **kwargs))
 
     return decorator
 
