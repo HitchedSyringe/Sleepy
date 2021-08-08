@@ -441,11 +441,11 @@ class Statistics(
     @commands.command()
     async def uptime(self, ctx):
         """Shows my uptime, including the time I was booted."""
-        delta = datetime.utcnow() - ctx.bot.started_at
+        started_at = ctx.bot.started_at
 
         await ctx.send(
-            f"I was booted on {human_ts(ctx.bot.started_at, 'F')} and have"
-            f" been online for `{human_delta(delta, absolute=True)}`."
+            f"I was booted on {human_ts(started_at, 'F')} and have been "
+            f" online for `{human_delta(started_at, absolute=True)}`."
         )
 
 

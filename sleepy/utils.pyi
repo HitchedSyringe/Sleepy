@@ -5,7 +5,7 @@ from collections.abc import (
     Mapping,
     Sequence,
 )
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 from typing_extensions import Literal
@@ -38,7 +38,8 @@ def find_extensions_in(path: Path | str) -> Iterable[str]: ...
 
 
 def human_delta(
-    delta: timedelta | float,
+    datetime1: datetime,
+    datetime2: Optional[datetime] = None,
     /,
     *,
     brief: bool = False,

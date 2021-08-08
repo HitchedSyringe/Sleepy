@@ -26,9 +26,11 @@ __all__ = (
 import asyncio
 import math
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from functools import partial, wraps
 from pathlib import Path
+
+from dateutil.relativedelta import relativedelta
 
 
 _DEFAULT_SHORT_NUMBER_SUFFIXES = (
@@ -208,8 +210,8 @@ def find_extensions_in(path):
         yield ".".join(extension.with_suffix("").parts).lstrip(".")
 
 
-def human_delta(delta, /, *, brief=False, absolute=False):
-    """Humanizes a given delta.
+def human_delta(datetime1, datetime2=None, /, *, brief=False, absolute=False):
+    """Humanizes the delta between two given datetimes.
 
     .. versionadded:: 1.9
 
@@ -222,13 +224,17 @@ def human_delta(delta, /, *, brief=False, absolute=False):
           returned string. This behaviour can be disabled via
           passing ``absolute=True``.
 
+    .. versionchanged:: 3.1
+        Replaced ``delta`` argument with the ``datetime1``
+        and ``datetime2`` arguments.
+
     Parameters
     ----------
-    delta: Union[:class:`datetime.timedelta`, :class:`float`]
-        The delta to humanize (in seconds).
-
-        .. versionchanged:: 3.0
-            This is now a positional-only argument.
+    datetime1: :class:`datetime.datetime`
+    datetime2: Optional[:class:`datetime.datetime`]
+        The datetimes to humanize the delta of.
+        The second datetime will default to the UTC-aware value
+        of :meth:`datetime.datetime.now` if not given.
     brief: :class:`bool`
         Whether or not to only return the first component of
         the humanised delta.
@@ -253,55 +259,47 @@ def human_delta(delta, /, *, brief=False, absolute=False):
         from sleepy.utils import human_delta
 
     .. doctest::
-        >>> human_delta(datetime.datetime(2020, 1, 1) - datetime.datetime(2019, 1, 1))
+        >>> human_delta(datetime.datetime(2019, 1, 1), datetime.datetime(2020, 1, 1))
         "1 year ago"
-        >>> human_delta(-3630.13)
-        "In 1 hour and 30 seconds"
-        >>> human_delta(70694)
-        "19 hours, 38 minutes, and 14 seconds ago"
-        >>> human_delta(-3780, indicate_tense=False)
-        "1 hour and 3 minutes"
+        >>> human_delta(datetime.datetime(2010, 3, 15), datetime.datetime(2020, 4, 20))
+        "In 10 years, 1 month, and 5 days"
+        >>> human_delta(datetime.datetime(2024, 2, 29), datetime.datetime(2020, 3, 10), absolute=True)
+        "3 years, 11 months, 2 weeks, and 19 days"
     """
-    if isinstance(delta, timedelta):
-        delta -= timedelta(microseconds=delta.microseconds)
-        delta = int(delta.total_seconds())
-    else:
-        delta = round(delta)
+    datetime1 = datetime1.replace(microsecond=0)
 
-    if delta == 0:
+    if datetime2 is None:
+        datetime2 = datetime.utcnow()
+
+    datetime2 = datetime2.replace(microsecond=0)
+
+    if datetime1 == datetime2:
         return "Just now"
 
-    # Seconds to years/months values are estimates.
-    years, seconds = divmod(abs(delta), 31536000)
-    months, seconds = divmod(seconds, 2404800)
-    weeks, seconds = divmod(seconds, 604800)
-    days, seconds = divmod(seconds, 86400)
-    hours, seconds = divmod(seconds, 3600)
-    minutes, seconds = divmod(seconds, 60)
+    delta = abs(relativedelta(datetime1, datetime2))
 
-    difference = []
+    # This is written this way instead of using the much
+    # more obvious getattr approach to allow for ease in
+    # transitioning to i18n at some point in the future.
+    values = (
+        (delta.years, "year"),
+        (delta.months, "month"),
+        (delta.weeks, "week"),
+        # We'll have to subtract the days converted to weeks
+        # from the day count since it isn't done internally.
+        (delta.days - (delta.weeks * 7), "day"),
+        (delta.hours, "hour"),
+        (delta.minutes, "minute"),
+        (delta.seconds, "second"),
+    )
 
-    if years > 0:
-        difference.append(f"{plural(years, ',d'):year}")
-    if months > 0:
-        difference.append(f"{plural(months):month}")
-    if weeks > 0:
-        difference.append(f"{plural(weeks):week}")
-    if days > 0:
-        difference.append(f"{plural(days):day}")
-    if hours > 0:
-        difference.append(f"{plural(hours):hour}")
-    if minutes > 0:
-        difference.append(f"{plural(minutes):minute}")
-    if seconds > 0:
-        difference.append(f"{plural(seconds):second}")
-
-    humanised = difference[0] if brief else human_join(difference)
+    counts = [format(plural(v, ",d"), n) for v, n in values if v > 0]
+    humanised = counts[0] if brief else human_join(counts)
 
     if absolute:
         return humanised
 
-    if delta < 0:
+    if datetime2 > datetime1:
         return "In " + humanised
 
     return humanised + " ago"
