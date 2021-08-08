@@ -17,53 +17,65 @@ from urllib.parse import quote
 
 import discord
 from discord import Embed
-from discord.ext import commands
+from discord.ext import commands, menus
+from discord.utils import escape_mentions
 from sleepy import checks
 from sleepy.http import HTTPRequestFailed
 from sleepy.menus import PaginatorSource
 from sleepy.paginators import WrappedPaginator
 
 
-# lang: compile command
-COLIRU_COMMANDS = {
-    # C Lang
-    "c": "mv main.cpp main.c && gcc -std=c11 -O2 -Wall -Wextra -pedantic main.c && ./a.out",
+class DisposableResultMenu(menus.Menu):
 
-    # C++
-    "cpp": "g++ -std=c++1z -O2 -Wall -Wextra -pedantic -pthread main.cpp -lstdc++fs && ./a.out",
-    "c++": "g++ -std=c++1z -O2 -Wall -Wextra -pedantic -pthread main.cpp -lstdc++fs && ./a.out",
-    "cc": "g++ -std=c++1z -O2 -Wall -Wextra -pedantic -pthread main.cpp -lstdc++fs && ./a.out",
-    "h": "g++ -std=c++1z -O2 -Wall -Wextra -pedantic -pthread main.cpp -lstdc++fs && ./a.out",
-    "hpp": "g++ -std=c++1z -O2 -Wall -Wextra -pedantic -pthread main.cpp -lstdc++fs && ./a.out",
-    "h++": "g++ -std=c++1z -O2 -Wall -Wextra -pedantic -pthread main.cpp -lstdc++fs && ./a.out",
+    def __init__(self, content):
+        super().__init__(delete_message_after=True)
 
-    # Python
-    "py": "python3 main.cpp",
-    "python": "python3 main.cpp",
+        self._content = content
 
-    # Haskell
-    "hs": "runhaskell main.cpp",
-    "haskell": "runhaskell main.cpp",
-}
+    async def send_initial_message(self, ctx, channel):
+        return await channel.send(self._content)
+
+    @menus.button("\N{WASTEBASKET}\ufe0f")
+    async def dispose(self, payload):
+        self.stop()
 
 
-def codeblock_payload(value):
-    try:
-        lang, src = value.strip("`").split("\n", 1)
-    except ValueError:
-        raise commands.BadArgument(
-            "Code must be wrapped in codeblocks with a language to compile with."
-        ) from None
+class PistonPayload(commands.Converter):
 
-    if not lang:
-        raise commands.BadArgument("You must provide a language to compile with.")
+    PAYLOAD_REGEX = re.compile(
+        r"""
+        (?s)(?P<args>(?:[^\n\r\f\v]*\n)*?)?\s*
+        ```(?:(?P<lang>\S+)\n)?\s*(?P<src>.*)```
+        (?:\n?(?P<stdin>(?:[^\n\r\f\v]\n?)+)+|)
+        """,
+        re.X
+    )
 
-    try:
-        cmd = COLIRU_COMMANDS[lang.lower()]
-    except KeyError:
-        raise commands.BadArgument("Invalid language to compile with.") from None
+    async def convert(self, ctx, argument):
+        payload_match = self.PAYLOAD_REGEX.search(argument)
 
-    return json.dumps({"cmd": cmd, "src": src})
+        if payload_match is None:
+            raise commands.BadArgument("Invalid body format.")
+
+        args, language, src, stdin = payload_match.groups()
+
+        if not language:
+            raise commands.BadArgument("You must provide a language to compile with.")
+
+        language = language.lower()
+
+        try:
+            version = ctx.cog.piston_runtimes[language]
+        except KeyError:
+            raise commands.BadArgument("Invalid language to compile with.") from None
+
+        return {
+            "language": language,
+            "version": version,
+            "files": [{"content": src}],
+            "args": [a for a in args.rstrip().split("\n") if a],
+            "stdin": stdin
+        }
 
 
 class DeveloperUtilities(
@@ -72,6 +84,11 @@ class DeveloperUtilities(
     command_attrs={"cooldown": commands.Cooldown(2, 5, commands.BucketType.member)}
 ):
     """Commands that serve as utilities for developers."""
+
+    def __init__(self, bot):
+        self.piston_runtimes = {}
+
+        bot.loop.create_task(self.fetch_piston_runtimes(bot.http_requester))
 
     @staticmethod
     async def send_formatted_nodes_embed(
@@ -107,6 +124,15 @@ class DeveloperUtilities(
 
         await ctx.send(embed=embed)
 
+    async def fetch_piston_runtimes(self, http):
+        resp = await http.request("GET", "https://emkc.org/api/v2/piston/runtimes")
+
+        for runtime in resp:
+            self.piston_runtimes[runtime["language"]] = ver = runtime["version"]
+
+            for alias in runtime["aliases"]:
+                self.piston_runtimes[alias] = ver
+
     @commands.command()
     async def charinfo(self, ctx, *, chars):
         """Gets information about the characters in a given string.
@@ -132,55 +158,86 @@ class DeveloperUtilities(
         else:
             await ctx.send("The output is too long to post.")
 
-    @commands.command(aliases=("openeval",))
-    @commands.cooldown(1, 6, commands.BucketType.member)
-    async def coliru(self, ctx, *, code: codeblock_payload):
-        """Compiles and runs code on Coliru.
+    @commands.command(aliases=("openeval", "runcode", "executecode", "execcode"))
+    @commands.cooldown(1, 4, commands.BucketType.member)
+    async def piston(self, ctx, *, body: PistonPayload):
+        """Runs code on Engineer Man's Piston API.
 
-        You must pass a codeblock highlighting the language you
-        wish to compile to. Coliru currently only supports `c`,
-        `c++`, `haskell`, and `python`.
-
-        The C++ compiler uses g++ -std=c++14 and Python support
-        is 3.5.2. For Stacked's sake, please do not spam or
-        abuse this.
-
-        **EXAMPLE:**
-        ```
-        coliru
-        ``\u200b`c++
-        #include <iostream>
-
-        int main()
-        {
-            std::cout << "Hello world!" << std::endl;
-            return 0;
-        }
+        Body must be in the following format:
+        ```sql
+        [params...] -- one per line
+        ``\u200b`<language>
+        <code>
         ``\u200b`
+        [stdin]
+        ```
+        Like always, **do not include the brackets**.
+
+        For a list of supported languages, please refer here:
+        https://github.com/engineer-man/piston#Supported-Languages
+
+        **EXAMPLES:**
+        ```bnf
+        <1> piston
+        ``\u200b`elixir
+        IO.puts("hello world")
+        ``\u200b`
+        <2> piston
+        this is a command line argument!
+        here's another one!
+        foo
+        bar
+        ``\u200b`py
+        import sys
+        print(sys.argv)
+        print(input())  # Print from stdin.
+        ``\u200b`
+        hello world!
         ```
         """
-        async with ctx.typing():
+        await ctx.trigger_typing()
+
+        try:
+            resp = await ctx.post("https://emkc.org/api/v2/piston/execute", json__=body)
+        except HTTPRequestFailed as exc:
+            await ctx.send(exc.data.get("message", "Compiling your code failed. Try again later?"))
+            return
+
+        run = resp["run"]
+        result = run["output"]
+
+        try:
+            result += resp["compile"]["stderr"]
+        except (KeyError, TypeError):
+            pass
+
+        if not result:
+            result = "Your code produced no output."
+        elif len(result) < 1000 and result.count("\n") < 50:
+            result = "```\n" + escape_mentions(result.replace('`', '`\u200b')) + "\n```"
+        else:
             try:
-                output = await ctx.post("https://coliru.stacked-crooked.com/compile", data__=code)
+                key = await ctx.post("https://hastebin.com/documents", data__=result)
             except HTTPRequestFailed:
-                await ctx.send("Coliru took too long to respond.\nTry again later?")
+                await ctx.send("The output was too long and uploading it to hastebin failed.")
                 return
-
-            output = output.replace("`", "\u200b`")
-
-            if len(output) < 1955:
-                await ctx.send(f"```\n{output}```\nPowered by `coliru.stacked-crooked.com`")
-                return
-
-            try:
-                id_ = await ctx.post("https://coliru.stacked-crooked.com/share", data__=code)
-            except HTTPRequestFailed:
-                await ctx.send("Creating the share link failed.\nTry again later?")
             else:
-                await ctx.send(
-                    "Output was too long to post; see the share link below:\n"
-                    f"<https://coliru.stacked-crooked.com/a/{id_}>"
+                result = (
+                    "The output was too long, so I've uploaded it to"
+                    f" hastebin: <https://hastebin.com/{key['key']}>"
                 )
+
+        menu = DisposableResultMenu(
+            f"**{resp['language']} ({resp['version']})**\nExit Code:"
+            f" {run['code']}\n\n{result}\n`Powered by Piston`"
+        )
+        await menu.start(ctx)
+
+    @piston.error
+    async def on_piston_error(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await ctx.send(error)
+            error.handled__ = True
 
     @commands.command(aliases=("msgraw",))
     @checks.can_start_menu()
@@ -432,4 +489,4 @@ class DeveloperUtilities(
 
 
 def setup(bot):
-    bot.add_cog(DeveloperUtilities())
+    bot.add_cog(DeveloperUtilities(bot))
