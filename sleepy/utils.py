@@ -233,8 +233,8 @@ def human_delta(datetime1, datetime2=None, /, *, brief=False, absolute=False):
     datetime1: :class:`datetime.datetime`
     datetime2: Optional[:class:`datetime.datetime`]
         The datetimes to humanize the delta of.
-        The second datetime will default to the UTC-aware value
-        of :meth:`datetime.datetime.now` if not given.
+        The second datetime will default to the value of
+        :meth:`datetime.datetime.utcnow` if not given.
     brief: :class:`bool`
         Whether or not to only return the first component of
         the humanised delta.
