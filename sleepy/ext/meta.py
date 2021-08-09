@@ -8,8 +8,10 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 
 import difflib
+import inspect
 from collections import defaultdict
 from datetime import datetime
+from os import path
 from typing import Optional, Union
 
 import discord
@@ -602,10 +604,58 @@ class Meta(commands.Cog):
 
         await ctx.send(embed=embed)
 
+    # NOTE: This command will 100% break if one of the following occurs:
+    # * The configured extensions directory is different from the one on
+    #   the GitHub repository.
+    # * A command on a non-existent extension in the GitHub repository
+    #   is passed.
+    # * The base URL links to a respository hosted elsewhere other than
+    #   GitHub that doesn't structure URLs like GitHub.
+    # Considering the first two cases, I've made it relatively simple to
+    # modify this in the case that either of the above apply or may apply.
+    # Just change the ``base`` value to link to your fork. I should also
+    # note that this is hard-coded to view the master branch. As for the
+    # third case, you're on your own.
     @commands.command()
-    async def source(self, ctx):
-        """Gives you a link to my source code."""
-        await ctx.send("<https://github.com/HitSyr/Sleepy>")
+    async def source(self, ctx, *, command=None):
+        """Sends a link to my full source code or for a specific command."""
+        base = "https://github.com/HitSyr/Sleepy"
+
+        if command is None:
+            await ctx.send(f"<{base}>")
+            return
+
+        if command == "help":
+            src = type(self.bot.help_command)
+            filename = inspect.getsourcefile(src)
+        else:
+            cmd = ctx.bot.get_command(command)
+
+            if cmd is None:
+                await ctx.send("That command wasn't found.")
+                return
+
+            src = cmd.callback
+            filename = src.__code__.co_filename
+
+        try:
+            tail, head = inspect.getsourcelines(src)
+        except (TypeError, OSError):
+            await ctx.send("Failed to get the source for that command.")
+            return
+
+        module = src.__module__
+
+        if module.startswith("jishaku"):
+            base = "https://github.com/Gorialis/jishaku"
+            loc = module.replace(".", "/") + ".py"
+        elif module.startswith("discord"):
+            base = "https://github.com/Rapptz/discord.py"
+            loc = module.replace(".", "/") + ".py"
+        else:
+            loc = path.relpath(filename).replace("\\", "/")
+
+        await ctx.send(f"<{base}/blob/master/{loc}#L{head}-L{head + len(tail) - 1}>")
 
     @commands.command(aliases=("dir",))
     @commands.guild_only()
