@@ -19,6 +19,7 @@ __all__ = (
     "make_clyde_message",
     "make_iphone_x",
     "make_live_tucker_reaction_meme",
+    "make_pointing_soyjaks_meme",
     "make_pornhub_comment",
     "make_roblox_cancel_meme",
     "make_ship",
@@ -392,6 +393,32 @@ def make_live_tucker_reaction_meme(image_buffer, /):
     buffer = io.BytesIO()
 
     blur.save(buffer, "png")
+
+    buffer.seek(0)
+
+    return buffer
+
+
+@awaitable
+@measure_performance
+def make_pointing_soyjaks_meme(image_buffer, /):
+    with Image.open(TEMPLATES / "pointing_soyjaks.png") as template:
+        with Image.open(image_buffer) as image:
+            image = ImageOps.contain(image.convert("RGBA"), template.size)
+
+        binder = Image.new("RGBA", template.size, "white")
+        binder.alpha_composite(
+            image,
+            (
+                (template.width - image.width) // 2,
+                (template.height - image.height) // 2,
+            )
+        )
+        binder.alpha_composite(template)
+
+    buffer = io.BytesIO()
+
+    binder.save(buffer, "png")
 
     buffer.seek(0)
 

@@ -673,6 +673,37 @@ class Images(
 
         await ctx.send(embed=embed, file=File(buffer, "ship.png"))
 
+    @commands.command(aliases=("soyjacks", "soyjak", "soyjack"))
+    @commands.bot_has_permissions(attach_files=True)
+    @commands.max_concurrency(5, commands.BucketType.guild)
+    async def soyjaks(
+        self,
+        ctx,
+        *,
+        image: ImageAssetConverter(max_filesize=40_000_000)
+    ):
+        """Generates a consoomer soyjaks pointing meme.
+
+        Image can either be a user, custom emoji, link, or
+        attachment. Links and attachments must be under 40
+        MB.
+
+        (Bot Needs: Attach Files)
+        """
+        async with ctx.typing():
+            try:
+                buffer, delta = await backend.make_pointing_soyjaks_meme(
+                    io.BytesIO(await image.read())
+                )
+            except discord.HTTPException:
+                await ctx.send("Downloading the image failed. Try again later?")
+                return
+
+        await ctx.send(
+            f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
+            file=File(buffer, "soyjak.png")
+        )
+
     # Long and strict RL due to Nekobot processing.
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
