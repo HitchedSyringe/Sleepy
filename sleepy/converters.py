@@ -122,11 +122,9 @@ class ImageAssetConverter(commands.Converter):
 
     .. note::
 
-        Due to an implementation detail, attachment conversion
-        takes precedence over the other conversion types. This
-        means that passed arguments will attempt to convert to
-        attachments first before attemping to convert to users,
-        emojis, or URLs.
+        Due to an implementation detail, command arguments take
+        precedence over attachments and will always be converted
+        first.
 
     .. warning::
 
@@ -149,7 +147,7 @@ class ImageAssetConverter(commands.Converter):
           :exc:`.ImageAssetTooLarge` instead of generic
           :exc:`commands.BadArgument`.
         * Raise :exc:`commands.TooManyArguments` if
-          :attr:`Command.ignore_extra` is `False` and
+          :attr:`Command.ignore_extra` is ``False`` and
           more than one attachment is supplied.
         * Added support for converting custom emojis.
         * Attachments and URLs are now checked for their
