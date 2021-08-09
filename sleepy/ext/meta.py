@@ -370,7 +370,7 @@ class Meta(commands.Cog):
         and technologically illiterate zoomers who only know how
         to use TikTok and Instagram and can't be bothered to click
         away from Discord for any reason. Discord isn't your Swiss
-        army knife.
+        Army knife.
 
         Since you only seem to care about what this command has to
         say about Discord's current deathbed status or the current
