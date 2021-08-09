@@ -375,24 +375,21 @@ def make_live_tucker_reaction_meme(image_buffer, /):
         with Image.open(image_buffer) as image:
             image = image.convert("RGB")
 
-        w, h = template.size
-        blur = image.resize((w, h)).filter(ImageFilter.GaussianBlur(10))
+        fore = ImageOps.contain(image, template.size)
+        buffer = io.BytesIO()
 
-        # In order to actually make this look like a realistic
-        # occurrance on Tucker Carlson Live, we have to keep the
-        # image in its original aspect ratio and scale it with
-        # the height of the template, as well as centering the
-        # actual image. Also, just to make it look better, I
-        # generated a stretched blurred version just to fill the
-        # resulting empty space in the background.
-        i_new_w = round(image.width * (h / image.height))
+        # If the foreground image has the same dimensions as the
+        # template, then there isn't a need for whitespace to be
+        # filled and we won't have to generate the blurred form.
+        if fore.size == template.size:
+            fore.paste(template, template)
+            fore.save(buffer, "png")
+        else:
+            blur = image.resize(template.size).filter(ImageFilter.GaussianBlur(10))
+            blur.paste(fore, ((template.width - fore.width) // 2, 0))
+            blur.paste(template, template)
 
-        blur.paste(image.resize((i_new_w, h)), ((w - i_new_w) // 2, 0))
-        blur.paste(template, template)
-
-    buffer = io.BytesIO()
-
-    blur.save(buffer, "png")
+            blur.save(buffer, "png")
 
     buffer.seek(0)
 
