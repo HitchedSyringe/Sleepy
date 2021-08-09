@@ -444,7 +444,7 @@ class Statistics(
         started_at = ctx.bot.started_at
 
         await ctx.send(
-            f"I was booted on {human_ts(started_at, 'F')} and have been "
+            f"I was booted on {human_ts(started_at, 'F')} and have been"
             f" online for `{human_delta(started_at, absolute=True)}`."
         )
 

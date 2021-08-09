@@ -212,7 +212,7 @@ class DeveloperUtilities(
             pass
 
         if not result:
-            result = "Your code produced no output."
+            result = "Your code produced no output.\n"
         elif len(result) < 1000 and result.count("\n") < 50:
             result = "```\n" + escape_mentions(result.replace("`", "`\u200b")) + "\n```"
         else:
@@ -224,12 +224,12 @@ class DeveloperUtilities(
             else:
                 result = (
                     "The output was too long, so I've uploaded it to"
-                    f" hastebin: <https://hastebin.com/{key['key']}>"
+                    f" hastebin: <https://hastebin.com/{key['key']}>\n"
                 )
 
         menu = DisposableResultMenu(
             f"**{resp['language']} ({resp['version']})**\n{result}"
-            f"\n\nExit code: {run['code']}\n`Powered by Piston`"
+            f"\nExit code: {run['code']}\n`Powered by Piston`"
         )
         await menu.start(ctx)
 
