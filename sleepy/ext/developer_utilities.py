@@ -214,7 +214,7 @@ class DeveloperUtilities(
         if not result:
             result = "Your code produced no output."
         elif len(result) < 1000 and result.count("\n") < 50:
-            result = "```\n" + escape_mentions(result.replace('`', '`\u200b')) + "\n```"
+            result = "```\n" + escape_mentions(result.replace("`", "`\u200b")) + "\n```"
         else:
             try:
                 key = await ctx.post("https://hastebin.com/documents", data__=result)
@@ -228,8 +228,8 @@ class DeveloperUtilities(
                 )
 
         menu = DisposableResultMenu(
-            f"**{resp['language']} ({resp['version']})**\nExit Code:"
-            f" {run['code']}\n\n{result}\n`Powered by Piston`"
+            f"**{resp['language']} ({resp['version']})**\n{result}"
+            f"\n\nExit code: {run['code']}\n`Powered by Piston`"
         )
         await menu.start(ctx)
 
