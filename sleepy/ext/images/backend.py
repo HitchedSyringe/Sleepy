@@ -403,19 +403,23 @@ def make_pointing_soyjaks_meme(image_buffer, /):
         with Image.open(image_buffer) as image:
             image = ImageOps.contain(image.convert("RGBA"), template.size)
 
-        binder = Image.new("RGBA", template.size, "white")
-        binder.alpha_composite(
-            image,
-            (
-                (template.width - image.width) // 2,
-                (template.height - image.height) // 2,
+        buffer = io.BytesIO()
+
+        if image.size == template.size:
+            image.alpha_composite(template)
+            image.save(buffer, "png")
+        else:
+            binder = Image.new("RGBA", template.size, "white")
+            binder.alpha_composite(
+                image,
+                (
+                    (template.width - image.width) // 2,
+                    (template.height - image.height) // 2,
+                )
             )
-        )
-        binder.alpha_composite(template)
+            binder.alpha_composite(template)
 
-    buffer = io.BytesIO()
-
-    binder.save(buffer, "png")
+            binder.save(buffer, "png")
 
     buffer.seek(0)
 
