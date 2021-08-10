@@ -28,7 +28,10 @@ from sleepy.paginators import WrappedPaginator
 class DisposableResultMenu(menus.Menu):
 
     def __init__(self, content):
-        super().__init__(delete_message_after=True)
+        # This menu is set up to only delete itself if the
+        # bin button is pressed. Otherwise, the bin button
+        # will simply be cleared on timeout.
+        super().__init__(clear_reactions_after=True, timeout=300)
 
         self._content = content
 
@@ -37,6 +40,7 @@ class DisposableResultMenu(menus.Menu):
 
     @menus.button("\N{WASTEBASKET}\ufe0f")
     async def dispose(self, payload):
+        self.delete_message_after = True
         self.stop()
 
 
