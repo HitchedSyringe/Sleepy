@@ -174,7 +174,7 @@ class DeveloperUtilities(
         Like always, **do not include the brackets**.
 
         For a list of supported languages, please refer here:
-        https://github.com/engineer-man/piston#Supported-Languages
+        <https://github.com/engineer-man/piston#Supported-Languages>
 
         **EXAMPLES:**
         ```bnf
