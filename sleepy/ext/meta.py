@@ -173,7 +173,7 @@ class SleepyHelpCommand(commands.HelpCommand):
 
     async def subcommand_not_found(self, command, string):
         if not isinstance(command, commands.Group):
-            return "That command doesn't have any subcommands."
+            return "That command isn't a group command."
 
         if subcmds := await self.filter_commands(command.commands, sort=True):
             close = difflib.get_close_matches(string, (c.name for c in subcmds))
