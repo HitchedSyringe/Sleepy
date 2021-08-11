@@ -128,7 +128,7 @@ class Weeb(
     @commands.command(aliases=("animeinfo",))
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def anime(self, ctx, *, query):
+    async def anime(self, ctx, *, query: str.lower):
         """Shows information about an anime on MyAnimeList.
 
         The search results displayed are based on whether
@@ -442,7 +442,7 @@ class Weeb(
     @commands.command(aliases=("mangainfo",))
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def manga(self, ctx, *, query):
+    async def manga(self, ctx, *, query: str.lower):
         """Shows information about a manga on MyAnimeList.
 
         The search results displayed are based on whether
