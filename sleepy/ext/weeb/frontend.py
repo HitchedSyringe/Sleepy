@@ -170,7 +170,7 @@ class Weeb(
             colour=0x2F3136,
             url=partial["url"]
         )
-        embed.set_author(name=format(plural(partial["episodes"], ",d"), "Episode"))
+        embed.set_author(name=f"{plural(partial['episodes'], ',d'):Episode}"))
         embed.set_thumbnail(url=partial["image_url"])
         embed.set_footer(text="Powered by jikan.moe")
 
