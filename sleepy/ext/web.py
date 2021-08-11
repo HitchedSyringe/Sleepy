@@ -617,7 +617,7 @@ class Web(
         # this API is.
 
         def format_term(term):
-            if (phonetics := term.get("phonetics")):
+            if phonetics := term.get("phonetics"):
                 return f"{term['word']} {phonetics[0].get('text', '')}"
 
             return term["word"]
@@ -635,7 +635,7 @@ class Web(
         )
         base_embed.set_footer(text="Powered by dictionaryapi.dev")
 
-        if (phonetics := data.get("phonetics")):
+        if phonetics := data.get("phonetics"):
             phonetic = phonetics[0]
             base_embed.set_author(
                 name=f"{data['word']} {phonetic.get('text', '')}",

@@ -303,7 +303,7 @@ class NSFW(
             embed.set_image(url=url)
             embed.set_footer(text="Powered by danbooru.donmai.us")
 
-            if (sauce := post["source"]):
+            if sauce := post["source"]:
                 embed.add_field(name="Source", value=sauce)
 
             embeds.append(embed)
@@ -375,7 +375,7 @@ class NSFW(
             embed.set_image(url=url)
             embed.set_footer(text="Powered by e621.net")
 
-            if (sauces := post["sources"]):
+            if sauces := post["sources"]:
                 embed.add_field(name="Source(s)", value="\n".join(sauces))
 
             embeds.append(embed)
@@ -553,7 +553,7 @@ class NSFW(
             embed.set_image(url=media_url)
             embed.set_footer(text="Powered by yande.re")
 
-            if (sauce := post["source"]):
+            if sauce := post["source"]:
                 embed.add_field(name="Source", value=sauce)
 
             embeds.append(embed)

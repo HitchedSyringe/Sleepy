@@ -522,14 +522,14 @@ class Meta(commands.Cog):
 
         embed.description = f"{guild.description or ''}\n[Icon]({icon})"
 
-        if (banner := guild.banner_url_as(format="png")):
+        if banner := guild.banner_url_as(format="png"):
             embed.description += f" \N{BULLET} [Banner]({banner})"
             embed.set_image(url=banner)
 
-        if (discovery_splash := guild.discovery_splash_url_as(format="png")):
+        if discovery_splash := guild.discovery_splash_url_as(format="png"):
             embed.description += f" \N{BULLET} [Discovery Splash]({discovery_splash})"
 
-        if (invite_splash := guild.splash_url_as(format="png")):
+        if invite_splash := guild.splash_url_as(format="png"):
             embed.description += f" \N{BULLET} [Invite Splash]({invite_splash})"
 
         embed.add_field(
