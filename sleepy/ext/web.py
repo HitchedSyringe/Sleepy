@@ -1470,6 +1470,7 @@ class Web(
             "https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet",
             cache__=True,
             key=self.google_api_key,
+            maxResults=1,
             **channel
         )
 
@@ -1482,6 +1483,7 @@ class Web(
         data = results[0]
         stats = data["statistics"]
         snippet = data["snippet"]
+        channel_id = data["id"]
 
         embed = Embed(
             description=snippet["localized"]["description"],
@@ -1490,15 +1492,15 @@ class Web(
         )
         embed.set_author(
             name=snippet["title"],
-            url=f"https://youtube.com/channel/{data['id']}"
+            url=f"https://youtube.com/channel/{channel_id}"
         )
         embed.set_thumbnail(url=snippet["thumbnails"]["high"]["url"])
-        embed.set_footer(text="Powered by YouTube \N{BULLET} Channel created")
+        embed.set_footer(text="Powered by YouTube \N{BULLET} Created")
 
         if not stats["hiddenSubscriberCount"]:
             embed.add_field(
                 name="Subscribers",
-                value=utils.human_number(int(stats['subscriberCount']))
+                value=utils.human_number(int(stats["subscriberCount"]))
             )
 
         embed.add_field(name="Views", value=f"{int(stats['viewCount']):,d}")
@@ -1509,7 +1511,7 @@ class Web(
         except KeyError:
             pass
 
-        embed.add_field(name="Channel ID", value=data['id'])
+        embed.add_field(name="Channel ID", value=channel_id)
 
         await ctx.send(embed=embed)
 
