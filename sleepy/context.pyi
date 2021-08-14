@@ -28,7 +28,7 @@ class Context(commands.Context):
         url: _URL,
         /,
         *,
-        cache__: bool = False,
+        cache__: bool = ...,
         **kwargs: Any
     ) -> _HTTPResponse: ...
 
@@ -37,7 +37,7 @@ class Context(commands.Context):
         url: _URL,
         /,
         *,
-        cache__: bool = False,
+        cache__: bool = ...,
         **kwargs: Any
     ) -> _HTTPResponse: ...
 
@@ -46,7 +46,7 @@ class Context(commands.Context):
         url: _URL,
         /,
         *,
-        cache__: bool = False,
+        cache__: bool = ...,
         **kwargs: Any
     ) -> _HTTPResponse: ...
 
@@ -57,23 +57,23 @@ class Context(commands.Context):
         message: discord.Message | str,
         /,
         *,
-        timeout: float = 30,
-        delete_message_after: bool = True
+        timeout: float = ...,
+        delete_message_after: bool = ...
     ) -> Optional[bool]: ...
 
     async def disambiguate(
         self,
         matches: Sequence[str],
         /,
-        formatter: Optional[Callable[[Any], str]] = None,
+        formatter: Optional[Callable[[Any], str]] = ...,
         *,
-        timeout: float = 30
+        timeout: float = ...
     ) -> Any: ...
 
     async def copy_with(
         self,
         *,
-        author: Optional[User] = None,
-        channel: Optional[Messageable] = None,
+        author: Optional[User] = ...,
+        channel: Optional[Messageable] = ...,
         **properties: Any
     ) -> "Context": ...

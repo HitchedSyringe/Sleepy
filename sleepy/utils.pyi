@@ -7,7 +7,7 @@ from collections.abc import (
 )
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, overload
 from typing_extensions import Literal
 
 
@@ -22,7 +22,7 @@ class plural:
         self,
         value: float,
         /,
-        value_format_spec: Optional[str] = None
+        value_format_spec: Optional[str] = ...
     ) -> None: ...
 
     def __format__(self, spec: str) -> str: ...
@@ -39,23 +39,23 @@ def find_extensions_in(path: Path | str) -> Iterable[str]: ...
 
 def human_delta(
     datetime1: datetime,
-    datetime2: Optional[datetime] = None,
+    datetime2: Optional[datetime] = ...,
     /,
     *,
-    brief: bool = False,
-    absolute: bool = False
+    brief: bool = ...,
+    absolute: bool = ...
 ) -> str: ...
 
 
-def human_join(sequence: Sequence[Any], /, *, joiner: str = "and") -> str: ...
+def human_join(sequence: Sequence[Any], /, *, joiner: str = ...) -> str: ...
 
 
 def human_number(
     number: float,
     /,
-    sigfigs: int = 3,
+    sigfigs: int = ...,
     *,
-    strip_trailing_zeroes: bool = True,
+    strip_trailing_zeroes: bool = ...,
     suffixes: Sequence[str] = ...
 ) -> str: ...
 
@@ -63,29 +63,26 @@ def human_number(
 def human_timestamp(
     timestamp: datetime | float,
     /,
-    formatting: Optional[_DatetimeFormatStyle] = None
+    formatting: Optional[_DatetimeFormatStyle] = ...
 ) -> str: ...
 
 
-def measure_performance(
-    func: _AnyCallable | _AnyCoro
-) -> Callable[..., tuple[Any, float]] | Coroutine[Any, Any, tuple[Any, float]]: ...
+@overload
+def measure_performance(func: _AnyCallable) -> Callable[..., tuple[Any, float]]: ...
 
 
-def progress_bar(*, maximum: int, progress: float, per: int = 1) -> str: ...
+@overload
+def measure_performance(func: _AnyCoro) -> Coroutine[Any, Any, tuple[Any, float]]: ...
+
+
+def progress_bar(*, maximum: int, progress: float, per: int = ...) -> str: ...
 
 
 def tchart(
     items: Mapping[Any, Any],
     /,
-    keys_formatter: Optional[Callable[[Any], str]] = None
+    keys_formatter: Optional[Callable[[Any], str]] = ...
 ) -> str: ...
 
 
-def truncate(
-    text: str,
-    /,
-    width: int,
-    *,
-    placeholder: str = "..."
-) -> str: ...
+def truncate(text: str, /, width: int, *, placeholder: str = ...) -> str: ...

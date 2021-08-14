@@ -13,7 +13,7 @@ class EmbedSource(menus.ListPageSource):  # type: ignore[misc]
         entries: Sequence[discord.Embed],
         /,
         *,
-        show_page_count: bool = True
+        show_page_count: bool = ...
     ) -> None: ...
 
 
@@ -26,8 +26,8 @@ class PaginatorSource(menus.ListPageSource):  # type: ignore[misc]
         paginator: commands.Paginator,
         /,
         *,
-        per_page: int = 1,
-        show_page_count: bool = True
+        per_page: int = ...,
+        show_page_count: bool = ...
     ) -> None: ...
 
 
@@ -38,8 +38,8 @@ class ConfirmationPrompt(menus.Menu):  # type: ignore[misc]
         message: discord.Message | str,
         /,
         *,
-        timeout: float = 30,
-        delete_message_after: bool = True
+        timeout: float = ...,
+        delete_message_after: bool = ...
     ) -> None: ...
 
     async def start(
@@ -47,7 +47,7 @@ class ConfirmationPrompt(menus.Menu):  # type: ignore[misc]
         ctx: commands.Context,
         /,
         *,
-        channel: Optional[Messageable] = None
+        channel: Optional[Messageable] = ...
     ) -> Optional[bool]: ...
 
 
@@ -58,7 +58,7 @@ class PaginationMenu(menus.MenuPages):  # type: ignore[misc]
         source: menus.PageSource,
         /,
         *,
-        delete_message_after: bool = True,
+        delete_message_after: bool = ...,
         **kwargs: Any
     ) -> None: ...
 
@@ -67,5 +67,5 @@ class PaginationMenu(menus.MenuPages):  # type: ignore[misc]
         page_number: int,
         /,
         *,
-        check_page_number: bool = False
+        check_page_number: bool = ...
     ) -> None: ...

@@ -12,20 +12,20 @@ class WrappedPaginator(commands.Paginator):
 
     def __init__(
         self,
-        prefix: str = "```",
-        suffix: str = "```",
-        max_size: int = 2000,
-        linesep: str = "\n",
-        wrap_on: Sequence[str] = (" ", "\n"),
+        prefix: str = ...,
+        suffix: str = ...,
+        max_size: int = ...,
+        linesep: str = ...,
+        wrap_on: Sequence[str] = ...,
         *,
-        force_wrapping: bool = False,
-        wrap_with_delimiters: bool = True
+        force_wrapping: bool = ...,
+        wrap_with_delimiters: bool = ...
     ) -> None: ...
 
     def add_line(
         self,
-        line: str = "",
+        line: str = ...,
         /,
         *,
-        empty: bool = False
+        empty: bool = ...
     ) -> None: ...

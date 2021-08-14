@@ -8,7 +8,7 @@ from multidict import CIMultiDictProxy
 from yarl import URL
 
 
-_HTTPResponse = Union[dict, str, bytes]
+_HTTPResponse = Union[dict[str, Any], str, bytes]
 _HTTPCache = MutableMapping[str, _HTTPResponse]
 _URL = Union[URL, str]
 
@@ -33,7 +33,7 @@ class HTTPRequester:
     def __init__(
         self,
         *,
-        cache: Optional[_HTTPCache] = None,
+        cache: Optional[_HTTPCache] = ...,
         **kwargs: Any
     ) -> None: ...
 
@@ -57,6 +57,6 @@ class HTTPRequester:
         url: _URL,
         /,
         *,
-        cache__: bool = False,
+        cache__: bool = ...,
         **kwargs: Any
     ) -> _HTTPResponse: ...

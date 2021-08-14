@@ -20,14 +20,14 @@ class BotMissingAnyPermissions(commands.CheckFailure):
 
 def has_permissions(
     *,
-    check_any: bool = False,
+    check_any: bool = ...,
     **permissions: bool
 ) -> _CheckDecorator: ...
 
 
 def has_guild_permissions(
     *,
-    check_any: bool = False,
+    check_any: bool = ...,
     **permissions: bool
 ) -> _CheckDecorator: ...
 
@@ -53,7 +53,7 @@ def guild_manager_or_permissions(**permissions: bool) -> _CheckDecorator: ...
 def guild_admin_or_permissions(**permissions: bool) -> _CheckDecorator: ...
 
 
-def can_start_menu(*, check_embed: bool = False) -> _CheckDecorator: ...
+def can_start_menu(*, check_embed: bool = ...) -> _CheckDecorator: ...
 
 
 def is_in_guilds(*guild_ids: int) -> _CheckDecorator: ...

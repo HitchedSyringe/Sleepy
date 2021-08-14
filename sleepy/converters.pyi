@@ -45,7 +45,7 @@ class ImageAssetConverter(commands.Converter):
     def __init__(
         self,
         *,
-        max_filesize: Optional[int] = None
+        max_filesize: Optional[int] = ...
     ) -> None: ...
 
     async def convert(  # type: ignore[override]
