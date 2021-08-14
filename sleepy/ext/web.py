@@ -629,7 +629,7 @@ class Web(
             return
 
         base_embed = Embed(
-            description=data.get("origin"),
+            description=data.get("origin") or Embed.Empty,
             url=f"https://google.com/search?q=define:+{quote(term)}",
             colour=0x1B1F40
         )
@@ -637,12 +637,14 @@ class Web(
 
         if phonetics := data.get("phonetics"):
             phonetic = phonetics[0]
-            base_embed.set_author(
-                name=f"{data['word']} {phonetic.get('text', '')}",
-                url=phonetic.get("audio", Embed.Empty)
-            )
+            base_embed.set_author(name=f"{data['word']} {phonetic.get('text', '')}")
+
+            if audio := phonetic.get("audio"):
+                # The API doesn't construct a full URL so I'm forced
+                # to add it in using the private attribute.
+                base_embed._author["url"] = "https:" + audio
         else:
-            base_embed.set_author(name=data['word'])
+            base_embed.set_author(name=data["word"])
 
         embeds = []
         for meaning in data["meanings"]:
@@ -656,10 +658,11 @@ class Web(
             for index, def_ in enumerate(meaning["definitions"], 1):
                 value = def_.get("definition", "[No definition provided for some reason]")
 
-                if (example := def_.get("example")) is not None:
+                # These two fields can either be nonexistant or an empty list.
+                if example := def_.get("example"):
                     value += f"\n*{example}*"
 
-                if (synonyms := def_.get("synonyms")) is not None:
+                if synonyms := def_.get("synonyms"):
                     value += f"\nSimilar: `{', '.join(synonyms[:5])}`"
 
                 embed.add_field(name=f"#{index}", value=value, inline=False)
