@@ -439,12 +439,12 @@ def human_number(
 
     .. doctest::
         >>> human_number(1201.56)
-        "1.20K"
+        "1.2K"
         >>> human_number(-543210)
         "-543K"
         >>> human_number(123456789, 4)
         "123.5M"
-        >>> human_number(38000, 2, remove_trailing_zeroes=True)
+        >>> human_number(38000, 2, strip_trailing_zeroes=False)
         "38K"
         >>> human_number(12023, 2, suffixes=("", " thousand"))
         "12 thousand"
