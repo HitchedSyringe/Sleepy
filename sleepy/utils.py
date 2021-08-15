@@ -261,7 +261,7 @@ def human_delta(datetime1, datetime2=None, /, *, brief=False, absolute=False):
     .. doctest::
         >>> human_delta(datetime.datetime(2019, 1, 1), datetime.datetime(2020, 1, 1))
         "1 year ago"
-        >>> human_delta(datetime.datetime(2010, 3, 15), datetime.datetime(2020, 4, 20))
+        >>> human_delta(datetime.datetime(2020, 4, 20), datetime.datetime(2010, 3, 15))
         "In 10 years, 1 month, and 5 days"
         >>> human_delta(datetime.datetime(2024, 2, 29), datetime.datetime(2020, 3, 10), absolute=True)
         "3 years, 11 months, 2 weeks, and 19 days"
@@ -299,7 +299,7 @@ def human_delta(datetime1, datetime2=None, /, *, brief=False, absolute=False):
     if absolute:
         return humanised
 
-    if datetime2 > datetime1:
+    if datetime1 > datetime2:
         return "In " + humanised
 
     return humanised + " ago"
