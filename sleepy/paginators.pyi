@@ -8,7 +8,6 @@ class WrappedPaginator(commands.Paginator):
     wrap_on: Sequence[str]
     force_wrapping: bool
     wrap_with_delimiters: bool
-    actual_max_size: int
 
     def __init__(
         self,
@@ -21,6 +20,9 @@ class WrappedPaginator(commands.Paginator):
         force_wrapping: bool = ...,
         wrap_with_delimiters: bool = ...
     ) -> None: ...
+
+    @property
+    def actual_max_size(self) -> int: ...
 
     def add_line(
         self,

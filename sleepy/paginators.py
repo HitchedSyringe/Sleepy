@@ -48,9 +48,6 @@ class WrappedPaginator(commands.Paginator):
     wrap_with_delimiters: :class:`bool`
         Whether the paginator is including the wrapping
         delimiters at the beginning of newly wrapped lines.
-    actual_max_size: :class:`int`
-        The maximum size of the paginator with the prefix,
-        suffix, and line separator lengths accounted for.
     """
 
     def __init__(
@@ -70,12 +67,12 @@ class WrappedPaginator(commands.Paginator):
         self.force_wrapping = force_wrapping
         self.wrap_with_delimiters = wrap_with_delimiters
 
-        self.actual_max_size = (
-            max_size
-            - self._prefix_len
-            - self._suffix_len
-            - (self._linesep_len * 2)
-        )
+    @property
+    def actual_max_size(self):
+        """:class:`int`: The maximum size of the paginator with the
+        prefix, suffix, and line separator lengths all accounted for.
+        """
+        return self.max_size - self._prefix_len - self._suffix_len - self._linesep_len * 2
 
     def add_line(self, line="", /, *, empty=False):
         """Adds a line to the current page.
