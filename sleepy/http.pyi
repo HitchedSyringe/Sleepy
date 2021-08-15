@@ -1,4 +1,5 @@
 import asyncio
+import sys
 from collections.abc import MutableMapping
 from typing import Any, Union, Optional
 
@@ -8,7 +9,12 @@ from multidict import CIMultiDictProxy
 from yarl import URL
 
 
-_HTTPResponse = Union[dict[str, Any], str, bytes]
+if sys.version_info >= (3, 9):
+    _HTTPResponse = Union[dict[str, Any], str, bytes]
+else:
+    from typing import Dict
+    _HTTPResponse = Union[Dict[str, Any], str, bytes]
+
 _HTTPCache = MutableMapping[str, _HTTPResponse]
 _URL = Union[URL, str]
 
