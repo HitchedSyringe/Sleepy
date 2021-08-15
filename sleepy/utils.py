@@ -452,14 +452,16 @@ def human_number(
     if not suffixes:
         raise ValueError("suffixes cannot be an empty sequence.")
 
+    if number < 1000:
+        return str(number)
+
     ordinal = 0
 
-    if number != 0:
-        while abs(number) >= 1000 and ordinal < len(suffixes) - 1:
-            number /= 1000
-            ordinal += 1
+    while abs(number) >= 1000 and ordinal < len(suffixes) - 1:
+        number /= 1000
+        ordinal += 1
 
-        number = round(number, sigfigs - 1 - math.floor(math.log10(abs(number))))
+    number = round(number, sigfigs - 1 - math.floor(math.log10(abs(number))))
 
     if strip_trailing_zeroes:
         number = str(number).rstrip("0").rstrip(".")
