@@ -243,8 +243,8 @@ def make_axios_interview_meme(text, /):
         template.paste(
             text_layer,
             (
-                532 - ((t_w + int(t_h * AXIOS_SINE)) // 2),
-                1002 - (text_layer.height // 2)
+                532 - (t_w + int(t_h * AXIOS_SINE)) // 2,
+                1002 - text_layer.height // 2
             ),
             text_layer
         )
@@ -304,10 +304,7 @@ def make_change_my_mind_meme(text, /):
         text_layer = text_layer.rotate(22.5, expand=True)
 
         # For reference, the midpoint is at (1245, 983).
-        template.alpha_composite(
-            text_layer,
-            (1245 - (t_w // 2), 983 - int(t_w * CMM_SINE))
-        )
+        template.alpha_composite(text_layer, (1245 - t_w // 2, 983 - int(t_w * CMM_SINE)))
 
         buffer = io.BytesIO()
 

@@ -18,7 +18,7 @@ import textwrap
 
 def wrap_text(text, font, /, *, width):
     text_width = font.getsize(text)[0]
-    adjusted_width = (len(text) * width) // text_width
+    adjusted_width = len(text) * width // text_width
 
     if text_width < adjusted_width:
         return text

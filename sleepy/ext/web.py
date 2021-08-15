@@ -132,7 +132,7 @@ class SteamAccountMeta:
             # The only way this check would actually
             # return a false positive would be if the
             # user has a custom URL that mimicks an ID.
-            if (id_64 >> 32) == 0x1100001:
+            if id_64 >> 32 == 0x1100001:
                 return cls.from_id_64(id_64)
 
         # ID resolve through vanity.
@@ -157,7 +157,7 @@ class SteamAccountMeta:
 
     @classmethod
     def from_id(cls, account_type, number_id):
-        id_3_n = (number_id * 2) + account_type
+        id_3_n = number_id * 2 + account_type
 
         return cls(
             f"STEAM_0:{account_type}:{number_id}",
@@ -881,17 +881,14 @@ class Web(
         embed.add_field(name="Base Experience", value=data["base_experience"])
         embed.add_field(name="Base Happiness", value=data["base_happiness"])
         embed.add_field(name="Capture Rate", value=data["capture_rate"])
-        embed.add_field(
-            name="Weight",
-            value=f"{data['weight'] / 10} kg ({data['weight'] / 4.536:.1f} lbs.)"
-        )
 
-        feet, inches = divmod(round(data['height'] * 3.93701), 12)
+        weight = data["weight"]
+        embed.add_field(name="Weight", value=f"{weight / 10} kg ({weight / 4.536:.1f} lbs.)")
+
+        height = data["height"]
+        feet, inches = divmod(round(height * 3.93701), 12)
         # Zero pad the inches value just to look nicer.
-        embed.add_field(
-            name="Height",
-            value=f"{data['height'] / 10} m ({feet}′{inches:02d}″)"
-        )
+        embed.add_field(name="Height", value=f"{height / 10} m ({feet}′{inches:02d}″)")
 
         embed.add_field(name="Colour", value=data["colour"])
 

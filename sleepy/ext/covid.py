@@ -63,8 +63,8 @@ class Covid(
         recovered = recovered.values()
         # For reference, the equation to estimate
         # the number of active cases:
-        # active = cases - (deaths + recoveries)
-        active = [c - (d + r) for c, d, r in zip(cases, deaths, recovered)]
+        # active = cases - deaths - recoveries
+        active = [c - d - r for c, d, r in zip(cases, deaths, recovered)]
 
         # Have to use to figure object directly since pyplot
         # uses tkinter internally, which doesn't play nice

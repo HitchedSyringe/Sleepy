@@ -388,7 +388,7 @@ class Statistics(
             return
 
         total = sum(stats.values())
-        rate = (total * 60) / (datetime.utcnow() - ctx.bot.started_at).total_seconds()
+        rate = total * 60 / (datetime.utcnow() - ctx.bot.started_at).total_seconds()
 
         paginator = commands.Paginator("```py", max_size=1000)
         paginator.add_line(f"{total} total commands used. ({rate:.2f}/min)", empty=True)
@@ -425,7 +425,7 @@ class Statistics(
         """Shows observed websocket events data for the current session."""
         stats = ctx.bot.socket_events
         total = sum(stats.values())
-        rate = (total * 60) / (datetime.utcnow() - ctx.bot.started_at).total_seconds()
+        rate = total * 60 / (datetime.utcnow() - ctx.bot.started_at).total_seconds()
 
         paginator = commands.Paginator("```py", max_size=1000)
         paginator.add_line(

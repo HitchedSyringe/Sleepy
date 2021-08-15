@@ -459,10 +459,7 @@ def human_number(
             number /= 1000
             ordinal += 1
 
-        number = round(
-            number,
-            (sigfigs - 1) - math.floor(math.log10(abs(number)))
-        )
+        number = round(number, sigfigs - 1 - math.floor(math.log10(abs(number))))
 
     if strip_trailing_zeroes:
         number = str(number).rstrip("0").rstrip(".")
@@ -638,12 +635,12 @@ def progress_bar(*, progress, maximum, per=1):
     # not-so-simple approach of calculating the body.
 
     if filled == total:
-        return _FR + (_FB * (total - 2)) + _FL
+        return _FR + _FB * (total - 2) + _FL
 
     if filled == 0:
-        return _ER + (_EB * (total - 2)) + _EL
+        return _ER + _EB * (total - 2) + _EL
 
-    return _FR + (_FB * (filled - 1)) + (_EB * (total - filled - 1)) + _EL
+    return _FR + _FB * (filled - 1) + _EB * (total - filled - 1) + _EL
 
 
 def tchart(items, /, keys_formatter=None):

@@ -153,7 +153,7 @@ def make_hifumi_fact_meme(text, /):
 
         # Draw the text centered on the poster.
         ImageDraw.Draw(template).text(
-            ((template.width - text_w - 55) / 2, 430 - (text_h / 2)),
+            ((template.width - text_w - 55) / 2, 430 - text_h / 2),
             text,
             "black",
             font,
@@ -193,8 +193,8 @@ def make_kanna_fact_meme(text, /):
         template.paste(
             text_layer,
             (
-                155 - ((t_w + int(t_h * KANNA_SINE)) // 2),
-                151 - (text_layer.height // 2)
+                155 - (t_w + int(t_h * KANNA_SINE)) // 2,
+                151 - text_layer.height // 2
             ),
             text_layer
         )
@@ -308,8 +308,8 @@ def make_ritsu_fact_meme(text, /):
         template.paste(
             text_layer,
             (
-                727 - ((t_w + int(t_h * RITSU_SINE)) // 2),
-                428 - (text_layer.height // 2)
+                727 - (t_w + int(t_h * RITSU_SINE)) // 2,
+                428 - text_layer.height // 2
             ),
             text_layer
         )
