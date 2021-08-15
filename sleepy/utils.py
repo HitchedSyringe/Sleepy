@@ -472,8 +472,8 @@ def human_number(
         magnitude = min(len(suffixes) - 1, int(math.log10(absolute) / 3))
         number /= 1000**magnitude
 
-        if "." in number and strip_trailing_zeroes:
-            number = str(number).rstrip("0").rstrip(".")
+        if strip_trailing_zeroes:
+            return str(number).rstrip("0").rstrip(".") + suffixes[magnitude]
 
     return f"{number}{suffixes[magnitude]}"
 
