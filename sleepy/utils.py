@@ -455,7 +455,7 @@ def human_number(
     ordinal = 0
 
     if number != 0:
-        while abs(number) >= 1000 and ordinal < len(suffixes):
+        while abs(number) >= 1000 and ordinal < len(suffixes) - 1:
             number /= 1000
             ordinal += 1
 
