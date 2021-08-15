@@ -71,6 +71,9 @@ class WrappedPaginator(commands.Paginator):
     def actual_max_size(self):
         """:class:`int`: The maximum size of the paginator with the
         prefix, suffix, and line separator lengths all accounted for.
+
+        .. versionchanged:: 3.1.5
+            This is now a read-only property.
         """
         return self.max_size - self._prefix_len - self._suffix_len - self._linesep_len * 2
 
