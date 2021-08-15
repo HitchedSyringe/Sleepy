@@ -445,28 +445,24 @@ def human_number(
         >>> human_number(123456789, 4)
         "123.5M"
         >>> human_number(38000, 2, strip_trailing_zeroes=False)
-        "38K"
+        "38.0K"
         >>> human_number(12023, 2, suffixes=("", " thousand"))
         "12 thousand"
     """
     if not suffixes:
         raise ValueError("suffixes cannot be an empty sequence.")
 
-    if number < 1000:
-        return str(number)
-
-    ordinal = 0
-
-    while abs(number) >= 1000 and ordinal < len(suffixes) - 1:
-        number /= 1000
-        ordinal += 1
-
     number = round(number, sigfigs - 1 - math.floor(math.log10(abs(number))))
+    magnitude = 0
 
-    if strip_trailing_zeroes:
-        number = str(number).rstrip("0").rstrip(".")
+    if (absolute := abs(number)) >= 1000:
+        magnitude = min(len(suffixes) - 1, int(math.log10(absolute) / 3))
+        number /= 1000**magnitude
 
-    return f"{number}{suffixes[ordinal]}"
+        if "." in number and strip_trailing_zeroes:
+            number = str(number).rstrip("0").rstrip(".")
+
+    return f"{number}{suffixes[magnitude]}"
 
 
 def human_timestamp(timestamp, /, formatting=None):
