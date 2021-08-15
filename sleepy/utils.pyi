@@ -55,7 +55,7 @@ def human_join(sequence: Sequence[Any], /, *, joiner: str = ...) -> str: ...
 def human_number(
     number: float,
     /,
-    sigfigs: int = ...,
+    sigfigs: Optional[int] = ...,
     *,
     strip_trailing_zeroes: bool = ...,
     suffixes: Sequence[str] = ...

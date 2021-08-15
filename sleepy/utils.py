@@ -398,6 +398,9 @@ def human_number(
         ``strip_trailing_zeroes``.
         * Raise :exc:`ValueError` if ``suffixes`` is an empty sequence.
 
+    .. versionchanged:: 3.1.5
+        Raise :exc:`ValueError` if ``sigfigs`` is negative or 0.
+
     Parameters
     ----------
     number: :class:`float`
@@ -405,9 +408,14 @@ def human_number(
 
         .. versionchanged:: 3.0
             This is now a positional-only argument.
-    sigfigs: :class:`int`
+    sigfigs: Optional[:class:`int`]
         The number of significant figures to round to.
+        If ``None`` is passed, then the number will not
+        be rounded.
         Defaults to ``3``.
+
+        .. versionchanged:: 3.1.5
+            Allow passing ``None`` to denote no rounding.
     strip_trailing_zeroes: :class:`bool`
         Whether or not to strip trailing zeroes.
         Defaults to ``True``.
@@ -452,7 +460,12 @@ def human_number(
     if not suffixes:
         raise ValueError("suffixes cannot be an empty sequence.")
 
-    number = round(number, sigfigs - 1 - math.floor(math.log10(abs(number))))
+    if sigfigs is not None:
+        if sigfigs <= 0:
+            raise ValueError(f"invalid sigfigs {sigfigs} (must be > 0)")
+
+        number = round(number, sigfigs - 1 - math.floor(math.log10(abs(number))))
+
     magnitude = 0
 
     if (absolute := abs(number)) >= 1000:
