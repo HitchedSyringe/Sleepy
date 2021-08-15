@@ -7,12 +7,14 @@ from collections.abc import (
 )
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional, overload
+from typing import Any, Optional, TypeVar, overload
 from typing_extensions import Literal
 
 
-_AnyCallable = Callable[..., Any]
-_AnyCoro = Coroutine[Any, Any, Any]
+_RT = TypeVar("_RT")
+_AnyCallable = Callable[..., _RT]
+_AnyCoro = Coroutine[Any, Any, _RT]
+
 _DatetimeFormatStyle = Literal["f", "F", "d", "D", "t", "T", "R"]
 
 
@@ -28,7 +30,7 @@ class plural:
     def __format__(self, spec: str) -> str: ...
 
 
-def awaitable(func: _AnyCallable) -> _AnyCoro: ...
+def awaitable(func: _AnyCallable[Any]) -> _AnyCoro[Any]: ...
 
 
 def bool_to_emoji(value: Optional[Any]) -> str: ...
@@ -68,11 +70,11 @@ def human_timestamp(
 
 
 @overload
-def measure_performance(func: _AnyCallable) -> Callable[..., tuple[Any, float]]: ...
+def measure_performance(func: _AnyCallable[Any]) -> _AnyCallable[tuple[Any, float]]: ...
 
 
 @overload
-def measure_performance(func: _AnyCoro) -> Coroutine[Any, Any, tuple[Any, float]]: ...
+def measure_performance(func: _AnyCoro[Any]) -> _AnyCoro[tuple[Any, float]]: ...
 
 
 def progress_bar(*, maximum: int, progress: float, per: int = ...) -> str: ...
