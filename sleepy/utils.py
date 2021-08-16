@@ -446,13 +446,13 @@ def human_number(
         from sleepy.utils import human_number
 
     .. doctest::
-        >>> human_number(1201.56)
-        "1.2K"
+        >>> human_number(1201.56, None)
+        "1.20156K"
         >>> human_number(-543210)
         "-543K"
         >>> human_number(123456789, 4)
         "123.5M"
-        >>> human_number(38000, 2, strip_trailing_zeroes=False)
+        >>> human_number(38000, strip_trailing_zeroes=False)
         "38.0K"
         >>> human_number(12023, 2, suffixes=("", " thousand"))
         "12 thousand"
