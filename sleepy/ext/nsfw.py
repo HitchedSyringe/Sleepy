@@ -339,7 +339,6 @@ class NSFW(
             resp = await ctx.get(
                 "https://e621.net/posts.json",
                 cache__=True,
-                _client=f"Discord-Sleepy/{__version__}",  # E621 API guidelines
                 tags=" ".join(tags)
             )
         except HTTPRequestFailed as exc:
