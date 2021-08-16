@@ -464,7 +464,8 @@ def human_number(
         if sigfigs <= 0:
             raise ValueError(f"invalid sigfigs {sigfigs} (must be > 0)")
 
-        number = round(number, sigfigs - 1 - math.floor(math.log10(abs(number))))
+        if number != 0:
+            number = round(number, sigfigs - 1 - math.floor(math.log10(abs(number))))
 
     magnitude = 0
 
@@ -472,8 +473,10 @@ def human_number(
         magnitude = min(len(suffixes) - 1, int(math.log10(absolute) / 3))
         number /= 1000**magnitude
 
-        if strip_trailing_zeroes:
-            return str(number).rstrip("0").rstrip(".") + suffixes[magnitude]
+    # Normal float numbers in Python generally do not have
+    # trailing zeroes unless it's something like e.g. 1.0.
+    if strip_trailing_zeroes and isinstance(number, float) and number.is_integer():
+        return str(number).rstrip(".0") + suffixes[magnitude]
 
     return f"{number}{suffixes[magnitude]}"
 
