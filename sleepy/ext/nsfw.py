@@ -183,11 +183,6 @@ def ensure_safe_tags(value):
 
 
 # neckbeard cog but even worse.
-# WARNING: This product can expose you to chemicals,
-# including one or more listed chemicals, which are
-# known to the State of California to cause cancer
-# and birth defects or other reproductive harm. For
-# more information go to www.P65Warnings.ca.gov.
 class NSFW(
     commands.Cog,
     command_attrs={"cooldown": commands.Cooldown(2, 5, commands.BucketType.member)}
@@ -197,8 +192,7 @@ class NSFW(
     def __init__(self, config):
         self.saucenao_api_key = config["saucenao_api_key"]
 
-        # Add the nekobot image serving commands.
-        # Same process as in weeb.
+        # Same process and reasoning as in Weeb.
         for attrs in NEKOBOT_IMAGE_COMMANDS:
             attrs["help"] += "\n\n(Bot Needs: Embed Links)"
 
@@ -207,7 +201,6 @@ class NSFW(
             async def nekobot_image_command(cog, ctx):
                 resp = await ctx.get(
                     "https://nekobot.xyz/api/image",
-                    # Same reasoning here as in `weeb`.
                     type=ctx.command.__original_kwargs__.get("type", ctx.command.name)
                 )
 
@@ -269,7 +262,7 @@ class NSFW(
                 tags=" ".join(tags)
             )
         except HTTPRequestFailed as exc:
-            # Hit the tag limit of two tags.
+            # Hit the two tag limit.
             if exc.status == 422:
                 await ctx.send(exc.data["message"])
                 return
@@ -342,7 +335,7 @@ class NSFW(
                 tags=" ".join(tags)
             )
         except HTTPRequestFailed as exc:
-            # Hit the tag limit of 40 tags.
+            # Hit the 40 tag limit.
             if exc.status == 422:
                 await ctx.send(exc.data["message"])
                 return
@@ -450,7 +443,7 @@ class NSFW(
         )
 
         # Don't know why, nor do I want to know why, but for
-        # whatever reason, SauceNAO underuses HTTP statuses.
+        # whatever reason, SauceNAO doesn't use HTTP statuses.
         status = resp["header"]["status"]
 
         # Invalid file or SauceNAO failed to download a remote image.

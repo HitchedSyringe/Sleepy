@@ -64,11 +64,6 @@ NEKOBOT_IMAGE_COMMANDS = (
 
 
 # ネックビアードコグ
-# WARNING: This product can expose you to chemicals,
-# including one or more listed chemicals, which are
-# known to the State of California to cause cancer
-# and birth defects or other reproductive harm. For
-# more information go to www.P65Warnings.ca.gov.
 class Weeb(
     commands.Cog,
     command_attrs={"cooldown": commands.Cooldown(2, 5, commands.BucketType.member)}
@@ -79,21 +74,21 @@ class Weeb(
     """
 
     def __init__(self):
-        # Add the nekobot image serving commands.
+        # Nekobot commands are handled this way in order to
+        # allow for ease in supporting any new image endpoints.
+        # (and it also keeps us from having several methods that
+        # essentially all run the same code with little variance)
         for attrs in NEKOBOT_IMAGE_COMMANDS:
             attrs["help"] += "\n\n(Bot Needs: Embed Links)"
 
-            # Unfortunately, we have to construct the command this way
-            # due to how injection works for this.
+            # Unfortunately, we have to construct the command
+            # this way due to how injection works for this.
             @commands.command(**attrs)
             @commands.bot_has_permissions(embed_links=True)
             async def nekobot_image_command(cog, ctx):
                 resp = await ctx.get(
                     "https://nekobot.xyz/api/image",
-                    # This is an awful way of doing this but there
-                    # isn't any better way to do this apart from
-                    # just splitting these into separate methods
-                    # that essentially all do the same thing.
+                    # Can't really get the type any other way...
                     type=ctx.command.__original_kwargs__.get("type", ctx.command.name)
                 )
 
@@ -105,8 +100,7 @@ class Weeb(
 
             nekobot_image_command.cog = self
 
-            # This hack exists so this way the command will appear in
-            # the cog help menu.
+            # Make the command will appear in the cog help menu.
             self.__cog_commands__ += (nekobot_image_command,)
 
     async def cog_command_error(self, ctx, error):
@@ -152,11 +146,6 @@ class Weeb(
 
         search = await ctx.get(search_url, cache__=True, q=query)
 
-        # Since Jikan seems to do a fuzzy search, we can't
-        # really do a disambiguation here since the API will
-        # always return more than one result. In this case,
-        # we'll just request a search list of one item and
-        # then return that one item instead.
         try:
             partial = search["results"][0]
         except IndexError:

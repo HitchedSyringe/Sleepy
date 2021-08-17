@@ -138,7 +138,6 @@ class SteamAccountMeta:
         # ID resolve through vanity.
         resp = await ctx.get(
             "https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1",
-            # This isn't going to be used elsewhere anyway so why not.
             key=ctx.cog.steam_api_key,
             vanityurl=argument.lower(),
             cache__=True
@@ -651,8 +650,8 @@ class Web(
             embed = base_embed.copy()
 
             speech_part = meaning["partOfSpeech"]
-            # Humanise camelCase part of speech. In this
-            # case, it's usually a cross reference.
+            # Humanise camelCase part of speech. In this case,
+            # it's usually a cross reference.
             embed.title = "xref" if speech_part == "crossReference" else speech_part
 
             for index, def_ in enumerate(meaning["definitions"], 1):
@@ -672,8 +671,8 @@ class Web(
         if embeds:
             await ctx.paginate(menus.EmbedSource(embeds))
         else:
-            # Strange case with this API where nothing else
-            # is returned but the word and phonetic.
+            # Strange case with this API where nothing but the word
+            # and phonetic is returned.
             await ctx.send(
                 "That word exists in the dictionary, but no further "
                 "information was returned for some reason."
@@ -718,7 +717,8 @@ class Web(
             await ctx.send("Conversion amount must be greater than 0 and less than 1000000000.")
             return
 
-        # Bit of a niche thing to prevent users from doing base -> base only.
+        # Probably a niche O(n) check but it saves an HTTP request
+        # that would simply include converting base -> base.
         if base in currencies:
             await ctx.send("You cannot convert the base currency to itself.")
             return
@@ -821,7 +821,8 @@ class Web(
 
             raise
 
-        # Weird case where the API succeeds, but returns an invalid JSON response.
+        # Weird case where the API returns an error response
+        # with HTTP status code 200.
         if "error" in resp:
             await ctx.send("Couldn't find that song's lyrics.")
             return
@@ -887,7 +888,6 @@ class Web(
 
         height = data["height"]
         feet, inches = divmod(round(height * 3.93701), 12)
-        # Zero pad the inches value just to look nicer.
         embed.add_field(name="Height", value=f"{height / 10} m ({feet}′{inches:02d}″)")
 
         embed.add_field(name="Colour", value=data["colour"])
@@ -940,7 +940,6 @@ class Web(
         for child in resp["data"]["children"]:
             post = child["data"]
 
-            # Sort out NSFW posts if we're in an SFW channel.
             if not ctx.channel.is_nsfw() and post["over_18"]:
                 continue
 
@@ -1300,7 +1299,6 @@ class Web(
         embed = Embed(
             title=f"{loc['name']}, {region + ', ' if region else ''}{loc['country']}",
             description=f"(Lat. {loc['lat']}°, Lon. {loc['lon']}°)",
-            # Have the colour change based on whether or not it is day.
             colour=0xE3C240 if data["is_day"] == 1 else 0x1D50A8,
             timestamp=datetime.utcfromtimestamp(data["last_updated_epoch"])
         )
