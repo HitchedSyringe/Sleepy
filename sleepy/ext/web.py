@@ -679,10 +679,7 @@ class Web(
             )
 
     # I don't know what I was on when I actually considered adding this. ok lol.
-    @commands.command(
-        aliases=("er", "forex"),
-        require_var_positional=True
-    )
+    @commands.command(aliases=("er", "forex"), require_var_positional=True)
     async def exchangerate(
         self,
         ctx,
