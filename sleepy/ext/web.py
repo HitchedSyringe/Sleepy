@@ -686,9 +686,9 @@ class Web(
     async def exchangerate(
         self,
         ctx,
-        base,
+        base: str.upper,
         amount: Optional[real_float(max_decimal_places=4)] = 1,
-        *currencies
+        *currencies: str.upper
     ):
         """Shows the exchange rate between two or more currencies.
 
