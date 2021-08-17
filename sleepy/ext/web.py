@@ -1117,13 +1117,17 @@ class Web(
         if text is None:
             ref = ctx.message.reference
 
-            if (
-                ref is not None
-                and isinstance(ref.resolved, discord.Message)
-            ):
-                text = ref.resolved.content
-            else:
-                await ctx.send("You must provide a message to translate.")
+            if ref is None or not isinstance(ref.resolved, discord.Message):
+                await ctx.send("You must provide some text to translate.")
+                return
+
+            text = ref.resolved.content
+
+            # It's unfortunate that we have to do this check twice, but
+            # messages can have no text content and the translator will
+            # throw a TypeError if ``None`` is passed.
+            if text is None:
+                await ctx.send("That message doesn't have any text content.")
                 return
 
         try:
