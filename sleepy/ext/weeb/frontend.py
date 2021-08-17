@@ -25,6 +25,7 @@ from sleepy.converters import (
     ImageAssetConversionFailure,
     ImageAssetTooLarge,
 )
+from sleepy.http import HTTPRequestFailed
 from sleepy.utils import plural
 
 from . import backend
@@ -144,7 +145,14 @@ class Weeb(
 
         await ctx.trigger_typing()
 
-        search = await ctx.get(search_url, cache__=True, q=query)
+        try:
+            search = await ctx.get(search_url, cache__=True, q=query)
+        except HTTPRequestFailed as exc:
+            if exc.status == 503:
+                await ctx.send("Jikan failed to fetch from MyAnimeList.")
+                return
+
+            raise
 
         try:
             partial = search["results"][0]
@@ -453,7 +461,14 @@ class Weeb(
 
         await ctx.trigger_typing()
 
-        search = await ctx.get(search_url, cache__=True, q=query)
+        try:
+            search = await ctx.get(search_url, cache__=True, q=query)
+        except HTTPRequestFailed as exc:
+            if exc.status == 503:
+                await ctx.send("Jikan failed to fetch from MyAnimeList.")
+                return
+
+            raise
 
         try:
             partial = search["results"][0]
