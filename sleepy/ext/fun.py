@@ -102,7 +102,7 @@ class PollMenu(menus.Menu):
 
         self.__options = {}
 
-        for i, option in enumerate(options):
+        for i, option in enumerate(options, 1):
             # NOTE: This will break if there are more than 10 options.
             emoji = "\N{KEYCAP TEN}" if i == 10 else f"{i}\ufe0f\N{COMBINING ENCLOSING KEYCAP}"
 
