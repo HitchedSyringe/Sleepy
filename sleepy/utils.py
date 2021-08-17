@@ -476,7 +476,7 @@ def human_number(
     # Normal float numbers in Python generally do not have
     # trailing zeroes unless it's something like e.g. 1.0.
     if strip_trailing_zeroes and isinstance(number, float) and number.is_integer():
-        return str(number).rstrip(".0") + suffixes[magnitude]
+        return str(number).rstrip("0").rstrip(".") + suffixes[magnitude]
 
     return f"{number}{suffixes[magnitude]}"
 
