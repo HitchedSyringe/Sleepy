@@ -11,7 +11,7 @@ from datetime import datetime
 
 from discord import Colour, Embed
 from discord.ext import commands
-from sleepy import __version__, checks, converters, menus
+from sleepy import checks, converters, menus
 from sleepy.http import HTTPRequestFailed
 
 
