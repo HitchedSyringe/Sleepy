@@ -13,7 +13,7 @@ __title__ = "sleepy"
 __author__ = "HitchedSyringe"
 __copyright__ = "Copyright (c) 2018-present HitchedSyringe"
 __license__ = "MPL-2.0"
-__version__ = "3.1.6"
+__version__ = "3.1.7"
 
 
 from . import utils
