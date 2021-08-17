@@ -97,27 +97,16 @@ class resolve_emote_char(commands.Converter):
 
 class PollMenu(menus.Menu):
 
-    BUTTON_EMOJIS = (
-        "\N{DIGIT ONE}\ufe0f\N{COMBINING ENCLOSING KEYCAP}",
-        "\N{DIGIT TWO}\ufe0f\N{COMBINING ENCLOSING KEYCAP}",
-        "\N{DIGIT THREE}\ufe0f\N{COMBINING ENCLOSING KEYCAP}",
-        "\N{DIGIT FOUR}\ufe0f\N{COMBINING ENCLOSING KEYCAP}",
-        "\N{DIGIT FIVE}\ufe0f\N{COMBINING ENCLOSING KEYCAP}",
-        "\N{DIGIT SIX}\ufe0f\N{COMBINING ENCLOSING KEYCAP}",
-        "\N{DIGIT SEVEN}\ufe0f\N{COMBINING ENCLOSING KEYCAP}",
-        "\N{DIGIT EIGHT}\ufe0f\N{COMBINING ENCLOSING KEYCAP}",
-        "\N{DIGIT NINE}\ufe0f\N{COMBINING ENCLOSING KEYCAP}",
-        "\N{KEYCAP TEN}",
-    )
-
     def __init__(self, question, options):
         super().__init__(timeout=60, delete_message_after=True)
 
-        self._emoji_options = {}
+        self.__options = {}
 
-        for index, option in enumerate(options):
-            emoji = self.BUTTON_EMOJIS[index]
-            self._emoji_options[emoji] = option
+        for i, option in enumerate(options):
+            # NOTE: This will break if there are more than 10 options.
+            emoji = "\N{KEYCAP TEN}" if i == 10 else f"{i}\ufe0f\N{COMBINING ENCLOSING KEYCAP}"
+
+            self.__options[emoji] = option
             self.add_button(menus.Button(emoji, self.record_poll_vote))
 
         self.votes = Counter()
@@ -126,12 +115,14 @@ class PollMenu(menus.Menu):
     def reaction_check(self, payload):
         return payload.message_id == self.message.id and payload.user_id != self.ctx.me.id
 
-    # I'm not gonna bother tracking whether the user already
-    # voted or not. It's a pain in the neck to do and the only
-    # implementation I can think of is pretty messy and expensive.
+    # I'm not gonna bother tracking whether the user
+    # has already voted or not since it's not only a
+    # pain in the neck to do, but it also may provide
+    # some kind of vector for a memory leak depending
+    # on how many users are interacting with this.
     async def record_poll_vote(self, payload):
         try:
-            option = self._emoji_options[payload.emoji.name]
+            option = self.__options[payload.emoji.name]
         except KeyError:
             return
 
@@ -143,7 +134,7 @@ class PollMenu(menus.Menu):
     async def send_initial_message(self, ctx, channel):
         embed = Embed(
             title="React with one of the following to cast your vote!",
-            description="\n".join(f"{e}: {c}" for e, c in self._emoji_options.items()),
+            description="\n".join(f"{e}: {c}" for e, c in self.__options.items()),
             colour=0x2F3136
         )
         embed.set_footer(text="You have 1 minute to cast your vote.")
@@ -151,9 +142,6 @@ class PollMenu(menus.Menu):
         return await channel.send(content=self.question, embed=embed)
 
     async def finalize(self, timed_out):
-        if not timed_out:
-            return
-
         votes = +self.votes
 
         if votes:
