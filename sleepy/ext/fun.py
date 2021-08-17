@@ -147,12 +147,12 @@ class PollMenu(menus.Menu):
         if votes:
             embed = Embed(
                 title="Voting has concluded and the results are in!",
-                description=f"```\n{tchart(votes.most_common())}```",
+                description=f"```\n{tchart(dict(votes.most_common()))}```",
                 colour=0x2F3136
             )
             embed.set_footer(
-                text=f"{sum(votes.values())} total votes casted."
-                     f"\N{BULLET} Started by: {self.ctx.author}"
+                text=f"{plural(sum(votes.values()), ',d'):vote} total votes casted."
+                     f" \N{BULLET} Started by: {self.ctx.author}"
             )
         else:
             embed = Embed(
@@ -162,7 +162,7 @@ class PollMenu(menus.Menu):
             )
             embed.set_footer(text=f"Started by: {self.ctx.author}")
 
-        await self.ctx.send(content=self.question, embed=embed)
+        await self.ctx.send(self.question, embed=embed)
 
 
 class Fun(
