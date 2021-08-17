@@ -213,7 +213,7 @@ class Fun(
         q_length = len(question)
 
         if q_length > 1500:
-            await ctx.send(f"Your question is too long. ({q_length}/1500)")
+            await ctx.send(f"Your question is too long. ({q_length} > 1500)")
         else:
             await ctx.send(f"{question}```diff\n{random.choice(BALL_RESPONSES)}```")
 
@@ -726,7 +726,7 @@ class Fun(
         if q_length < 1500:
             await PollMenu(question, options).start(ctx)
         else:
-            await ctx.send(f"The poll question is too long. ({q_length}/1500)")
+            await ctx.send(f"The poll question is too long. ({q_length} > 1500)")
 
     @commands.command(aliases=("expression",))
     async def quote(self, ctx):
