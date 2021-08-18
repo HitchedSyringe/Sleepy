@@ -1125,8 +1125,8 @@ class Web(
 
             # It's unfortunate that we have to do this check twice, but
             # messages can have no text content and the translator will
-            # throw a TypeError if ``None`` is passed.
-            if text is None:
+            # throw a TypeError if an empty string is passed.
+            if not text:
                 await ctx.send("That message doesn't have any text content.")
                 return
 
