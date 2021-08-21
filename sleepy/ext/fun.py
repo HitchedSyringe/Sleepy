@@ -336,7 +336,7 @@ class Fun(
             await ctx.send("Times must be between 1 and 10001, inclusive.")
             return
 
-        counter = Counter(random.choice(choices) for _ in range(times))
+        counter = Counter(random.choices(choices, k=times))
 
         result = "\n".join(
             f"{i}. {e} ({plural(c, ',d'):time} \N{BULLET} {c / times:.2%})"
