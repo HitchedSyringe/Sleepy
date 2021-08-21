@@ -1,7 +1,7 @@
 from collections.abc import (
     Callable,
     Coroutine,
-    Iterable,
+    Generator,
     Mapping,
     Sequence,
 )
@@ -36,7 +36,7 @@ def awaitable(func: _AnyCallable[Any]) -> _AnyCoro[Any]: ...
 def bool_to_emoji(value: Optional[Any]) -> str: ...
 
 
-def find_extensions_in(path: Path | str) -> Iterable[str]: ...
+def find_extensions_in(path: Path | str) -> Generator[str, None, None]: ...
 
 
 def human_delta(

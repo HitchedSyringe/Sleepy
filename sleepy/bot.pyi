@@ -1,4 +1,4 @@
-from collections.abc import Iterable, Mapping
+from collections.abc import Generator, Mapping
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional, TypeVar
@@ -37,7 +37,7 @@ class Sleepy(commands.Bot[_CT]):
     @property
     def owner(self) -> Optional[discord.User]: ...
 
-    def get_all_extensions(self) -> Iterable[str]: ...
+    def get_all_extensions(self) -> Generator[str, None, None]: ...
 
     async def login(self, token: str, *, bot: bool = ...) -> None: ...
 
