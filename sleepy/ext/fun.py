@@ -289,7 +289,7 @@ class Fun(
 
         **EXAMPLE:**
         ```
-        random choose bread eggs "cheddar cheese"
+        choose bread eggs "cheddar cheese"
         ```
         """
         if len(choices) < 2:
@@ -320,8 +320,8 @@ class Fun(
 
         **EXAMPLES:**
         ```bnf
-        <1> random choosebestof oranges "honey dew"
-        <2> random choosebestof 10 milk "choccy milk"
+        <1> choose bestof oranges "honey dew"
+        <2> choose bestof 10 milk "choccy milk"
         ```
         """
         choices_count = len(choices)
