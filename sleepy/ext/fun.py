@@ -538,7 +538,7 @@ class Fun(
                 f"You fought {user.mention} and got erased from existence.",
                 allowed_mentions=discord.AllowedMentions(users=False)
             )
-        elif random.randint(0, 1) == 1:
+        elif random.random() < 0.5:
             await ctx.send(
                 f"You fought {user.mention} and whooped them.",
                 allowed_mentions=discord.AllowedMentions(users=False)
