@@ -25,6 +25,7 @@ __all__ = (
 
 import asyncio
 import math
+import random
 import time
 from datetime import datetime
 from functools import partial, wraps
@@ -655,6 +656,29 @@ def progress_bar(*, progress, maximum, per=1):
         return _ER + _EB * (total - 2) + _EL
 
     return _FR + _FB * (filled - 1) + _EB * (total - filled - 1) + _EL
+
+
+def randint(a, b, /, *, seed=None):
+    """Similar to :func:`random.randint`, but allows
+    for setting a seed without modifying the global
+    :class:`random.Random` instance.
+
+    .. versionadded:: 3.1.8
+
+    Parameters
+    ----------
+    a: :class:`int`
+    b: :class:`int`
+        The integers to pick between.
+    seed: Optional[Any]
+        The seed for randomisation.
+
+    Returns
+    -------
+    :class:`int`
+        The randomly generated integer.
+    """
+    return random.Random(seed).randint(a, b)
 
 
 def tchart(items, /, keys_formatter=None):

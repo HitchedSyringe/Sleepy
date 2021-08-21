@@ -80,6 +80,9 @@ def measure_performance(func: _AnyCoro[Any]) -> _AnyCoro[tuple[Any, float]]: ...
 def progress_bar(*, maximum: int, progress: float, per: int = ...) -> str: ...
 
 
+def randint(a: int, b: int, /, *, seed: Optional[Any] = ...) -> int: ...
+
+
 def tchart(
     items: Mapping[Any, Any],
     /,

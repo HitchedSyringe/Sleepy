@@ -14,7 +14,6 @@ __all__ = (
 
 
 import io
-import random
 from typing import Optional
 
 import discord
@@ -31,7 +30,7 @@ from sleepy.converters import (
 )
 from sleepy.http import HTTPRequestFailed
 from sleepy.menus import EmbedSource
-from sleepy.utils import progress_bar
+from sleepy.utils import progress_bar, randint as s_randint
 
 from . import backend
 from .fonts import FONTS
@@ -654,7 +653,7 @@ class Images(
 
         first_name = first_user.name
         second_name = second_user.name
-        score = random.randint(0, 100)
+        score = s_randint(0, 100, seed=first_user.id ^ second_user.id)
 
         embed = Embed(
             title=f"{first_name} \N{HEAVY BLACK HEART} {second_name}",

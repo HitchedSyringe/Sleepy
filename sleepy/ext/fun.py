@@ -28,6 +28,7 @@ from sleepy.utils import (
     awaitable,
     measure_performance,
     plural,
+    randint as s_randint,
     tchart,
 )
 
@@ -179,13 +180,6 @@ class Fun(
         # performance-measured instance of figlet_format
         # without actually modifying the normal global one.
         self.figlet_format = awaitable(measure_performance(pyfiglet.figlet_format))
-
-    @staticmethod
-    def rng(a, b, *, seed):
-        instance = random.Random()
-        instance.seed(seed)
-
-        return instance.randint(a, b)
 
     @staticmethod
     @awaitable
@@ -622,7 +616,7 @@ class Fun(
         if await ctx.bot.is_owner(user) or user == ctx.me:
             iq = 1000
         else:
-            iq = self.rng(0, 1000, seed=user.id)
+            iq = s_randint(0, 1000, seed=user.id)
 
         await ctx.send(
             f"{user.mention} has at least **{iq}** IQ.",
@@ -674,7 +668,7 @@ class Fun(
             await ctx.send("The result is too long to post.")
         else:
             await ctx.send(
-                f"{user.mention}'s penis length: `8{'=' * self.rng(0, 40, seed=user.id)}D`",
+                f"{user.mention}'s penis length: `8{'=' * s_randint(0, 40, seed=user.id)}D`",
                 allowed_mentions=discord.AllowedMentions(users=False)
             )
 
@@ -764,7 +758,7 @@ class Fun(
         if await ctx.bot.is_owner(user) or user == ctx.me:
             rate = 10
         else:
-            rate = self.rng(0, 10, seed=user.id)
+            rate = s_randint(0, 10, seed=user.id)
 
         await ctx.send(
             f"I would give {user.mention} a **{rate}/10**!",
