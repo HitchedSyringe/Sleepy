@@ -375,15 +375,18 @@ def make_live_tucker_reaction_meme(image_buffer, /):
         fore = ImageOps.contain(image, template.size)
         buffer = io.BytesIO()
 
+        f_w, f_h = fore.size
+        t_w, t_h = template.size
+
         # If the foreground image has the same dimensions as the
         # template, then there isn't a need for whitespace to be
         # filled and we won't have to generate the blurred form.
-        if fore.size == template.size:
+        if f_w == t_w and f_h == t_h:
             fore.paste(template, template)
             fore.save(buffer, "png")
         else:
             blur = image.resize(template.size).filter(ImageFilter.GaussianBlur(10))
-            blur.paste(fore, ((template.width - fore.width) // 2, 0))
+            blur.paste(fore, ((t_w - f_w) // 2, (t_h - f_h) // 2))
             blur.paste(template, template)
 
             blur.save(buffer, "png")
@@ -402,18 +405,16 @@ def make_pointing_soyjaks_meme(image_buffer, /):
 
         buffer = io.BytesIO()
 
-        if image.size == template.size:
+        i_w, i_h = image.size
+        t_w, t_h = template.size
+
+        # Same reasoning as tucker, except with a blank image.
+        if i_w == t_w and i_h == t_h:
             image.alpha_composite(template)
             image.save(buffer, "png")
         else:
             binder = Image.new("RGBA", template.size, "white")
-            binder.alpha_composite(
-                image,
-                (
-                    (template.width - image.width) // 2,
-                    (template.height - image.height) // 2,
-                )
-            )
+            binder.alpha_composite(image, ((t_w - i_w) // 2, (t_h - i_h) // 2))
             binder.alpha_composite(template)
 
             binder.save(buffer, "png")
