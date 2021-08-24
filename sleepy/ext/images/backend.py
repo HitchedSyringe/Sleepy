@@ -370,17 +370,19 @@ def make_iphone_x(image_buffer, /):
 def make_live_tucker_reaction_meme(image_buffer, /):
     with Image.open(TEMPLATES / "live_tucker_reaction.png") as template:
         with Image.open(image_buffer) as image:
+            image = image.convert("RGBA")
             image.putalpha(255)
-            result = ImageOps.pad(image.convert("RGBA"), template.size)
 
-            # If the foreground image has the same dimensions as the
-            # template, then there isn't a need for whitespace to be
-            # filled and we won't have to generate the blurred form.
-            if image.size != template.size:
-                result = Image.alpha_composite(
-                    image.resize(template.size).filter(ImageFilter.GaussianBlur(10)),
-                    result
-                )
+        result = ImageOps.pad(image, template.size)
+
+        # If the foreground image has the same dimensions as the
+        # template, then there isn't a need for whitespace to be
+        # filled and we won't have to generate the blurred form.
+        if image.size != template.size:
+            result = Image.alpha_composite(
+                image.resize(template.size).filter(ImageFilter.GaussianBlur(10)),
+                result
+            )
 
         result.alpha_composite(template)
 
