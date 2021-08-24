@@ -370,26 +370,23 @@ def make_iphone_x(image_buffer, /):
 def make_live_tucker_reaction_meme(image_buffer, /):
     with Image.open(TEMPLATES / "live_tucker_reaction.png") as template:
         with Image.open(image_buffer) as image:
-            image = image.convert("RGB")
+            image.putalpha(255)
+            result = ImageOps.pad(image.convert("RGBA"), template.size)
 
-        fore = ImageOps.contain(image, template.size)
-        buffer = io.BytesIO()
+            # If the foreground image has the same dimensions as the
+            # template, then there isn't a need for whitespace to be
+            # filled and we won't have to generate the blurred form.
+            if image.size != template.size:
+                result = Image.alpha_composite(
+                    image.resize(template.size).filter(ImageFilter.GaussianBlur(10)),
+                    result
+                )
 
-        f_w, f_h = fore.size
-        t_w, t_h = template.size
+        result.alpha_composite(template)
 
-        # If the foreground image has the same dimensions as the
-        # template, then there isn't a need for whitespace to be
-        # filled and we won't have to generate the blurred form.
-        if f_w == t_w and f_h == t_h:
-            fore.paste(template, template)
-            fore.save(buffer, "png")
-        else:
-            blur = image.resize(template.size).filter(ImageFilter.GaussianBlur(10))
-            blur.paste(fore, ((t_w - f_w) // 2, (t_h - f_h) // 2))
-            blur.paste(template, template)
+    buffer = io.BytesIO()
 
-            blur.save(buffer, "png")
+    result.save(buffer, "png")
 
     buffer.seek(0)
 
@@ -401,23 +398,21 @@ def make_live_tucker_reaction_meme(image_buffer, /):
 def make_pointing_soyjaks_meme(image_buffer, /):
     with Image.open(TEMPLATES / "pointing_soyjaks.png") as template:
         with Image.open(image_buffer) as image:
-            image = ImageOps.contain(image.convert("RGBA"), template.size)
+            image = image.convert("RGBA")
 
-        buffer = io.BytesIO()
+        # Replace any transparency with white.
+        if image.getextrema()[3][0] < 255:
+            image = Image.alpha_composite(
+                Image.new("RGBA", image.size, "white"),
+                image
+            )
 
-        i_w, i_h = image.size
-        t_w, t_h = template.size
+        image = ImageOps.pad(image, template.size, color="white")
+        image.alpha_composite(template)
 
-        # Same reasoning as tucker, except with a blank image.
-        if i_w == t_w and i_h == t_h:
-            image.alpha_composite(template)
-            image.save(buffer, "png")
-        else:
-            binder = Image.new("RGBA", template.size, "white")
-            binder.alpha_composite(image, ((t_w - i_w) // 2, (t_h - i_h) // 2))
-            binder.alpha_composite(template)
+    buffer = io.BytesIO()
 
-            binder.save(buffer, "png")
+    image.save(buffer, "png")
 
     buffer.seek(0)
 
