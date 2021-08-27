@@ -1484,11 +1484,16 @@ class Web(
         snippet = data["snippet"]
         channel_id = data["id"]
 
-        embed = Embed(
-            description=snippet["localized"]["description"],
-            colour=0xFF0000,
-            timestamp=datetime.strptime(snippet["publishedAt"], "%Y-%m-%dT%H:%M:%SZ")
-        )
+        embed = Embed(description=snippet["localized"]["description"], colour=0xFF0000)
+
+        try:
+            embed.timestamp = datetime.strptime(snippet["publishedAt"], "%Y-%m-%dT%H:%M:%SZ")
+        except ValueError:
+            # For some reason, it seems that only channels created
+            # after some date in 2019(?) have fractions of seconds
+            # in their creation timestamps.
+            embed.timestamp = datetime.strptime(snippet["publishedAt"], "%Y-%m-%dT%H:%M:%S.%fZ")
+
         embed.set_author(
             name=snippet["title"],
             url=f"https://youtube.com/channel/{channel_id}"
