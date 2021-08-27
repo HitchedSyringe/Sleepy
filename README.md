@@ -26,8 +26,8 @@ The license as of commit `6337f3cde11450b5ca637183009f91b0483b7fdb` also applies
 The version number has a 3-digit format: `major.minor.micro`
 
 * `major` updates are rare and only used for massive rewrites affecting huge parts of the bot.
-* `minor` updates are any breaking or backwards incompatible change to the bot. This is usually the removal or renaming of classes, methods, attributes, and/or commands.
-* `micro` updates are any backwards compatible changes. This is usually an important bug fix (or a bunch of smaller ones), adjustment, or feature addition.
+* `minor` updates are any breaking or backwards incompatible change to the bot. This is usually a feature addition or the removal or renaming of classes, methods, attributes, and/or commands.
+* `micro` updates are any backwards compatible changes. This is usually an important bug fix (or a bunch of smaller ones), adjustment, or extension to a current feature.
 
 ## Contributing
 
