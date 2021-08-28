@@ -15,6 +15,18 @@ To invite my bot, either use the `invite` command in a server the bot is in, or 
 
 I would prefer that you don't run an instance of my bot. The source code here is provided for both transparency reasons and educational purposes for discord.py. Just use the instance that I'm hosting. Nevertheless, the instructions to set up the bot are located [here](#installation).
 
+## 27th August, 2021 - The Future of Sleepy
+
+This is a statement regarding the future of this project in light of Rapptz (Danny)'s recent decision to put an end to discord.py.
+
+This announcement alone comes as a shock to everyone, including users, developers, and of course, myself, who all depend on this library in some way, shape, or form. I 100% respect Danny's decision to end development and wish him the best on his future endeavours. For those that do not know, discord.py is the backbone of what allows the bot to be able to interact with Discord. In essence, the ending of discord.py has now put the future of this project's development in jeopardy since we're now running on an unsupported library.
+
+For starters, this bot will continue to be maintained until the Discord API version that discord.py 1.7 uses reaches its EOL. When this happens, I will formally step down as the sole developer and thereby end it. I know this is sad for everyone to hear, but unfortunately, I can't afford the time and effort to rewrite this bot to another language or to use another library. Furthermore, learning about the sensitive nature of what has occurred between Discord and library developers, I do not foresee myself making or involving myself in any projects which interact with Discord in any way, shape, or form moving forward. For those migrating from discord.py, I would advise waiting on doing so as I cannot say for certain that any other library developers will take similar steps as Danny did in light of what has occurred over the past 3 years.
+
+I will leave this source code published and open for any future people who wish to carry the torch that I will leave behind in the future. For the ~3 years I have spent on this project, I thank everyone for using the bot up until this point. It genuinely means a lot to me. 🙂
+
+For more information on why Danny decided to discontinue discord.py, please read his gist [here](https://gist.github.com/Rapptz/4a2f62751b9600a31a0d3c78100287f1).
+
 ## License
 
 This project is licensed under the [Mozilla Public License, v. 2.0](https://mozilla.org/en-US/MPL/2.0/). See [LICENSE](LICENSE) for more information.
