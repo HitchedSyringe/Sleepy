@@ -23,8 +23,8 @@ __all__ = (
 
 
 # This interfaces with some aspects of the image extension.
+from ..images import FONTS
 from ..images.helpers import get_accurate_text_size, wrap_text
-from ..images.backend import FONTS
 
 
 import io
@@ -35,8 +35,8 @@ import numpy
 from PIL import Image, ImageDraw, ImageFont, ImageSequence
 from sleepy.utils import awaitable, measure_performance
 
-from .templates import TEMPLATES
 from .cascades import CASCADES
+from .templates import TEMPLATES
 
 
 ANIME_FACE_CASCADE = cv2.CascadeClassifier(str(CASCADES / "lbpcascade_animeface.xml"))
