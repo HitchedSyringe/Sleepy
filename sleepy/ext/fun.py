@@ -266,21 +266,6 @@ class Fun(
         else:
             await ctx.send("The result is too long to post.")
 
-    @commands.command(aliases=("cb",))
-    @commands.cooldown(1, 5, commands.BucketType.member)
-    async def chatbot(self, ctx, *, message):
-        """Chat with a highly intelligent AI.
-
-        **EXAMPLE:**
-        ```
-        chatbot hello there!
-        ```
-        """
-        async with ctx.typing():
-            chatbot = await ctx.get("https://some-random-api.ml/chatbot", message=message)
-
-        await ctx.send(f"{chatbot['response']}\n`Powered by some-random-api.ml`.")
-
     @commands.group(name="choose", invoke_without_command=True)
     async def choose(self, ctx, *choices: commands.clean_content):
         """Chooses between the given choices.
