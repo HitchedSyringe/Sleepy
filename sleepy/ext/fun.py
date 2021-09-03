@@ -578,11 +578,11 @@ class Fun(
             await ctx.send("Self-deprecation isn't cool.\nInsult somebody besides yourself.")
         elif user == ctx.me:
             await ctx.send(
-                "How original. No one else had thought of trying to get the bot "
-                "to insult itself. I applaud your creativity. *yawn*\nPerhaps this "
-                "is why you don't have friends: you add nothing new to the conversation, "
-                "give predictable answers, and are absolutely dull as a person, making "
-                "you more of a bot than I."
+                "How original. No one else had thought of trying to get me to insult myself."
+                " I applaud your creativity. \N{YAWNING FACE}\nPerhaps the reason you have"
+                " no friends is that you add nothing new to any conversation. You are more"
+                " of a bot than I, giving predictable answers and being absolutely dull to"
+                " have an actual conversation with."
             )
         else:
             insult = await ctx.get("https://evilinsult.com/generate_insult.php?lang=en")
