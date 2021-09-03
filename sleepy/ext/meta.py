@@ -575,9 +575,8 @@ class Meta(commands.Cog):
                 inline=False
             )
 
-        if guild.roles:
+        if roles := guild.roles[:0:-1]:
             # Get roles in reverse order, excluding @everyone.
-            roles = guild.roles[:0:-1]
             role_count = len(roles)
 
             embed.add_field(
@@ -757,9 +756,8 @@ class Meta(commands.Cog):
                 + human_ts(user.premium_since, 'R')
             )
 
-        if user.roles:
+        if roles := user.roles[:0:-1]:
             # Get roles in reverse order, excluding @everyone.
-            roles = user.roles[:0:-1]
             role_count = len(roles)
 
             embed.add_field(
@@ -785,9 +783,7 @@ class Meta(commands.Cog):
                   f"\n{status_emojis[user.web_status]} | \N{GLOBE WITH MERIDIANS} Web"
         )
 
-        if user.activity is not None:
-            activity = user.activity
-
+        if (activity := user.activity) is not None:
             if isinstance(activity, discord.CustomActivity):
                 embed.add_field(
                     name="Activity",
