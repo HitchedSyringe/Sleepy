@@ -18,7 +18,7 @@ jishaku>=2.2.0
 matplotlib
 opencv-python-headless
 Pillow>=8.0.0
-pyfiglet
 psutil
+pyfiglet
 pyyaml
 scikit-image
