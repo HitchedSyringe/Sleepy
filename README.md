@@ -53,8 +53,8 @@ When adding commands, look at the other commands in the category and pick which 
 * [cachetools](https://github.com/tkem/cachetools) (optional but recommended)
 * [discord.py 1.7.x](https://github.com/Rapptz/discord.py)
 * [discord-ext-menus](https://github.com/Rapptz/discord-ext-menus)
-* [discord-flags 2.1.0+](https://github.com/XuaTheGrate/Flag-Parsing)
-  * ⚠️ NOTICE: This package has been deprecated and is subject to removal by its maintainer. This dependency will eventually be removed and replaced with the implementation in discord.py 2.0. Until then, using `requirements.txt` will install [my fork](https://github.com/HitSyr/Flag-Parsing) of the above linked repository to ensure nothing breaks in the meantime.
+* [discord-flags 2.1.0+](https://github.com/HitSyr/Flag-Parsing)
+  * This package was originally maintained by XuaTheGrate and has since been deleted. Using `requirements.txt` will install my fork of the above repository.
 * [emoji 1.1.0+](https://github.com/carpedm20/emoji)
 * [googletrans 4.0.0rc1+](https://github.com/ssut/py-googletrans)
 * [jishaku 2.2.0+](https://github.com/Gorialis/jishaku)
