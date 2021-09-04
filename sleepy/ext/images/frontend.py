@@ -730,8 +730,8 @@ class Images(
                 )
             except HTTPRequestFailed as exc:
                 # I'm not sure if this is filetype-specific or not,
-                # but sometimes, this sometimes gets returned so I
-                # might as well handle it.
+                # but this sometimes gets returned so I might as
+                # well handle it.
                 if exc.status == 400:
                     await ctx.send("Nekobot thinks the image you sent was invalid.")
                     return
@@ -834,8 +834,7 @@ class Images(
             await ctx.send("Text size must be between 5 and 35, inclusive.")
             return
 
-        # flags doesn't handle actual class converters with
-        # arguments properly so we have to do this.
+        # flags doesn't properly handle converter instances so we have to do this.
         flags["text"] = await commands.clean_content(fix_channel_mentions=True).convert(ctx, flags["text"])
 
         flags["font_path"] = font = FONTS.joinpath(flags["font_path"] + ".ttf").resolve()
