@@ -45,7 +45,7 @@ The version number has a 3-digit format: `major.minor.micro`
 
 Contributions are 100% welcome! Feel free to open an issue or submit a pull request.
 
-When adding commands, look at the other commands in the category and pick which category the command fits best. To test your changes, please refer to the [setup instructions](#installation).
+When adding commands, look at the other commands in the category and pick which category the command fits best. Be sure to keep the commands alphabetised. To test your changes, please refer to the [setup instructions](#installation).
 
 ## Dependencies
 
