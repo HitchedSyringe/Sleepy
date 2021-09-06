@@ -797,7 +797,7 @@ class Meta(commands.Cog):
                     ActivityType.streaming: "**Streaming**",
                     ActivityType.watching: "**Watching**",
                     ActivityType.listening: "**Listening to**",
-                    ActivityType.competing: "Competing in",
+                    ActivityType.competing: "**Competing in**",
                 }
 
                 embed.add_field(
