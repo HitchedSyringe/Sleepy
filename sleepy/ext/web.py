@@ -845,6 +845,86 @@ class Web(
 
         await ctx.paginate(menus.EmbedSource(embeds))
 
+    @commands.command(aliases=("mcinfo",))
+    async def minecraftinfo(self, ctx, *, account: str.lower):
+        """Gets information about a Minecraft account.
+
+        Argument can either be a username or UUID.
+
+        (Bot Needs: Embed Links)
+
+        **EXAMPLES:**
+        ```bnf
+        <1> minecraftinfo Notch
+        <2> minecraftinfo 069a79f4-44e9-4726-a5be-fca90e38aaf5
+        ```
+        """
+        try:
+            data = await ctx.get(
+                f"https://api.ashcon.app/mojang/v2/user/{quote(account)}",
+                cache__=True
+            )
+        except HTTPRequestFailed as exc:
+            if exc.status == 400:
+                await ctx.send("Invalid Minecraft username or UUID.")
+                return
+
+            if exc.status == 404:
+                await ctx.send("That user wasn't found.")
+                return
+
+            raise
+
+        textures = data["textures"]
+
+        embed = Embed(
+            title=data["username"],
+            description=f"[**Skin**]({textures['skin']['url']})",
+            colour=0x2F3136
+        )
+        embed.set_thumbnail(url=f"https://crafatar.com/renders/body/{data['uuid']}")
+
+        try:
+            cape_url = textures["cape"]["url"]
+        except KeyError:
+            pass
+        else:
+            embed.description += f" \N{BULLET} [**Cape**]({cape_url})"
+
+        embed.add_field(
+            name="General Information",
+            value=f"**UUID:** {data['uuid']}"
+                  f"\n**Demo Account:** {utils.bool_to_emoji(data.get('demo', False))}"
+                  f"\n**Legacy Account:** {utils.bool_to_emoji(data.get('legacy', False))}"
+                  f"\n**Slim Skin:** {utils.bool_to_emoji(textures['slim'])}"
+        )
+
+        try:
+            embed.timestamp = datetime.strptime(data["created_at"], "%Y-%m-%d")
+        except TypeError:
+            embed.set_footer(text="Powered by ashcon.app & crafatar.com")
+        else:
+            embed.set_footer(text="Powered by ashcon.app & crafatar.com \N{BULLET} Created")
+
+        history = data["username_history"]
+
+        if (count := len(history)) > 1:
+            history_fmt = "\n".join(
+                f"<{i}> {e['username']} ({e.get('changed_at', 'initial')})"
+                for i, e in enumerate(history[:15], 1)
+            )
+
+            if count > 15:
+                history_fmt += f"\n...\n(+{count - 15:,d} not shown due to character limits)"
+
+            embed.add_field(
+                name=f"Name History \N{BULLET} {utils.plural(count, ',d'):entry|entries}",
+                value=f"```bnf\n{history_fmt}\n```",
+                inline=False
+            )
+
+        await ctx.send(embed=embed)
+
     @commands.command(aliases=("pdex", "pokédex"))
     @commands.bot_has_permissions(embed_links=True)
     async def pokedex(self, ctx, *, pokemon: str.lower):
