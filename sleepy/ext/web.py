@@ -756,40 +756,6 @@ class Web(
             + "\n`Powered by vatcomply.com`"
         )
 
-    @commands.group(invoke_without_command=True, aliases=("search",))
-    @checks.can_start_menu(check_embed=True)
-    @commands.cooldown(1, 5, commands.BucketType.member)
-    async def google(self, ctx, *, query: str.lower):
-        """Searches for something on Google, returning the top 10 results.
-
-        Safe mode is enabled based on whether or not you're
-        in an NSFW channel.
-
-        (Bot Needs: Embed Links, Add Reactions, and Read Message History)
-
-        **EXAMPLE:**
-        ```
-        google lectures
-        ```
-        """
-        await self.do_google_search(ctx, query, search_images=False)
-
-    @google.command(name="imagesearch")
-    async def google_imagesearch(self, ctx, *, query: str.lower):
-        """Searches for something on Google images, returning the top 10 results.
-
-        Safe mode is enabled based on whether or not you're
-        in an NSFW channel.
-
-        (Bot Needs: Embed Links, Add Reactions, and Read Message History)
-
-        **EXAMPLE:**
-        ```
-        google imagesearch kites
-        ```
-        """
-        await self.do_google_search(ctx, query, search_images=True)
-
     @commands.command(aliases=("lyrics",))
     @checks.can_start_menu(check_embed=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
@@ -844,6 +810,40 @@ class Web(
             embeds.append(embed)
 
         await ctx.paginate(menus.EmbedSource(embeds))
+
+    @commands.group(invoke_without_command=True, aliases=("search",))
+    @checks.can_start_menu(check_embed=True)
+    @commands.cooldown(1, 5, commands.BucketType.member)
+    async def google(self, ctx, *, query: str.lower):
+        """Searches for something on Google, returning the top 10 results.
+
+        Safe mode is enabled based on whether or not you're
+        in an NSFW channel.
+
+        (Bot Needs: Embed Links, Add Reactions, and Read Message History)
+
+        **EXAMPLE:**
+        ```
+        google lectures
+        ```
+        """
+        await self.do_google_search(ctx, query, search_images=False)
+
+    @google.command(name="imagesearch")
+    async def google_imagesearch(self, ctx, *, query: str.lower):
+        """Searches for something on Google images, returning the top 10 results.
+
+        Safe mode is enabled based on whether or not you're
+        in an NSFW channel.
+
+        (Bot Needs: Embed Links, Add Reactions, and Read Message History)
+
+        **EXAMPLE:**
+        ```
+        google imagesearch kites
+        ```
+        """
+        await self.do_google_search(ctx, query, search_images=True)
 
     @commands.command(aliases=("mcinfo",))
     async def minecraftinfo(self, ctx, *, account: str.lower):
