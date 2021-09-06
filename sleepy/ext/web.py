@@ -848,7 +848,7 @@ class Web(
     @commands.command(aliases=("mcinfo",))
     @commands.bot_has_permissions(embed_links=True)
     async def minecraftinfo(self, ctx, *, account: str.lower):
-        """Gets information about a Minecraft account.
+        """Gets information about a Minecraft: Java Edition account.
 
         Argument can either be a username or UUID.
 
