@@ -846,6 +846,7 @@ class Web(
         await self.do_google_search(ctx, query, search_images=True)
 
     @commands.command(aliases=("mcinfo",))
+    @commands.bot_has_permissions(embed_links=True)
     async def minecraftinfo(self, ctx, *, account: str.lower):
         """Gets information about a Minecraft account.
 
