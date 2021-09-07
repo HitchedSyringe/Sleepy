@@ -835,8 +835,8 @@ class Moderation(commands.Cog):
     async def unban(self, ctx, user: BanEntry, *, reason: Reason = None):
         """Unbans a user.
 
-        You can either pass a user's ID or name#discrim.
-        The former is typically the easiest.
+        You can either pass a user's ID or name#discrim combination.
+        The former is typically the easiest to use.
 
         (Permissions Needed: Ban Members)
         (Bot Needs: Ban Members)

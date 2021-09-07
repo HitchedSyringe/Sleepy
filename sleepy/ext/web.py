@@ -851,6 +851,7 @@ class Web(
         """Gets information about a Minecraft: Java Edition account.
 
         Argument can either be a username or UUID.
+        Using the latter typically results in more successful lookups.
 
         (Bot Needs: Embed Links)
 
@@ -886,6 +887,13 @@ class Web(
         embed.set_thumbnail(url=f"https://crafatar.com/renders/body/{data['uuid']}")
 
         try:
+            embed.timestamp = datetime.strptime(data["created_at"], "%Y-%m-%d")
+        except TypeError:
+            embed.set_footer(text="Powered by ashcon.app & crafatar.com")
+        else:
+            embed.set_footer(text="Powered by ashcon.app & crafatar.com \N{BULLET} Created")
+
+        try:
             cape_url = textures["cape"]["url"]
         except KeyError:
             pass
@@ -899,13 +907,6 @@ class Web(
                   f"\n**Legacy Account:** {utils.bool_to_emoji(data.get('legacy', False))}"
                   f"\n**Slim Skin:** {utils.bool_to_emoji(textures['slim'])}"
         )
-
-        try:
-            embed.timestamp = datetime.strptime(data["created_at"], "%Y-%m-%d")
-        except TypeError:
-            embed.set_footer(text="Powered by ashcon.app & crafatar.com")
-        else:
-            embed.set_footer(text="Powered by ashcon.app & crafatar.com \N{BULLET} Created")
 
         history = data["username_history"]
 
@@ -1532,7 +1533,7 @@ class Web(
         """Gets information about a YouTube channel.
 
         Argument can either be a channel ID, username, or link.
-        Links are generally the easiest and most accurate.
+        Using channel IDs typically results in more successful lookups.
 
         (Bot Needs: Embed Links)
 
