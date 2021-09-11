@@ -21,10 +21,19 @@ from discord import Embed, File
 from discord.ext import commands
 from discord.utils import parse_time as discord_parse_time
 from googletrans import Translator, LANGUAGES
-from sleepy import checks, menus, utils
+from sleepy import checks, menus
 from sleepy.converters import _pseudo_argument_flag, real_float
 from sleepy.http import HTTPRequestFailed
 from sleepy.paginators import WrappedPaginator
+from sleepy.utils import (
+    awaitable,
+    bool_to_emoji,
+    human_number,
+    human_timestamp,
+    plural,
+    tchart,
+    truncate,
+)
 
 
 def clean_subreddit(value):
@@ -223,7 +232,7 @@ class Web(
         self.google_search_engine_id = config["google_search_engine_id"]
 
         self.translator = translator = Translator()
-        translator.translate = utils.awaitable(translator.translate)
+        translator.translate = awaitable(translator.translate)
 
     @staticmethod
     async def do_calculation(ctx, route, expr):
@@ -294,7 +303,7 @@ class Web(
                 )
 
             embed.set_author(
-                name=f"Results for '{utils.truncate(query, 64)}'",
+                name=f"Results for '{truncate(query, 64)}'",
                 url=f"https://google.com/search?q={quote(query)}"
             )
             embed.set_footer(
@@ -748,7 +757,7 @@ class Web(
         # 2 decimal places.
         await ctx.send(
             "**Exchange Rates** "
-            f"(Updated {utils.human_timestamp(updated, 'R')})\n"
+            f"(Updated {human_timestamp(updated, 'R')})\n"
             + "\n".join(
                 f"{amount:.2f} {base} = {v * amount:.2f} {n}"
                 for n, v in resp["rates"].items()
@@ -798,7 +807,7 @@ class Web(
         embeds = []
         for page in paginator.pages:
             embed = Embed(
-                title=utils.truncate(resp["title"], 128),
+                title=truncate(resp["title"], 128),
                 description=page,
                 colour=0xFFFF64,
                 url=resp["links"]["genius"]
@@ -901,9 +910,9 @@ class Web(
         embed.add_field(
             name="Information",
             value=f"\n\N{SMALL BLUE DIAMOND} **UUID:** {data['uuid']}"
-                  f"\n\N{SMALL BLUE DIAMOND} **Demo:** {utils.bool_to_emoji(data.get('demo', False))}"
-                  f"\n\N{SMALL BLUE DIAMOND} **Legacy:** {utils.bool_to_emoji(data.get('legacy', False))}"
-                  f"\n\N{SMALL BLUE DIAMOND} **Slim Skin:** {utils.bool_to_emoji(textures['slim'])}"
+                  f"\n\N{SMALL BLUE DIAMOND} **Demo:** {bool_to_emoji(data.get('demo', False))}"
+                  f"\n\N{SMALL BLUE DIAMOND} **Legacy:** {bool_to_emoji(data.get('legacy', False))}"
+                  f"\n\N{SMALL BLUE DIAMOND} **Slim Skin:** {bool_to_emoji(textures['slim'])}"
         )
 
         history = data["username_history"]
@@ -928,7 +937,7 @@ class Web(
             h_fmt += "\n".join(f"<{i}> {e['username']} ({e['changed_at']})" for i, e in h_iter)
 
             embed.add_field(
-                name=f"Name History \N{BULLET} {utils.plural(count, ',d'):entry|entries}",
+                name=f"Name History \N{BULLET} {plural(count, ',d'):entry|entries}",
                 value=f"```bnf\n{h_fmt}\n```",
                 inline=False
             )
@@ -984,11 +993,7 @@ class Web(
 
         embed.add_field(name="Abilities", value=data["abilities"])
         embed.add_field(name="Types", value=data["types"])
-        embed.add_field(
-            name="Stats",
-            value=f"```dns\n{utils.tchart(data['stats'])}```",
-            inline=False
-        )
+        embed.add_field(name="Stats", value=f"```dns\n{tchart(data['stats'])}```", inline=False)
 
         await ctx.send(embed=embed)
 
@@ -1031,8 +1036,8 @@ class Web(
                 continue
 
             embed = Embed(
-                title=utils.truncate(post["title"], 128),
-                description=utils.truncate(post["selftext"], 1024),
+                title=truncate(post["title"], 128),
+                description=truncate(post["selftext"], 1024),
                 url=f"https://reddit.com/{post['id']}",
                 colour=0xFF5700
             )
@@ -1229,7 +1234,7 @@ class Web(
             await ctx.send(f"An error occurred while translating: {exc}")
             return
 
-        embed = Embed(description=utils.truncate(tsl.text, 2048), colour=0x4285F4)
+        embed = Embed(description=truncate(tsl.text, 2048), colour=0x4285F4)
         embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
         embed.set_thumbnail(
             url="https://cdn.discordapp.com/attachments/507971834570997765/861166905569050624/translate2021.png"
@@ -1461,7 +1466,7 @@ class Web(
             timestamp=datetime.strptime(resp["timestamp"], "%Y-%m-%dT%H:%M:%SZ")
         )
         embed.set_author(
-            name=utils.truncate(resp["title"], 128),
+            name=truncate(resp["title"], 128),
             url=resp["content_urls"]["desktop"]["page"],
             icon_url="https://w.wiki/3dCP"
         )
@@ -1594,7 +1599,7 @@ class Web(
         if not stats["hiddenSubscriberCount"]:
             embed.add_field(
                 name="Subscribers",
-                value=utils.human_number(int(stats["subscriberCount"]))
+                value=human_number(int(stats["subscriberCount"]))
             )
 
         embed.add_field(name="Views", value=f"{int(stats['viewCount']):,d}")
