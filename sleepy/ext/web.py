@@ -881,7 +881,7 @@ class Web(
 
         embed = Embed(
             title=data["username"],
-            description=f"[**Skin**]({textures['skin']['url']})",
+            description=f"**[Skin]({textures['skin']['url']})**",
             colour=0x2F3136
         )
         embed.set_thumbnail(url=f"https://crafatar.com/renders/body/{data['uuid']}")
@@ -894,18 +894,16 @@ class Web(
             embed.set_footer(text="Powered by ashcon.app & crafatar.com \N{BULLET} Created")
 
         try:
-            cape_url = textures["cape"]["url"]
+            embed.description += f" \N{BULLET} **[Cape]({textures['cape']['url']})**"
         except KeyError:
             pass
-        else:
-            embed.description += f" \N{BULLET} [**Cape**]({cape_url})"
 
         embed.add_field(
-            name="General Information",
-            value=f"**UUID:** {data['uuid']}"
-                  f"\n**Demo Account:** {utils.bool_to_emoji(data.get('demo', False))}"
-                  f"\n**Legacy Account:** {utils.bool_to_emoji(data.get('legacy', False))}"
-                  f"\n**Slim Skin:** {utils.bool_to_emoji(textures['slim'])}"
+            name="Information",
+            value=f"\n\N{SMALL BLUE DIAMOND} **UUID:** {data['uuid']}"
+                  f"\n\N{SMALL BLUE DIAMOND} **Demo:** {utils.bool_to_emoji(data.get('demo', False))}"
+                  f"\n\N{SMALL BLUE DIAMOND} **Legacy:** {utils.bool_to_emoji(data.get('legacy', False))}"
+                  f"\n\N{SMALL BLUE DIAMOND} **Slim Skin:** {utils.bool_to_emoji(textures['slim'])}"
         )
 
         history = data["username_history"]

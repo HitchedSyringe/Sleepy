@@ -46,6 +46,21 @@ CHANNEL_EMOJI = {
 }
 
 
+# flag: emoji
+BADGES = {
+    "bug_hunter": "<:bh:886251266517389332>",
+    "bug_hunter_level_2": "<:bh2:886251265342988320>",
+    "early_supporter": "<:es:886251265573666897>",
+    "hypesquad": "<:he:886251265418477639>",
+    "hypesquad_balance": "<:hbl:886251265493958687>",
+    "hypesquad_bravery": "<:hbv:886251265951137792>",
+    "hypesquad_brilliance": "<:hbr:886251265875656814>",
+    "partner": "<:po:886251265997299822>",
+    "staff": "<:stl:886252968339460096>",
+    "verified_bot_developer": "<:vd:886251266211184700>",
+}
+
+
 class BotHelpPageSource(menus.ListPageSource):
 
     def __init__(self, mapping, *, prefix, per_page):
@@ -514,26 +529,24 @@ class Meta(commands.Cog):
         else:
             guild = ctx.guild
 
-        embed = Embed(colour=0x2F3136)
-        embed.set_author(name=guild.name)
-
         icon = guild.icon_url_as(static_format="png")
+
+        embed = Embed(colour=0x2F3136, description=f"{guild.description}\n**[Icon]({icon})**")
+        embed.set_author(name=guild.name)
         embed.set_thumbnail(url=icon)
 
-        embed.description = f"{guild.description or ''}\n[Icon]({icon})"
-
         if banner := guild.banner_url_as(format="png"):
-            embed.description += f" \N{BULLET} [Banner]({banner})"
+            embed.description += f" \N{BULLET} **[Banner]({banner})**"
             embed.set_image(url=banner)
 
         if discovery_splash := guild.discovery_splash_url_as(format="png"):
-            embed.description += f" \N{BULLET} [Discovery Splash]({discovery_splash})"
+            embed.description += f" \N{BULLET} **[Discovery Splash]({discovery_splash})**"
 
         if invite_splash := guild.splash_url_as(format="png"):
-            embed.description += f" \N{BULLET} [Invite Splash]({invite_splash})"
+            embed.description += f" \N{BULLET} **[Invite Splash]({invite_splash})**"
 
         embed.add_field(
-            name="General Information",
+            name="Information",
             value=(
                 f"<:ar:862433028088135711> **ID:** {guild.id}"
                 f"\n<:ar:862433028088135711> **Owner:** {guild.owner.mention}"
@@ -727,34 +740,35 @@ class Meta(commands.Cog):
         avatar_url = user.avatar_url_as(static_format="png")
 
         embed = Embed(
-            description=(
-                f"{user.mention} \N{BULLET} [Avatar]({avatar_url})"
-                f"\n<:ar:862433028088135711> **ID:** {user.id}"
-                f"\n<:ar:862433028088135711> **Created:** {human_ts(user.created_at, 'R')}"
-                f"\n<:ar:862433028088135711> **Bot:** {bool_to_emoji(user.bot)}"
-                f"\n<:ar:862433028088135711> **Shared Servers:** "
-                + str(len(ctx.bot.guilds if user == ctx.me else user.mutual_guilds))
-            ),
+            description=" ".join(v for k, v in BADGES.items() if getattr(user.public_flags, k)),
             colour=0x2F3136
         )
         embed.set_author(name=user)
         embed.set_thumbnail(url=avatar_url)
+
+        embed.add_field(
+            name="Information",
+            value=f"{user.mention} \N{BULLET} **[Avatar]({avatar_url})**"
+                  f"\n<:ar:862433028088135711> **ID:** {user.id}"
+                  f"\n<:ar:862433028088135711> **Created:** {human_ts(user.created_at, 'R')}"
+                  f"\n<:ar:862433028088135711> **Bot:** {bool_to_emoji(user.bot)}"
+                  f"\n<:ar:862433028088135711> **Shared Servers:** "
+                  + str(len(ctx.bot.guilds if user == ctx.me else user.mutual_guilds))
+        )
 
         if isinstance(user, discord.User):
             embed.set_footer(text="This user is not a member of this server.")
             await ctx.send(embed=embed)
             return
 
-        embed.description += (
+        # Better than calling `Embed.set_field_at`.
+        embed._fields[0]["value"] += (
             f"\n<:ar:862433028088135711> **Nick:** {user.nick}"
-            f"\n<:ar:862433028088135711> **Joined:** {human_ts(user.joined_at, 'R')}"
+            f"\n<:ar:862433028088135711> **Joined:**"
+            + "N/A" if user.joined_at is None else human_ts(user.joined_at, 'R')
+            + f"\n<:ar:862433028088135711> **Boosted:** "
+            + "N/A" if user.premium_since is None else human_ts(user.premium_since, 'R')
         )
-
-        if user.premium_since is not None:
-            embed.description += (
-                "\n<:ar:862433028088135711> **Boosted:** "
-                + human_ts(user.premium_since, 'R')
-            )
 
         if roles := user.roles[:0:-1]:
             # Get roles in reverse order, excluding @everyone.
