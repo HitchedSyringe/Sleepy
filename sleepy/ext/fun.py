@@ -696,7 +696,7 @@ class Fun(
         poll "What colour is the sky?" blue red "What is the sky?"
         ```
         """
-        if not 2 < len(options) <= 10:
+        if not 2 <= len(options) <= 10:
             await ctx.send("You must have between 2 and 10 options, inclusive.")
             return
 
