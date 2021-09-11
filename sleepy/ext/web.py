@@ -909,17 +909,27 @@ class Web(
         history = data["username_history"]
 
         if (count := len(history)) > 1:
-            history_fmt = "\n".join(
-                f"<{i}> {e['username']} ({e.get('changed_at', 'initial')})"
-                for i, e in enumerate(history[:15], 1)
-            )
+            # Extract the initial name to make iteration easier since
+            # this item doesn't have the `changed_at` key.
+            first, *history = history
+            h_fmt = f"<Initial> {first['username']}\n"
 
-            if count > 15:
-                history_fmt += f"\n...\n(+{count - 15:,d} not shown due to character limits)"
+            # If the entries count is greater than 12, then go ahead
+            # and show the last 12 changes. I figure this is the most
+            # useful since it allows users to be able to view about
+            # a year's worth of a user's name changes, which should
+            # be more than enough for most usecases.
+            if count > 12:
+                h_iter = enumerate(history[-12:], count - 11)
+                h_fmt += f"...\n(+{count - 12:,d} omitted due to character limits)\n...\n"
+            else:
+                h_iter = enumerate(history, 1)
+
+            h_fmt += "\n".join(f"<{i}> {e['username']} ({e['changed_at']})" for i, e in h_iter)
 
             embed.add_field(
                 name=f"Name History \N{BULLET} {utils.plural(count, ',d'):entry|entries}",
-                value=f"```bnf\n{history_fmt}\n```",
+                value=f"```bnf\n{h_fmt}\n```",
                 inline=False
             )
 
