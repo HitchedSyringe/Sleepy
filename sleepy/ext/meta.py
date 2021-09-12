@@ -764,8 +764,8 @@ class Meta(commands.Cog):
         # Better than calling `Embed.set_field_at`.
         embed._fields[0]["value"] += (
             f"\n<:ar:862433028088135711> **Nick:** {user.nick}"
-            f"\n<:ar:862433028088135711> **Joined:**"
-            + "N/A" if user.joined_at is None else human_ts(user.joined_at, 'R')
+            f"\n<:ar:862433028088135711> **Joined:** "
+            + ("N/A" if user.joined_at is None else human_ts(user.joined_at, 'R'))
             + f"\n<:ar:862433028088135711> **Boosted:** "
             + "N/A" if user.premium_since is None else human_ts(user.premium_since, 'R')
         )
