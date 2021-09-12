@@ -112,10 +112,6 @@ class Images(
     ):
         """Generates an Axios interview with Trump meme.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
-
         (Bot Needs: Attach Files)
         """
         async with ctx.typing():
