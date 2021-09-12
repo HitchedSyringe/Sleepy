@@ -110,7 +110,11 @@ class Images(
         *,
         text: commands.clean_content(fix_channel_mentions=True)
     ):
-        """Generates an Axios Trump interview meme.
+        """Generates an Axios interview with Trump meme.
+
+        Image can either be a user, custom emoji, link, or
+        attachment. Links and attachments must be under 40
+        MB.
 
         (Bot Needs: Attach Files)
         """
