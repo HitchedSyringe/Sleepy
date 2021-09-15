@@ -143,16 +143,14 @@ class PollMenu(menus.Menu):
         return await channel.send(content=self.question, embed=embed)
 
     async def finalize(self, timed_out):
-        votes = +self.votes
-
-        if votes:
+        if (votes := +self.votes):
             embed = Embed(
                 title="Voting has concluded and the results are in!",
                 description=f"```\n{tchart(dict(votes.most_common()))}```",
                 colour=0x2F3136
             )
             embed.set_footer(
-                text=f"{plural(sum(votes.values()), ',d'):vote} total votes casted."
+                text=f"{plural(sum(votes.values()), ',d'):vote} casted."
                      f" \N{BULLET} Started by: {self.ctx.author}"
             )
         else:
