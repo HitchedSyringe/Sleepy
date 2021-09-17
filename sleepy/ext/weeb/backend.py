@@ -65,7 +65,7 @@ def detect_anime_faces(image_buffer, /):
     # Yes yes return both tuples and numpy arrays
     # why don't you. What matters here is that faces
     # isn't empty.
-    if len(faces) == 0:
+    if (count := len(faces)) == 0:
         return None
 
     # Have to flip around the colours so this way the
@@ -83,7 +83,7 @@ def detect_anime_faces(image_buffer, /):
             2
         )
 
-    return io.BytesIO(cv2.imencode(".png", image)[1])
+    return count, io.BytesIO(cv2.imencode(".png", image)[1])
 
 
 @awaitable
