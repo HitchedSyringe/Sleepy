@@ -8,7 +8,7 @@
 
 - [ ] I have checked the opened PRs for duplicates.
 - [ ] I have tested my code changes, if any.
-  - [ ] If so, I have updated the documentation to reflect these changes.
+  - [ ] I have updated the documentation to reflect said changes.
 - [ ] This PR fixes an issue.
 - [ ] This PR adds something new (e.g. new method, parameters, or commands).
 - [ ] This PR is a breaking change (e.g. methods, parameters or commands were removed/renamed).
