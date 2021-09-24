@@ -1186,6 +1186,7 @@ class Web(
             return
 
         def apply_hyperlinks(string):
+
             def hyperlink_brackets(m):
                 word = m.group(1).strip("[]")
                 return f"[{word}](http://{word.replace(' ', '-')}.urbanup.com)"
@@ -1204,11 +1205,13 @@ class Web(
                 text=f"Written by: {entry['author']} \N{BULLET} Powered by Urban Dictionary"
             )
 
-            embed.add_field(
-                name="Example",
-                value=textwrap.shorten(apply_hyperlinks(entry["example"]), 1000),
-                inline=False
-            )
+            if example := entry["example"]:
+                embed.add_field(
+                    name="Example",
+                    value=textwrap.shorten(apply_hyperlinks(example), 1000),
+                    inline=False
+                )
+
             embed.add_field(name=":thumbsup:", value=entry["thumbs_up"])
             embed.add_field(name=":thumbsdown:", value=entry["thumbs_down"])
 
