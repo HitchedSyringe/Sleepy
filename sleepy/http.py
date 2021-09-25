@@ -101,12 +101,9 @@ class HTTPRequester:
 
     def __init__(self, *, cache=None, **kwargs):
         if cache is not None and not isinstance(cache, MutableMapping):
-            raise TypeError(
-                f"Expected cache to be MutableMapping or NoneType, not {type(cache).__name__}."
-            )
+            raise TypeError(f"cache must be MutableMapping or NoneType, not {type(cache)!r}.")
 
         self._cache = cache
-
         self._loop = loop = kwargs.pop("loop", None) or asyncio.get_event_loop()
         self._request_lock = asyncio.Lock(loop=loop)
         self.__session = aiohttp.ClientSession(loop=loop, **kwargs)
@@ -124,9 +121,7 @@ class HTTPRequester:
     @cache.setter
     def cache(self, value):
         if value is not None and not isinstance(value, MutableMapping):
-            raise TypeError(
-                f"Expected MutableMapping or NoneType, received {type(value).__name__} instead."
-            )
+            raise TypeError(f"cache must be MutableMapping or NoneType, not {type(value)!r}.")
 
         self._cache = value
 
