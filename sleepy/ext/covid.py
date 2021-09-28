@@ -394,7 +394,7 @@ class Covid(
             embed.set_image(url="attachment://covid19_graph.png")
             await ctx.send(embed=embed, file=File(buffer, filename="covid19_graph.png"))
         else:
-            embed.set_footer(text=f"Powered by disease.sh")
+            embed.set_footer(text="Powered by disease.sh")
             embed.description = "Historical data is unavailable for this location."
             await ctx.send(embed=embed)
 

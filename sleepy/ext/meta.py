@@ -181,7 +181,7 @@ class SleepyHelpCommand(commands.HelpCommand):
             return "That command wasn't found."
 
         return (
-            f"That command wasn't found. Did you mean...\n```bnf\n"
+            "That command wasn't found. Did you mean...\n```bnf\n"
             + "\n".join(f"<{i}> {c}" for i, c in enumerate(close, 1))
             + "```"
         )
@@ -197,7 +197,7 @@ class SleepyHelpCommand(commands.HelpCommand):
                 return "That subcommand wasn't found."
 
             return (
-                f"That subcommand wasn't found. Did you mean...\n```bnf\n"
+                "That subcommand wasn't found. Did you mean...\n```bnf\n"
                 + "\n".join(f"<{i}> {c}" for i, c in enumerate(close, 1))
                 + "```"
             )
@@ -766,7 +766,7 @@ class Meta(commands.Cog):
             f"\n<:ar:862433028088135711> **Nick:** {user.nick}"
             f"\n<:ar:862433028088135711> **Joined:** "
             + ("N/A" if user.joined_at is None else human_ts(user.joined_at, 'R'))
-            + f"\n<:ar:862433028088135711> **Boosted:** "
+            + "\n<:ar:862433028088135711> **Boosted:** "
             + "N/A" if user.premium_since is None else human_ts(user.premium_since, 'R')
         )
 
