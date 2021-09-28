@@ -143,6 +143,7 @@ class Statistics(
                 f"\n\N{BLACK DIAMOND} **Created:** {human_ts(guild.created_at, 'R')}"
                 f"\n\N{BLACK DIAMOND} **Shard ID:** {guild.shard_id or 'N/A'}"
             ),
+            timestamp=datetime.utcnow()
         )
         embed.set_author(name=guild)
         embed.set_thumbnail(url=guild.icon_url)
