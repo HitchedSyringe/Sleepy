@@ -752,7 +752,7 @@ class Meta(commands.Cog):
                   f"\n<:ar:862433028088135711> **ID:** {user.id}"
                   f"\n<:ar:862433028088135711> **Created:** {human_ts(user.created_at, 'R')}"
                   f"\n<:ar:862433028088135711> **Bot:** {bool_to_emoji(user.bot)}"
-                  f"\n<:ar:862433028088135711> **Shared Servers:** "
+                  "\n<:ar:862433028088135711> **Shared Servers:** "
                   + str(len(ctx.bot.guilds if user == ctx.me else user.mutual_guilds))
         )
 
@@ -764,7 +764,7 @@ class Meta(commands.Cog):
         # Better than calling `Embed.set_field_at`.
         embed._fields[0]["value"] += (
             f"\n<:ar:862433028088135711> **Nick:** {user.nick}"
-            f"\n<:ar:862433028088135711> **Joined:** "
+            "\n<:ar:862433028088135711> **Joined:** "
             + ("N/A" if user.joined_at is None else human_ts(user.joined_at, 'R'))
             + "\n<:ar:862433028088135711> **Boosted:** "
             + "N/A" if user.premium_since is None else human_ts(user.premium_since, 'R')
