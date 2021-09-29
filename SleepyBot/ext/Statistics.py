@@ -398,10 +398,11 @@ class Statistics(commands.Cog,
             shard = shardinfo._parent
 
             if shard._task.done():  # Task failure/complete
-                if shard._task.exception() is not None:
-                    status = "\N{FIRE}"
-                else:
-                    status = "\N{ANTICLOCKWISE DOWNWARDS AND UPWARDS OPEN CIRCLE ARROWS}"
+                status = (
+                    "\N{FIRE}"
+                    if shard._task.exception() is not None
+                    else "\N{ANTICLOCKWISE DOWNWARDS AND UPWARDS OPEN CIRCLE ARROWS}"
+                )
 
             elif not shard.ws.open:  # WS closed
                 status = "<:xmark:512814698136076299>"

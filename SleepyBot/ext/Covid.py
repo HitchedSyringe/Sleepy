@@ -338,7 +338,7 @@ class Covid(commands.Cog,
         embed.set_thumbnail(url=country_info["flag"])
 
         if graph_buffer is not None:
-            embed.set_image(url=f"attachment://covid19_historical_graph.png")
+            embed.set_image(url='attachment://covid19_historical_graph.png')
             await ctx.send(file=File(fp=graph_buffer, filename="covid19_historical_graph.png"), embed=embed)
         else:
             embed.description = "No graph provided since historical data is unavailable for this location."

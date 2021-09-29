@@ -54,7 +54,12 @@ class Weeb(commands.Cog,
         (Bot Needs: Embed Links)
         """
         async with ctx.typing():
-            response = await ctx.get(f"https://nekobot.xyz/api/imagegen", type="animeface", image=str(image))
+            response = await ctx.get(
+                'https://nekobot.xyz/api/imagegen',
+                type="animeface",
+                image=str(image),
+            )
+
 
         await self._format_nekobot_image(ctx, url=response["message"], colour=0x2F3136)
 

@@ -353,7 +353,7 @@ class TriviaSession:
                 if " " in answer and answer in guess:
                     return True
 
-                if any(word == answer for word in guess.split(" ")):
+                if answer in guess.split(" "):
                     return True
 
             return False

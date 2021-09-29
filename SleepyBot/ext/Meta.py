@@ -617,11 +617,10 @@ class Meta(commands.Cog):
                         paginator.add_line(f"<:text_channel:587389191550271488> {channel.name}")
                     else:
                         paginator.add_line(f"<:locked_text_channel:587389191525105736> {channel.name}")
+                elif perms.connect:
+                    paginator.add_line(f"<:voice_channel:587389191524974592> {channel.name}")
                 else:
-                    if perms.connect:
-                        paginator.add_line(f"<:voice_channel:587389191524974592> {channel.name}")
-                    else:
-                        paginator.add_line(f"<:locked_voice_channel:587389191554334739> {channel.name}")
+                    paginator.add_line(f"<:locked_voice_channel:587389191554334739> {channel.name}")
 
 
         base_embed = Embed(title="Server Channels", colour=0x2F3136)
@@ -660,7 +659,7 @@ class Meta(commands.Cog):
         now = datetime.utcnow()
         created_ago = formatting.parse_duration(now - user.created_at, brief=True)
         joined_ago = formatting.parse_duration(now - user.joined_at, brief=True)
-        shared_servers = sum(1 for guild in ctx.bot.guilds if user in guild.members)
+        shared_servers = sum(user in guild.members for guild in ctx.bot.guilds)
 
         description = [
             f"**User ID:** {user.id}",

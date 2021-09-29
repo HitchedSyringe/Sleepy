@@ -198,11 +198,11 @@ class Context(commands.Context):
         if disable_mentions:
             kwargs["allowed_mentions"] = discord.AllowedMentions(everyone=False, users=False, roles=False)
 
-        if len(content) > 2000:
-            kwargs["file"] = discord.File(fp=io.BytesIO(content.encode()), filename=f"{filename}.txt")
-            return await self.send(**kwargs)
-        else:
+        if len(content) <= 2000:
             return await self.send(content, **kwargs)
+
+        kwargs["file"] = discord.File(fp=io.BytesIO(content.encode()), filename=f"{filename}.txt")
+        return await self.send(**kwargs)
 
 
     @staticmethod

@@ -675,9 +675,10 @@ class Fun(commands.Cog):
             f"   👇   {char_raw}{char_raw} 👇",
             f"  　  {char_raw}　{char_raw}",
             f"　   {char_raw}　 {char_raw}",
-            f"　   👢     👢",
+            '\u3000   👢     👢',
             f"howdy. i'm the sheriff of {char_name.lower().replace('_', ' ')}",
         )
+
 
         content = "\n".join(base)
 

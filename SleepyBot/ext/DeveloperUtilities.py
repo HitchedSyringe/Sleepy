@@ -233,7 +233,13 @@ class DevUtils(commands.Cog,
             await ctx.send("No results found.")
         else:
             # Have to convert to set before sorting because the API returns duplicate objects for some reason.
-            objects = sorted(set(f"[`{result['path']}`]({result['url']})" for result in results[:12]))
+            objects = sorted(
+                {
+                    f"[`{result['path']}`]({result['url']})"
+                    for result in results[:12]
+                }
+            )
+
 
             embed = Embed(title=f"Results for `{query}`", description="\n".join(objects), colour=Colour.blurple())
             embed.set_footer(text="Powered by rtfs.eviee.me")

@@ -957,7 +957,11 @@ class Images(commands.Cog,
         embed.set_author(name=first_name[:len(first_name) // 2] + second_name[len(second_name) // 2:])
         embed.set_image(url="attachment://ship.png")
         embed.set_footer(text=f"Took {(time.perf_counter() - start) * 1000:.2f} ms | Requested by: {ctx.author}")
-        embed.add_field(name=f"Confidence", value=f"**{score}%** | 0 {formatting.progress_bar(100, 10, score)} 100")
+        embed.add_field(
+            name='Confidence',
+            value=f"**{score}%** | 0 {formatting.progress_bar(100, 10, score)} 100",
+        )
+
 
         await ctx.send(embed=embed, file=File(buffer, filename="ship.png"))
 
