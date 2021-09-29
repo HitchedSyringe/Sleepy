@@ -81,13 +81,13 @@ class BotHelpPageSource(menus.ListPageSource):
                 "```lasso"
                 "\n<argument> means the argument is 𝗿𝗲𝗾𝘂𝗶𝗿𝗲𝗱."
                 "\n[argument] means the argument is 𝗼𝗽𝘁𝗶𝗼𝗻𝗮𝗹."
-                "\n[A|B] means either 𝗔 or 𝗕."
-                "\n[argument...] means multiple arguments can be entered."
+                "\n[A|B] means 𝗲𝗶𝘁𝗵𝗲𝗿 𝗔 𝗼𝗿 𝗕."
+                "\n[argument...] means 𝗺𝘂𝗹𝘁𝗶𝗽𝗹𝗲 arguments can be entered."
                 "```"
                 "\nWhatever you do, **do not include the brackets.**"
-                f"\nUse `{self.prefix}help <command|category>` for more info "
-                "on a command or category.\nFor additional help, please check "
-                "out my [support server](https://discord.gg/xHgh2Xg)."
+                f"\nUse `{self.prefix}help <command|category>` for more info"
+                " on a command or category.\nFor additional help, please check"
+                " out my [support server](https://discord.gg/xHgh2Xg)."
             ),
             colour=0x2F3136
         )
