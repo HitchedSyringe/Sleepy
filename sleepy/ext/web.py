@@ -36,31 +36,25 @@ def clean_subreddit(value):
 
 class RedditSubmissionURL(commands.Converter):
 
-    SUBMISSION_URL = re.compile(
-        r"(?:https?\:\/\/)?(?:w{3}\.?)?reddit.com\/r\/"
-        r"[\w]{3,21}\/comments\/[A-Za-z0-9]+(?:\/.+)?"
-    )
-
     async def convert(self, ctx, argument):
-        url = argument.strip("<>")
+        try:
+            url = yarl.URL(argument.strip("<>"))
+        except:
+            raise commands.BadArgument("Invalid link.") from None
 
         await ctx.trigger_typing()
 
-        if self.SUBMISSION_URL.fullmatch(url) is None:
-            try:
-                url = yarl.URL(url)
-            except:
-                raise commands.BadArgument("Invalid Reddit or v.redd.it link.") from None
-
-            if url.host != "v.redd.it":
-                raise commands.BadArgument("Invalid Reddit or v.redd.it link.")
-
-            # Fetch the main URL.
+        # Need to fetch the main Reddit URL.
+        if url.host == "v.redd.it":
             async with ctx.session.get(url) as fetched:
-                url = str(fetched.url)
+                url = fetched.url
+
+        # Reddit has too many stupid redirects for stuff.
+        if url.host is None or not url.host.endswith(".reddit.com"):
+            raise commands.BadArgument("Invalid Reddit or v.redd.it link.")
 
         try:
-            resp = await ctx.get(url + ".json", cache__=True)
+            resp = await ctx.get(url / ".json", cache__=True)
         except HTTPRequestFailed as exc:
             raise commands.BadArgument(
                 f"Reddit API failed with HTTP status {exc.status}"
