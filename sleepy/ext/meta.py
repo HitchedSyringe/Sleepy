@@ -606,12 +606,12 @@ class Meta(commands.Cog):
         if tier == 3:
             next_ = "Maximum boost tier achieved!"
         else:
-            next_ = f"{plural((2, 15, 30)[tier] - boosts):boost} needed to reach tier {tier + 1}."
+            next_ = f"{plural((2, 7, 14)[tier] - boosts):boost} needed to reach tier {tier + 1}."
 
         embed.add_field(
             name=f"Server Boosts \N{BULLET} Tier {tier}",
             value=f"**{plural(boosts, ',d'):boost}** \N{BULLET} {next_}"
-                  f"\n\n0 {progress_bar(progress=boosts, maximum=30, per=2)} 30",
+                  f"\n\n0 {progress_bar(progress=boosts, maximum=14)} 14",
             inline=False
         )
 
