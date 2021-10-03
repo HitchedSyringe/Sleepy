@@ -561,7 +561,7 @@ class Web(
             colour=0x2F3136
         )
         embed.set_footer(text="Powered by restcountries.com")
-        embed.set_thumbnail(url=data["flags"][1])
+        embed.set_thumbnail(url=data["flags"]["png"])
 
         embed.add_field(
             name="Languages",
