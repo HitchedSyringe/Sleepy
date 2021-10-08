@@ -24,14 +24,18 @@ __all__ = (
 
 # This interfaces with some aspects of the image extension.
 from ..images import FONTS
-from ..images.helpers import get_accurate_text_size, wrap_text
+from ..images.helpers import (
+    get_accurate_text_size,
+    get_cascade_detections,
+    wrap_text,
+)
 
 
 import io
 from math import radians, sin
 
 import cv2
-import numpy
+import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageSequence
 from sleepy.utils import awaitable, measure_performance
 
@@ -39,7 +43,8 @@ from .cascades import CASCADES
 from .templates import TEMPLATES
 
 
-ANIME_FACE_CASCADE = cv2.CascadeClassifier(str(CASCADES / "lbpcascade_animeface.xml"))
+LBP_ANIMEFACE = cv2.CascadeClassifier(str(CASCADES / "lbpcascade_animeface.xml"))
+
 RITSU_SINE = sin(radians(2))
 KANNA_SINE = sin(radians(13))
 
@@ -53,20 +58,15 @@ def detect_anime_faces(image_buffer, /):
     # in the next century (I genuinely don't know how there is
     # almost no discussion on this topic).
     with Image.open(image_buffer) as image:
-        image = numpy.asarray(image.convert("RGBA"))
+        image = np.asarray(image.convert("RGBA"))
 
-    faces = ANIME_FACE_CASCADE.detectMultiScale(
-        cv2.equalizeHist(cv2.cvtColor(image, cv2.COLOR_RGBA2GRAY)),
-        1.1,
-        5,
-        minSize=(24, 24)
+    count, faces = get_cascade_detections(
+        LBP_ANIMEFACE,
+        cv2.cvtColor(image, cv2.COLOR_RGBA2GRAY)
     )
 
-    # Yes yes return both tuples and numpy arrays
-    # why don't you. What matters here is that faces
-    # isn't empty.
-    if (count := len(faces)) == 0:
-        return None
+    if count == 0:
+        raise RuntimeError("No anime faces were detected.")
 
     # Have to flip around the colours so this way the
     # output image will look correct (red is the ending

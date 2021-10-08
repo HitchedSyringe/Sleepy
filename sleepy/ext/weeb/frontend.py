@@ -230,21 +230,21 @@ class Weeb(
         """
         async with ctx.typing():
             try:
-                results, delta = await backend.detect_anime_faces(
+                (count, buffer), delta = await backend.detect_anime_faces(
                     io.BytesIO(await image.read())
                 )
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
+            except RuntimeError:
+                await ctx.send("I didn't detect any anime faces.")
+                return
 
-        if results is None:
-            await ctx.send("I didn't detect any anime faces.")
-        else:
-            await ctx.send(
-                f"I detected **{results[0]}** anime faces in this image."
-                f"\nRequested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
-                file=File(results[1], "highlighted_anime_faces.png")
-            )
+        await ctx.send(
+            f"I detected **{count}** anime faces in this image."
+            f"\nRequested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
+            file=File(buffer, "highlighted_anime_faces.png")
+        )
 
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
