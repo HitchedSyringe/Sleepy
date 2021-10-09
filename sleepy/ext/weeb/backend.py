@@ -24,11 +24,7 @@ __all__ = (
 
 # This interfaces with some aspects of the image extension.
 from ..images import FONTS
-from ..images.helpers import (
-    get_accurate_text_size,
-    get_cascade_detections,
-    wrap_text,
-)
+from ..images.helpers import get_accurate_text_size, wrap_text
 
 
 import io
@@ -60,12 +56,14 @@ def detect_anime_faces(image_buffer, /):
     with Image.open(image_buffer) as image:
         image = np.asarray(image.convert("RGBA"))
 
-    count, faces = get_cascade_detections(
-        LBP_ANIMEFACE,
-        cv2.cvtColor(image, cv2.COLOR_RGBA2GRAY)
+    faces = LBP_ANIMEFACE.detectMultiScale(
+        cv2.equalizeHist(cv2.cvtColor(image, cv2.COLOR_RGBA2GRAY)),
+        1.1,
+        5,
+        minSize=(24, 24)
     )
 
-    if count == 0:
+    if (count := len(faces)) == 0:
         raise RuntimeError("No anime faces were detected.")
 
     # Have to flip around the colours so this way the
