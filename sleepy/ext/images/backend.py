@@ -102,7 +102,7 @@ def do_asciify(image_buffer, /, *, inverted=False):
     chars = ASCII_CHARS[::-1] if inverted else ASCII_CHARS
 
     with Image.open(image_buffer) as image:
-        data = numpy.asarray(image.convert("L").resize((61, 61)))
+        data = numpy.asarray(ImageOps.contain(image.convert("L"), (61, 61)))
 
     return "\n".join("".join(chars[c // 8] for c in r) for r in data[::2])
 
