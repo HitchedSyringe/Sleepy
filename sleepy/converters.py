@@ -16,6 +16,7 @@ __all__ = (
 )
 
 
+import math
 import re
 from inspect import Parameter
 from typing import Optional
@@ -244,7 +245,7 @@ def real_float(*, max_decimal_places):
     ----------
     max_decimal_places: :class:`int`
         The maximum amount of decimal places to allow
-        for given float values.
+        for float values.
 
     Returns
     -------
@@ -259,21 +260,25 @@ def real_float(*, max_decimal_places):
         An invalid ``max_decimal_places`` value was given.
     """
     if max_decimal_places <= 0:
-        raise ValueError(f"invalid max_decimal_places {max_decimal_places} (must be > 0).")
+        raise ValueError(
+            f"invalid max_decimal_places {max_decimal_places} (must be > 0)."
+        )
 
     def converter(arg):
-        if arg.lower() in ("nan", "inf", "infinity") or arg.count(".") > 1:
-            raise commands.BadArgument(f'Couldn\'t convert "{arg}" to float.')
-
-        if (places := len(arg.partition(".")[2])) > max_decimal_places:
-            raise commands.BadArgument(
-                f"Too many decimal places. ({places} > {max_decimal_places})"
-            )
-
         try:
-            return float(arg)
+            f_arg = float(arg)
         except ValueError:
             raise commands.BadArgument(f'Couldn\'t convert "{arg}" to float.') from None
+
+        if not math.isfinite(f_arg):
+            raise commands.BadArgument("Float must be a real finite value.")
+
+        if (p := arg.rfind(".")) > max_decimal_places:
+            raise commands.BadArgument(
+                f"Too many decimal places. ({p} > {max_decimal_places})"
+            )
+
+        return f_arg
 
     return converter
 
