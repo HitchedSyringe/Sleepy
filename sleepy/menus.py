@@ -30,6 +30,9 @@ class EmbedSource(menus.ListPageSource):
 
     .. versionadded:: 2.0
 
+    .. versionchanged:: 3.0
+        Renamed ``show_page_numbers`` argument to ``show_page_count``
+
     Parameters
     ----------
     show_page_count: :class:`bool`
@@ -37,9 +40,6 @@ class EmbedSource(menus.ListPageSource):
         If the source only has one page, then the page count
         will be hidden regardless of this setting.
         Defaults to ``True``.
-
-        .. versionchanged:: 3.0
-            Renamed to ``show_page_count``.
     """
 
     def __init__(self, entries, /, *, show_page_count=True):
@@ -68,6 +68,9 @@ class PaginatorSource(menus.ListPageSource):
 
     .. versionadded:: 3.0
 
+    .. versionchanged:: 3.0
+        Renamed ``show_page_numbers`` argument to ``show_page_count``
+
     Parameters
     ----------
     paginator: :class:`commands.Paginator`
@@ -82,9 +85,6 @@ class PaginatorSource(menus.ListPageSource):
 
             This does **not** consider the paginator's max
             page size.
-
-        .. versionchanged:: 3.0
-            Renamed to ``show_page_count``.
 
     Attributes
     ----------
