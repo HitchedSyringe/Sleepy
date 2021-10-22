@@ -391,6 +391,35 @@ class Images(
 
         await ctx.send(embed=embed)
 
+    @commands.command()
+    @commands.bot_has_permissions(attach_files=True)
+    @commands.max_concurrency(5, commands.BucketType.guild)
+    async def invert(
+        self,
+        ctx,
+        *,
+        image: ImageAssetConverter(max_filesize=40_000_000)
+    ):
+        """Inverts an image's colours.
+
+        Image can either be a user, custom emoji, link, or
+        attachment. Links and attachments must be under 40
+        MB.
+
+        (Bot Needs: Attach Files)
+        """
+        async with ctx.typing():
+            try:
+                buffer, delta = await backend.do_invert(io.BytesIO(await image.read()))
+            except discord.HTTPException:
+                await ctx.send("Downloading the image failed. Try again later?")
+                return
+
+        await ctx.send(
+            f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
+            file=File(buffer, "inverted.png")
+        )
+
     @commands.command(aliases=("iphone10",))
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)

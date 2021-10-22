@@ -180,6 +180,26 @@ def do_deepfry(image_buffer, /):
 
 @awaitable
 @measure_performance
+def do_invert(image_buffer, /):
+    with Image.open(image_buffer) as image:
+        img = ImageOps.invert(image.convert("RGB"))
+
+        try:
+            img.putalpha(image.getchannel("A"))
+        except ValueError:
+            pass
+
+    buffer = io.BytesIO()
+
+    img.save(buffer, "png")
+
+    buffer.seek(0)
+
+    return buffer
+
+
+@awaitable
+@measure_performance
 def do_jpegify(image_buffer, /, *, quality=1):
     with Image.open(image_buffer) as image:
         buffer = io.BytesIO()
