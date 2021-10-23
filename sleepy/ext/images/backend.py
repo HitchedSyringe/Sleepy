@@ -11,6 +11,7 @@ __all__ = (
     "do_asciify",
     "do_blurpify",
     "do_deepfry",
+    "do_invert",
     "do_jpegify",
     "do_swirl",
     "make_axios_interview_meme",
