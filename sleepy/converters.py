@@ -273,7 +273,7 @@ def real_float(*, max_decimal_places):
         if not math.isfinite(f_arg):
             raise commands.BadArgument("Float must be a real finite value.")
 
-        if (p := arg.rfind(".")) > max_decimal_places:
+        if (p := arg[::-1].find(".")) > max_decimal_places:
             raise commands.BadArgument(
                 f"Too many decimal places. ({p} > {max_decimal_places})"
             )
