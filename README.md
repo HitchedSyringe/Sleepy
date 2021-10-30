@@ -6,7 +6,7 @@
 [sleepy-s]: https://img.shields.io/github/v/release/HitSyr/Sleepy?color=F0D273&label=version
 [python]: https://python.org
 [python-s]: https://img.shields.io/badge/python-3.8%2b-blue?logo=python
-[license]: https://github.com/HitSyr/Sleepy/blob/master/LICENSE.md
+[license]: https://github.com/HitSyr/Sleepy/blob/master/LICENSE
 <!-- Hard-coded because GitHub can't identify the license due to the inclusion of other licenses in the file. -->
 [license-s]: https://img.shields.io/badge/license-MPL--2.0-orange
 [discord]: https://discord.com/invite/xHgh2Xg
