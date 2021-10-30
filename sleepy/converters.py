@@ -254,8 +254,6 @@ def real_float(*, max_decimal_places):
 
     Raises
     ------
-    TypeError
-        ``max_decimal_places`` was not a :class:`int`.
     ValueError
         An invalid ``max_decimal_places`` value was given.
     """
