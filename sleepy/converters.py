@@ -231,7 +231,7 @@ class ImageAssetConverter(commands.Converter):
         return Asset(ctx.bot._connection, url)
 
 
-def real_float(*, max_decimal_places):
+def real_float(*, max_decimal_places=None):
     """Similar to the :class:`float` converter except
     this does not convert to NaN or Infinity and allows
     for limiting decimal places.
@@ -241,11 +241,15 @@ def real_float(*, max_decimal_places):
 
     .. versionadded:: 3.0
 
+    .. versionchanged:: 3.2
+        Allow ``None`` to be passed in ``max_decimal_places``.
+
     Parameters
     ----------
-    max_decimal_places: :class:`int`
+    max_decimal_places: Optional[:class:`int`]
         The maximum amount of decimal places to allow
-        for float values.
+        for float values. ``None`` denotes no maximum.
+        Defaults to ``None``.
 
     Returns
     -------
@@ -257,7 +261,7 @@ def real_float(*, max_decimal_places):
     ValueError
         An invalid ``max_decimal_places`` value was given.
     """
-    if max_decimal_places <= 0:
+    if max_decimal_places is not None and max_decimal_places <= 0:
         raise ValueError(
             f"invalid max_decimal_places {max_decimal_places} (must be > 0)."
         )
@@ -271,7 +275,10 @@ def real_float(*, max_decimal_places):
         if not math.isfinite(f_arg):
             raise commands.BadArgument("Float must be a real finite value.")
 
-        if (p := arg[::-1].find(".")) > max_decimal_places:
+        if (
+            max_decimal_places is not None
+            and (p := arg[::-1].find(".")) > max_decimal_places
+        ):
             raise commands.BadArgument(
                 f"Too many decimal places. ({p} > {max_decimal_places})"
             )
