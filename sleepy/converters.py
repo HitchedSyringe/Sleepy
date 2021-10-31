@@ -367,9 +367,7 @@ async def _new_command_transform(self, ctx, param):
     if isinstance(converter, ImageAssetConverter) and ctx.message.attachments:
         # Figured I should include this here for completeness.
         if not self.ignore_extra and len(ctx.message.attachments) > 1:
-            raise commands.TooManyArguments(
-                "Too many attachments passed to " + self.qualified_name
-            )
+            raise commands.TooManyArguments("You can only upload one attachment.")
 
         attach = ctx.message.attachments[0]
         mime = attach.content_type
