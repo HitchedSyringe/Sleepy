@@ -21,7 +21,7 @@ import re
 from inspect import Parameter, isclass
 from typing import Optional
 
-from discord import Asset, DiscordException, utils
+from discord import Asset, DiscordException, Message, utils
 from discord.ext import commands
 
 
@@ -153,6 +153,10 @@ class ImageAssetConverter(commands.Converter):
         * Added support for converting custom emojis.
         * Attachments and URLs are now checked for their
           filesize.
+
+    .. versionchanged:: 3.2
+        Added support for replying to a message with image
+        attachments.
 
     Parameters
     ----------
@@ -364,28 +368,36 @@ async def _new_command_transform(self, ctx, param):
     if isclass(converter):
         converter = converter()
 
-    if isinstance(converter, ImageAssetConverter) and ctx.message.attachments:
-        # Figured I should include this here for completeness.
-        if not self.ignore_extra and len(ctx.message.attachments) > 1:
-            raise commands.TooManyArguments("You can only upload one attachment.")
+    if isinstance(converter, ImageAssetConverter):
+        ref = ctx.message.reference
 
-        attach = ctx.message.attachments[0]
-        mime = attach.content_type
+        if ref is not None and isinstance(ref.resolved, Message):
+            attachments = ref.resolved.attachments
+        else:
+            attachments = ctx.message.attachments
 
-        if mime is None or "image/" not in mime:
-            raise ImageAssetConversionFailure(attach.url)
+        if attachments:
+            # Figured I should include this here for completeness.
+            if not self.ignore_extra and len(attachments) > 1:
+                raise commands.TooManyArguments("You can only upload one attachment.")
 
-        max_fs = converter.max_filesize
+            attach = attachments[0]
+            mime = attach.content_type
 
-        if max_fs is not None and attach.size > max_fs:
-            raise ImageAssetTooLarge(attach.url, attach.size, max_fs)
+            if mime is None or "image/" not in mime:
+                raise ImageAssetConversionFailure(attach.url)
 
-        param = Parameter(
-            name=param.name,
-            kind=param.kind,
-            default=Asset(ctx.bot._connection, attach.url),
-            annotation=Optional[type(converter)]
-        )
+            max_fs = converter.max_filesize
+
+            if max_fs is not None and attach.size > max_fs:
+                raise ImageAssetTooLarge(attach.url, attach.size, max_fs)
+
+            param = Parameter(
+                name=param.name,
+                kind=param.kind,
+                default=Asset(ctx.bot._connection, attach.url),
+                annotation=Optional[type(converter)]
+            )
 
     return await _old_command_transform(self, ctx, param)
 
