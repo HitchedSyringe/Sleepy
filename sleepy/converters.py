@@ -18,7 +18,7 @@ __all__ = (
 
 import math
 import re
-from inspect import Parameter
+from inspect import Parameter, isclass
 from typing import Optional
 
 from discord import Asset, DiscordException, utils
@@ -359,35 +359,34 @@ _old_command_transform = commands.Command.transform
 
 
 async def _new_command_transform(self, ctx, param):
-    if isinstance(param.annotation, type):
-        converter_type = param.annotation
-    else:
-        converter_type = type(param.annotation)
+    converter = param.annotation
 
-    if issubclass(converter_type, ImageAssetConverter) and ctx.message.attachments:
+    if isclass(converter):
+        converter = converter()
+
+    if isinstance(converter, ImageAssetConverter) and ctx.message.attachments:
         # Figured I should include this here for completeness.
         if not self.ignore_extra and len(ctx.message.attachments) > 1:
             raise commands.TooManyArguments(
                 "Too many attachments passed to " + self.qualified_name
             )
 
-        attachment = ctx.message.attachments[0]
-        mime = attachment.content_type
-        url = attachment.url
+        attach = ctx.message.attachments[0]
+        mime = attach.content_type
 
         if mime is None or "image/" not in mime:
-            raise ImageAssetConversionFailure(url)
+            raise ImageAssetConversionFailure(attach.url)
 
-        max_filesize = getattr(param.annotation, "max_filesize", None)
+        max_fs = converter.max_filesize
 
-        if max_filesize is not None and attachment.size > max_filesize:
-            raise ImageAssetTooLarge(url, attachment.size, max_filesize)
+        if max_fs is not None and attach.size > max_fs:
+            raise ImageAssetTooLarge(attach.url, attach.size, max_fs)
 
         param = Parameter(
             name=param.name,
             kind=param.kind,
-            default=Asset(ctx.bot._connection, url),
-            annotation=Optional[converter_type]
+            default=Asset(ctx.bot._connection, attach.url),
+            annotation=Optional[type(converter)]
         )
 
     return await _old_command_transform(self, ctx, param)
