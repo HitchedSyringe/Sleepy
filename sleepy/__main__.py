@@ -87,6 +87,17 @@ else:
     # 64 items with TTL of 4 hours (14400 seconds).
     http_cache = TTLCache(64, 14400)
 
+# This does setup for uvloop for those who wish to gain the
+# potential performance benefit. This is left as optional
+# since some either might not want to use it or this code
+# is running on Windows, which uvloop doesn't support.
+try:
+    import uvloop
+except ImportError:
+    pass
+else:
+    uvloop.install()
+
 bot = Sleepy(
     config,
     prefixes,
