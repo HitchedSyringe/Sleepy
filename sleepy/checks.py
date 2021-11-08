@@ -277,7 +277,7 @@ def is_guild_owner():
         if ctx.guild is None:
             raise commands.NoPrivateMessage()
 
-        return ctx.author == ctx.guild.owner
+        return ctx.author.id == ctx.guild.owner_id
 
     return commands.check(predicate)
 

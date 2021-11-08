@@ -48,7 +48,7 @@ class ActionableMember(commands.Converter):
         if member == ctx.author:
             raise CannotPerformAction("Why would you want to do that to yourself?")
 
-        if member == ctx.guild.owner:
+        if member.id == ctx.guild.owner_id:
             raise CannotPerformAction("I will not allow you to overthrow the owner.")
 
         if ctx.me.top_role <= member.top_role:
@@ -357,7 +357,7 @@ class Moderation(commands.Cog):
         checks = [
             lambda m: (
                 not m.bot
-                and m != ctx.guild.owner
+                and m.id != ctx.guild.owner_id
                 and ctx.author.top_role > m.top_role
                 and ctx.me.top_role > m.top_role
             ),
