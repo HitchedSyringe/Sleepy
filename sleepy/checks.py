@@ -273,9 +273,12 @@ def is_guild_owner():
         The command was executed in a private message.
     """
 
-    def predicate(ctx):
+    async def predicate(ctx):
         if ctx.guild is None:
             raise commands.NoPrivateMessage()
+
+        if await ctx.bot.is_owner(ctx.author):
+            return True
 
         return ctx.author.id == ctx.guild.owner_id
 
