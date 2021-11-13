@@ -219,6 +219,18 @@ class ImageAssetConverter(commands.Converter):
         url = argument.strip("<>")
 
         try:
+            message = await commands.MessageConverter().convert(ctx, argument)
+            url = message.attachments[0].url
+        except commands.MessageNotFound:
+            # Ideally, we would want this to fail completely if
+            # the message couldn't be resolved, however, this can
+            # also be raised if the URL regex didn't find a match.
+            # In any case, just ignore this exception altogether.
+            pass
+        except (IndexError, commands.ChannelNotReadable, commands.ChannelNotFound):
+            raise ImageAssetConversionFailure(argument) from None
+
+        try:
             resp = await ctx.session.head(url, raise_for_status=True)
         except:
             raise ImageAssetConversionFailure(argument) from None
