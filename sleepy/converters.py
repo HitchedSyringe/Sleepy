@@ -119,13 +119,13 @@ class GuildChannelConverter(commands.IDConverter):
 
 class ImageAssetConverter(commands.Converter):
     """Converts a user, custom emoji, image attachment,
-    or image URL to a :class:`discord.Asset`.
+    image URL, or message to a :class:`discord.Asset`.
 
     .. note::
 
         Due to an implementation detail, command arguments take
-        precedence over attachments and will always be converted
-        first.
+        precedence over attachments and replied messages, and
+        will always be converted first.
 
     .. warning::
 
@@ -155,8 +155,11 @@ class ImageAssetConverter(commands.Converter):
           filesize.
 
     .. versionchanged:: 3.2
-        Added support for replying to a message with image
-        attachments.
+
+        * Added support for replying to a message with image
+          attachments.
+        * Added support for resolving a message with image
+          attachments via ID or URL.
 
     Parameters
     ----------
