@@ -1,6 +1,6 @@
 aiofiles
 cachetools
-discord.py>=1.7.0,<2.0.0
+git+https://github.com/Rapptz/discord.py
 git+https://github.com/Rapptz/discord-ext-menus
 # Essentially, this is a fork of XuaTheGrate's Flag-Parsing
 # package because the maintainer has deleted it. This can
