@@ -26,7 +26,6 @@ class PaginatorSource(menus.ListPageSource):  # type: ignore[misc]
         paginator: commands.Paginator,
         /,
         *,
-        per_page: int = ...,
         show_page_count: bool = ...
     ) -> None: ...
 

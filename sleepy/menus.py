@@ -92,11 +92,11 @@ class PaginatorSource(menus.ListPageSource):
         The paginator used as the data source.
     """
 
-    def __init__(self, paginator, /, *, per_page=1, show_page_count=True):
+    def __init__(self, paginator, /, *, show_page_count=True):
         self.paginator = paginator
         self._show_page_count = show_page_count
 
-        super().__init__(paginator.pages, per_page=per_page)
+        super().__init__(paginator.pages, per_page=1)
 
     async def format_page(self, menu, page):
         max_pages = self.get_max_pages()
