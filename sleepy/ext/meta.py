@@ -17,12 +17,11 @@ from typing import Optional, Union
 import discord
 from discord import ActivityType, ChannelType, Embed, Status
 from discord.ext import commands, flags, menus
-from discord.utils import oauth_url
+from discord.utils import oauth_url, format_dt as fmt_dt
 from sleepy import checks, converters
 from sleepy.paginators import WrappedPaginator
 from sleepy.utils import (
     bool_to_emoji,
-    human_timestamp as human_ts,
     plural,
     progress_bar,
 )
@@ -539,7 +538,7 @@ class Meta(commands.Cog):
             value=(
                 f"<:ar:862433028088135711> **ID:** {guild.id}"
                 f"\n<:ar:862433028088135711> **Owner:** {guild.owner.mention}"
-                f"\n<:ar:862433028088135711> **Created:** {human_ts(guild.created_at, 'R')}"
+                f"\n<:ar:862433028088135711> **Created:** {fmt_dt(guild.created_at, 'R')}"
                 "\n<:ar:862433028088135711> **Members:**"
                 f" <:sm:829503770454523994> {guild.member_count:,d}"
                 f" \N{BULLET} <:nb:829503770060390471> {len(guild.premium_subscribers):,d}"
@@ -738,7 +737,7 @@ class Meta(commands.Cog):
             name="Information",
             value=f"{user.mention} \N{BULLET} **[Avatar]({avatar_url})**"
                   f"\n<:ar:862433028088135711> **ID:** {user.id}"
-                  f"\n<:ar:862433028088135711> **Created:** {human_ts(user.created_at, 'R')}"
+                  f"\n<:ar:862433028088135711> **Created:** {fmt_dt(user.created_at, 'R')}"
                   f"\n<:ar:862433028088135711> **Bot:** {bool_to_emoji(user.bot)}"
                   "\n<:ar:862433028088135711> **Shared Servers:** "
                   + str(len(ctx.bot.guilds if user == ctx.me else user.mutual_guilds))
@@ -753,9 +752,9 @@ class Meta(commands.Cog):
         embed._fields[0]["value"] += (
             f"\n<:ar:862433028088135711> **Nick:** {user.nick}"
             "\n<:ar:862433028088135711> **Joined:** "
-            + ("N/A" if user.joined_at is None else human_ts(user.joined_at, 'R'))
+            + ("N/A" if user.joined_at is None else fmt_dt(user.joined_at, 'R'))
             + "\n<:ar:862433028088135711> **Boosted:** "
-            + "N/A" if user.premium_since is None else human_ts(user.premium_since, 'R')
+            + "N/A" if user.premium_since is None else fmt_dt(user.premium_since, 'R')
         )
 
         if roles := user.roles[:0:-1]:

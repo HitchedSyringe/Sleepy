@@ -15,7 +15,6 @@ __all__ = (
     "human_delta",
     "human_join",
     "human_number",
-    "human_timestamp",
     "measure_performance",
     "progress_bar",
     "tchart",
@@ -482,57 +481,6 @@ def human_number(
         return str(number).rstrip("0").rstrip(".") + suffixes[magnitude]
 
     return f"{number}{suffixes[magnitude]}"
-
-
-def human_timestamp(timestamp, /, formatting=None):
-    """Humanizes a given timestamp using Discord's new timestamp
-    markdown.
-
-    All formatted timestamps are locale-independent.
-
-    +-------------+----------------------------+-----------------+
-    |    Style    |       Example Output       |   Description   |
-    +=============+============================+=================+
-    | t           | 22:57                      | Short Time      |
-    +-------------+----------------------------+-----------------+
-    | T           | 22:57:58                   | Long Time       |
-    +-------------+----------------------------+-----------------+
-    | d           | 17/05/2016                 | Short Date      |
-    +-------------+----------------------------+-----------------+
-    | D           | 17 May 2016                | Long Date       |
-    +-------------+----------------------------+-----------------+
-    | f (default) | 17 May 2016 22:57          | Short Date Time |
-    +-------------+----------------------------+-----------------+
-    | F           | Tuesday, 17 May 2016 22:57 | Long Date Time  |
-    +-------------+----------------------------+-----------------+
-    | R           | 5 years ago                | Relative Time   |
-    +-------------+----------------------------+-----------------+
-
-    Note that the exact output depends on the user's locale setting
-    in the client. The example output presented is using the ``en-GB``
-    locale.
-
-    .. versionadded:: 3.0
-
-    Parameters
-    ----------
-    timestamp: Union[:class:`datetime.datetime`, :class:`float`]
-        The timestamp to humanize.
-    formatting: Optional[:class:`str`]
-        How the timestamp should be formatted.
-
-    Returns
-    --------
-    :class:`str`
-        The formatted string.
-    """
-    if isinstance(timestamp, datetime):
-        timestamp = timestamp.timestamp()
-
-    if formatting is None:
-        return f"<t:{int(timestamp)}>"
-
-    return f"<t:{int(timestamp)}:{formatting}>"
 
 
 def measure_performance(func):

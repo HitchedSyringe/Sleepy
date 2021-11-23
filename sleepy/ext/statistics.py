@@ -20,12 +20,11 @@ import discord
 import psutil
 from discord import Colour, Embed
 from discord.ext import commands
-from discord.utils import oauth_url
+from discord.utils import oauth_url, format_dt as fmt_dt
 from sleepy import __version__, checks
 from sleepy.menus import PaginatorSource
 from sleepy.utils import (
     human_delta,
-    human_timestamp as human_ts,
     plural,
     tchart,
 )
@@ -55,7 +54,7 @@ class GatewayWebhookHandler(logging.Handler):
             lvl = levels.get(rec.levelname, "\N{CROSS MARK}")
 
             await self._webhook.send(
-                textwrap.shorten(f"{lvl} [{human_ts(created, 'F')}] `{rec.message}`", 2000),
+                textwrap.shorten(f"{lvl} [{fmt_dt(created, 'F')}] `{rec.message}`", 2000),
                 username="Gateway Status",
                 avatar_url="https://i.imgur.com/4PnCKB3.png"
             )
@@ -140,7 +139,7 @@ class Statistics(
                 f"\n\N{BLACK DIAMOND} **Owner:** {guild.owner} (ID: {guild.owner_id})"
                 f"\n\N{BLACK DIAMOND} **Members:** {guild.member_count:,d} ({plural(bots, ',d'):bot})"
                 f"\n\N{BLACK DIAMOND} **Channels:** {len(guild.channels)}"
-                f"\n\N{BLACK DIAMOND} **Created:** {human_ts(guild.created_at, 'R')}"
+                f"\n\N{BLACK DIAMOND} **Created:** {fmt_dt(guild.created_at, 'R')}"
                 f"\n\N{BLACK DIAMOND} **Shard ID:** {guild.shard_id or 'N/A'}"
             ),
             timestamp=datetime.utcnow()
@@ -266,8 +265,8 @@ class Statistics(
                 f" \N{BULLET} [Invite]({oauth_url(ctx.me.id, discord.Permissions(388166))})"
                 f" \N{BULLET} [GitHub](https://github.com/HitSyr/Sleepy)"
                 f"\n<:ar:862433028088135711> **Owner:** {ctx.bot.owner}"
-                f"\n<:ar:862433028088135711> **Created:** {human_ts(ctx.me.created_at, 'R')}"
-                f"\n<:ar:862433028088135711> **Booted:** {human_ts(ctx.bot.started_at, 'R')}"
+                f"\n<:ar:862433028088135711> **Created:** {fmt_dt(ctx.me.created_at, 'R')}"
+                f"\n<:ar:862433028088135711> **Booted:** {fmt_dt(ctx.bot.started_at, 'R')}"
                 f"\n<:ar:862433028088135711> **Servers:** {self.total_guilds:,d}"
                 "\n<:ar:862433028088135711> **Channels:**"
                 f" <:tc:828149291812913152> {self.total_text:,d}"
@@ -445,7 +444,7 @@ class Statistics(
         started_at = ctx.bot.started_at
 
         await ctx.send(
-            f"I was booted on {human_ts(started_at, 'F')} and have been"
+            f"I was booted on {fmt_dt(started_at, 'F')} and have been"
             f" online for `{human_delta(started_at, absolute=True)}`."
         )
 
