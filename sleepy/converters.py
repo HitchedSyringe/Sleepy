@@ -8,7 +8,6 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 
 __all__ = (
-    "GuildChannelConverter",
     "ImageAssetConversionFailure",
     "ImageAssetConverter",
     "ImageAssetTooLarge",
@@ -17,11 +16,10 @@ __all__ = (
 
 
 import math
-import re
 from inspect import Parameter, isclass
 from typing import Optional
 
-from discord import Asset, DiscordException, Message, utils
+from discord import Asset, DiscordException, Message
 from discord.ext import commands
 
 
@@ -73,48 +71,6 @@ class ImageAssetTooLarge(commands.BadArgument):
         super().__init__(
             f'"{argument}" exceeds the maximum filesize. ({filesize}/{max_filesize} B)'
         )
-
-
-class GuildChannelConverter(commands.IDConverter):
-    """Converts to a :class:`discord.abc.GuildChannel`.
-
-    All lookups are via the local guild. If in a DM context,
-    then the lookup is done by the global cache.
-
-    The lookup strategy is as follows (in order):
-
-    1. Lookup by ID.
-    2. Lookup by mention.
-    3. Lookup by name
-
-    .. versionadded:: 2.0
-
-    .. versionchanged:: 3.0
-        Allow this converter to do a global cache lookup if
-        in a DM context.
-    """
-
-    async def convert(self, ctx, argument):
-        id_match = self._get_id_match(argument) or re.match(r'<#([0-9]+)>$', argument)
-        guild = ctx.guild
-
-        if id_match is None:
-            if guild is not None:
-                result = utils.get(guild.channels, name=argument)
-            else:
-                result = utils.get(ctx.bot.get_all_channels(), name=argument)
-        else:
-            channel_id = int(id_match.group(1))
-
-            if guild is not None:
-                result = guild.get_channel(channel_id)
-            else:
-                result = ctx.bot.get_channel(channel_id)
-
-        if result is None:
-            raise commands.ChannelNotFound(argument)
-
-        return result
 
 
 class ImageAssetConverter(commands.Converter):

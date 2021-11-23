@@ -2,7 +2,6 @@ from collections.abc import Callable
 from typing import Optional
 
 import discord
-from discord.abc import GuildChannel
 from discord.ext import commands
 
 from .context import Context
@@ -27,15 +26,6 @@ class ImageAssetTooLarge(commands.BadArgument):
         filesize: int,
         max_filesize: int
     ) -> None: ...
-
-
-class GuildChannelConverter(commands.IDConverter):
-
-    async def convert(
-        self,
-        ctx: commands.Context,
-        argument: str
-    ) -> GuildChannel: ...
 
 
 class ImageAssetConverter(commands.Converter):
