@@ -19,6 +19,7 @@ import discord
 import yarl
 from discord import Embed, File
 from discord.ext import commands
+from discord.utils import format_dt
 from googletrans import Translator, LANGUAGES
 from sleepy import checks, menus
 from sleepy.converters import _pseudo_argument_flag, real_float
@@ -28,7 +29,6 @@ from sleepy.utils import (
     awaitable,
     bool_to_emoji,
     human_number,
-    human_timestamp,
     plural,
     tchart,
     truncate,
@@ -750,7 +750,7 @@ class Web(
         # 2 decimal places.
         await ctx.send(
             "**Exchange Rates** "
-            f"(Updated {human_timestamp(updated, 'R')})\n"
+            f"(Updated {format_dt(updated, 'R')})\n"
             + "\n".join(
                 f"{amount:.2f} {base} = {v * amount:.2f} {n}"
                 for n, v in resp["rates"].items()

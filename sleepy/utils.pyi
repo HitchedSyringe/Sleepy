@@ -62,13 +62,6 @@ def human_number(
 ) -> str: ...
 
 
-def human_timestamp(
-    timestamp: datetime | float,
-    /,
-    formatting: Optional[_DatetimeFormatStyle] = ...
-) -> str: ...
-
-
 @overload
 def measure_performance(func: _AnyCallable[Any]) -> _AnyCallable[tuple[Any, float]]: ...
 
