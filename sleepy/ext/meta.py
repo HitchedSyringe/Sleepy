@@ -18,7 +18,7 @@ import discord
 from discord import ActivityType, ChannelType, Embed, Status
 from discord.ext import commands, flags, menus
 from discord.utils import oauth_url, format_dt as fmt_dt
-from sleepy import checks, converters
+from sleepy import checks
 from sleepy.paginators import WrappedPaginator
 from sleepy.utils import (
     bool_to_emoji,
@@ -414,7 +414,7 @@ class Meta(commands.Cog):
         self,
         ctx,
         user: Optional[discord.Member],
-        channel: converters.GuildChannelConverter = None
+        channel: discord.abc.GuildChannel = None
     ):
         """Shows a user's permissions optionally in another channel.
 
