@@ -6,16 +6,16 @@ from discord.ext.commands.core import _CheckDecorator
 
 class MissingAnyPermissions(commands.CheckFailure):
 
-    missing_perms: list[str]
+    missing_permissions: list[str]
 
-    def __init__(self, missing_perms: list[str], *args: Any) -> None: ...
+    def __init__(self, missing_permissions: list[str], *args: Any) -> None: ...
 
 
 class BotMissingAnyPermissions(commands.CheckFailure):
 
-    missing_perms: list[str]
+    missing_permissions: list[str]
 
-    def __init__(self, missing_perms: list[str], *args: Any) -> None: ...
+    def __init__(self, missing_permissions: list[str], *args: Any) -> None: ...
 
 
 def has_permissions(

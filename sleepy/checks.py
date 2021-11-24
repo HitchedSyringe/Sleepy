@@ -41,18 +41,18 @@ class MissingAnyPermissions(commands.CheckFailure):
 
     Attributes
     -----------
-    missing_perms: list[:class:`str`]
+    missing_permissions: list[:class:`str`]
         The permissions that the command invoker is
         missing. These are the parameters passed to
         :func:`has_permissions`.
     """
 
-    def __init__(self, missing_perms, *args):
-        self.missing_perms = missing_perms
+    def __init__(self, missing_permissions, *args):
+        self.missing_permissions = missing_permissions
 
         missing = [
             p.replace("_", " ").replace("guild", "server").title()
-            for p in missing_perms
+            for p in missing_permissions
         ]
 
         super().__init__(
@@ -71,17 +71,17 @@ class BotMissingAnyPermissions(commands.CheckFailure):
 
     Attributes
     -----------
-    missing_perms: list[:class:`str`]
+    missing_permissions: list[:class:`str`]
         The permissions that the bot's member is
         missing. These are the parameters passed
         to :func:`bot_has_any_permissions`.
     """
-    def __init__(self, missing_perms, *args):
-        self.missing_perms = missing_perms
+    def __init__(self, missing_permissions, *args):
+        self.missing_permissions = missing_permissions
 
         missing = [
             p.replace("_", " ").replace("guild", "server").title()
-            for p in missing_perms
+            for p in missing_permissions
         ]
 
         super().__init__(
