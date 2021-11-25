@@ -8,14 +8,11 @@ from collections.abc import (
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional, TypeVar, overload
-from typing_extensions import Literal
 
 
 _RT = TypeVar("_RT")
 _AnyCallable = Callable[..., _RT]
 _AnyCoro = Coroutine[Any, Any, _RT]
-
-_DatetimeFormatStyle = Literal["f", "F", "d", "D", "t", "T", "R"]
 
 
 class plural:
