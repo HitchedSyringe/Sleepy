@@ -1,7 +1,0 @@
--r requirements.txt
-
-# I'm unsure if discord.py-stubs will be reflecting the
-# changes made in 2.0 or not, since that version will
-# include its own built-in typings.
-discord.py-stubs>=1.7.0,<2.0.0
-types-cachetools

@@ -78,11 +78,6 @@ When adding commands, look at the other commands in the category and pick which 
 * [pyyaml](https://github.com/yaml/pyyaml)
 * [scikit-image](https://github.com/scikit-image/scikit-image)
 
-### Required for typings
-
-* [types-cachetools](https://github.com/python/typeshed/tree/master/stubs/cachetools) (only if `cachetools` is installed)
-* [discord.py-stubs 1.7.x](https://github.com/bryanforbes/discord.py-stubs)
-
 ## Installation
 
 1. **Make sure to get Python 3.8 or higher.**
