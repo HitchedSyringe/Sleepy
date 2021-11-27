@@ -377,42 +377,55 @@ Asset.read = _new_asset_read
 _old_command_transform = commands.Command.transform
 
 
+# If there's nothing to actually process (i.e all
+# checks for the existence of attachments fail),
+# we return the passed param and just let original
+# transfer method handle it like it normally would
+# and, ideally, raise MissingRequiredArgument.
+def _process_attachments(command, converter, ctx, param):
+    ref = ctx.message.reference
+
+    if ref is None:
+        attachments = ctx.message.attachments
+    else:
+        if not isinstance(ref.resolved, Message):
+            return param
+
+        attachments = ref.resolved.attachments
+
+    if not attachments:
+        return param
+
+    # Figured I should include this here for completeness.
+    if not command.ignore_extra and len(attachments) > 1:
+        raise commands.TooManyArguments("You can only upload one attachment.")
+
+    attach = attachments[0]
+    mime = attach.content_type
+
+    if mime is None or "image/" not in mime:
+        raise ImageAssetConversionFailure(attach.url)
+
+    max_fs = converter.max_filesize
+
+    if max_fs is not None and attach.size > max_fs:
+        raise ImageAssetTooLarge(attach.url, attach.size, max_fs)
+
+    return Parameter(
+        name=param.name,
+        kind=param.kind,
+        default=Asset(ctx.bot._connection, attach.url),
+        annotation=Optional[type(converter)]
+    )
+
+
 async def _new_command_transform(self, ctx, param):
-    converter = param.annotation
+    conv = param.annotation
 
-    if isclass(converter):
-        converter = converter()
-
-    if isinstance(converter, ImageAssetConverter):
-        ref = ctx.message.reference
-
-        if ref is not None and isinstance(ref.resolved, Message):
-            attachments = ref.resolved.attachments
-        else:
-            attachments = ctx.message.attachments
-
-        if attachments:
-            # Figured I should include this here for completeness.
-            if not self.ignore_extra and len(attachments) > 1:
-                raise commands.TooManyArguments("You can only upload one attachment.")
-
-            attach = attachments[0]
-            mime = attach.content_type
-
-            if mime is None or "image/" not in mime:
-                raise ImageAssetConversionFailure(attach.url)
-
-            max_fs = converter.max_filesize
-
-            if max_fs is not None and attach.size > max_fs:
-                raise ImageAssetTooLarge(attach.url, attach.size, max_fs)
-
-            param = Parameter(
-                name=param.name,
-                kind=param.kind,
-                default=Asset(ctx.bot._connection, attach.url),
-                annotation=Optional[type(converter)]
-            )
+    if isclass(conv) and issubclass(conv, ImageAssetConverter):
+        param = _process_attachments(self, conv(), ctx, param)
+    elif isinstance(conv, ImageAssetConverter):
+        param = _process_attachments(self, conv, ctx, param)
 
     return await _old_command_transform(self, ctx, param)
 
