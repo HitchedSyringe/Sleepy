@@ -436,8 +436,8 @@ class Fun(
         <3> compliment 140540589329481728
         ```
         """
-        if user == ctx.author:
-            await ctx.send("Stop trying to boost your fragile ego.")
+        if user == ctx.me:
+            await ctx.send("I know I'm perfection! Compliment someone who needs it!")
         else:
             resp = await ctx.get("https://complimentr.com/api")
 
