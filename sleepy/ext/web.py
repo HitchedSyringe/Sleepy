@@ -42,8 +42,6 @@ class RedditSubmissionURL(commands.Converter):
         except:
             raise commands.BadArgument("Invalid link.") from None
 
-        await ctx.trigger_typing()
-
         # Need to fetch the main Reddit URL.
         if url.host == "v.redd.it":
             async with ctx.session.get(url) as fetched:
@@ -52,6 +50,8 @@ class RedditSubmissionURL(commands.Converter):
         # Reddit has too many stupid redirects for stuff.
         if url.host is None or not url.host.endswith(".reddit.com"):
             raise commands.BadArgument("Invalid Reddit or v.redd.it link.")
+
+        await ctx.trigger_typing()
 
         try:
             resp = await ctx.get(url / ".json", cache__=True)
