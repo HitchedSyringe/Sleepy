@@ -290,7 +290,7 @@ class NSFW(
             embed = Embed(
                 description=f"[Media Link]({url})",
                 colour=0x9EECFF,
-                timestamp=datetime.strptime(post["created_at"], "%Y-%m-%d %H:%M:%S")
+                timestamp=datetime.fromisoformat(post["created_at"])
             )
             embed.set_author(name=post["author"])
             embed.set_image(url=url)
@@ -362,7 +362,7 @@ class NSFW(
             embed = Embed(
                 description=f"[Media Link]({url})",
                 colour=0x3B6AA3,
-                timestamp=datetime.strptime(post["created_at"], "%Y-%m-%dT%H:%M:%S.%f-04:00")
+                timestamp=datetime.fromisoformat(post["created_at"])
             )
             embed.set_image(url=url)
             embed.set_footer(text="Powered by e621.net")

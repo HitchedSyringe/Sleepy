@@ -743,7 +743,7 @@ class Web(
 
             raise
 
-        updated = datetime.strptime(resp["date"], "%Y-%m-%d")
+        updated = datetime.fromisoformat(resp["date"])
 
         # According to the ISO 4217 standard, currencies can
         # have decimal precision between 0-4 places. As of
@@ -890,7 +890,7 @@ class Web(
         embed.set_thumbnail(url=f"https://crafatar.com/renders/body/{data['uuid']}")
 
         try:
-            embed.timestamp = datetime.strptime(data["created_at"], "%Y-%m-%d")
+            embed.timestamp = datetime.fromisoformat(data["created_at"])
         except TypeError:
             embed.set_footer(text="Powered by ashcon.app & crafatar.com")
         else:
@@ -1460,7 +1460,7 @@ class Web(
         embed = Embed(
             description=resp["extract"],
             colour=0xE3E3E3,
-            timestamp=datetime.strptime(resp["timestamp"], "%Y-%m-%dT%H:%M:%SZ")
+            timestamp=datetime.fromisoformat(resp["timestamp"][:-1])
         )
         embed.set_author(
             name=truncate(resp["title"], 128),
@@ -1576,15 +1576,15 @@ class Web(
         snippet = data["snippet"]
         channel_id = data["id"]
 
-        embed = Embed(description=snippet["localized"]["description"], colour=0xFF0000)
+        # Worth noting here that it seems that only channels
+        # created after some date in 2019(?) have fractions
+        # of seconds in their creation timestamps.
 
-        try:
-            embed.timestamp = datetime.strptime(snippet["publishedAt"], "%Y-%m-%dT%H:%M:%SZ")
-        except ValueError:
-            # For some reason, it seems that only channels created
-            # after some date in 2019(?) have fractions of seconds
-            # in their creation timestamps.
-            embed.timestamp = datetime.strptime(snippet["publishedAt"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        embed = Embed(
+            description=snippet["localized"]["description"],
+            colour=0xFF0000,
+            timestamp=datetime.fromisoformat(snippet["publishedAt"][:-1])
+        )
 
         embed.set_author(
             name=snippet["title"],
