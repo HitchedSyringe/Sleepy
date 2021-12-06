@@ -67,7 +67,9 @@ NEKOBOT_IMAGE_COMMANDS = (
 # ネックビアードコグ
 class Weeb(
     commands.Cog,
-    command_attrs={"cooldown": commands.Cooldown(2, 5, commands.BucketType.member)}
+    command_attrs={
+        "cooldown": commands.CooldownMapping.from_cooldown(2, 5, commands.BucketType.member),
+    }
 ):
     """Commands having to do with weeaboo stuff.
 

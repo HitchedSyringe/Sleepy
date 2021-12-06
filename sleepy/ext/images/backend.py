@@ -35,7 +35,7 @@ __all__ = (
 
 import io
 from math import radians, sin
-from datetime import datetime
+from datetime import datetime, timezone
 
 import imageio
 import numpy
@@ -347,7 +347,7 @@ def make_clyde_message(text, /, *, use_rebrand=False):
         draw = ImageDraw.Draw(template)
         draw.text(
             (209, 4),
-            datetime.utcnow().strftime("%H:%M"),
+            datetime.now(timezone.utc).strftime("%H:%M"),
             (114, 118, 125),
             font.font_variant(size=14)
         )
@@ -642,7 +642,7 @@ def make_tweet(handle, display_name, avatar, text, /):
         small_text_font = text_font.font_variant(size=15)
         draw.text(
             (13, 208),
-            f"{datetime.utcnow():%I:%M %p · %b %d, %Y} \N{MIDDLE DOT} Sleepy",
+            f"{datetime.now(timezone.utc):%I:%M %p · %b %d, %Y} \N{MIDDLE DOT} Sleepy",
             (110, 118, 125),
             small_text_font
         )

@@ -238,7 +238,7 @@ class TriviaSession:
                 embed.set_footer(text=f"Next hint in {delay:0.2f} seconds.")
 
             try:
-                await message.edit(embed=embed)
+                message = await message.edit(embed=embed)
             except discord.NotFound:
                 message = await self.channel.send(embed=embed)
 

@@ -44,7 +44,9 @@ def clean_input(value):
 class Covid(
     commands.Cog,
     name="COVID-19",
-    command_attrs={"cooldown": commands.Cooldown(1, 5, commands.BucketType.member)}
+    command_attrs={
+        "cooldown": commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.member),
+    }
 ):
     """Commands related to the COVID-19 pandemic."""
 

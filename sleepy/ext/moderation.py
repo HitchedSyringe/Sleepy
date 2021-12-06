@@ -8,7 +8,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import discord
@@ -382,7 +382,7 @@ class Moderation(commands.Cog):
             else:
                 checks.append(lambda m: regex.match(m.name))
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         if (c_minutes := flags["created"]) is not None:
             if c_minutes <= 0:

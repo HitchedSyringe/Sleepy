@@ -48,7 +48,9 @@ class RGBColourConverter(commands.ColourConverter):
 
 class Images(
     commands.Cog,
-    command_attrs={"cooldown": commands.Cooldown(1, 10, commands.BucketType.member)}
+    command_attrs={
+        "cooldown": commands.CooldownMapping.from_cooldown(1, 10, commands.BucketType.member),
+    }
 ):
     """Commands having to do with images and/or their manipulation."""
 
@@ -580,7 +582,7 @@ class Images(
             try:
                 buffer, delta = await backend.make_pornhub_comment(
                     user.display_name,
-                    io.BytesIO(await user.avatar_url_as(format="png").read()),
+                    io.BytesIO(await user.display_avatar.with_format("png").read()),
                     text
                 )
             except discord.NotFound:
@@ -619,7 +621,7 @@ class Images(
         async with ctx.typing():
             try:
                 buffer, delta = await backend.make_roblox_cancel_meme(
-                    io.BytesIO(await user.avatar_url_as(format="png").read()),
+                    io.BytesIO(await user.display_avatar.with_format("png").read()),
                     user.name,
                     user.discriminator
                 )
@@ -670,8 +672,8 @@ class Images(
         async with ctx.typing():
             try:
                 buffer, delta = await backend.make_ship(
-                    io.BytesIO(await first_user.avatar_url_as(format="png").read()),
-                    io.BytesIO(await second_user.avatar_url_as(format="png").read())
+                    io.BytesIO(await first_user.display_avatar.with_format("png").read()),
+                    io.BytesIO(await second_user.display_avatar.with_format("png").read()),
                 )
             except discord.NotFound:
                 await ctx.send("Could not resolve the avatars. Try again later?")
@@ -1018,7 +1020,7 @@ class Images(
                 buffer, delta = await backend.make_tweet(
                     user.name,
                     user.display_name,
-                    io.BytesIO(await user.avatar_url_as(format="png").read()),
+                    io.BytesIO(await user.display_avatar.with_format("png").read()),
                     text
                 )
             except discord.NotFound:
@@ -1068,8 +1070,8 @@ class Images(
         async with ctx.typing():
             try:
                 buffer, delta = await backend.make_who_would_win_meme(
-                    io.BytesIO(await first_user.avatar_url_as(format="png").read()),
-                    io.BytesIO(await second_user.avatar_url_as(format="png").read())
+                    io.BytesIO(await first_user.display_avatar.with_format("png").read()),
+                    io.BytesIO(await second_user.display_avatar.with_format("png").read()),
                 )
             except discord.NotFound:
                 await ctx.send("Could not resolve the avatars. Try again later?")
@@ -1112,7 +1114,7 @@ class Images(
             try:
                 buffer, delta = await backend.make_youtube_comment(
                     user.display_name,
-                    io.BytesIO(await user.avatar_url_as(format="png").read()),
+                    io.BytesIO(await user.display_avatar.with_format("png").read()),
                     text
                 )
             except discord.NotFound:
