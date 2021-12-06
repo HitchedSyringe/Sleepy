@@ -266,6 +266,8 @@ def human_delta(datetime1, datetime2=None, /, *, brief=False, absolute=False):
         "In 10 years, 1 month, and 5 days"
         >>> human_delta(datetime.datetime(2024, 2, 29), datetime.datetime(2020, 3, 10), absolute=True)
         "3 years, 11 months, 2 weeks, and 19 days"
+        >>> human_delta(datetime.datetime(2024, 2, 29), datetime.datetime(2022, 1, 11), brief=True)
+        "In 2 years"
     """
     datetime1 = datetime1.replace(microsecond=0)
 
