@@ -19,7 +19,6 @@ import discord
 import yarl
 from discord import Embed, File
 from discord.ext import commands
-from discord.utils import parse_time as discord_parse_time
 from googletrans import Translator, LANGUAGES
 from sleepy import checks, menus, utils
 from sleepy.converters import _pseudo_argument_flag, real_float
@@ -1193,7 +1192,7 @@ class Web(
         for entry in entries:
             embed = Embed(
                 description=textwrap.shorten(apply_hyperlinks(entry["definition"]), 2000),
-                timestamp=discord_parse_time(entry["written_on"][:-1]),
+                timestamp=datetime.fromisoformat(entry["written_on"][:-1]),
                 colour=0x1D2439
             )
             embed.set_author(name=entry["word"], url=entry["permalink"])
