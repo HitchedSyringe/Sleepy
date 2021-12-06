@@ -577,27 +577,27 @@ class Meta(commands.Cog):
             )
 
         if guild.emojis:
-            emoji_count = len(guild.emojis)
+            e_count = len(guild.emojis)
+            e_shown = " ".join(map(str, guild.emojis[:25]))
+
+            if e_count > 25:
+                e_shown += f" (+{e_count - 15} more)"
 
             embed.add_field(
-                name=f"Emojis \N{BULLET} {emoji_count} / {guild.emoji_limit * 2}",
-                value=" ".join(map(str, guild.emojis))
-                      if emoji_count < 25 else
-                      "Too many emojis to show.",
+                name=f"Emojis \N{BULLET} {e_count} / {guild.emoji_limit * 2}",
+                value=e_shown,
                 inline=False
             )
 
+        # Get roles in reverse order, excluding @everyone.
         if roles := guild.roles[:0:-1]:
-            # Get roles in reverse order, excluding @everyone.
-            role_count = len(roles)
+            r_count = len(roles)
+            r_shown = " ".join(r.mention for r in roles[:15])
 
-            embed.add_field(
-                name=f"Roles \N{BULLET} {role_count}",
-                value=" ".join(r.mention for r in roles)
-                      if role_count < 15 else
-                      "Too many roles to show.",
-                inline=False
-            )
+            if r_count > 15:
+                r_shown += f" (+{r_count - 15} more)"
+
+            embed.add_field(name=f"Roles \N{BULLET} {r_count}", value=r_shown, inline=False)
 
         tier = guild.premium_tier
         boosts = guild.premium_subscription_count
