@@ -89,7 +89,9 @@ class PistonPayload(commands.Converter):
 class DeveloperUtilities(
     commands.Cog,
     name="Developer Utilities",
-    command_attrs={"cooldown": commands.Cooldown(2, 5, commands.BucketType.member)}
+    command_attrs={
+        "cooldown": commands.CooldownMapping.from_cooldown(2, 5, commands.BucketType.member),
+    }
 ):
     """Commands that serve as utilities for developers."""
 

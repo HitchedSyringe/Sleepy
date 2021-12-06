@@ -92,7 +92,7 @@ class Owner(
         )
         embed.set_author(
             name=f"{ctx.author} (ID: {ctx.author.id})",
-            icon_url=ctx.author.avatar_url
+            icon_url=ctx.author.display_avatar
         )
         embed.set_footer(
             text="This message was sent because you either previously "

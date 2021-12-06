@@ -14,7 +14,6 @@ __all__ = (
 
 import asyncio
 import copy
-from datetime import timezone
 
 import discord
 from discord.ext import commands
@@ -299,10 +298,7 @@ class Context(commands.Context):
 
         message = self.message
         current = message.edited_at or message.created_at
-        bucket = mapping.get_bucket(
-            message,
-            current.replace(tzinfo=timezone.utc).timestamp()
-        )
+        bucket = mapping.get_bucket(message, current.timestamp())
 
         if bucket._tokens == bucket.rate:
             return

@@ -12,7 +12,7 @@ import logging
 import textwrap
 import traceback
 from collections import Counter
-from datetime import datetime
+from datetime import datetime, timezone
 from os import path
 from platform import python_version
 
@@ -45,7 +45,7 @@ class GatewayWebhookHandler(logging.Handler):
     async def __log_gateway_status_loop(self):
         while not self.__task.cancelled():
             rec = await self._queue.get()
-            created = datetime.utcfromtimestamp(rec.created)
+            created = datetime.fromtimestamp(rec.created, timezone.utc)
 
             levels = {
                 "INFO": "\N{INFORMATION SOURCE}\ufe0f",
@@ -72,7 +72,9 @@ class GatewayWebhookHandler(logging.Handler):
 
 class Statistics(
     commands.Cog,
-    command_attrs={"cooldown": commands.Cooldown(2, 3, commands.BucketType.member)}
+    command_attrs={
+        "cooldown": commands.CooldownMapping.from_cooldown(2, 3, commands.BucketType.member),
+    }
 ):
     """Commands having to do with statistics about me."""
     # ...also responsible for some logging & error handling stuff.
@@ -142,7 +144,7 @@ class Statistics(
                 f"\n\N{BLACK DIAMOND} **Created:** {fmt_dt(guild.created_at, 'R')}"
                 f"\n\N{BLACK DIAMOND} **Shard ID:** {guild.shard_id or 'N/A'}"
             ),
-            timestamp=datetime.utcnow()
+            timestamp=datetime.now(timezone.utc)
         )
         embed.set_author(name=guild)
         embed.set_thumbnail(url=guild.icon_url)
@@ -240,8 +242,8 @@ class Statistics(
         await self.send_brief_guild_info(guild, joined=False)
 
     @commands.Cog.listener()
-    async def on_socket_response(self, response):
-        self.bot.socket_events[response.get("t")] += 1
+    async def on_socket_event_type(self, event_type):
+        self.bot.socket_events[event_type] += 1
 
     @commands.command(aliases=("info", "botinfo"))
     @commands.bot_has_permissions(embed_links=True)
@@ -255,14 +257,14 @@ class Statistics(
             colour=0x2F3136
         )
         embed.set_author(name=ctx.me)
-        embed.set_thumbnail(url=ctx.me.avatar_url_as(format="png"))
+        embed.set_thumbnail(url=ctx.me.display_avatar.with_format("png"))
         embed.set_footer(text="Now rewritten thrice woooo!")
 
         embed.add_field(
             name="About Me",
             value=(
                 "[Support Server](https://discord.gg/xHgh2Xg) "
-                f" \N{BULLET} [Invite]({oauth_url(ctx.me.id, discord.Permissions(388166))})"
+                f" \N{BULLET} [Invite]({oauth_url(ctx.me.id, permissions=discord.Permissions(388166))})"
                 f" \N{BULLET} [GitHub](https://github.com/HitSyr/Sleepy)"
                 f"\n<:ar:862433028088135711> **Owner:** {ctx.bot.owner}"
                 f"\n<:ar:862433028088135711> **Created:** {fmt_dt(ctx.me.created_at, 'R')}"
@@ -310,7 +312,7 @@ class Statistics(
         embed = Embed(
             title="Health Diagnosis",
             colour=Colour.green(),
-            timestamp=datetime.utcnow()
+            timestamp=datetime.now(timezone.utc)
         )
 
         spammers = [e for e, b in ctx.bot._spam_control._cache.items() if b._tokens == 0]
@@ -388,7 +390,9 @@ class Statistics(
             return
 
         total = sum(stats.values())
-        rate = total * 60 / (datetime.utcnow() - ctx.bot.started_at).total_seconds()
+
+        delta = datetime.now(timezone.utc) - ctx.bot.started_at
+        rate = total * 60 / delta.total_seconds()
 
         paginator = commands.Paginator("```py", max_size=1000)
         paginator.add_line(f"{total} total commands used. ({rate:.2f}/min)", empty=True)
@@ -422,16 +426,15 @@ class Statistics(
     @checks.can_start_menu()
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def socketstats(self, ctx):
-        """Shows observed websocket events data for the current session."""
+        """Shows observed socket events data for the current session."""
         stats = ctx.bot.socket_events
         total = sum(stats.values())
-        rate = total * 60 / (datetime.utcnow() - ctx.bot.started_at).total_seconds()
+
+        delta = datetime.now(timezone.utc) - ctx.bot.started_at
+        rate = total * 60 / delta.total_seconds()
 
         paginator = commands.Paginator("```py", max_size=1000)
-        paginator.add_line(
-            f"{total} total websocket events received. ({rate:.2f}/min)",
-            empty=True
-        )
+        paginator.add_line(f"{total} total events observed. ({rate:.2f}/min)", empty=True)
 
         for line in tchart(dict(stats.most_common())).split("\n"):
             paginator.add_line(line)

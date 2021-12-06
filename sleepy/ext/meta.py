@@ -10,14 +10,13 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 import difflib
 import inspect
 from collections import defaultdict
-from datetime import datetime
 from os import path
 from typing import Optional, Union
 
 import discord
 from discord import ActivityType, ChannelType, Embed, Status
 from discord.ext import commands, flags, menus
-from discord.utils import oauth_url, format_dt as fmt_dt
+from discord.utils import oauth_url, format_dt as fmt_dt, utcnow
 from sleepy import checks
 from sleepy.paginators import WrappedPaginator
 from sleepy.utils import (
@@ -35,6 +34,7 @@ CHANNEL_EMOJI = {
     (ChannelType.news, True): "<:ac:828419969133314098> ",
     (ChannelType.category, True): "",
     (ChannelType.store, True): "<:st:865637489855430686> ",
+    (ChannelType.public_thread, True): "<:thc:917442358377869373> ",
 
     (ChannelType.text, False): "<:ltc:828149291533074544> ",
     (ChannelType.voice, False): "<:lvc:828149291628625960> ",
@@ -42,6 +42,7 @@ CHANNEL_EMOJI = {
     (ChannelType.news, False): "<:lac:828149291578556416> ",
     (ChannelType.category, False): "",
     (ChannelType.store, False): "<:ltc:828149291533074544> ",
+    (ChannelType.private_thread, False): "<:thc:917442358377869373> ",
 }
 
 
@@ -231,7 +232,7 @@ class SleepyHelpCommand(commands.HelpCommand):
                 sorted_mapping[cmd.cog].append(cmd)
 
         await self.context.paginate(
-            BotHelpPageSource(sorted_mapping, prefix=self.clean_prefix, per_page=4)
+            BotHelpPageSource(sorted_mapping, prefix=self.context.clean_prefix, per_page=4)
         )
 
     async def send_cog_help(self, cog):
@@ -242,7 +243,7 @@ class SleepyHelpCommand(commands.HelpCommand):
             return
 
         await self.context.paginate(
-            GroupPageSource(cog, cmds, prefix=self.clean_prefix, per_page=6)
+            GroupPageSource(cog, cmds, prefix=self.context.clean_prefix, per_page=6)
         )
 
     async def send_command_help(self, command):
@@ -258,7 +259,7 @@ class SleepyHelpCommand(commands.HelpCommand):
             await self.send_command_help(group)
             return
 
-        source = GroupPageSource(group, cmds, prefix=self.clean_prefix, per_page=6)
+        source = GroupPageSource(group, cmds, prefix=self.context.clean_prefix, per_page=6)
         self._apply_formatting(source, group)
 
         await self.context.paginate(source)
@@ -271,13 +272,13 @@ class Meta(commands.Cog):
         self.bot = bot
         self.old_help_command = bot.help_command
 
-        bot.help_command = help_command = SleepyHelpCommand(
-            command_attrs={
-                "cooldown": commands.Cooldown(1, 3, commands.BucketType.user),
-                "checks": (checks.can_start_menu(check_embed=True).predicate,),
-                "help": "Shows help about me, a command, or a category.",
-            }
-        )
+        command_attrs = {
+            "cooldown": commands.CooldownMapping.from_cooldown(1, 3, commands.BucketType.user),
+            "checks": (checks.can_start_menu(check_embed=True).predicate,),
+            "help": "Shows help about me, a command, or a category.",
+        }
+
+        bot.help_command = help_command = SleepyHelpCommand(command_attrs=command_attrs)
         help_command.cog = self
 
         # Pertains to the prefixes command and is here so
@@ -310,7 +311,7 @@ class Meta(commands.Cog):
         if user is None:
             user = ctx.author
 
-        url = user.avatar_url_as(static_format="png")
+        url = user.display_avatar.with_static_format("png")
 
         embed = Embed(colour=0x2F3136, description=f"**[Avatar Link]({url})**")
         embed.set_author(name=user)
@@ -349,7 +350,7 @@ class Meta(commands.Cog):
         )
         embed.set_author(
             name=f"{ctx.author} (ID: {ctx.author.id})",
-            icon_url=ctx.author.avatar_url
+            icon_url=ctx.author.display_avatar
         )
         embed.set_footer(text=f"Sent from: {ctx.channel} (ID: {ctx.channel.id})")
 
@@ -368,7 +369,7 @@ class Meta(commands.Cog):
     @commands.command()
     async def invite(self, ctx):
         """Gives you the invite link to join me to your server."""
-        await ctx.send(f"<{oauth_url(ctx.me.id, discord.Permissions(388166))}>")
+        await ctx.send(f"<{oauth_url(ctx.me.id, permissions=discord.Permissions(388166))}>")
 
     @commands.command()
     async def ping(self, ctx):
@@ -398,8 +399,11 @@ class Meta(commands.Cog):
 
         As for me, I'm no better than any of you.
         """
-        msg_ts = ctx.message.edited_at or ctx.message.created_at
-        delta = abs(datetime.utcnow() - msg_ts).total_seconds() * 1000
+        # The reason this also uses edited_at is to allow this
+        # to work for those who want allow command invokations
+        # on message edits.
+        ref = ctx.message.edited_at or ctx.message.created_at
+        delta = abs(utcnow() - ref).total_seconds() * 1000
 
         await ctx.send(
             "\N{TABLE TENNIS PADDLE AND BALL} **Pong!**```ldif"
@@ -445,7 +449,7 @@ class Meta(commands.Cog):
                         f"{channel.name} (ID: {channel.id})",
             colour=0x2F3136
         )
-        embed.set_author(name=f"{user} (ID: {user.id})", icon_url=user.avatar_url)
+        embed.set_author(name=f"{user} (ID: {user.id})", icon_url=user.display_avatar)
 
         perms = [
             f"{bool_to_emoji(v)} {p.replace('_', ' ').replace('guild', 'server').title()}"
@@ -530,8 +534,8 @@ class Meta(commands.Cog):
 
         embed = Embed(colour=0x2F3136, description=guild.description or Embed.Empty)
         embed.set_author(name=guild.name)
-        embed.set_image(url=guild.banner_url)
-        embed.set_thumbnail(url=guild.icon_url)
+        embed.set_image(url=guild.banner)
+        embed.set_thumbnail(url=guild.icon)
 
         embed.add_field(
             name="Information",
@@ -699,7 +703,7 @@ class Meta(commands.Cog):
 
         for page in tree.pages:
             embed = Embed(description=page, colour=0x2F3136)
-            embed.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon_url)
+            embed.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon)
             embed.set_footer(text=f"{total} total channels.")
 
             await ctx.send(embed=embed)
@@ -724,7 +728,7 @@ class Meta(commands.Cog):
         if user is None:
             user = ctx.author
 
-        avatar_url = user.avatar_url_as(static_format="png")
+        avatar_url = user.avatar.with_static_format("png")
 
         embed = Embed(
             description=" ".join(v for k, v in BADGES.items() if getattr(user.public_flags, k)),

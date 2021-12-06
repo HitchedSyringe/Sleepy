@@ -14,12 +14,11 @@ __all__ = (
 
 import logging
 import re
-from datetime import datetime, timezone
 from pathlib import Path
 
 import discord
 from discord.ext import commands
-from discord.utils import cached_property
+from discord.utils import cached_property, utcnow
 
 from . import __version__
 from .context import Context
@@ -98,7 +97,7 @@ class Sleepy(commands.Bot):
         .. versionchanged:: 2.0
             Renamed to ``http_requester``.
     started_at: Optional[:class:`datetime.datetime`]
-        The bot's starting time in UTC.
+        The bot's starting time as a UTC-aware datetime.
         ``None`` if not logged in.
 
         .. versionadded:: 1.6
@@ -112,6 +111,9 @@ class Sleepy(commands.Bot):
             * Renamed to ``started_at``.
             * This is now set when logged in rather
               than on ``ready``.
+
+        .. versionchanged:: 3.2
+            This is now a UTC-aware datetime.
     """
 
     def __init__(self, config, /, *args, **kwargs):
@@ -175,7 +177,7 @@ class Sleepy(commands.Bot):
         """
         return discord.Webhook.partial(
             **self.config["discord_webhook"],
-            adapter=discord.AsyncWebhookAdapter(self.http_requester.session)
+            session=self.http_requester.session
         )
 
     @property
@@ -228,7 +230,7 @@ class Sleepy(commands.Bot):
         return owner
 
     async def __boot(self):
-        self.started_at = datetime.utcnow()
+        self.started_at = utcnow()
         self.app_info = await self.application_info()
 
         # Might as well manually populate the owner info if not
@@ -282,8 +284,8 @@ class Sleepy(commands.Bot):
         """
         return find_extensions_in(self.extensions_directory)
 
-    async def login(self, token, *, bot=True):
-        await super().login(token, bot=bot)
+    async def login(self, token):
+        await super().login(token)
         # This has to be a task since wait_until_ready
         # will block from ever actually reaching ready.
         self.loop.create_task(self.__boot())
@@ -306,10 +308,7 @@ class Sleepy(commands.Bot):
 
         if not await self.is_owner(author):
             current = message.edited_at or message.created_at
-            retry_after = self._spam_control.update_rate_limit(
-                message,
-                current.replace(tzinfo=timezone.utc).timestamp()
-            )
+            retry_after = self._spam_control.update_rate_limit(message, current.timestamp())
 
             if retry_after is not None:
                 _LOG.warning(
@@ -368,10 +367,18 @@ class Sleepy(commands.Bot):
         elif isinstance(error, commands.CommandOnCooldown):
             await ctx.send(f"That command is on cooldown, retry in **{error.retry_after:.2f} seconds**.")
         elif isinstance(error, commands.MissingPermissions):
-            perms = [p.replace('_', ' ').replace('guild', 'server').title() for p in error.missing_perms]
+            perms = [
+                p.replace('_', ' ').replace('guild', 'server').title()
+                for p in error.missing_permissions
+            ]
+
             await ctx.send(f"You need the `{human_join(perms)}` permission(s) to use that command.")
         elif isinstance(error, commands.BotMissingPermissions):
-            perms = [p.replace('_', ' ').replace('guild', 'server').title() for p in error.missing_perms]
+            perms = [
+                p.replace('_', ' ').replace('guild', 'server').title()
+                for p in error.missing_permissions
+            ]
+
             await ctx.send(f"I need the `{human_join(perms)}` permission(s) to execute that command.")
         elif isinstance(error, commands.NotOwner):
             await ctx.send("Huh? You're not one of my higher-ups! Scram, skid!")

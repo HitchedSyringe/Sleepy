@@ -26,7 +26,7 @@ import asyncio
 import math
 import random
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import partial, wraps
 from pathlib import Path
 
@@ -210,7 +210,7 @@ def find_extensions_in(path):
         yield ".".join(extension.with_suffix("").parts).lstrip(".")
 
 
-def human_delta(datetime1, datetime2=None, /, *, brief=False, absolute=False):
+def human_delta(dt1, dt2=None, /, *, brief=False, absolute=False):
     """Humanizes the delta between two given datetimes.
 
     .. versionadded:: 1.9
@@ -228,13 +228,28 @@ def human_delta(datetime1, datetime2=None, /, *, brief=False, absolute=False):
         Replaced ``delta`` argument with the ``datetime1``
         and ``datetime2`` arguments.
 
+    .. versionchanged:: 3.2
+
+        * Renamed `datetime1` and `datetime2` arguments to
+          `dt1` and `dt2`, respectively.
+        * Naive datetimes passed are now internally converted
+          to be UTC-aware
+
     Parameters
     ----------
-    datetime1: :class:`datetime.datetime`
-    datetime2: Optional[:class:`datetime.datetime`]
+    dt1: :class:`datetime.datetime`
+    dt2: Optional[:class:`datetime.datetime`]
         The datetimes to humanize the delta of.
-        The second datetime will default to the value of
-        :meth:`datetime.datetime.utcnow` if not given.
+        This delta is calculated via `dt2 - dt1`.
+        If not given, then the second datetime defaults to
+        the current time as a UTC-aware datetime.
+
+        .. note::
+
+            Naive datetimes are automatically converted to
+            be UTC-aware. Additionally, microseconds are
+            disregarded internally when calculating.
+
     brief: :class:`bool`
         Whether or not to only return the first component of
         the humanised delta.
@@ -268,17 +283,22 @@ def human_delta(datetime1, datetime2=None, /, *, brief=False, absolute=False):
         >>> human_delta(datetime.datetime(2024, 2, 29), datetime.datetime(2022, 1, 11), brief=True)
         "In 2 years"
     """
-    datetime1 = datetime1.replace(microsecond=0)
+    dt1 = dt1.replace(microsecond=0)
 
-    if datetime2 is None:
-        datetime2 = datetime.utcnow()
+    if dt1.tzinfo is None:
+        dt1 = dt1.replace(tzinfo=timezone.utc)
 
-    datetime2 = datetime2.replace(microsecond=0)
+    if dt2 is None:
+        dt2 = datetime.now(timezone.utc)
+    elif dt2.tzinfo is None:
+        dt2 = dt2.replace(tzinfo=timezone.utc)
 
-    if datetime1 == datetime2:
+    dt2 = dt2.replace(microsecond=0)
+
+    if dt1 == dt2:
         return "Just now"
 
-    delta = abs(relativedelta(datetime1, datetime2))
+    delta = abs(relativedelta(dt1, dt2))
 
     # This is written this way instead of using the much
     # more obvious getattr approach to allow for ease in
@@ -301,7 +321,7 @@ def human_delta(datetime1, datetime2=None, /, *, brief=False, absolute=False):
     if absolute:
         return humanised
 
-    if datetime1 > datetime2:
+    if dt1 > dt2:
         return "In " + humanised
 
     return humanised + " ago"

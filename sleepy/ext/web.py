@@ -11,7 +11,7 @@ import io
 import random
 import re
 import textwrap
-from datetime import datetime
+from datetime import datetime as dt, timezone as tz
 from typing import Optional
 from urllib.parse import quote
 
@@ -210,7 +210,9 @@ def youtube_channel_kwargs(value):
 
 class Web(
     commands.Cog,
-    command_attrs={"cooldown": commands.Cooldown(2, 5, commands.BucketType.member)}
+    command_attrs={
+        "cooldown": commands.CooldownMapping.from_cooldown(2, 5, commands.BucketType.member),
+    }
 ):
     """Commands that grab data from various websites and APIs.
 
@@ -375,7 +377,8 @@ class Web(
         embed.timestamp = datetime(
             month=int(comic["month"]),
             year=int(comic["year"]),
-            day=int(comic["day"])
+            day=int(comic["day"]),
+            tzinfo=timezone.utc
         )
         embed.set_author(name=f"#{number}")
         embed.set_image(url=comic["img"])
@@ -742,7 +745,7 @@ class Web(
 
             raise
 
-        updated = datetime.fromisoformat(resp["date"])
+        updated = dt.fromisoformat(resp["date"]).replace(tzinfo=tz.utc)
 
         # According to the ISO 4217 standard, currencies can
         # have decimal precision between 0-4 places. As of
@@ -888,12 +891,11 @@ class Web(
         )
         embed.set_thumbnail(url=f"https://crafatar.com/renders/body/{data['uuid']}")
 
-        try:
-            embed.timestamp = datetime.fromisoformat(data["created_at"])
-        except TypeError:
-            embed.set_footer(text="Powered by ashcon.app & crafatar.com")
-        else:
+        if (joined := data["created_at"]) is not None:
+            embed.timestamp = dt.fromisoformat(joined).replace(tzinfo=tz.utc)
             embed.set_footer(text="Powered by ashcon.app & crafatar.com \N{BULLET} Created")
+        else:
+            embed.set_footer(text="Powered by ashcon.app & crafatar.com")
 
         try:
             embed.description += f" \N{BULLET} **[Cape]({textures['cape']['url']})**"
@@ -1098,7 +1100,7 @@ class Web(
             title="Snapshot",
             description=f"[Link to Website]({resp['website']})",
             color=0x2F3136,
-            timestamp=datetime.utcnow()
+            timestamp=dt.now(tz.utc)
         )
         embed.set_image(url=resp["snapshot"])
         embed.set_footer(
@@ -1228,7 +1230,7 @@ class Web(
             return
 
         embed = Embed(description=truncate(tsl.text, 2048), colour=0x4285F4)
-        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+        embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar)
         embed.set_thumbnail(
             url="https://cdn.discordapp.com/attachments/507971834570997765/861166905569050624/translate2021.png"
         )
@@ -1285,7 +1287,7 @@ class Web(
         for entry in entries:
             embed = Embed(
                 description=textwrap.shorten(apply_hyperlinks(entry["definition"]), 2000),
-                timestamp=datetime.fromisoformat(entry["written_on"][:-1]),
+                timestamp=dt.fromisoformat(entry["written_on"][:-1]).replace(tzinfo=tz.utc),
                 colour=0x1D2439
             )
             embed.set_author(name=entry["word"], url=entry["permalink"])
@@ -1392,7 +1394,7 @@ class Web(
             title=f"{loc['name']}, {region + ', ' if region else ''}{loc['country']}",
             description=f"(Lat. {loc['lat']}°, Lon. {loc['lon']}°)",
             colour=0xE3C240 if data["is_day"] == 1 else 0x1D50A8,
-            timestamp=datetime.utcfromtimestamp(data["last_updated_epoch"])
+            timestamp=dt.fromtimestamp(data["last_updated_epoch"], tz.utc)
         )
 
         condition = data["condition"]
@@ -1459,7 +1461,7 @@ class Web(
         embed = Embed(
             description=resp["extract"],
             colour=0xE3E3E3,
-            timestamp=datetime.fromisoformat(resp["timestamp"][:-1])
+            timestamp=dt.fromisoformat(resp["timestamp"][:-1]).replace(tzinfo=tz.utc)
         )
         embed.set_author(
             name=truncate(resp["title"], 128),
@@ -1571,42 +1573,38 @@ class Web(
             return
 
         data = results[0]
-        stats = data["statistics"]
-        snippet = data["snippet"]
-        channel_id = data["id"]
+        snip = data["snippet"]
 
         # Worth noting here that it seems that only channels
         # created after some date in 2019(?) have fractions
         # of seconds in their creation timestamps.
 
         embed = Embed(
-            description=snippet["localized"]["description"],
+            description=snip["localized"]["description"],
             colour=0xFF0000,
-            timestamp=datetime.fromisoformat(snippet["publishedAt"][:-1])
+            timestamp=dt.fromisoformat(snip["publishedAt"][:-1]).replace(tzinfo=tz.utc)
         )
 
-        embed.set_author(
-            name=snippet["title"],
-            url=f"https://youtube.com/channel/{channel_id}"
-        )
-        embed.set_thumbnail(url=snippet["thumbnails"]["high"]["url"])
+        id_ = data["id"]
+
+        embed.set_author(name=snip["title"], url=f"https://youtube.com/channel/{id_}")
+        embed.set_thumbnail(url=snip["thumbnails"]["high"]["url"])
         embed.set_footer(text="Powered by YouTube \N{BULLET} Created")
 
+        stats = data["statistics"]
+
         if not stats["hiddenSubscriberCount"]:
-            embed.add_field(
-                name="Subscribers",
-                value=human_number(int(stats["subscriberCount"]))
-            )
+            embed.add_field(name="Subscribers", value=human_number(int(stats["subscriberCount"])))
 
         embed.add_field(name="Views", value=f"{int(stats['viewCount']):,d}")
         embed.add_field(name="Videos", value=f"{int(stats['videoCount']):,d}")
 
         try:
-            embed.add_field(name="Country", value=snippet["country"])
+            embed.add_field(name="Country", value=snip["country"])
         except KeyError:
             pass
 
-        embed.add_field(name="Channel ID", value=channel_id)
+        embed.add_field(name="Channel ID", value=id_)
 
         await ctx.send(embed=embed)
 

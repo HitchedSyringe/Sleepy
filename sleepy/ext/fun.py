@@ -166,7 +166,9 @@ class PollMenu(menus.Menu):
 
 class Fun(
     commands.Cog,
-    command_attrs={"cooldown": commands.Cooldown(2, 5, commands.BucketType.member)}
+    command_attrs={
+        "cooldown": commands.CooldownMapping.from_cooldown(2, 5, commands.BucketType.member),
+    }
 ):
     """Commands provided for your entertainment and not to be taken seriously.
 
@@ -816,7 +818,7 @@ class Fun(
         )
         embed.set_author(
             name=f"{ctx.author} (ID: {ctx.author.id})",
-            icon_url=ctx.author.avatar_url
+            icon_url=ctx.author.display_avatar
         )
         embed.set_footer(
             text="This message is user-generated and does not reflect "

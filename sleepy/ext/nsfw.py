@@ -7,7 +7,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from discord import Colour, Embed
 from discord.ext import commands
@@ -185,7 +185,9 @@ def ensure_safe_tags(value):
 # neckbeard cog but even worse.
 class NSFW(
     commands.Cog,
-    command_attrs={"cooldown": commands.Cooldown(2, 5, commands.BucketType.member)}
+    command_attrs={
+        "cooldown": commands.CooldownMapping.from_cooldown(2, 5, commands.BucketType.member),
+    }
 ):
     """Don't act like you don't already know what this encompasses."""
 
@@ -290,7 +292,7 @@ class NSFW(
             embed = Embed(
                 description=f"[Media Link]({url})",
                 colour=0x9EECFF,
-                timestamp=datetime.fromisoformat(post["created_at"])
+                timestamp=datetime.fromisoformat(post["created_at"]).replace(tzinfo=timezone.utc)
             )
             embed.set_author(name=post["author"])
             embed.set_image(url=url)
@@ -362,7 +364,7 @@ class NSFW(
             embed = Embed(
                 description=f"[Media Link]({url})",
                 colour=0x3B6AA3,
-                timestamp=datetime.fromisoformat(post["created_at"])
+                timestamp=datetime.fromisoformat(post["created_at"]).replace(tzinfo=timezone.utc)
             )
             embed.set_image(url=url)
             embed.set_footer(text="Powered by e621.net")

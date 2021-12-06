@@ -51,7 +51,9 @@ _LOG = logging.getLogger(__name__)
 class TriviaMinigame(
     commands.Cog,
     name="Trivia Minigame",
-    command_attrs={"cooldown": commands.Cooldown(1, 6, commands.BucketType.member)}
+    command_attrs={
+        "cooldown": commands.CooldownMapping.from_cooldown(1, 6, commands.BucketType.member),
+    }
 ):
     """Commands having to do with the Trivia minigame."""
 

@@ -337,7 +337,7 @@ class PaginationMenu(menus.MenuPages, inherit_buttons=False):
         if self.message.content == help_text:
             return
 
-        await self.message.edit(content=help_text, embed=None)
+        self.message = await self.message.edit(content=help_text, embed=None)
         await asyncio.sleep(60)
 
         if self._running:
