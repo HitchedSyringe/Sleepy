@@ -222,7 +222,7 @@ class ImageAssetConverter(commands.Converter):
         url = argument.strip("<>")
 
         try:
-            message = await commands.MessageConverter().convert(ctx, argument)
+            message = await commands.MessageConverter().convert(ctx, url)
             url = message.attachments[0].url
         except commands.MessageNotFound:
             # Ideally, we would want this to fail completely if
