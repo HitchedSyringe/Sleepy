@@ -19,7 +19,7 @@ __all__ = (
 import asyncio
 import logging
 from collections.abc import MutableMapping
-from typing import TYPE_CHECKING, Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple, Union
 
 import aiohttp
 from discord.ext import commands
@@ -109,7 +109,7 @@ class HTTPRequester:
         .. versionadded:: 2.0
     """
 
-    __slots__ = ("_cache", "_loop", "_request_lock", "__session")
+    __slots__: Tuple[str, ...] = ("_cache", "_loop", "_request_lock", "__session")
 
     def __init__(self, *, cache: Optional[MutableMapping[str, Any]] = None, **kwargs: Any):
         if cache is not None and not isinstance(cache, MutableMapping):
