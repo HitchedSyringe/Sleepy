@@ -19,13 +19,15 @@ import math
 from inspect import Parameter, isclass
 from typing import Optional
 
-from discord import Asset, DiscordException, Message
+from discord import Message
 from discord.ext import commands
+
+from .mimics import PartialAsset
 
 
 class ImageAssetConversionFailure(commands.BadArgument):
     """Exception raised when the argument provided
-    fails to convert to a :class:`discord.Asset` image.
+    fails to convert to a :class:`PartialAsset`.
 
     This inherits from :exc:`commands.BadArgument`.
 
@@ -41,7 +43,7 @@ class ImageAssetConversionFailure(commands.BadArgument):
     def __init__(self, argument):
         self.argument = argument
 
-        super().__init__(f'Couldn\'t convert "{argument}" to Asset.')
+        super().__init__(f'Couldn\'t convert "{argument}" to PartialAsset.')
 
 
 class ImageAssetTooLarge(commands.BadArgument):
@@ -75,7 +77,7 @@ class ImageAssetTooLarge(commands.BadArgument):
 
 class ImageAssetConverter(commands.Converter):
     """Converts a user, custom emoji, image attachment,
-    image URL, or message to a :class:`discord.Asset`.
+    image URL, or message to a :class:`PartialAsset`.
 
     .. note::
 
@@ -116,6 +118,7 @@ class ImageAssetConverter(commands.Converter):
           attachments.
         * Added support for resolving a message with image
           attachments via ID or URL.
+        * This now returns :class:`PartialAsset` instances.
 
     Parameters
     ----------
@@ -161,14 +164,15 @@ class ImageAssetConverter(commands.Converter):
         except commands.UserNotFound:
             pass
         else:
-            return user.avatar_url_as(static_format="png")
+            avatar = user.display_avatar.with_static_format("png")
+            return PartialAsset(avatar._state, url=avatar.url)
 
         try:
             emoji = await commands.PartialEmojiConverter().convert(ctx, argument)
         except commands.PartialEmojiConversionFailure:
             pass
         else:
-            return emoji.url
+            return PartialAsset(emoji._state, url=emoji.url)
 
         # NOTE: Unicode emojis can't be supported here due to
         # some ambiguities with emojis consisting of between
@@ -203,7 +207,7 @@ class ImageAssetConverter(commands.Converter):
         ):
             raise ImageAssetTooLarge(url, filesize, self.max_filesize)
 
-        return Asset(ctx.bot._connection, url)
+        return PartialAsset(ctx.bot._connection, url=url)
 
 
 def real_float(*, max_decimal_places=None):
@@ -303,33 +307,6 @@ def _pseudo_argument_flag(*names, **kwargs):
     return convert
 
 
-def _new_asset_to_str(self):
-    if not self._url:
-        return ""
-
-    if self._url.startswith("http"):
-        return self._url
-
-    return self.BASE + self._url
-
-
-Asset.__str__ = _new_asset_to_str
-Asset.__len__ = lambda self: len(str(self)) if self._url else 0
-
-
-async def _new_asset_read(self):
-    if not self._url:
-        raise DiscordException("Invalid asset (no URL provided)")
-
-    if self._state is None:
-        raise DiscordException("Invalid state (no ConnectionState provided)")
-
-    return await self._state.http.get_from_cdn(str(self))
-
-
-Asset.read = _new_asset_read
-
-
 _old_command_transform = commands.Command.transform
 
 
@@ -369,7 +346,7 @@ def _process_attachments(command, converter, ctx, param):
     return Parameter(
         name=param.name,
         kind=param.kind,
-        default=Asset(ctx.bot._connection, attach.url),
+        default=PartialAsset(ctx.bot._connection, url=attach.url),
         annotation=Optional[type(converter)]
     )
 

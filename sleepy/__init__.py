@@ -16,7 +16,7 @@ __license__ = "MPL-2.0"
 __version__ = "3.2.0a"
 
 
-from . import utils
+from . import mimics, utils
 from .bot import *
 from .checks import *
 from .context import *
