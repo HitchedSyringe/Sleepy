@@ -19,6 +19,7 @@ __all__ = (
 )
 
 
+from typing import Any, Optional, Tuple
 from discord.asset import AssetMixin
 
 
@@ -49,28 +50,28 @@ class PartialAsset(AssetMixin):
             Returns the hash of the asset.
     """
 
-    __slots__ = ("_state", "_url")
+    __slots__: Tuple[str, ...] = ("_state", "_url")
 
-    def __init__(self, state, *, url):
-        self._state = state
-        self._url = url
+    def __init__(self, state: Optional[Any], *, url: str):
+        self._state: Optional[Any] = state
+        self._url: str = url
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self._url
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._url)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<PartialAsset url={self._url!r}>"
 
-    def __eq__(self, other):
+    def __eq__(self, other: AssetMixin) -> bool:
         return isinstance(other, AssetMixin) and self._url == other.url
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self._url)
 
     @property
-    def url(self):
+    def url(self) -> str:
         """:class:`str`: Returns the underlying URL of the asset."""
         return self._url

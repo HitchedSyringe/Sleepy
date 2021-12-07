@@ -12,6 +12,8 @@ __all__ = (
 )
 
 
+from typing import Sequence
+
 from discord.ext import commands
 
 
@@ -52,23 +54,23 @@ class WrappedPaginator(commands.Paginator):
 
     def __init__(
         self,
-        prefix="```",
-        suffix="```",
-        max_size=2000,
-        linesep="\n",
-        wrap_on=(" ", "\n"),
+        prefix: str = "```",
+        suffix: str = "```",
+        max_size: int = 2000,
+        linesep: str = "\n",
+        wrap_on: Sequence[str] = (" ", "\n"),
         *,
-        force_wrapping=False,
-        wrap_with_delimiters=True
+        force_wrapping: bool = False,
+        wrap_with_delimiters: bool = True
     ):
         super().__init__(prefix, suffix, max_size, linesep)
 
-        self.wrap_on = wrap_on
-        self.force_wrapping = force_wrapping
-        self.wrap_with_delimiters = wrap_with_delimiters
+        self.wrap_on: Sequence[str] = wrap_on
+        self.force_wrapping: bool = force_wrapping
+        self.wrap_with_delimiters: bool = wrap_with_delimiters
 
     @property
-    def actual_max_size(self):
+    def actual_max_size(self) -> int:
         """:class:`int`: The maximum size of the paginator with the
         prefix, suffix, and line separator lengths all accounted for.
 
@@ -77,7 +79,7 @@ class WrappedPaginator(commands.Paginator):
         """
         return self.max_size - self._prefix_len - self._suffix_len - self._linesep_len * 2
 
-    def add_line(self, line="", /, *, empty=False):
+    def add_line(self, line: str = "", /, *, empty: bool = False) -> None:
         """Adds a line to the current page.
 
         If the line exceeds :attr:`actual_max_size`, then
