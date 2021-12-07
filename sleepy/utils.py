@@ -130,7 +130,7 @@ class plural:
         "It is -3.62 degrees Celcius outside."
     """
 
-    __slots__ = ("__value", "__value_fmt")
+    __slots__: Tuple[str, ...] = ("__value", "__value_fmt")
 
     def __init__(
         self,
