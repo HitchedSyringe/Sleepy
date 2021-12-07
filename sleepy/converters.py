@@ -7,6 +7,9 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+from __future__ import annotations
+
+
 __all__ = (
     "ImageAssetConversionFailure",
     "ImageAssetConverter",
@@ -17,12 +20,16 @@ __all__ = (
 
 import math
 from inspect import Parameter, isclass
-from typing import Optional
+from typing import TYPE_CHECKING, Any, Callable, Optional
 
 from discord import Message
 from discord.ext import commands
 
 from .mimics import PartialAsset
+
+
+if TYPE_CHECKING:
+    from .context import Context as SleepyContext
 
 
 class ImageAssetConversionFailure(commands.BadArgument):
@@ -40,8 +47,8 @@ class ImageAssetConversionFailure(commands.BadArgument):
         not be converted.
     """
 
-    def __init__(self, argument):
-        self.argument = argument
+    def __init__(self, argument: str) -> None:
+        self.argument: str = argument
 
         super().__init__(f'Couldn\'t convert "{argument}" to PartialAsset.')
 
@@ -65,10 +72,10 @@ class ImageAssetTooLarge(commands.BadArgument):
         The converter's maximum filesize in bytes.
     """
 
-    def __init__(self, argument, filesize, max_filesize):
-        self.argument = argument
-        self.filesize = filesize
-        self.max_filesize = max_filesize
+    def __init__(self, argument: str, filesize: int, max_filesize: int) -> None:
+        self.argument: str = argument
+        self.filesize: int = filesize
+        self.max_filesize: int = max_filesize
 
         super().__init__(
             f'"{argument}" exceeds the maximum filesize. ({filesize}/{max_filesize} B)'
@@ -152,13 +159,13 @@ class ImageAssetConverter(commands.Converter):
         .. versionadded:: 3.0
     """
 
-    def __init__(self, *, max_filesize=None):
+    def __init__(self, *, max_filesize: Optional[int] = None) -> None:
         if max_filesize is not None and max_filesize <= 0:
             raise ValueError(f"invalid max_filesize {max_filesize} (must be > 0).")
 
-        self.max_filesize = max_filesize
+        self.max_filesize: Optional[int] = max_filesize
 
-    async def convert(self, ctx, argument):
+    async def convert(self, ctx: SleepyContext, argument: str) -> PartialAsset:
         try:
             user = await commands.UserConverter().convert(ctx, argument)
         except commands.UserNotFound:
@@ -210,7 +217,7 @@ class ImageAssetConverter(commands.Converter):
         return PartialAsset(ctx.bot._connection, url=url)
 
 
-def real_float(*, max_decimal_places=None):
+def real_float(*, max_decimal_places: Optional[int] = None) -> Callable[[str], float]:
     """Similar to the :class:`float` converter except
     this does not convert to NaN or Infinity and allows
     for limiting decimal places.
@@ -245,7 +252,7 @@ def real_float(*, max_decimal_places=None):
             f"invalid max_decimal_places {max_decimal_places} (must be > 0)."
         )
 
-    def converter(arg):
+    def converter(arg: str) -> float:
         try:
             f_arg = float(arg)
         except ValueError:
@@ -272,9 +279,9 @@ def real_float(*, max_decimal_places=None):
 # to be publicised since their behaviour is too
 # confusing to document properly in addition to
 # the countless ambiguities associated.
-def _pseudo_bool_flag(*names):
+def _pseudo_bool_flag(*names: str) -> Callable[[str], bool]:
 
-    def convert(value):
+    def convert(value: str) -> bool:
         if value not in names:
             raise commands.BadArgument("Invalid flag.")
 
@@ -283,10 +290,10 @@ def _pseudo_bool_flag(*names):
     return convert
 
 
-def _pseudo_argument_flag(*names, **kwargs):
+def _pseudo_argument_flag(*names: str, **kwargs: Any) -> Callable[[str], str]:
     sep = kwargs.get("separator") or "="
 
-    def convert(value):
+    def convert(value: str) -> str:
         try:
             flag, value = value.split(sep, 1)
         except ValueError:
@@ -315,7 +322,12 @@ _old_command_transform = commands.Command.transform
 # we return the passed param and just let original
 # transfer method handle it like it normally would
 # and, ideally, raise MissingRequiredArgument.
-def _process_attachments(command, converter, ctx, param):
+def _process_attachments(
+    command: commands.Command,
+    converter: ImageAssetConverter,
+    ctx: SleepyContext,
+    param: Parameter
+) -> Parameter:
     ref = ctx.message.reference
 
     if ref is None:
@@ -347,11 +359,11 @@ def _process_attachments(command, converter, ctx, param):
         name=param.name,
         kind=param.kind,
         default=PartialAsset(ctx.bot._connection, url=attach.url),
-        annotation=Optional[type(converter)]
+        annotation=Optional[type(converter)]  # type: ignore
     )
 
 
-async def _new_command_transform(self, ctx, param):
+async def _new_command_transform(self, ctx: SleepyContext, param: Parameter) -> Any:
     conv = param.annotation
 
     if isclass(conv) and issubclass(conv, ImageAssetConverter):
@@ -362,4 +374,4 @@ async def _new_command_transform(self, ctx, param):
     return await _old_command_transform(self, ctx, param)
 
 
-commands.Command.transform = _new_command_transform
+commands.Command.transform = _new_command_transform  # type: ignore

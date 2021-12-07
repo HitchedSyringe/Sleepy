@@ -7,6 +7,9 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+from __future__ import annotations
+
+
 __all__ = (
     "HTTPRequester",
     "HTTPRequestFailed",
@@ -16,12 +19,21 @@ __all__ = (
 import asyncio
 import logging
 from collections.abc import MutableMapping
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 import aiohttp
 from discord.ext import commands
 
 
 _LOG = logging.getLogger(__name__)
+
+
+if TYPE_CHECKING:
+    from multidict import CIMultiDictProxy
+    from yarl import URL
+
+    HTTPResponseData = Union[str, bytes, Dict[str, Any]]
+    RequestUrl = Union[str, URL]
 
 
 class HTTPRequestFailed(commands.CommandError):
@@ -58,12 +70,12 @@ class HTTPRequestFailed(commands.CommandError):
         The data returned from the failed request.
     """
 
-    def __init__(self, response, data):
-        self.response = response
-        self.status = status = response.status
-        self.reason = response.reason
-        self.headers = response.headers
-        self.data = data
+    def __init__(self, response: aiohttp.ClientResponse, data: HTTPResponseData) -> None:
+        self.response: aiohttp.ClientResponse = response
+        self.status = status = response.status  # type: int
+        self.reason: str = response.reason
+        self.headers: CIMultiDictProxy[str] = response.headers
+        self.data: HTTPResponseData = data
 
         super().__init__(
             f"{response.method} {response.url} failed with HTTP status code {status}."
@@ -99,7 +111,7 @@ class HTTPRequester:
 
     __slots__ = ("_cache", "_loop", "_request_lock", "__session")
 
-    def __init__(self, *, cache=None, **kwargs):
+    def __init__(self, *, cache: Optional[MutableMapping[str, Any]] = None, **kwargs: Any):
         if cache is not None and not isinstance(cache, MutableMapping):
             raise TypeError(f"cache must be MutableMapping or NoneType, not {type(cache)!r}.")
 
@@ -111,7 +123,7 @@ class HTTPRequester:
         _LOG.info("Started a new session.")
 
     @property
-    def cache(self):
+    def cache(self) -> Optional[MutableMapping[str, Any]]:
         """Optional[:class:`MutableMapping`]: The mapping used for caching received data.
 
         .. versionadded:: 3.0
@@ -119,14 +131,14 @@ class HTTPRequester:
         return self._cache
 
     @cache.setter
-    def cache(self, value):
+    def cache(self, value: Optional[MutableMapping[str, Any]]) -> None:
         if value is not None and not isinstance(value, MutableMapping):
             raise TypeError(f"cache must be MutableMapping or NoneType, not {type(value)!r}.")
 
         self._cache = value
 
     @property
-    def loop(self):
+    def loop(self) -> asyncio.AbstractEventLoop:
         """:class:`asyncio.AbstractEventLoop`: The event loop used for HTTP requests.
 
         .. versionadded:: 2.0
@@ -137,11 +149,11 @@ class HTTPRequester:
         return self._loop
 
     @property
-    def session(self):
+    def session(self) -> aiohttp.ClientSession:
         """:class:`aiohttp.ClientSession`: The client session used for handling requests."""
         return self.__session
 
-    async def close(self):
+    async def close(self) -> None:
         """|coro|
 
         Closes the session.
@@ -149,7 +161,13 @@ class HTTPRequester:
         await self.__session.close()
         _LOG.info("Session closed.")
 
-    async def __request(self, method, url, /, **kwargs):
+    async def __request(
+        self,
+        method: str,
+        url: RequestUrl,
+        /,
+        **kwargs: Any
+    ) -> HTTPResponseData:
         # Allows this to work with params__ in case an API requires
         # a parameter that is the same name as a reserved keyword.
         params = kwargs.pop("params__", {})
@@ -175,7 +193,15 @@ class HTTPRequester:
             _LOG.info("%s %s succeeded with HTTP status %s.", method, url, resp.status)
             return data
 
-    async def request(self, method, url, /, *, cache__=False, **kwargs):
+    async def request(
+        self,
+        method: str,
+        url: RequestUrl,
+        /,
+        *,
+        cache__: bool = False,
+        **kwargs: Any
+    ) -> HTTPResponseData:
         """|coro|
 
         Performs an HTTP request and optionally caches the response.

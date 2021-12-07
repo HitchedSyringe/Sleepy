@@ -26,9 +26,15 @@ __all__ = (
 )
 
 
+from typing import Any, Callable, Dict, List, TypeVar
+
 from discord.ext import commands
+from discord.permissions import Permissions
 
 from .utils import human_join
+
+
+T = TypeVar("T")
 
 
 class MissingAnyPermissions(commands.CheckFailure):
@@ -47,8 +53,8 @@ class MissingAnyPermissions(commands.CheckFailure):
         :func:`has_permissions`.
     """
 
-    def __init__(self, missing_permissions, *args):
-        self.missing_permissions = missing_permissions
+    def __init__(self, missing_permissions: List[str], *args: Any):
+        self.missing_permissions: List[str] = missing_permissions
 
         missing = [
             p.replace("_", " ").replace("guild", "server").title()
@@ -76,8 +82,8 @@ class BotMissingAnyPermissions(commands.CheckFailure):
         missing. These are the parameters passed
         to :func:`bot_has_any_permissions`.
     """
-    def __init__(self, missing_permissions, *args):
-        self.missing_permissions = missing_permissions
+    def __init__(self, missing_permissions: List[str], *args: Any):
+        self.missing_permissions: List[str] = missing_permissions
 
         missing = [
             p.replace("_", " ").replace("guild", "server").title()
@@ -90,11 +96,11 @@ class BotMissingAnyPermissions(commands.CheckFailure):
         )
 
 
-def _has_any_permissions(permissions, to_check, /):
+def _has_any_permissions(permissions: Permissions, to_check: Dict[str, bool], /) -> bool:
     return any(getattr(permissions, n, None) == v for n, v in to_check.items())
 
 
-def has_permissions(*, check_any=False, **permissions):
+def has_permissions(*, check_any: bool = False, **permissions: bool) -> Callable[[T], T]:
     """Similar to :func:`commands.has_permissions` except
     allows the option to check for either all or any given
     permissions.
@@ -134,14 +140,16 @@ def has_permissions(*, check_any=False, **permissions):
         This only applies if ``check_any`` is ``True``.
     """
 
-    async def predicate(ctx):
+    async def predicate(ctx: commands.Context) -> bool:
         if await ctx.bot.is_owner(ctx.author):
             return True
 
         if not check_any:
             return commands.has_permissions(**permissions).predicate
 
-        if not _has_any_permissions(ctx.channel.permissions_for(ctx.author), permissions):
+        channel_permissions = ctx.channel.permissions_for(ctx.author)  # type: ignore
+
+        if not _has_any_permissions(channel_permissions, permissions):
             raise MissingAnyPermissions(list(permissions))
 
         return True
@@ -149,7 +157,7 @@ def has_permissions(*, check_any=False, **permissions):
     return commands.check(predicate)
 
 
-def has_guild_permissions(*, check_any=False, **permissions):
+def has_guild_permissions(*, check_any: bool = False, **permissions: bool) -> Callable[[T], T]:
     """Similar to :func:`has_permissions`, but operates on
     guild-wide permissions instead of the current channel
     permissions.
@@ -184,7 +192,7 @@ def has_guild_permissions(*, check_any=False, **permissions):
         The command was executed in a private message.
     """
 
-    async def predicate(ctx):
+    async def predicate(ctx: commands.Context) -> bool:
         if ctx.guild is None:
             raise commands.NoPrivateMessage()
 
@@ -194,7 +202,9 @@ def has_guild_permissions(*, check_any=False, **permissions):
         if not check_any:
             return commands.has_guild_permissions(**permissions).predicate
 
-        if not _has_any_permissions(ctx.author.guild_permissions, permissions):
+        guild_permissions = ctx.author.guild_permissions  # type: ignore
+
+        if not _has_any_permissions(guild_permissions, permissions):
             raise MissingAnyPermissions(list(permissions))
 
         return True
@@ -202,7 +212,7 @@ def has_guild_permissions(*, check_any=False, **permissions):
     return commands.check(predicate)
 
 
-def bot_has_any_permissions(**permissions):
+def bot_has_any_permissions(**permissions: bool) -> Callable[[T], T]:
     """Similar to :func:`commands.bot_has_permissions`,
     but checks if the bot's member has **ANY** of the
     given permissions, instead of all.
@@ -220,8 +230,10 @@ def bot_has_any_permissions(**permissions):
         The bot was missing all of the given permissions.
     """
 
-    def predicate(ctx):
-        if not _has_any_permissions(ctx.channel.permissions_for(ctx.me), permissions):
+    def predicate(ctx: commands.Context) -> bool:
+        channel_permissions = ctx.channel.permissions_for(ctx.me)  # type: ignore
+
+        if not _has_any_permissions(channel_permissions, permissions):
             raise BotMissingAnyPermissions(list(permissions))
 
         return True
@@ -229,7 +241,7 @@ def bot_has_any_permissions(**permissions):
     return commands.check(predicate)
 
 
-def bot_has_any_guild_permissions(**permissions):
+def bot_has_any_guild_permissions(**permissions: bool) -> Callable[[T], T]:
     """Similar to :func:`bot_has_any_permissions`, but
     operates on guild-wide permissions instead of the
     current channel permissions.
@@ -249,11 +261,13 @@ def bot_has_any_guild_permissions(**permissions):
         The command was executed in a private message.
     """
 
-    def predicate(ctx):
+    def predicate(ctx: commands.Context) -> bool:
         if ctx.guild is None:
             raise commands.NoPrivateMessage()
 
-        if not _has_any_permissions(ctx.me.guild_permissions, permissions):
+        guild_permissions = ctx.me.guild_permissions  # type: ignore
+
+        if not _has_any_permissions(guild_permissions, permissions):
             raise BotMissingAnyPermissions(list(permissions))
 
         return True
@@ -261,7 +275,7 @@ def bot_has_any_guild_permissions(**permissions):
     return commands.check(predicate)
 
 
-def is_guild_owner():
+def is_guild_owner() -> Callable[[T], T]:
     """A :func:`commands.check` that checks if the user
     invoking this command is the guild owner.
 
@@ -273,7 +287,7 @@ def is_guild_owner():
         The command was executed in a private message.
     """
 
-    async def predicate(ctx):
+    async def predicate(ctx: commands.Context) -> bool:
         if ctx.guild is None:
             raise commands.NoPrivateMessage()
 
@@ -285,7 +299,7 @@ def is_guild_owner():
     return commands.check(predicate)
 
 
-def is_guild_manager():
+def is_guild_manager() -> Callable[[T], T]:
     """A :func:`commands.check` that checks if the
     user invoking this command has the ``manage_guild``
     permission.
@@ -308,7 +322,7 @@ def is_guild_manager():
     return has_guild_permissions(manage_guild=True)
 
 
-def is_guild_admin():
+def is_guild_admin() -> Callable[[T], T]:
     """Same as :func:`is_guild_manager`, except checks
     for the ``administrator`` permission instead.
 
@@ -330,7 +344,7 @@ def is_guild_admin():
     return has_guild_permissions(administrator=True)
 
 
-def guild_manager_or_permissions(**permissions):
+def guild_manager_or_permissions(**permissions: bool) -> Callable[[T], T]:
     """A :func:`commands.check` that checks if the
     user invoking this command has the ``manage_guild``
     permission or any of the given permissions.
@@ -361,7 +375,7 @@ def guild_manager_or_permissions(**permissions):
     return has_guild_permissions(check_any=True, manage_guild=True, **permissions)
 
 
-def guild_admin_or_permissions(**permissions):
+def guild_admin_or_permissions(**permissions: bool) -> Callable[[T], T]:
     """Similar to :func:`guild_manager_or_permissions`,
     except checks for the ``administrator`` permission
     or any of the given permissions instead.
@@ -392,7 +406,7 @@ def guild_admin_or_permissions(**permissions):
     return has_guild_permissions(check_any=True, administrator=True, **permissions)
 
 
-def can_start_menu(*, check_embed=False):
+def can_start_menu(*, check_embed: bool = False) -> Callable[[T], T]:
     """A :func:`commands.check` that checks if the bot
     can start a reaction menu.
 
@@ -452,7 +466,7 @@ def can_start_menu(*, check_embed=False):
     return commands.bot_has_permissions(**permissions)
 
 
-def is_in_guilds(*guild_ids):
+def is_in_guilds(*guild_ids: int) -> Callable[[T], T]:
     """A :func:`commands.check` that checks if the user
     invoking this command is a member of any of the given
     guilds.
@@ -468,7 +482,7 @@ def is_in_guilds(*guild_ids):
         The command was executed in a private message.
     """
 
-    async def predicate(ctx):
+    async def predicate(ctx: commands.Context) -> bool:
         if ctx.guild is None:
             raise commands.NoPrivateMessage()
 
@@ -477,7 +491,7 @@ def is_in_guilds(*guild_ids):
     return commands.check(predicate)
 
 
-def is_in_channels(*channel_ids):
+def is_in_channels(*channel_ids: int) -> Callable[[T], T]:
     """Same as :func:`is_in_guilds`, except checks if
     the user is invoking this command in any of the
     given channels.
@@ -488,13 +502,13 @@ def is_in_channels(*channel_ids):
         The channel IDs to check for.
     """
 
-    async def predicate(ctx):
+    async def predicate(ctx: commands.Context) -> bool:
         return ctx.channel.id in channel_ids or await ctx.bot.is_owner(ctx.author)
 
     return commands.check(predicate)
 
 
-def are_users(*user_ids):
+def are_users(*user_ids: int) -> Callable[[T], T]:
     """Same as :func:`is_in_guilds`, except checks if
     the user invoking this command is any of the given
     users.
@@ -505,7 +519,7 @@ def are_users(*user_ids):
         The user IDs to check for.
     """
 
-    async def predicate(ctx):
+    async def predicate(ctx: commands.Context) -> bool:
         return ctx.author.id in user_ids or await ctx.bot.is_owner(ctx.author)
 
     return commands.check(predicate)

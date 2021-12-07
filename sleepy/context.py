@@ -7,6 +7,9 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+from __future__ import annotations
+
+
 __all__ = (
     "Context",
 )
@@ -14,6 +17,7 @@ __all__ = (
 
 import asyncio
 import copy
+from typing import TYPE_CHECKING, Any, Callable, Optional, Sequence, Union
 
 import discord
 from discord.ext import commands
@@ -21,6 +25,14 @@ from discord.utils import cached_property
 
 from .menus import ConfirmationPrompt, PaginationMenu
 from .utils import plural
+
+
+if TYPE_CHECKING:
+    from aiohttp import ClientSession
+    from discord.abc import MessageableChannel
+    from discord.ext.menus import PageSource
+
+    from .http import HTTPResponseData, RequestUrl
 
 
 class Context(commands.Context):
@@ -34,7 +46,7 @@ class Context(commands.Context):
     """
 
     @property
-    def loop(self):
+    def loop(self) -> asyncio.AbstractEventLoop:
         """:class:`asyncio.AbstractEventLoop`: The bot's event loop.
 
         .. versionadded:: 3.0
@@ -42,12 +54,12 @@ class Context(commands.Context):
         return self.bot.loop
 
     @property
-    def session(self):
+    def session(self) -> ClientSession:
         """:class:`aiohttp.ClientSession`: The http requester's client session."""
         return self.bot.http_requester.session
 
     @cached_property
-    def replied_reference(self):
+    def replied_reference(self) -> Optional[discord.MessageReference]:
         """Optional[:class:`discord.MessageReference`]: The replied message reference.
 
         .. versionadded:: 3.0
@@ -59,7 +71,15 @@ class Context(commands.Context):
 
         return None
 
-    async def request(self, method, url, /, *, cache__=False, **kwargs):
+    async def request(
+        self,
+        method: str,
+        url: RequestUrl,
+        /,
+        *,
+        cache__: bool = False,
+        **kwargs: Any
+    ) -> HTTPResponseData:
         """|coro|
 
         Same as :meth:`HTTPRequester.request`.
@@ -71,7 +91,14 @@ class Context(commands.Context):
         """
         return await self.bot.http_requester.request(method, url, cache__=cache__, **kwargs)
 
-    async def get(self, url, /, *, cache__=False, **kwargs):
+    async def get(
+        self,
+        url: RequestUrl,
+        /,
+        *,
+        cache__: bool = False,
+        **kwargs: Any
+    ) -> HTTPResponseData:
         """|coro|
 
         Similar to :meth:`request`, but slimmed down to only do GET requests.
@@ -83,7 +110,14 @@ class Context(commands.Context):
         """
         return await self.request("GET", url, cache__=cache__, **kwargs)
 
-    async def post(self, url, /, *, cache__=False, **kwargs):
+    async def post(
+        self,
+        url: RequestUrl,
+        /,
+        *,
+        cache__: bool = False,
+        **kwargs: Any
+    ) -> HTTPResponseData:
         """|coro|
 
         Similar to :meth:`request`, but slimmed down to only do POST requests.
@@ -95,7 +129,7 @@ class Context(commands.Context):
         """
         return await self.request("POST", url, cache__=cache__, **kwargs)
 
-    async def paginate(self, source, /, **kwargs):
+    async def paginate(self, source: PageSource, /, **kwargs: Any) -> None:
         """|coro|
 
         Starts a new pagination menu in this context's channel.
@@ -116,7 +150,14 @@ class Context(commands.Context):
         menu = PaginationMenu(source, **kwargs)
         await menu.start(self)
 
-    async def prompt(self, message, /, *, timeout=30, delete_message_after=True):
+    async def prompt(
+        self,
+        message: discord.Message,
+        /,
+        *,
+        timeout: float = 30,
+        delete_message_after: bool = True
+    ) -> Optional[bool]:
         """|coro|
 
         Starts a new confirmation menu in this context's channel.
@@ -155,7 +196,14 @@ class Context(commands.Context):
         prompt = ConfirmationPrompt(message, timeout=timeout, delete_message_after=delete_message_after)
         return await prompt.start(self)
 
-    async def disambiguate(self, matches, /, formatter=None, *, timeout=30):
+    async def disambiguate(
+        self,
+        matches: Sequence[Any],
+        /,
+        formatter: Callable[[Any], str] = None,
+        *,
+        timeout: float = 30
+    ) -> Any:
         """|coro|
 
         Starts a new disambiguation session.
@@ -214,7 +262,7 @@ class Context(commands.Context):
             f"Too many matches. Type the number of the one you meant.\n>>> {choices}"
         )
 
-        def check(m):
+        def check(m: discord.Message) -> bool:
             return (
                 m.channel == self.channel
                 and m.author == self.author
@@ -242,7 +290,13 @@ class Context(commands.Context):
 
         raise ValueError("Too many invalid attempts. Aborting...")
 
-    async def copy_with(self, *, author=None, channel=None, **properties):
+    async def copy_with(
+        self,
+        *,
+        author: Optional[Union[discord.Member, discord.User]] = None,
+        channel: Optional[MessageableChannel] = None,
+        **properties: Any
+    ) -> "Context":
         """|coro|
 
         Returns a new :class:`Context` instance with
@@ -287,7 +341,7 @@ class Context(commands.Context):
     # which command exceptions get forgiven in terms of cooldown.
     # Unfortunately, this has to touch a lot of private methods
     # because there isn't a better or cleaner way to do this.
-    def _refund_cooldown_token(self):
+    def _refund_cooldown_token(self) -> None:
         if not self.valid:
             return
 

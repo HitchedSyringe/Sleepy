@@ -7,6 +7,9 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+from __future__ import annotations
+
+
 __all__ = (
     "plural",
     "awaitable",
@@ -29,11 +32,38 @@ import time
 from datetime import datetime, timezone
 from functools import partial, wraps
 from pathlib import Path
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Coroutine,
+    Generator,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    TypeVar,
+    Union,
+    overload,
+)
 
 from dateutil.relativedelta import relativedelta
 
 
-_DEFAULT_SHORT_NUMBER_SUFFIXES = (
+if TYPE_CHECKING:
+    T = TypeVar("T")
+
+    Coro = Coroutine[Any, Any, T]
+    Func = Callable[..., T]
+
+    AnyCoro = Coro[Any]
+    AnyFunc = Func[Any]
+
+    PerfWrappedFunc = Func[Func[Tuple[Any, float]]]
+    PerfWrappedCoro = Func[Coro[Tuple[Any, float]]]
+
+
+_DEFAULT_SHORT_NUMBER_SUFFIXES: Tuple[str, ...] = (
     "",
     "K",
     "M",
@@ -47,12 +77,12 @@ _DEFAULT_SHORT_NUMBER_SUFFIXES = (
 
 
 # Emojis used for the progress bar.
-_FR = "<:pb_r_f:786093987336421376>"
-_ER = "<:pb_r_e:786093986838347836>"
-_FL = "<:pb_l_f:786093987076374548>"
-_EL = "<:pb_l_e:786093986745942037>"
-_FB = "<:pb_b_f:786093986703605830>"
-_EB = "<:pb_b_e:786093986233188363>"
+_FR: str = "<:pb_r_f:786093987336421376>"
+_ER: str = "<:pb_r_e:786093986838347836>"
+_FL: str = "<:pb_l_f:786093987076374548>"
+_EL: str = "<:pb_l_e:786093986745942037>"
+_FB: str = "<:pb_b_f:786093986703605830>"
+_EB: str = "<:pb_b_e:786093986233188363>"
 
 
 class plural:
@@ -102,14 +132,19 @@ class plural:
 
     __slots__ = ("__value", "__value_fmt")
 
-    def __init__(self, value, /, value_format_spec=None):
+    def __init__(
+        self,
+        value: float,
+        /,
+        value_format_spec: Optional[str] = None
+    ) -> None:
         if not isinstance(value, (int, float)):
             raise TypeError(f"Expected value to be int or float, not {type(value)!r}.")
 
         self.__value = value
         self.__value_fmt = value_format_spec or ""
 
-    def __format__(self, spec):
+    def __format__(self, spec: str) -> str:
         singular, _, plural = spec.partition("|")
         value = self.__value
 
@@ -119,7 +154,7 @@ class plural:
         return f"{value:{self.__value_fmt}} {plural or singular + 's'}"
 
 
-def awaitable(func):
+def awaitable(func: AnyFunc) -> Func[AnyCoro]:
     """A decorator that transforms a sync function into
     an awaitable function.
 
@@ -143,14 +178,14 @@ def awaitable(func):
     """
 
     @wraps(func)
-    async def decorator(*args, **kwargs):
+    async def decorator(*args: Any, **kwargs: Any) -> Any:
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, partial(func, *args, **kwargs))
 
     return decorator
 
 
-def bool_to_emoji(value):
+def bool_to_emoji(value: Optional[Any]) -> str:
     """Returns an emoji based on a given boolean-like value.
 
     This exists to assist with humanizing :class:`bool` values.
@@ -179,7 +214,7 @@ def bool_to_emoji(value):
     return "<:check:821284209401921557>" if value else "<:x_:821284209792516096>"
 
 
-def find_extensions_in(path):
+def find_extensions_in(path: Union[str, Path]) -> Generator[str, None, None]:
     """Returns a generator with the names of every
     recognized extension in the given path.
 
@@ -210,7 +245,14 @@ def find_extensions_in(path):
         yield ".".join(extension.with_suffix("").parts).lstrip(".")
 
 
-def human_delta(dt1, dt2=None, /, *, brief=False, absolute=False):
+def human_delta(
+    dt1: datetime,
+    dt2: Optional[datetime] = None,
+    /,
+    *,
+    brief: bool = False,
+    absolute: bool = False
+) -> str:
     """Humanizes the delta between two given datetimes.
 
     .. versionadded:: 1.9
@@ -327,7 +369,7 @@ def human_delta(dt1, dt2=None, /, *, brief=False, absolute=False):
     return humanised + " ago"
 
 
-def human_join(sequence, /, *, joiner="and"):
+def human_join(sequence: Sequence[Any], /, *, joiner: str = "and") -> str:
     """Returns a human-readable, comma-separted sequence,
     with the last element joined with a given joiner.
 
@@ -399,12 +441,12 @@ def human_join(sequence, /, *, joiner="and"):
 
 
 def human_number(
-    number,
+    number: float,
     /,
-    sigfigs=3,
+    sigfigs: int = 3,
     *,
-    strip_trailing_zeroes=True,
-    suffixes=_DEFAULT_SHORT_NUMBER_SUFFIXES
+    strip_trailing_zeroes: bool = True,
+    suffixes: Tuple[str, ...] = _DEFAULT_SHORT_NUMBER_SUFFIXES
 ):
     """Humanizes a given number.
 
@@ -503,7 +545,17 @@ def human_number(
     return f"{number}{suffixes[magnitude]}"
 
 
-def measure_performance(func):
+@overload
+def measure_performance(func: AnyFunc) -> PerfWrappedFunc:
+    ...
+
+
+@overload
+def measure_performance(func: AnyCoro) -> PerfWrappedCoro:
+    ...
+
+
+def measure_performance(func: Union[AnyFunc, AnyCoro]) -> Union[PerfWrappedFunc, PerfWrappedCoro]:
     """A decorator that returns a function or coroutine's
     execution time in milliseconds.
 
@@ -541,24 +593,24 @@ def measure_performance(func):
     # Python 3.8.
     if asyncio.iscoroutinefunction(func):
 
-        @wraps(func)
-        async def decorator(*args, **kwargs):
+        @wraps(func)  # type: ignore
+        async def decorator(*args: Any, **kwargs: Any) -> Tuple[Any, float]:  # type: ignore
             start = time.perf_counter()
-            result = await func(*args, **kwargs)
+            result = await func(*args, **kwargs)  # type: ignore
             return result, (time.perf_counter() - start) * 1000
 
     else:
 
-        @wraps(func)
-        def decorator(*args, **kwargs):
+        @wraps(func)  # type: ignore
+        def decorator(*args: Any, **kwargs: Any) -> Tuple[Any, float]:
             start = time.perf_counter()
-            result = func(*args, **kwargs)
+            result = func(*args, **kwargs)  # type: ignore
             return result, (time.perf_counter() - start) * 1000
 
-    return decorator
+    return decorator  # type: ignore
 
 
-def progress_bar(*, progress, maximum, per=1):
+def progress_bar(*, progress: int, maximum: int, per: int = 1) -> str:
     """Constructs a progress bar.
 
     .. versionadded:: 2.0
@@ -628,7 +680,7 @@ def progress_bar(*, progress, maximum, per=1):
     return _FR + _FB * (filled - 1) + _EB * (total - filled - 1) + _EL
 
 
-def randint(a, b, /, *, seed=None):
+def randint(a: int, b: int, /, *, seed: Optional[Any] = None) -> int:
     """Similar to :func:`random.randint`, but allows
     for setting a seed without modifying the global
     :class:`random.Random` instance.
@@ -651,7 +703,11 @@ def randint(a, b, /, *, seed=None):
     return random.Random(seed).randint(a, b)
 
 
-def tchart(items, /, keys_formatter=None):
+def tchart(
+    items: Mapping[Any, Any],
+    /,
+    keys_formatter: Optional[Callable[[Any], str]] = None
+) -> str:
     """Renders a T-Chart.
 
     .. versionadded:: 1.13.3
@@ -690,7 +746,7 @@ def tchart(items, /, keys_formatter=None):
     return "\n".join(f"{keys_formatter(k):<{width}} | {v}" for k, v in items.items())
 
 
-def truncate(text, /, width, *, placeholder="..."):
+def truncate(text: str, /, width: int, *, placeholder: str = "...") -> str:
     """Truncates a long string to the given width.
 
     If the string does not exceed the given width,

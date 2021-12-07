@@ -7,6 +7,9 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+from __future__ import annotations
+
+
 __all__ = (
     "Sleepy",
 )
@@ -15,6 +18,7 @@ __all__ = (
 import logging
 import re
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, Generator, Mapping, Optional
 
 import discord
 from discord.ext import commands
@@ -24,6 +28,10 @@ from . import __version__
 from .context import Context
 from .http import HTTPRequester, HTTPRequestFailed
 from .utils import find_extensions_in, human_join
+
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 
 _LOG = logging.getLogger(__name__)
@@ -116,7 +124,7 @@ class Sleepy(commands.Bot):
             This is now a UTC-aware datetime.
     """
 
-    def __init__(self, config, /, *args, **kwargs):
+    def __init__(self, config: Mapping[str, Any], /, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
 
         if kwargs.get("case_insensitive_cogs"):
@@ -124,17 +132,22 @@ class Sleepy(commands.Bot):
             # but unfortunately, this is the good and only way.
             self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 
-        self.app_info = None
-        self.config = config
-        self.extensions_directory = exts_dir = Path(config["extensions_directory"] or ".")
-        self.http_requester = HTTPRequester(
-            cache=kwargs.get("http_cache"),
-            headers={"User-Agent": f"Sleepy-Discord-Bot/{__version__} (https://github.com/HitSyr/Sleepy)"}
-        )
-        self.started_at = None
+        self.app_info: Optional[discord.AppInfo] = None
+        self.config: Mapping[str, Any] = config
+        self.started_at: Optional[datetime] = None
+
+        self.extensions_directory = exts_dir = \
+            Path(config["extensions_directory"] or ".")  # type: Path
+
+        headers = {
+            "User-Agent": f"Sleepy-Discord-Bot/{__version__} (https://github.com/HitSyr/Sleepy)"
+        }
+        self.http_requester: HTTPRequester = \
+            HTTPRequester(cache=kwargs.get("http_cache"), headers=headers)
 
         # Cooldown mapping for people who excessively spam commands.
-        self._spam_control = commands.CooldownMapping.from_cooldown(10, 12, commands.BucketType.user)
+        self._spam_control: commands.CooldownMapping = \
+            commands.CooldownMapping.from_cooldown(10, 12, commands.BucketType.user)
 
         if config["enable_autoload"]:
             to_load = self.get_all_extensions()
@@ -167,7 +180,7 @@ class Sleepy(commands.Bot):
         _LOG.info("Extensions stats: %d loaded; %d failed; %d total", loaded, total - loaded, total)
 
     @cached_property
-    def webhook(self):
+    def webhook(self) -> discord.Webhook:
         """:class:`discord.Webhook`: The bot's system webhook.
 
         .. versionadded:: 1.12
@@ -181,7 +194,7 @@ class Sleepy(commands.Bot):
         )
 
     @property
-    def owner(self):
+    def owner(self) -> Optional[discord.User]:
         """Optional[:class:`discord.User`]: The bot's owner.
 
         This first attempts to resolve a user from the configured
@@ -225,11 +238,11 @@ class Sleepy(commands.Bot):
                 # * Consistency (i.e. returning :class:`discord.User`
                 #   instead of :class:`discord.TeamMember`)
                 # * :attr:`Team.owner` is O(n); this is O(1).
-                owner = self.get_user(self.app_info.team.owner_id)
+                owner = self.get_user(self.app_info.team.owner_id)  # type: ignore
 
         return owner
 
-    async def __boot(self):
+    async def __boot(self) -> None:
         self.started_at = utcnow()
         self.app_info = await self.application_info()
 
@@ -268,7 +281,7 @@ class Sleepy(commands.Bot):
 
         # _LOG.info("| Shard IDS (%s): %s", self.shard_count, self.shard_ids)
 
-    def get_all_extensions(self):
+    def get_all_extensions(self) -> Generator[str, None, None]:
         """Returns a generator of all recognized extensions
         in the configured extensions directory.
 
@@ -284,29 +297,29 @@ class Sleepy(commands.Bot):
         """
         return find_extensions_in(self.extensions_directory)
 
-    async def login(self, token):
+    async def login(self, token: str) -> None:
         await super().login(token)
         # This has to be a task since wait_until_ready
         # will block from ever actually reaching ready.
         self.loop.create_task(self.__boot())
 
-    async def close(self):
+    async def close(self) -> None:
         await self.http_requester.close()
         await super().close()
 
-    async def on_ready(self):
+    async def on_ready(self) -> None:
         _LOG.info("Bot ready.")
 
-    async def on_resumed(self):
+    async def on_resumed(self) -> None:
         _LOG.info("Bot resumed.")
 
-    async def process_commands(self, message):
+    async def process_commands(self, message: discord.Message) -> None:
         author = message.author
 
         if author.bot:
             return
 
-        if not await self.is_owner(author):
+        if not await self.is_owner(author):  # type: ignore
             current = message.edited_at or message.created_at
             retry_after = self._spam_control.update_rate_limit(message, current.timestamp())
 
@@ -324,11 +337,11 @@ class Sleepy(commands.Bot):
         ctx = await self.get_context(message, cls=Context)
         await self.invoke(ctx)
 
-    async def on_command(self, ctx):
-        if await self.is_owner(ctx.author):
+    async def on_command(self, ctx: Context) -> None:
+        if await self.is_owner(ctx.author):  # type: ignore
             ctx.command.reset_cooldown(ctx)
 
-    async def on_command_error(self, ctx, error):
+    async def on_command_error(self, ctx: Context, error: commands.CommandError) -> None:
         ignored = (
             commands.CommandNotFound,
             commands.DisabledCommand,
