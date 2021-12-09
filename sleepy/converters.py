@@ -82,7 +82,7 @@ class ImageAssetTooLarge(commands.BadArgument):
         )
 
 
-class ImageAssetConverter(commands.Converter):
+class ImageAssetConverter(commands.Converter[PartialAsset]):
     """Converts a user, custom emoji, image attachment,
     image URL, or message to a :class:`PartialAsset`.
 
