@@ -387,11 +387,10 @@ def _process_attachments(command, converter, ctx, param):
 
     if ref is None:
         attachments = ctx.message.attachments
-    else:
-        if not isinstance(ref.resolved, Message):
-            return param
-
+    elif isinstance(ref.resolved, Message):
         attachments = ref.resolved.attachments
+    else:
+        return param
 
     if not attachments:
         return param
