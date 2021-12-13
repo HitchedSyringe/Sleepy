@@ -111,7 +111,12 @@ class HTTPRequester:
 
     __slots__: Tuple[str, ...] = ("_cache", "_loop", "_request_lock", "__session")
 
-    def __init__(self, *, cache: Optional[MutableMapping[str, Any]] = None, **kwargs: Any):
+    def __init__(
+        self,
+        *,
+        cache: Optional[MutableMapping[str, Any]] = None,
+        **kwargs: Any
+    ) -> None:
         if cache is not None and not isinstance(cache, MutableMapping):
             raise TypeError(f"cache must be MutableMapping or NoneType, not {type(cache)!r}.")
 

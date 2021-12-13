@@ -123,7 +123,7 @@ class PaginatorSource(menus.ListPageSource):
         /,
         *,
         show_page_count: bool = True
-    ):
+    ) -> None:
         self.paginator = paginator
         self._show_page_count = show_page_count
 

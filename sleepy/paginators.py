@@ -62,7 +62,7 @@ class WrappedPaginator(commands.Paginator):
         *,
         force_wrapping: bool = False,
         wrap_with_delimiters: bool = True
-    ):
+    ) -> None:
         super().__init__(prefix, suffix, max_size, linesep)
 
         self.wrap_on: Sequence[str] = wrap_on

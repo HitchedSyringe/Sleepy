@@ -52,7 +52,7 @@ class PartialAsset(AssetMixin):
 
     __slots__: Tuple[str, ...] = ("_state", "_url")
 
-    def __init__(self, state: Optional[Any], *, url: str):
+    def __init__(self, state: Optional[Any], *, url: str) -> None:
         self._state: Optional[Any] = state
         self._url: str = url
 

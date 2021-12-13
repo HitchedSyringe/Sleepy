@@ -53,7 +53,7 @@ class MissingAnyPermissions(commands.CheckFailure):
         :func:`has_permissions`.
     """
 
-    def __init__(self, missing_permissions: List[str], *args: Any):
+    def __init__(self, missing_permissions: List[str], *args: Any) -> None:
         self.missing_permissions: List[str] = missing_permissions
 
         missing = [
@@ -82,7 +82,7 @@ class BotMissingAnyPermissions(commands.CheckFailure):
         missing. These are the parameters passed
         to :func:`bot_has_any_permissions`.
     """
-    def __init__(self, missing_permissions: List[str], *args: Any):
+    def __init__(self, missing_permissions: List[str], *args: Any) -> None:
         self.missing_permissions: List[str] = missing_permissions
 
         missing = [
