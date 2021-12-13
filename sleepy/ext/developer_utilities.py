@@ -221,15 +221,18 @@ class DeveloperUtilities(
             result = "```\n" + escape_mentions(result.replace("`", "`\u200b")) + "\n```"
         else:
             try:
-                key = await ctx.post("https://hastebin.com/documents", data__=result)
-            except HTTPRequestFailed:
-                await ctx.send("The output was too long and uploading it to hastebin failed.")
-                return
-            else:
-                result = (
-                    "The output was too long, so I've uploaded it to"
-                    f" hastebin: <https://hastebin.com/{key['key']}>\n"
+                key = await ctx.post(
+                    "https://www.toptal.com/developers/hastebin/documents",
+                    data__=result
                 )
+            except HTTPRequestFailed:
+                await ctx.send("The output was too long and uploading it failed.")
+                return
+
+            result = (
+                "The output was too long, so I've uploaded it here:"
+                f"\n<https://www.toptal.com/developers/hastebin/{key['key']}>\n"
+            )
 
         menu = DisposableResultMenu(
             f"**{resp['language']} ({resp['version']})**\n{result}"
