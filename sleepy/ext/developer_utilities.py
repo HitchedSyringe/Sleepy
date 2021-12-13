@@ -25,18 +25,19 @@ from sleepy.menus import PaginatorSource
 from sleepy.paginators import WrappedPaginator
 
 
-class DisposableResultMenu(menus.Menu):
+class PistonResultMenu(menus.Menu):
 
-    def __init__(self, content):
+    def __init__(self, lang, ver, code, out):
         # This menu is set up to only delete itself if the
         # bin button is pressed. Otherwise, the bin button
         # will simply be cleared on timeout.
         super().__init__(clear_reactions_after=True, timeout=300)
 
-        self._content = content
+        self._msg = \
+            f"**{lang} ({ver})**\n{out}\nExit code: {code}\n`Powered by Piston`"
 
     async def send_initial_message(self, ctx, channel):
-        return await channel.send(self._content)
+        return await channel.send(self._msg)
 
     @menus.button("\N{WASTEBASKET}\ufe0f")
     async def dispose(self, payload):
@@ -202,42 +203,42 @@ class DeveloperUtilities(
         await ctx.trigger_typing()
 
         try:
-            resp = await ctx.post("https://emkc.org/api/v2/piston/execute", json__=body)
+            data = await ctx.post("https://emkc.org/api/v2/piston/execute", json__=body)
         except HTTPRequestFailed as exc:
-            await ctx.send(exc.data.get("message", "Compiling your code failed. Try again later?"))
+            msg = exc.data.get("message", "Compilation failed. Try again later?")
+            await ctx.send(msg)
             return
 
-        run = resp["run"]
-        result = run["output"]
+        run = data["run"]
+        out = run["output"]
 
         try:
-            result += resp["compile"]["stderr"]
+            out += data["compile"]["stderr"]
         except (KeyError, TypeError):
             pass
 
-        if not result:
-            result = "Your code produced no output.\n"
-        elif len(result) < 1000 and result.count("\n") < 50:
-            result = "```\n" + escape_mentions(result.replace("`", "`\u200b")) + "\n```"
+        if not out:
+            await ctx.send("Your code produced no output.\n`Powered by Piston`")
+            return
+
+        if len(out) < 1000 and out.count("\n") < 50:
+            out = "```\n" + escape_mentions(out.replace("`", "`\u200b")) + "\n```"
         else:
             try:
-                key = await ctx.post(
+                doc = await ctx.post(
                     "https://www.toptal.com/developers/hastebin/documents",
-                    data__=result
+                    data__=out
                 )
             except HTTPRequestFailed:
                 await ctx.send("The output was too long and uploading it failed.")
                 return
 
-            result = (
-                "The output was too long, so I've uploaded it here:"
-                f"\n<https://www.toptal.com/developers/hastebin/{key['key']}>\n"
+            out = (
+                "\nThe output was too long, so I've uploaded it here:"
+                f"\n<https://www.toptal.com/developers/hastebin/{doc['key']}>\n"
             )
 
-        menu = DisposableResultMenu(
-            f"**{resp['language']} ({resp['version']})**\n{result}"
-            f"\nExit code: {run['code']}\n`Powered by Piston`"
-        )
+        menu = PistonResultMenu(data["language"], data["version"], run["code"], out)
         await menu.start(ctx)
 
     @piston.error
