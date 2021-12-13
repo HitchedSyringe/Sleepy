@@ -64,6 +64,9 @@ class PistonPayload(commands.Converter):
 
         args, language, src, stdin = payload_match.groups()
 
+        if not src:
+            raise commands.BadArgument("You must provide code to compile.")
+
         if not language:
             raise commands.BadArgument("You must provide a language to compile with.")
 
