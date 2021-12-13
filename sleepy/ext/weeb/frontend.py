@@ -349,20 +349,27 @@ class Weeb(
         """
         await ctx.send(file=File(TEMPLATES / "gah.gif"))
 
-    @commands.command(aliases=("hatsunemiku",))
-    @commands.bot_has_permissions(embed_links=True)
-    async def miku(self, ctx):
-        """Shows a random image of Hatsune Miku.
+    # Commented out because the API this is powered by is
+    # currently on hiatus until v3 is completed, in an
+    # effort to respect content creators and their work,
+    # since the API provided these images uncredited.
+    # This will be uncommented when the API comes back,
+    # and I'll make sure to include the credits the API
+    # provides in the resulting embed.
+    # @commands.command(aliases=("hatsunemiku",))
+    # @commands.bot_has_permissions(embed_links=True)
+    # async def miku(self, ctx):
+    #     """Shows a random image of Hatsune Miku.
 
-        (Bot Needs: Embed Links)
-        """
-        resp = await ctx.get("https://miku-for.us/api/v2/random")
+    #     (Bot Needs: Embed Links)
+    #     """
+    #     resp = await ctx.get("https://miku-for.us/api/v2/random")
 
-        embed = Embed(colour=0x2F3136)
-        embed.set_image(url=resp["url"])
-        embed.set_footer(text="Powered by miku-for.us")
+    #     embed = Embed(colour=0x2F3136)
+    #     embed.set_image(url=resp["url"])
+    #     embed.set_footer(text="Powered by miku-for.us")
 
-        await ctx.send(embed=embed)
+    #     await ctx.send(embed=embed)
 
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
