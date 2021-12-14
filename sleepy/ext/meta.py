@@ -529,21 +529,10 @@ class Meta(commands.Cog):
         else:
             guild = ctx.guild
 
-        icon = guild.icon_url_as(static_format="png")
-
-        embed = Embed(colour=0x2F3136, description=f"{guild.description}\n**[Icon]({icon})**")
+        embed = Embed(colour=0x2F3136, description=guild.description or Embed.Empty)
         embed.set_author(name=guild.name)
-        embed.set_thumbnail(url=icon)
-
-        if banner := guild.banner_url_as(format="png"):
-            embed.description += f" \N{BULLET} **[Banner]({banner})**"
-            embed.set_image(url=banner)
-
-        if discovery_splash := guild.discovery_splash_url_as(format="png"):
-            embed.description += f" \N{BULLET} **[Discovery Splash]({discovery_splash})**"
-
-        if invite_splash := guild.splash_url_as(format="png"):
-            embed.description += f" \N{BULLET} **[Invite Splash]({invite_splash})**"
+        embed.set_image(url=guild.banner_url)
+        embed.set_thumbnail(url=guild.icon_url)
 
         embed.add_field(
             name="Information",
