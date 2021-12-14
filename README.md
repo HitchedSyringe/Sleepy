@@ -63,7 +63,7 @@ When adding commands, look at the other commands in the category and pick which 
 
 * [aiofiles](https://github.com/Tinche/aiofiles)
 * [cachetools](https://github.com/tkem/cachetools) (optional but recommended)
-* [discord.py 1.7.x](https://github.com/Rapptz/discord.py)
+* [discord.py 2.0.0a](https://github.com/Rapptz/discord.py)
 * [discord-ext-menus](https://github.com/Rapptz/discord-ext-menus)
 * [discord-flags 2.1.0+](https://github.com/HitSyr/Flag-Parsing)
   * This package was originally maintained by XuaTheGrate and has since been deleted. Using `requirements.txt` will install my fork of the above repository.
@@ -87,8 +87,6 @@ When adding commands, look at the other commands in the category and pick which 
 2. **Install the dependencies.**
 
     Use `pip install -U -r requirements.txt`.
-
-    If you plan on using typings, use `pip install -U -r requirements-typings.txt` instead.
 
 3. **Configure the bot.**
 
