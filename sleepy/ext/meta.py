@@ -514,7 +514,7 @@ class Meta(commands.Cog):
         else:
             guild = ctx.guild
 
-        embed = Embed(colour=0x2F3136)
+        embed = Embed(colour=0x2F3136, description=guild.description or Embed.Empty)
         embed.set_author(name=guild.name)
         embed.set_image(url=guild.banner_url)
         embed.set_thumbnail(url=guild.icon_url)
