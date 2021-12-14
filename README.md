@@ -19,9 +19,11 @@
 
 </div>
 
+[invite]: https://discord.com/oauth2/authorize?client_id=507754861585235978&scope=bot&permissions=309238033478
+
 A Discord bot with server moderation, fun commands, image manipulation, and much more, all designed with user-friendliness and simplicity in mind.
 
-To invite my bot, either use the `invite` command in a server the bot is in, or [click here](https://discord.com/api/oauth2/authorize?client_id=507754861585235978&permissions=388166&scope=bot). For more information, feel free to check out the bot's [support server](https://discord.com/invite/xHgh2Xg)!
+To invite my bot, either use the `invite` command in a server the bot is in, or [click here][invite]. For more information, feel free to check out the bot's [support server][discord]!
 
 I would prefer that you don't run an instance of my bot. The source code here is provided for both transparency reasons and educational purposes for discord.py. Just use the instance that I'm hosting. Nevertheless, the instructions to set up the bot are located [here](#installation).
 
