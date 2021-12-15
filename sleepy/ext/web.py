@@ -247,7 +247,7 @@ class Web(
         if len(result) > 1962:
             await ctx.send("The result is too long to post.")
         else:
-            await ctx.send(f"```\n{result}```\n`Powered by newton.varcel.app`")
+            await ctx.send(f"```\n{result}```\n`Powered by newton.vercel.app`")
 
     async def do_google_search(self, ctx, query, *, search_images=False):
         await ctx.trigger_typing()
