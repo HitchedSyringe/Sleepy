@@ -20,9 +20,9 @@ import discord
 import emoji
 import pyfiglet
 from discord import Embed, File
-from discord.ext import commands, menus
+from discord.ext import commands
+from discord.ui import View, select
 from PIL import Image, ImageDraw
-from sleepy import checks
 from sleepy.converters import _pseudo_argument_flag
 from sleepy.utils import (
     awaitable,
@@ -96,72 +96,93 @@ class resolve_emote_char(commands.Converter):
         return argument, "unknown emote"
 
 
-class PollMenu(menus.Menu):
+class PollView(View):
+
+    __slots__ = ("message", "question", "starter", "votes", "__voted")
 
     def __init__(self, question, options):
-        super().__init__(timeout=60, delete_message_after=True)
+        super().__init__(timeout=60)
 
-        self.__options = {}
-
-        for i, option in enumerate(options, 1):
-            # NOTE: This will break if there are more than 10 options.
-            emoji = "\N{KEYCAP TEN}" if i == 10 else f"{i}\ufe0f\N{COMBINING ENCLOSING KEYCAP}"
-
-            self.__options[emoji] = option
-            self.add_button(menus.Button(emoji, self.record_poll_vote))
+        self.message = None
+        self.question = question
+        self.starter = None
 
         self.votes = Counter()
-        self.question = question
+        self.__voted = set()
 
-    def reaction_check(self, payload):
-        return payload.message_id == self.message.id and payload.user_id != self.ctx.me.id
+        for option in options:
+            if len(option) > 100:
+                raise ValueError("One or more options exceed 100 characters.")
 
-    # I'm not gonna bother tracking whether the user
-    # has already voted or not since it's not only a
-    # pain in the neck to do, but it also may provide
-    # some kind of vector for a memory leak depending
-    # on how many users are interacting with this.
-    async def record_poll_vote(self, payload):
-        try:
-            option = self.__options[payload.emoji.name]
-        except KeyError:
-            return
+            self.vote.add_option(label=option)
 
-        if payload.event_type == "REACTION_ADD":
-            self.votes[option] += 1
-        elif payload.event_type == "REACTION_REMOVE":
-            self.votes[option] -= 1
+    async def send_to(self, ctx):
+        self.starter = author = ctx.author
 
-    async def send_initial_message(self, ctx, channel):
         embed = Embed(
-            title="React with one of the following to cast your vote!",
-            description="\n".join(f"{e}: {c}" for e, c in self.__options.items()),
+            title="Everyone will be voting on:",
+            description=self.question,
             colour=0x2F3136
         )
-        embed.set_footer(text="You have 1 minute to cast your vote.")
+        embed.set_author(
+            name=f"{author} is calling a vote!",
+            icon_url=author.display_avatar
+        )
+        embed.set_footer(
+            text="Use the dropdown below to cast your vote! Voting ends in 1 minute."
+        )
 
-        return await channel.send(content=self.question, embed=embed)
+        self.message = await ctx.send(embed=embed, view=self)
 
-    async def finalize(self, timed_out):
-        if (votes := +self.votes):
-            embed = Embed(
-                title="Voting has concluded and the results are in!",
-                description=f"```\n{tchart(dict(votes.most_common()))}```",
-                colour=0x2F3136
-            )
-            embed.set_footer(
-                text=f"{plural(sum(votes.values()), ',d'):vote} casted."
-                     f" \N{BULLET} Started by: {self.ctx.author}"
-            )
-        else:
-            embed = Embed(
-                title="Voting has concluded and... nobody casted a vote?",
-                description="The point of this was to cast a vote, you know.",
-                colour=0x2F3136
-            )
-            embed.set_footer(text=f"Started by: {self.ctx.author}")
+        await self.wait()
 
-        await self.ctx.send(self.question, embed=embed)
+    async def interaction_check(self, itn):
+        user_id = itn.user and itn.user.id
+
+        if user_id is None:
+            return False
+
+        if user_id in self.__voted:
+            await itn.response.send_message("You've already voted!", ephemeral=True)
+            return False
+
+        return True
+
+    @select(placeholder="Select an option.")
+    async def vote(self, select, itn):
+        self.votes[select.values[0]] += 1
+        self.__voted.add(itn.user.id)
+
+        await itn.response.send_message("Your vote was successfully recorded.", ephemeral=True)
+
+    async def on_timeout(self):
+        del self.__voted
+
+        try:
+            await self.message.delete()
+        except discord.HTTPException:
+            pass
+
+        votes = +self.votes
+        channel = self.message.channel
+
+        if not votes:
+            await channel.send("Nobody voted? Oh well. Better luck next time.")
+            return
+
+        embed = Embed(
+            title="Voting has ended and the results are in!",
+            description=f"```\n{tchart(dict(votes.most_common()))}```",
+            colour=0x2F3136
+        )
+        embed.set_footer(
+            text=f"Started by: {self.starter}",
+            icon_url=self.starter.display_avatar
+        )
+        embed.add_field(name="Everyone voted on:", value=self.question)
+        embed.add_field(name="Total Votes", value=format(sum(votes.values()), ","))
+
+        await channel.send(embed=embed)
 
 
 class Fun(
@@ -677,35 +698,40 @@ class Fun(
 
     @commands.command()
     @commands.guild_only()  # Wouldn't make sense to have instances running in DMs.
-    @checks.can_start_menu(check_embed=True)
+    @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def poll(self, ctx, question: commands.clean_content, *options):
         """Creates a quick reaction-based voting poll.
 
-        Users will have 60 seconds to cast their vote before
-        the poll closes. Note that this does **NOT** prevent
-        users from voting twice.
+        Users will have 1 minute to cast their vote before
+        the poll closes.
 
-        Quotation marks must be used for values containing
-        spaces.
+        The question cannot exceed 1000 characters and each
+        option must be less than 100 characters. Polls can
+        have up to 15 options. Quotation marks must be used
+        for values containing spaces.
 
-        (Bot Needs: Embed Links, Add Reactions, and Read Message History)
+        (Bot Needs: Embed Links)
 
         **EXAMPLE:**
         ```
         poll "What colour is the sky?" blue red "What is the sky?"
         ```
         """
-        if not 2 <= len(options) <= 10:
-            await ctx.send("You must have between 2 and 10 options, inclusive.")
+        if not 2 <= len(options) <= 15:
+            await ctx.send("You must have between 2 and 15 options, inclusive.")
             return
 
-        q_length = len(question)
+        if (length := len(question)) > 1000:
+            await ctx.send(f"The poll question is too long. ({length} > 1000)")
+            return
 
-        if q_length < 1500:
-            await PollMenu(question, options).start(ctx)
+        try:
+            poll = PollView(question, options)
+        except ValueError as e:
+            await ctx.send(e)
         else:
-            await ctx.send(f"The poll question is too long. ({q_length} > 1500)")
+            await poll.send_to(ctx)
 
     @commands.command(aliases=("expression",))
     async def quote(self, ctx):
