@@ -86,7 +86,7 @@ class resolve_emote_char(commands.Converter):
             return argument, unicodedata.name(argument, "unknown emote")
 
         try:
-            custom = commands.PartialEmojiConverter().convert(ctx, argument)
+            custom = await commands.PartialEmojiConverter().convert(ctx, argument)
         except commands.PartialEmojiConversionFailure:
             pass
         else:
