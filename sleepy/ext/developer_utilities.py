@@ -167,6 +167,7 @@ class DeveloperUtilities(
             await ctx.send("The output is too long to post.")
 
     @commands.command(aliases=("openeval", "runcode", "executecode", "execcode"))
+    @checks.can_start_menu()
     @commands.cooldown(1, 4, commands.BucketType.member)
     async def piston(self, ctx, *, body: PistonPayload):
         """Runs code on Engineer Man's Piston API.
@@ -183,6 +184,8 @@ class DeveloperUtilities(
 
         For a list of supported languages, please refer here:
         <https://github.com/engineer-man/piston#Supported-Languages>
+
+        (Bot Needs: Add Reactions and Read Message History)
 
         **EXAMPLES:**
         ```bnf

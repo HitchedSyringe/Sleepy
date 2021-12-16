@@ -898,7 +898,7 @@ class Web(
         await ctx.send(embed=embed)
 
     @commands.command()
-    @checks.can_start_menu()
+    @checks.can_start_menu(check_embed=True)
     async def reddit(self, ctx, subreddit: clean_subreddit):
         """Shows a subreddit's top weekly submissions.
 
@@ -1161,7 +1161,7 @@ class Web(
     async def urbandict(self, ctx, *, term: str.lower):
         """Searches for a term on Urban Dictionary.
 
-        (Bot Needs: Embed Links)
+        (Bot Needs: Embed Links, Add Reactions, and Read Message History)
 
         **EXAMPLE:**
         ```
