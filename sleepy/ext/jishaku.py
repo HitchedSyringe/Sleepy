@@ -24,7 +24,6 @@ from jishaku.features.management import ManagementFeature
 from jishaku.features.python import PythonFeature
 from jishaku.features.root_command import RootCommand
 from jishaku.features.shell import ShellFeature
-from sleepy import checks
 from sleepy.paginators import WrappedPaginator
 from sleepy.utils import bool_to_emoji, find_extensions_in
 
@@ -211,14 +210,11 @@ class Owner(
             await ctx.send(page)
 
     @Feature.Command(aliases=("leaveguild",))
-    @checks.can_start_menu()
     async def leaveserver(self, ctx, *, guild: discord.Guild = None):
         """Forces me to leave a server.
 
         If no server is given, then I will leave the
         current server instead.
-
-        (Bot Needs: Add Reactions and Read Message History)
         """
         if guild is None:
             guild = ctx.guild

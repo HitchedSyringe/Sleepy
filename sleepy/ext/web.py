@@ -21,7 +21,7 @@ from discord import Embed, File
 from discord.ext import commands
 from discord.utils import format_dt
 from googletrans import Translator, LANGUAGES
-from sleepy import checks, menus
+from sleepy import menus
 from sleepy.converters import _pseudo_argument_flag, real_float
 from sleepy.http import HTTPRequestFailed
 from sleepy.paginators import WrappedPaginator
@@ -589,7 +589,7 @@ class Web(
         await ctx.send(embed=embed)
 
     @commands.command(aliases=("dictionary", "definition"))
-    @checks.can_start_menu(check_embed=True)
+    @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def define(self, ctx, *, term: str.lower):
         """Shows the definition of a word or phrase.
@@ -597,7 +597,7 @@ class Web(
         This command only takes words or phrases in the
         English language. (Sorry non-English speakers)
 
-        (Bot Needs: Embed Links, Add Reactions, and Read Message History)
+        (Bot Needs: Embed Links)
 
         **EXAMPLE:**
         ```
@@ -762,12 +762,12 @@ class Web(
         )
 
     @commands.command(aliases=("lyrics",))
-    @checks.can_start_menu(check_embed=True)
+    @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def genius(self, ctx, *, song_title: str.lower):
         """Gets a song's lyrics.
 
-        (Bot Needs: Embed Links, Add Reactions, and Read Message History)
+        (Bot Needs: Embed Links)
 
         **EXAMPLE:**
         ```
@@ -817,7 +817,7 @@ class Web(
         await ctx.paginate(menus.EmbedSource(embeds))
 
     @commands.group(invoke_without_command=True, aliases=("search",))
-    @checks.can_start_menu(check_embed=True)
+    @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def google(self, ctx, *, query: str.lower):
         """Searches for something on Google, returning the top 10 results.
@@ -993,14 +993,14 @@ class Web(
         await ctx.send(embed=embed)
 
     @commands.command()
-    @checks.can_start_menu()
+    @commands.bot_has_permissions(embed_links=True)
     async def reddit(self, ctx, subreddit: clean_subreddit):
         """Shows a subreddit's top weekly submissions.
 
         The posts displayed are based on whether or not
         this command was executed in an NSFW channel.
 
-        (Bot Needs: Embed Links, Add Reactions, and Read Message History)
+        (Bot Needs: Embed Links)
 
         **EXAMPLES:**
         ```bnf
@@ -1251,7 +1251,7 @@ class Web(
             error.handled__ = True
 
     @commands.command(aliases=("urban", "urbanup"))
-    @checks.can_start_menu(check_embed=True)
+    @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def urbandict(self, ctx, *, term: str.lower):
         """Searches for a term on Urban Dictionary.

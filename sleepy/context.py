@@ -23,7 +23,7 @@ import discord
 from discord.ext import commands
 from discord.utils import cached_property
 
-from .menus import ConfirmationPrompt, PaginationMenu
+from .menus import ConfirmationView, PaginationView
 from .utils import plural
 
 
@@ -129,15 +129,33 @@ class Context(commands.Context):
         """
         return await self.request("POST", url, cache__=cache__, **kwargs)
 
-    async def paginate(self, source: PageSource, /, **kwargs: Any) -> None:
+    async def paginate(
+        self,
+        source: PageSource,
+        /,
+        *,
+        delete_message_when_stopped: bool = True,
+        remove_view_after: bool = False,
+        disable_view_after: bool = True,
+        wait: bool = False,
+        **kwargs: Any
+    ) -> discord.Message:
         """|coro|
 
         Starts a new pagination menu in this context's channel.
 
-        This is equivalent to starting a :class:`PaginationMenu`
-        with this context.
-
         .. versionadded:: 2.0
+
+        .. versionchanged:: 3.2
+
+            * Rewrote to use Discord's interactions menus. This
+              resulted in the following kwargs being renamed to
+              keep consistency or clarify purpose:
+
+                - ``remove_reactions_after`` -> ``remove_view_after``
+                - ``delete_message_after -> ``delete_message_when_stopped``
+
+            * This now returns a :class:`discord.Message`.
 
         Parameters
         ----------
@@ -146,55 +164,159 @@ class Context(commands.Context):
 
             .. versionchanged:: 3.0
                 This is now a positional-only argument.
+        delete_message_when_stopped: :class:`bool`
+            Whether or not to delete the message when the user
+            presses the stop button.
+            Defaults to ``True``.
+        remove_view_after: :class:`bool`
+            Whether to remove the view after after it has finished
+            interacting.
+            Defaults to ``False``.
+
+            .. note::
+
+                ``delete_message_when_stopped`` takes priority over
+                this setting in terms of cleanup behaviour.
+
+        disable_view_after: :class:`bool`
+            Whether or not to disable the view after it has finished
+            interacting.
+            Defaults to ``True``.
+
+            .. note::
+
+                ``remove_view_after`` and ``delete_message_when_stopped``
+                takes priority over this setting in terms of cleanup
+                behaviour.
+
+            .. versionadded:: 3.2
+        wait: :class:`bool`
+            Whether or not to wait until the view has finished
+            interacting before returning back to the caller.
+            Defaults to ``False``.
+
+            .. versionadded:: 3.2
+
+        Returns
+        -------
+        :class:`discord.Message`
+            The message that was sent.
         """
-        menu = PaginationMenu(source, **kwargs)
-        await menu.start(self)
+        view = PaginationView(
+            self.bot,
+            source,
+            delete_message_when_stopped=delete_message_when_stopped,
+            remove_view_after=remove_view_after,
+            disable_view_after=disable_view_after,
+            owner_ids={self.author.id, self.bot.owner_id, *self.bot.owner_ids},
+            **kwargs
+        )
+
+        return await view.send_to(self, wait=wait)
 
     async def prompt(
         self,
-        message: discord.Message,
+        message: Union[str, discord.Message],
         /,
         *,
-        timeout: float = 30,
-        delete_message_after: bool = True
+        delete_message_on_interact: bool = True,
+        remove_view_after: bool = False,
+        disable_view_after: bool = True,
+        timeout: Optional[float] = 30
     ) -> Optional[bool]:
         """|coro|
 
         Starts a new confirmation menu in this context's channel.
-
-        This is equivalent to starting a :class:`ConfirmationPrompt`
-        using this context.
 
         .. versionadded:: 1.7
 
         .. versionchanged:: 2.0
             Rewrote to use `discord.ext.menus`.
 
+        .. versionchanged:: 3.2
+            Rewrote to use Discord's interactions menus. This
+            resulted in the following kwargs being renamed to
+            keep consistency or clarify purpose:
+
+                * ``remove_reactions_after`` -> ``remove_view_after``
+                * ``delete_message_after -> ``delete_message_on_interact``
+
         Parameters
         ----------
         message: Union[:class:`str`, :class:`discord.Message`]
-            The message to attach the menu to.
-            If the message is a :class:`str`, then the menu
-            will send a new message with the given content.
+            The prompt message.
+            If the message is a :class:`discord.Message`, then
+            this will attach the menu to that message.
 
             .. versionchanged:: 3.0
                 This is now a positional-only argument.
+        delete_message_on_interact: :class:`bool`
+            Whether or not to delete the message when the user
+            interacts with the view.
+            Defaults to ``True``.
+        remove_view_after: :class:`bool`
+            Whether or not to remove the view after after it has
+            finished interacting.
+            Defaults to ``False``.
+
+            .. note::
+
+                ``delete_message_on_interact`` takes priority over
+                this setting in terms of cleanup behaviour.
+
+        disable_view_after: :class:`bool`
+            Whether or not to disable the view after it has finished
+            interacting.
+            Defaults to ``True``.
+
+            .. note::
+
+                ``remove_view_after`` and ``delete_message_on_interact``
+                takes priority over this setting in terms of cleanup
+                behaviour.
+
+            .. versionadded:: 3.2
         timeout: :class:`float`
             The time, in seconds, before the prompt expires.
             Defaults to ``30``.
-        delete_message_after: :class:`bool`
-            Whether or not to delete the prompt if it is responded to.
-            This does **not** modify the timeout behaviour.
-            Defaults to ``True``.
 
         Returns
         -------
         Optional[:class:`bool`]
             Whether or not the user confirmed the prompt.
             ``None`` if the prompt expired.
+
+        Raises
+        ------
+        :exc:`discord.HTTPException`
+            Attaching the menu to the given message failed.
         """
-        prompt = ConfirmationPrompt(message, timeout=timeout, delete_message_after=delete_message_after)
-        return await prompt.start(self)
+        view = ConfirmationView(
+            owner_ids={self.author.id, self.bot.owner_id, *self.bot.owner_ids},
+            timeout=timeout
+        )
+
+        if isinstance(message, discord.Message):
+            message = await message.edit(view=view)
+        else:
+            message = await self.send(message, view=view)
+
+        timed_out = await view.wait()
+
+        try:
+            if not timed_out and delete_message_on_interact:
+                await message.delete()
+            elif remove_view_after:
+                await message.edit(view=None)
+            elif disable_view_after and view.children:
+                for child in view.children:
+                    child.disabled = True  # type: ignore
+
+                await message.edit(view=view)
+        except discord.HTTPException:
+            pass
+
+        return view.result
 
     async def disambiguate(
         self,

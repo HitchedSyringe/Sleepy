@@ -21,7 +21,7 @@ import psutil
 from discord import Colour, Embed
 from discord.ext import commands
 from discord.utils import oauth_url, format_dt as fmt_dt
-from sleepy import __version__, checks
+from sleepy import __version__
 from sleepy.menus import PaginatorSource
 from sleepy.utils import (
     human_delta,
@@ -377,7 +377,6 @@ class Statistics(
 
     @commands.command(aliases=("cs",), hidden=True)
     @commands.is_owner()
-    @checks.can_start_menu()
     async def commandstats(self, ctx):
         """Shows command usage data for the current session.
 
@@ -400,7 +399,7 @@ class Statistics(
         for line in tchart(dict(stats.most_common())).split("\n"):
             paginator.add_line(line)
 
-        await ctx.paginate(PaginatorSource(paginator, show_page_count=False))
+        await ctx.paginate(PaginatorSource(paginator))
 
     # This is written like this because the bot is not
     # sharded as it is too small. This code is subject
@@ -423,7 +422,6 @@ class Statistics(
         )
 
     @commands.command(aliases=("wss",))
-    @checks.can_start_menu()
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def socketstats(self, ctx):
         """Shows observed socket events data for the current session."""
@@ -439,7 +437,7 @@ class Statistics(
         for line in tchart(dict(stats.most_common())).split("\n"):
             paginator.add_line(line)
 
-        await ctx.paginate(PaginatorSource(paginator, show_page_count=False))
+        await ctx.paginate(PaginatorSource(paginator))
 
     @commands.command()
     async def uptime(self, ctx):

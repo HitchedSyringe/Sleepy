@@ -19,7 +19,6 @@ import discord
 from discord import Embed
 from discord.ext import commands, menus
 from discord.utils import escape_mentions
-from sleepy import checks
 from sleepy.http import HTTPRequestFailed
 from sleepy.menus import PaginatorSource
 from sleepy.paginators import WrappedPaginator
@@ -253,7 +252,6 @@ class DeveloperUtilities(
             error.handled__ = True
 
     @commands.command(aliases=("msgraw",))
-    @checks.can_start_menu()
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def messageraw(self, ctx, message: discord.PartialMessage = None):
         """Shows the raw JSON data for a given message.
@@ -269,8 +267,6 @@ class DeveloperUtilities(
         If no message is given, then the raw JSON data for
         the replied message, if applicable, otherwise, the
         invoking message, will be shown instead.
-
-        (Bot Needs: Add Reactions and Read Message History)
 
         **EXAMPLES:**
         ```bnf

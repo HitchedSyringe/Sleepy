@@ -17,7 +17,6 @@ import discord
 from discord import ActivityType, ChannelType, Embed, Status
 from discord.ext import commands, flags, menus
 from discord.utils import oauth_url, format_dt as fmt_dt, utcnow
-from sleepy import checks
 from sleepy.paginators import WrappedPaginator
 from sleepy.utils import (
     bool_to_emoji,
@@ -274,7 +273,7 @@ class Meta(commands.Cog):
 
         command_attrs = {
             "cooldown": commands.CooldownMapping.from_cooldown(1, 3, commands.BucketType.user),
-            "checks": (checks.can_start_menu(check_embed=True).predicate,),
+            "checks": (commands.bot_has_permissions(embed_links=True).predicate,),
             "help": "Shows help about me, a command, or a category.",
         }
 

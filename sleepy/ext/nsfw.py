@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 
 from discord import Colour, Embed
 from discord.ext import commands
-from sleepy import checks, converters, menus
+from sleepy import converters, menus
 from sleepy.http import HTTPRequestFailed
 
 
@@ -239,7 +239,7 @@ class NSFW(
         )
 
     @commands.command(require_var_positional=True)
-    @checks.can_start_menu(check_embed=True)
+    @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def danbooru(self, ctx, *tags: ensure_safe_tags):
         """Searches for something on Danbooru using the given tags.
@@ -247,7 +247,7 @@ class NSFW(
         Due to a Danbooru limitation, you can only search
         for up to two tags at a time.
 
-        (Bot Needs: Embed Links, Add Reactions, and Read Message History)
+        (Bot Needs: Embed Links)
 
         **EXAMPLES:**
         ```bnf
@@ -312,7 +312,7 @@ class NSFW(
             await ctx.paginate(menus.EmbedSource(embeds))
 
     @commands.command(require_var_positional=True)
-    @checks.can_start_menu(check_embed=True)
+    @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def e621(self, ctx, *tags: ensure_safe_tags):
         """Searches for something on E621 using the given tags.
@@ -320,7 +320,7 @@ class NSFW(
         Due to an E621 limitation, you can only search
         for up to 40 tags at a time.
 
-        (Bot Needs: Embed Links, Add Reactions, and Read Message History)
+        (Bot Needs: Embed Links)
 
         **EXAMPLES:**
         ```bnf
@@ -380,12 +380,12 @@ class NSFW(
             await ctx.paginate(menus.EmbedSource(embeds))
 
     @commands.command(aliases=("r34",), require_var_positional=True)
-    @checks.can_start_menu(check_embed=True)
+    @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def rule34(self, ctx, *tags: ensure_safe_tags):
         """Searches for something on Rule34 using the given tags.
 
-        (Bot Needs: Embed Links, Add Reactions, and Read Message History)
+        (Bot Needs: Embed Links)
 
         **EXAMPLES:**
         ```bnf
@@ -420,7 +420,7 @@ class NSFW(
         await ctx.paginate(menus.EmbedSource(embeds))
 
     @commands.command(aliases=("sauce",))
-    @checks.can_start_menu(check_embed=True)
+    @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 8, commands.BucketType.member)
     async def saucenao(
         self,
@@ -434,7 +434,7 @@ class NSFW(
         attachment. Links and attachments must be under 20
         MB.
 
-        (Bot Needs: Embed Links, Add Reactions, and Read Message History)
+        (Bot Needs: Embed Links)
         """
         await ctx.trigger_typing()
 
@@ -492,7 +492,7 @@ class NSFW(
         await ctx.paginate(menus.EmbedSource(embeds))
 
     @commands.command(require_var_positional=True)
-    @checks.can_start_menu(check_embed=True)
+    @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def yandere(self, ctx, *tags: ensure_safe_tags):
         """Searches for something on Yande.re using the given tags.
@@ -500,7 +500,7 @@ class NSFW(
         Due to a Yande.re limitation, you can only search
         for up to 6 tags at a time.
 
-        (Bot Needs: Embed Links, Add Reactions, and Read Message History)
+        (Bot Needs: Embed Links)
 
         **EXAMPLES:**
         ```bnf

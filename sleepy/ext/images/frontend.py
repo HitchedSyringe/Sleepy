@@ -21,7 +21,6 @@ from discord import Embed, File
 from discord.ext import commands, flags
 from PIL import UnidentifiedImageError
 from PIL.Image import DecompressionBombError
-from sleepy import checks
 from sleepy.converters import (
     _pseudo_bool_flag,
     ImageAssetConverter,
@@ -206,12 +205,12 @@ class Images(
         await ctx.send(embed=embed)
 
     @commands.command(aliases=("meow",))
-    @checks.can_start_menu(check_embed=True)
+    @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def cats(self, ctx):
         """Sends a random series of images of cats.
 
-        (Bot Needs: Embed Links, Add Reactions, and Read Message History)
+        (Bot Needs: Embed Links)
         """
         cats = await ctx.get("https://api.thecatapi.com/v1/images/search?limit=50")
 
@@ -343,12 +342,12 @@ class Images(
         )
 
     @commands.command(aliases=("doggos", "woof"))
-    @checks.can_start_menu(check_embed=True)
+    @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def dogs(self, ctx):
         """Sends a random series of images of dogs.
 
-        (Bot Needs: Embed Links, Add Reactions, and Read Message History)
+        (Bot Needs: Embed Links)
         """
         dogs = await ctx.get("https://dog.ceo/api/breeds/image/random/50")
 

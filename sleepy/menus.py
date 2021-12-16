@@ -11,14 +11,17 @@ from __future__ import annotations
 
 
 __all__ = (
-    "ConfirmationPrompt",
+    "BaseView",
+    "ConfirmationView",
     "EmbedSource",
-    "PaginationMenu",
     "PaginatorSource",
+    "PaginationView",
 )
 
 
 import asyncio
+import time
+from collections.abc import Collection
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -26,17 +29,23 @@ from typing import (
     Optional,
     Sequence,
     Union,
+    overload,
 )
 
 import discord
-from discord.ext import menus
+from discord.ext.menus import ListPageSource
+from discord.ui import View, button
 
 
 if TYPE_CHECKING:
-    from discord.ext.commands import Context, Paginator
+    from discord.ext.commands import Bot, Paginator
+    from discord.ext.menus import MenuPages, PageSource
+    from discord.ui import Button, Item
+
+    from .utils import Coro, Func
 
 
-class EmbedSource(menus.ListPageSource):
+class EmbedSource(ListPageSource):
     """A basic data source for a sequence of embeds.
 
     This class subclasses :class:`menus.ListPageSource` and, as a
@@ -48,13 +57,12 @@ class EmbedSource(menus.ListPageSource):
     .. versionchanged:: 3.0
         Renamed ``show_page_numbers`` argument to ``show_page_count``
 
-    Parameters
-    ----------
-    show_page_count: :class:`bool`
-        Whether or not to show the page count on every page.
-        If the source only has one page, then the page count
-        will be hidden regardless of this setting.
-        Defaults to ``True``.
+    .. versionchanged:: 3.2
+
+        * Removed ``show_page_count`` atribute. Page numbers are now
+          natively shown within the pagination menu.
+        * Allow ``per_page`` to be set, since bots are now allowed
+          to send multiple embeds per message.
     """
 
     def __init__(
@@ -62,29 +70,27 @@ class EmbedSource(menus.ListPageSource):
         entries: Sequence[discord.Embed],
         /,
         *,
-        show_page_count: bool = True
+        per_page: int = 1
     ) -> None:
-        super().__init__(entries, per_page=1)
+        super().__init__(entries, per_page=per_page)
 
-        self._show_page_count = show_page_count
+    @overload
+    async def format_page(self, menu: MenuPages, page: discord.Embed) -> discord.Embed:
+        ...
+
+    @overload
+    async def format_page(self, menu: MenuPages, page: Sequence[discord.Embed]) -> Dict[str, Any]:
+        ...
 
     async def format_page(
         self,
-        menu: menus.MenuPages,
-        page: discord.Embed
+        menu: MenuPages,
+        page: Union[discord.Embed, Sequence[discord.Embed]]
     ) -> Union[discord.Embed, Dict[str, Any]]:
-        max_pages = self.get_max_pages()
-
-        if self._show_page_count and max_pages > 1:
-            return {
-                "embed": page,
-                "content": f"Page {menu.current_page + 1}/{max_pages}"
-            }
-
-        return page
+        return {"embeds": page} if self.per_page > 1 else page  # type: ignore
 
 
-class PaginatorSource(menus.ListPageSource):
+class PaginatorSource(ListPageSource):
     """A data source for a :class:`commands.Paginator`.
 
     This class subclasses :class:`menus.ListPageSource` and, as a
@@ -96,20 +102,14 @@ class PaginatorSource(menus.ListPageSource):
     .. versionchanged:: 3.0
         Renamed ``show_page_numbers`` argument to ``show_page_count``
 
+    .. versionchanged:: 3.2
+        Removed ``show_page_count`` atribute. Page numbers are now
+        natively shown within the pagination menu.
+
     Parameters
     ----------
     paginator: :class:`commands.Paginator`
         The paginator to use as the data source.
-    show_page_count: :class:`bool`
-        Whether or not to show the page count on every page.
-        If the source only has one page, then the page count
-        will be hidden regardless of this setting.
-        Defaults to ``True``.
-
-        .. note::
-
-            This does **not** consider the paginator's max
-            page size.
 
     Attributes
     ----------
@@ -117,289 +117,542 @@ class PaginatorSource(menus.ListPageSource):
         The paginator used as the data source.
     """
 
-    def __init__(
-        self,
-        paginator: Paginator,
-        /,
-        *,
-        show_page_count: bool = True
-    ) -> None:
+    def __init__(self, paginator: Paginator, /):
         self.paginator = paginator
-        self._show_page_count = show_page_count
 
         super().__init__(paginator.pages, per_page=1)
 
-    async def format_page(self, menu: menus.MenuPages, page: str) -> str:
-        max_pages = self.get_max_pages()
-
-        if self._show_page_count and max_pages > 1:
-            page += f"Page {menu.current_page + 1}/{max_pages}"
-
+    async def format_page(self, menu: MenuPages, page: str) -> str:
         return page
 
 
-class ConfirmationPrompt(menus.Menu):
-    """A standard yes/no confirmation prompt.
+class BaseView(View):
+    """The base view class that the custom user interfaces
+    inherit from.
 
-    This class is a subclass of :class:`menus.Menu`, and as
-    a result, anything you can do with a :class:`menus.Menu`,
-    you can do with this menu.
+    The following implement this base:
 
-    .. note::
+    * :class:`.ConfirmationPrompt`
+    * :class:`.PaginationMenu`
 
-        ``delete_message_after`` only modifies the reaction
-        behaviour, not the timeout behaviour. This means the
-        menu's message will **not** be deleted upon timeout.
-
-    .. versionadded:: 2.0
+    .. versionadded:: 3.2
 
     Parameters
     ----------
-    message: Union[:class:`str`, :class:`discord.Message`]
-        The message to attach the menu to.
-        If the message is a :class:`str`, then the menu
-        will send a new message with the given content.
+    owner_id: Optional[:class:`int`]
+        The user ID that owns the view.
+    owner_ids: Optional[Collection[:class:`int`]]
+        The user IDs that own the view.
+        For performance reasons, it is recommended to use a
+        :class:`set` for the collection. You cannot set both
+        ``owner_id`` and ``owner_ids``.
+
+    Attributes
+    ----------
+    owner_ids: Collection[:class:`int`]
+        The user IDs that own this view.
+    """
+
+    if TYPE_CHECKING:
+        owner_ids: Collection[int]
+
+    def __init__(
+        self,
+        *,
+        timeout: Optional[float] = 180,
+        owner_id: Optional[int] = None,
+        owner_ids: Optional[Collection[int]] = None
+    ) -> None:
+        super().__init__(timeout=timeout)
+
+        if owner_ids and owner_id:
+            raise TypeError("Both owner_ids and owner_id are set.")
+
+        if owner_ids and not isinstance(owner_ids, Collection):
+            raise TypeError(f"owner_ids must be a collection, not {type(owner_ids)!r}")
+
+        if not (owner_id or owner_ids):
+            self.owner_ids = set()
+        elif owner_ids is None:
+            self.owner_ids = {owner_id}  # type: ignore
+        else:
+            self.owner_ids = owner_ids
+
+    def reset_timeout(self) -> None:
+        """Resets this view's timeout. Does nothing if no timeout was set."""
+        if self.timeout is not None:
+            self._View__timeout_expiry = time.monotonic() + self.timeout
+
+    async def interaction_check(self, itn: discord.Interaction) -> bool:
+        user_id = itn.user and itn.user.id
+
+        if user_id is None:
+            return False
+
+        if self.owner_ids and user_id not in self.owner_ids:
+            await itn.response.send_message("Sorry, you can't control this menu.", ephemeral=True)
+            return False
+
+        return True
+
+
+class ConfirmationView(BaseView):
+    """A standard yes/no confirmation prompt view.
+
+    This is a lower level interface to :meth:`Context.prompt`
+    in case you do not want the extra handling and features.
+
+    .. versionadded:: 3.2
+
+    Attributes
+    ----------
+    result: Optional[:class:`bool`]
+        Whether the user clicked the ``confirm`` button.
+        ``None`` if this view expired.
+    """
+
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+
+        self.result: Optional[bool] = None
+
+    @button(emoji="<:check:821284209401921557>", style=discord.ButtonStyle.green)
+    async def confirm(self, button: Button, itn: discord.Interaction) -> None:
+        self.result = True
+        self.stop()
+
+    @button(emoji="<:x_:821284209792516096>", style=discord.ButtonStyle.red)
+    async def deny(self, button: Button, itn: discord.Interaction) -> None:
+        self.result = False
+        self.stop()
+
+
+class PaginationView(BaseView):
+    """A view which allows for pagination of items.
+
+    This view is mostly based off of :class:`menus.MenuPages`
+    and runs similar to it, the only difference being that
+    the new interactions system is used rather than reactions.
+    This is also fully compatible with :class:`menu.PageSource`
+    instances.
+
+    .. warning::
+
+        Due to the nature of this implementation, this view
+        **cannot** be used via the conventional manner. There
+        is minor necessary setup that must be done beforehand.
+        Calling either :meth:`send_to`, :meth:`attach_to`, or
+        :meth:`reply_to` is recommended as these methods will
+        interally perform the setup for you.
+
+    .. versionadded:: 3.2
+
+    Parameters
+    ----------
+    bot: :class:`commands.Bot`
+        The bot instance.
+    source: :class:`menus.PageSource`
+        The page source to paginate.
+    delete_message_when_stopped: :class:`bool`
+        Whether or not to delete the message when the user
+        presses the stop button.
+        Defaults to ``True``.
+    remove_view_after: :class:`bool`
+        Whether to remove the view after after it has finished
+        interacting.
+        Defaults to ``False``.
+
+        .. note::
+
+            ``delete_message_when_stopped`` takes priority over
+            this setting in terms of cleanup behaviour.
+
+    disable_view_after: :class:`bool`
+        Whether or not to disable the view after it has finished
+        interacting.
+        Defaults to ``True``.
+
+        .. note::
+
+            ``remove_view_after`` and ``delete_message_when_stopped``
+            takes priority over this setting in terms of cleanup
+            behaviour.
+
+    Attributes
+    ----------
+    bot: :class:`commands.Bot`
+        The passed bot instance.
+    current_page: :class:`int`
+        The current page that we are on.
+        Zero-indexed between [0, :attr:`PageSource.max_pages`).
+    message: Optional[:class:`discord.Message`]
+        This view's message.
+        ``None`` if this wasn't initially set through either
+        :meth:`send_to`, :meth:`attach_to`, :meth:`reply_to`,
+        or otherwise.
     """
 
     def __init__(
         self,
-        message: Union[str, discord.Message],
-        /,
+        bot: Bot,
+        source: PageSource,
         *,
-        timeout: float = 30,
-        delete_message_after: bool = True
+        delete_message_when_stopped: bool = False,
+        remove_view_after: bool = False,
+        disable_view_after: bool = True,
+        **kwargs: Any
     ) -> None:
-        super().__init__(timeout=timeout, delete_message_after=delete_message_after)
+        super().__init__(**kwargs)
 
-        if isinstance(message, discord.Message):
-            self.message: Optional[discord.Message] = message
+        self._delete_message_when_stopped: bool = delete_message_when_stopped
+        self._remove_view_after: bool = remove_view_after
+        self._disable_view_after: bool = disable_view_after
+
+        self._lock: asyncio.Lock = asyncio.Lock()
+        self._source: PageSource = source
+
+        self.bot: Bot = bot
+        self.current_page: int = 0
+        self.message: Optional[discord.Message] = None
+
+        self._do_items_setup()
+
+    @property
+    def source(self) -> PageSource:
+        """:class:`menus.PageSource`: The source where the data comes from."""
+        return self._source
+
+    async def _get_kwargs_from_page(self, page: int) -> Dict[str, Any]:
+        data = await discord.utils.maybe_coroutine(self._source.format_page, self, page)
+
+        if isinstance(data, dict):
+            return data
+
+        if isinstance(data, str):
+            return {"content": data, "embed": None}
+
+        if isinstance(data, discord.Embed):
+            return {"content": None, "embed": data}
+
+        return {}
+
+    async def _do_items_cleanup(self) -> None:
+        if self._remove_view_after:
+            await self.message.edit(view=None)
+            return
+
+        if self._disable_view_after:
+            for child in self.children:
+                child.disabled = True  # type: ignore
+
+            await self.message.edit(view=self)
+
+    def _do_items_setup(self) -> None:
+        self.clear_items()
+
+        if not self._source.is_paginating():
+            return
+
+        max_pages = self._source.get_max_pages()
+        more_than_two = max_pages is not None and max_pages > 2
+
+        if more_than_two:
+            self.add_item(self.first_page)  # type: ignore
+
+        self.add_item(self.previous_page)  # type: ignore
+        self.add_item(self.page_number)  # type: ignore
+        self.add_item(self.next_page)  # type: ignore
+
+        if more_than_two:
+            self.add_item(self.last_page)  # type: ignore
         else:
-            self._prompt_message: str = str(message)
+            self.stop_menu.row = 0
 
-        self._result: Optional[bool] = None
+        self.add_item(self.stop_menu)  # type: ignore
 
-    async def send_initial_message(
+        if more_than_two:
+            self.add_item(self.select_page)  # type: ignore
+
+        self._update_items(0)
+
+    async def _start(
         self,
-        ctx: Context,
-        channel: discord.abc.Messageable
-    ) -> discord.Message:
-        return await channel.send(self._prompt_message)
-
-    @menus.button("<:check:821284209401921557>")
-    async def confirm(self, payload: discord.RawReactionActionEvent) -> None:
-        self._result = True
-        self.stop()
-
-    @menus.button("<:x_:821284209792516096>")
-    async def deny(self, payload: discord.RawReactionActionEvent) -> None:
-        self._result = False
-        self.stop()
-
-    async def start(
-        self,
-        ctx: Context,
-        /,
+        action: Func[Coro[discord.Message]],
         *,
-        channel: Optional[discord.abc.Messageable] = None
-    ) -> Optional[bool]:
+        wait: bool,
+        mention_author: Optional[bool] = None
+    ) -> discord.Message:
+        await self._source._prepare_once()
+
+        page = await self._source.get_page(0)
+        kwargs = await self._get_kwargs_from_page(page)
+
+        # Message.edit doesn't take the mention_author kwarg.
+        if mention_author is not None:
+            kwargs["mention_author"] = mention_author
+
+        self.message = message = await action(**kwargs, view=self)
+
+        if wait:
+            await self.wait()
+
+        return message
+
+    def _update_items(self, page_number: int) -> None:
+        on_first = page_number == 0
+
+        self.first_page.disabled = on_first
+        self.previous_page.disabled = on_first
+
+        if (max_pages := self._source.get_max_pages()) is None:
+            self.page_number.label = self.current_page + 1
+            return
+
+        self.page_number.label = f"{self.current_page + 1} / {max_pages}"
+
+        on_last = page_number == max_pages - 1
+
+        self.next_page.disabled = on_last
+        self.last_page.disabled = on_last
+
+    async def reply_to(
+        self,
+        message: discord.Message,
+        *,
+        mention_author: Optional[bool] = None,
+        wait: bool = False
+    ) -> discord.Message:
         """|coro|
 
-        Starts the confirmation prompt.
+        Sends the view as a reply to the given message.
 
-        .. versionchanged:: 3.0
-            Renamed to ``start``.
+        This is a convenience method for doing the necessary
+        setup for this view.
 
         Parameters
         ----------
-        ctx: :class:`commands.Context`
-            The invocation context to use.
-        channel: Optional[:class:`discord.abc.Messageable`]
-            The messageable to start the menu in.
-            Defaults to the given context's channel if ``None``.
-
-            .. versionadded:: 3.0
+        message: :class:`discord.Message`
+            The message to reply to.
+        mention_author: Optional[:class:`bool`]
+            Whether or not to mention the replied message author.
+            If not set, the defaults given by ``allowed_mentions``
+            are used instead.
+            Defaults to ``None``.
+        wait: :class:`bool`
+            Whether or not to wait until the view has finished
+            interacting before returning back to the caller.
+            Defaults to ``False``.
 
         Returns
         -------
-        Optional[:class:`bool`]
-            Whether or not the user confirmed the prompt.
-            ``None`` if the prompt expired.
+        :class:`discord.Message`
+            The message that was sent as a reply.
         """
-        await super().start(ctx, channel=channel, wait=True)
-        return self._result
+        return await self._start(message.reply, wait=wait, mention_author=mention_author)
 
-    async def finalize(self, timed_out: bool) -> None:
-        if not timed_out:
-            return
-
-        self.delete_message_after = False
-
-        try:
-            await self.message.add_reaction("\N{ALARM CLOCK}")
-        except discord.HTTPException:
-            pass
-
-
-class PaginationMenu(menus.MenuPages, inherit_buttons=False):
-    """A pagination menu with some extra buttons and features.
-
-    This class subclasses of :class:`menus.MenuPages`, and as
-    a result, anything you can do with a :class:`menus.MenuPages`,
-    you can do with this pagination menu.
-
-    .. note::
-
-        ``delete_message_after`` only modifies the reaction
-        behaviour, not the timeout behaviour. This means the
-        menu's message will **not** be deleted upon timeout.
-
-    .. versionadded:: 2.0
-
-    .. versionchanged:: 3.0
-        Renamed to ``PaginationMenu``.
-    """
-
-    def __init__(
+    async def attach_to(
         self,
-        source: menus.PageSource,
-        /,
+        message: discord.Message,
         *,
-        delete_message_after: bool = True,
-        **kwargs: Any
-    ) -> None:
-        super().__init__(source, delete_message_after=delete_message_after, **kwargs)
-
-        # Numbered page spam protection.
-        self._choose_page_lock: asyncio.Semaphore = asyncio.Semaphore()
-
-    async def show_page_lazy(
-        self,
-        page_number: int,
-        /,
-        *,
-        check_page_number: bool = False
-    ) -> None:
+        wait: bool = False
+    ) -> discord.Message:
         """|coro|
 
-        Similar to :meth:`show_page`, except the page does
-        not update if the given page number is the current
-        page.
+        Attaches the view to the given message.
 
-        .. versionadded:: 3.0
+        This is a convenience method for doing the necessary
+        setup for this view.
+
+        Parameters
+        ----------
+        message: :class:`discord.Message`
+            The message to attach the view to.
+        wait: :class:`bool`
+            Whether or not to wait until the view has finished
+            interacting before returning back to the caller.
+            Defaults to ``False``.
+
+        Returns
+        -------
+        :class:`discord.Message`
+            The message that was edited.
+        """
+        return await self._start(message.edit, wait=wait)
+
+    async def send_to(
+        self,
+        destination: discord.abc.Messageable,
+        *,
+        wait: bool = False
+    ) -> discord.Message:
+        """|coro|
+
+        Sends the view to the given destination.
+
+        This is a convenience method for doing the necessary
+        setup for this view.
+
+        Parameters
+        ----------
+        destination: :class:`discord.abc.Messageable`
+            The destination to send the view.
+        wait: :class:`bool`
+            Whether or not to wait until the view has finished
+            interacting before returning back to the caller.
+            Defaults to ``False``.
+
+        Returns
+        -------
+        :class:`discord.Message`
+            The message that was sent.
+        """
+        return await self._start(destination.send, wait=wait)
+
+    async def change_source(self, source: PageSource) -> None:
+        """|coro|
+
+        Changes the :class:`menus.PageSource` to a different
+        one at runtime.
+
+        Once the change has been set, the view is moved to
+        the first page of the new source if it was started.
+        This effectively changes the :attr:`current_page`
+        to 0.
+
+        Raises
+        ------
+        TypeError
+            A :class:`menus.PageSource` was not passed.
+        """
+        if not isinstance(source, PageSource):
+            raise TypeError(f"Expected PageSource, not {type(source)!r}.")
+
+        self._source = source
+        self.current_page = 0
+
+        if not self.is_finished():
+            await source._prepare_once()
+            self._do_items_setup()
+            await self.show_page(0)
+
+    async def show_page(self, page_number: int) -> None:
+        """|coro|
+
+        Shows the page at the given page number and updates
+        this view.
 
         Parameters
         ----------
         page_number: :class:`int`
-            The page number to turn to.
-        check_page_number: :class:`bool`
-            Whether or not to check the given page number.
-            Defaults to ``False``.
+            The page number.
         """
-        if self.current_page == page_number:
+        self.current_page = page_number
+
+        page = await self._source.get_page(page_number)
+
+        if kwargs := await self._get_kwargs_from_page(page):
+            self._update_items(page_number)
+            self.message = await self.message.edit(**kwargs, view=self)
+
+    async def show_checked_page(self, page_number: int) -> None:
+        """|coro|
+
+        Similar to :meth:`show_page`, but runs some checks
+        on the given page number before actually showing
+        the page.
+
+        Parameters
+        ----------
+        page_number: :class:`int`
+            The page number.
+        """
+        max_pages = self._source.get_max_pages()
+
+        if max_pages is not None and not 0 <= page_number < max_pages:
             return
-
-        if check_page_number:
-            await self.show_checked_page(page_number)
-        else:
-            await self.show_page(page_number)
-
-    def _skip_double_triangle_buttons(self) -> bool:
-        return super()._skip_double_triangle_buttons()
-
-    @menus.button(
-        "<:rrwnd:862379040802865182>",
-        position=menus.First(0),
-        skip_if=_skip_double_triangle_buttons
-    )
-    async def go_to_first_page(self, payload: discord.RawReactionActionEvent) -> None:
-        """Goes to the first page."""
-        await self.show_page_lazy(0)
-
-    @menus.button("<:back:862407042172715038>", position=menus.First(1))
-    async def go_to_previous_page(self, payload: discord.RawReactionActionEvent) -> None:
-        """Goes to the previous page."""
-        await self.show_page_lazy(self.current_page - 1, check_page_number=True)
-
-    @menus.button("<:fwd:862407042114125845>", position=menus.Last(0))
-    async def go_to_next_page(self, payload: discord.RawReactionActionEvent) -> None:
-        """Goes to the next page."""
-        await self.show_page_lazy(self.current_page + 1, check_page_number=True)
-
-    @menus.button(
-        "<:ffwd:862378579794460723>",
-        position=menus.Last(1),
-        skip_if=_skip_double_triangle_buttons
-    )
-    async def go_to_last_page(self, payload: discord.RawReactionActionEvent) -> None:
-        """Goes to the last page."""
-        await self.show_page_lazy(self._source.get_max_pages() - 1)  # type: ignore
-
-    @menus.button("<:stop:862426265306923019>", position=menus.Last(2))
-    async def stop_pages(self, payload: discord.RawReactionActionEvent) -> None:
-        """Stops the pagination session."""
-        self.delete_message_after = True
-        self.stop()
-
-    @menus.button(
-        "<:123:862424263645986816>",
-        position=menus.Last(3),
-        skip_if=_skip_double_triangle_buttons,
-        lock=False
-    )
-    async def choose_page(self, payload: discord.RawReactionActionEvent) -> None:
-        """Allows you to type a page number to jump to."""
-        if self._choose_page_lock.locked():
-            return
-
-        channel = self.message.channel
-        to_delete = [await channel.send("Type the page number you wish to jump to.")]
-
-        def page_check(m: discord.Message) -> bool:
-            return (
-                m.channel == channel
-                and m.author.id in (payload.user_id, self.bot.owner_id, *self.bot.owner_ids)
-                and m.content.isdigit()
-            )
-
-        async with self._choose_page_lock:
-            try:
-                message = await self.bot.wait_for("message", check=page_check, timeout=30)
-
-                # Since we wait for quite a while, we'll want to make
-                # sure the menu hasn't been killed yet when either an
-                # answer is received or the waiter times out.
-                if not self._running:
-                    return
-            except asyncio.TimeoutError:
-                to_delete.append(await channel.send("You took too long to respond."))
-                await asyncio.sleep(5)
-            else:
-                to_delete.append(message)
-                await self.show_page_lazy(int(message.content) - 1, check_page_number=True)
 
         try:
-            await channel.delete_messages(to_delete)
-        except discord.HTTPException:
+            await self.show_page(page_number)
+        except IndexError:
             pass
 
-    @menus.button("<:q_:862417417199157289>", position=menus.Last(4), lock=False)
-    async def show_paginator_help(self, payload: discord.RawReactionActionEvent) -> None:
-        """Shows this page."""
-        help_text = (
-            "**Pagination Menu Help**"
-            "\n\nWelcome to the interactive pagination menu!"
-            "\nThis allows you to navigate pages by simply __adding or removing__ reactions."
-            "\nThe reactions this menu uses are as follows:\n\n"
-            + "\n".join(f"> {e} | {b.action.__doc__}" for e, b in self.buttons.items())
-            + f"\n\nWe were on page {self.current_page + 1} before this message."
-        )
+    async def on_timeout(self) -> None:
+        await self._do_items_cleanup()
 
-        # Make this button lazy.
-        if self.message.content == help_text:
+    async def on_error(self, error: Exception, item: Item, itn: discord.Interaction) -> None:
+        if itn.response.is_done():
+            await itn.followup.send("Sorry, but something went wrong.", ephemeral=True)
+        else:
+            await itn.response.send_message("Sorry, but something went wrong.", ephemeral=True)
+
+    @button(emoji="<:rrwnd:862379040802865182>")
+    async def first_page(self, button: Button, itn: discord.Interaction) -> None:
+        await self.show_page(0)
+
+    @button(emoji="<:back:862407042172715038>")
+    async def previous_page(self, button: Button, itn: discord.Interaction) -> None:
+        await self.show_checked_page(self.current_page - 1)
+
+    @button(style=discord.ButtonStyle.primary, disabled=True)
+    async def page_number(self, button: Button, itn: discord.Interaction) -> None:
+        pass
+
+    @button(emoji="<:fwd:862407042114125845>")
+    async def next_page(self, button: Button, itn: discord.Interaction) -> None:
+        await self.show_checked_page(self.current_page + 1)
+
+    @button(emoji="<:ffwd:862378579794460723>")
+    async def last_page(self, button: Button, itn: discord.Interaction) -> None:
+        # This call is safe since the button itself is already
+        # handled initially when the view starts.
+        await self.show_page(self._source.get_max_pages() - 1)  # type: ignore
+
+    @button(emoji="\N{OCTAGONAL SIGN}", label="Stop", style=discord.ButtonStyle.danger, row=1)
+    async def stop_menu(self, button: Button, itn: discord.Interaction) -> None:
+        self.stop()
+
+        if self._delete_message_when_stopped:
+            await self.message.delete()
+        else:
+            self._remove_view_after = True
+            await self._do_items_cleanup()
+
+    @button(emoji="\N{PAGE WITH CURL}", label="Jump to page...", row=1)
+    async def select_page(self, button: Button, itn: discord.Interaction) -> None:
+        if self._lock.locked():
+            await itn.response.send_message("I'm already awaiting your response.", ephemeral=True)
             return
 
-        self.message = await self.message.edit(content=help_text, embed=None)
-        await asyncio.sleep(60)
+        async with self._lock:
+            await itn.response.send_message("Type the page number to jump to.", ephemeral=True)
 
-        if self._running:
-            await self.show_page(self.current_page)
+            def page_check(m: discord.Message) -> bool:
+                return (
+                    m.channel == self.message.channel
+                    and m.author.id in self.owner_ids
+                    and m.content.isdigit()
+                )
+
+            # Since we wait for quite a while, we'll want to make
+            # sure the menu hasn't been killed yet within the 30s
+            # of waiting when either an answer is received or the
+            # waiter times out.
+
+            try:
+                message = await self.bot.wait_for("message", check=page_check, timeout=30)
+            except asyncio.TimeoutError:
+                if not self.is_finished():
+                    await itn.followup.send("You took too long to respond.", ephemeral=True)
+                    await asyncio.sleep(5)
+
+                return
+
+            if self.is_finished():
+                return
+
+            await self.show_checked_page(int(message.content) - 1)
+
+            try:
+                await message.delete()
+            except discord.HTTPException:
+                pass
