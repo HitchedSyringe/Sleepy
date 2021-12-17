@@ -724,8 +724,9 @@ class Fun(
 
         The question cannot exceed 1000 characters and each
         option must be less than 100 characters. Polls can
-        have up to 15 options. Quotation marks must be used
-        for values containing spaces.
+        have up to 15 unique options. Duplicate options will
+        be automatically filtered. Quotation marks must be
+        used for values containing spaces.
 
         (Bot Needs: Embed Links)
 
@@ -734,6 +735,8 @@ class Fun(
         poll "What colour is the sky?" blue red "What is the sky?"
         ```
         """
+        options = set(options)
+
         if not 2 <= len(options) <= 15:
             await ctx.send("You must have between 2 and 15 options, inclusive.")
             return
