@@ -735,7 +735,7 @@ class Fun(
         poll "What colour is the sky?" blue red "What is the sky?"
         ```
         """
-        options = set(options)
+        options = frozenset(options)
 
         if not 2 <= len(options) <= 15:
             await ctx.send("You must have between 2 and 15 options, inclusive.")
