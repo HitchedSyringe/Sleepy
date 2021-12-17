@@ -98,16 +98,16 @@ class resolve_emote_char(commands.Converter):
 
 class PollView(View):
 
-    __slots__ = ("message", "question", "starter", "votes", "__voted")
+    __slots__ = ("question", "starter", "votes", "_message", "__voted")
 
     def __init__(self, question, options):
         super().__init__(timeout=60)
 
-        self.message = None
         self.question = question
         self.starter = None
-
         self.votes = Counter()
+
+        self._message = None
         self.__voted = set()
 
         for option in options:
@@ -115,6 +115,22 @@ class PollView(View):
                 raise ValueError("One or more options exceed 100 characters.")
 
             self.vote.add_option(label=option)
+
+    # This is overrided to remove the reset-timeout-on-interaction
+    # logic, thus, forcing this view to time out in the given time.
+    async def _scheduled_task(self, item, itn):
+        try:
+            allow = await self.interaction_check(itn)
+
+            if not allow:
+                return
+
+            await item.callback(itn)
+
+            if not itn.response._responded:
+                await itn.response.defer()
+        except Exception as e:
+            return await self.on_error(e, item, itn)
 
     async def send_to(self, ctx):
         self.starter = author = ctx.author
@@ -132,7 +148,7 @@ class PollView(View):
             text="Use the dropdown below to cast your vote! Voting ends in 1 minute."
         )
 
-        self.message = await ctx.send(embed=embed, view=self)
+        self._message = await ctx.send(embed=embed, view=self)
 
         await self.wait()
 
@@ -148,23 +164,16 @@ class PollView(View):
 
         return True
 
-    @select(placeholder="Select an option.")
-    async def vote(self, select, itn):
-        self.votes[select.values[0]] += 1
-        self.__voted.add(itn.user.id)
-
-        await itn.response.send_message("Your vote was successfully recorded.", ephemeral=True)
-
     async def on_timeout(self):
         del self.__voted
 
         try:
-            await self.message.delete()
+            await self._message.delete()
         except discord.HTTPException:
             pass
 
         votes = +self.votes
-        channel = self.message.channel
+        channel = self._message.channel
 
         if not votes:
             await channel.send("Nobody voted? Oh well. Better luck next time.")
@@ -183,6 +192,13 @@ class PollView(View):
         embed.add_field(name="Total Votes", value=format(sum(votes.values()), ","))
 
         await channel.send(embed=embed)
+
+    @select(placeholder="Select an option.")
+    async def vote(self, select, itn):
+        self.votes[select.values[0]] += 1
+        self.__voted.add(itn.user.id)
+
+        await itn.response.send_message("Your vote was successfully recorded.", ephemeral=True)
 
 
 class Fun(
