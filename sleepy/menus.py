@@ -577,7 +577,10 @@ class PaginationView(BaseView):
             pass
 
     async def on_timeout(self) -> None:
-        await self._do_items_cleanup()
+        try:
+            await self._do_items_cleanup()
+        except discord.HTTPException:
+            pass
 
     async def on_error(self, error: Exception, item: Item, itn: discord.Interaction) -> None:
         if itn.response.is_done():
