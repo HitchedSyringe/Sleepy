@@ -172,7 +172,7 @@ class PollView(View):
         except discord.HTTPException:
             pass
 
-        votes = +self.votes
+        votes = self.votes
         channel = self._message.channel
 
         if not votes:
