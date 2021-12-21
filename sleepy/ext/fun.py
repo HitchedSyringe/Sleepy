@@ -111,8 +111,8 @@ class PollView(View):
         self.__voted = set()
 
         for option in options:
-            if len(option) > 100:
-                raise ValueError("One or more options exceed 100 characters.")
+            if not 0 < len(option) <= 100:
+                raise ValueError("Options must be between 1 and 100 characters, inclusive.")
 
             self.vote.add_option(label=option)
 
@@ -716,7 +716,7 @@ class Fun(
     @commands.guild_only()  # Wouldn't make sense to have instances running in DMs.
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def poll(self, ctx, question: commands.clean_content, *options):
+    async def poll(self, ctx, question: commands.clean_content, *options: str.strip):
         """Creates a quick reaction-based voting poll.
 
         Users will have 1 minute to cast their vote before
@@ -735,18 +735,22 @@ class Fun(
         poll "What colour is the sky?" blue red "What is the sky?"
         ```
         """
+        # Since the question is a positional arg (for UX reasons)
+        # and not a kwarg, therefore, we'll have to do some input
+        # checks normally provided for kwargs manually. This just
+        # makes sure that the user didn't pass whitespace or "".
+        if not 0 < len(question) <= 1000 or question.isspace():
+            await ctx.send("The poll question must be between 1 and 1000 characters, inclusive.")
+            return
+
         options = frozenset(options)
 
         if not 2 <= len(options) <= 15:
             await ctx.send("You must have between 2 and 15 options, inclusive.")
             return
 
-        if (length := len(question)) > 1000:
-            await ctx.send(f"The poll question is too long. ({length} > 1000)")
-            return
-
         try:
-            poll = PollView(question, options)
+            poll = PollView(question.strip(), options)
         except ValueError as e:
             await ctx.send(e)
         else:
