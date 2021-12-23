@@ -559,7 +559,8 @@ class PaginationView(BaseView):
 
         Similar to :meth:`show_page`, but runs some checks
         on the given page number before actually showing
-        the page.
+        the page. This does nothing if the page number is
+        invalid, i.e. doesn't point to a page.
 
         Parameters
         ----------
