@@ -639,6 +639,7 @@ class PaginationView(BaseView):
                     m.channel == self.message.channel
                     and m.author.id in self.owner_ids
                     and m.content.isdigit()
+                    and m.content != "0"
                 )
 
             # Since we wait for quite a while, we'll want to make
