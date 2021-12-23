@@ -553,10 +553,10 @@ class PaginationView(BaseView):
         self.current_page = page_number
 
         page = await self._source.get_page(page_number)
+        kwargs = await self._get_kwargs_from_page(page)
 
-        if kwargs := await self._get_kwargs_from_page(page):
-            self._update_items(page_number)
-            self.message = await self.message.edit(**kwargs, view=self)
+        self._update_items(page_number)
+        self.message = await self.message.edit(**kwargs, view=self)
 
     async def show_checked_page(self, page_number: int) -> None:
         """|coro|
