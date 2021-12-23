@@ -541,10 +541,14 @@ class PaginationView(BaseView):
         Shows the page at the given page number and updates
         this view.
 
+        Page numbers are zero-indexed between `[0, n)` where n
+        is the page source's maximum page count, if applicable,
+        as provided by :meth:`PageSource.get_max_pages`.
+
         Parameters
         ----------
         page_number: :class:`int`
-            The page number.
+            The page number to show.
         """
         self.current_page = page_number
 
