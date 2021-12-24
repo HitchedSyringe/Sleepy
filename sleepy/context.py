@@ -276,8 +276,9 @@ class Context(commands.Context):
                 behaviour.
 
             .. versionadded:: 3.2
-        timeout: :class:`float`
+        timeout: Optional[:class:`float`]
             The time, in seconds, before the prompt expires.
+            ``None`` denotes no timeout.
             Defaults to ``30``.
 
         Returns
@@ -322,9 +323,9 @@ class Context(commands.Context):
         self,
         matches: Sequence[Any],
         /,
-        formatter: Callable[[Any], str] = None,
+        formatter: Optional[Callable[[Any], str]] = None,
         *,
-        timeout: float = 30
+        timeout: Optional[float] = 30
     ) -> Any:
         """|coro|
 
@@ -350,8 +351,9 @@ class Context(commands.Context):
         formatter: Optional[Callable[[Any], :class:`str`]]
             A function that returns a string-like result.
             This is used to format the displayed matches.
-        timeout: :class:`float`
+        timeout: Optional[:class:`float`]
             How long, in seconds, the user has to respond.
+            ``None`` denotes no timeout.
             Defaults to ``30``.
 
             .. versionadded:: 3.0
