@@ -531,10 +531,17 @@ class Meta(commands.Cog):
         else:
             guild = ctx.guild
 
-        embed = Embed(colour=0x2F3136, description=guild.description or Embed.Empty)
+        embed = Embed(colour=0x2F3136)
         embed.set_author(name=guild.name)
-        embed.set_image(url=guild.banner)
-        embed.set_thumbnail(url=guild.icon)
+
+        if guild.icon is not None:
+            embed.set_thumbnail(url=guild.icon)
+
+        if guild.banner is not None:
+            embed.set_image(url=guild.banner)
+
+        if guild.description is not None:
+            embed.description = guild.description
 
         embed.add_field(
             name="Information",
