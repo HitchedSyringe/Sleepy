@@ -319,27 +319,32 @@ class Sleepy(commands.Bot):
         if author.bot:
             return
 
-        if not await self.is_owner(author):  # type: ignore
-            current = message.edited_at or message.created_at
-            retry_after = self._spam_control.update_rate_limit(message, current.timestamp())
-
-            if retry_after is not None:
-                _LOG.warning(
-                    "%s (ID %s) is spamming in %s (ID: %s), retry_after: %.2fs",
-                    author,
-                    author.id,
-                    message.channel,
-                    message.channel.id,
-                    retry_after
-                )
-                return
-
         ctx = await self.get_context(message, cls=Context)
-        await self.invoke(ctx)
 
-    async def on_command(self, ctx: Context) -> None:
-        if await self.is_owner(ctx.author):  # type: ignore
+        # Only process global cooldowns when a command is invoked.
+        if not ctx.valid:
+            return
+
+        if await self.is_owner(author):  # type: ignore
+            await self.invoke(ctx)
             ctx.command.reset_cooldown(ctx)
+            return
+
+        current = message.edited_at or message.created_at
+        retry_after = self._spam_control.update_rate_limit(message, current.timestamp())
+
+        if retry_after is not None:
+            _LOG.warning(
+                "%s (ID %s) is spamming in %s (ID: %s), retry_after: %.2fs",
+                author,
+                author.id,
+                message.channel,
+                message.channel.id,
+                retry_after
+            )
+            return
+
+        await self.invoke(ctx)
 
     async def on_command_error(self, ctx: Context, error: commands.CommandError) -> None:
         ignored = (
@@ -378,7 +383,7 @@ class Sleepy(commands.Bot):
             ctx._refund_cooldown_token()
             await ctx.send(f"An error occurred while processing your arguments: {error}")
         elif isinstance(error, commands.CommandOnCooldown):
-            await ctx.send(f"That command is on cooldown, retry in **{error.retry_after:.2f} seconds**.")
+            await ctx.send(f"You are on cooldown. Try again in **{error.retry_after:.2f}** seconds.")
         elif isinstance(error, commands.MissingPermissions):
             perms = [
                 p.replace('_', ' ').replace('guild', 'server').title()
