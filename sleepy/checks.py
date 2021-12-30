@@ -28,8 +28,8 @@ __all__ = (
 
 from typing import Any, Callable, Dict, List, TypeVar
 
+from discord import Permissions
 from discord.ext import commands
-from discord.permissions import Permissions
 
 from .utils import human_join
 
@@ -120,6 +120,8 @@ def has_permissions(*, check_any: bool = False, **permissions: bool) -> Callable
           is ``True`` and the user has none of the specified
           permissions.
 
+    .. versionchanged:: 3.2
+        Raise :exc:`TypeError` for passing invalid permissions.
 
     Parameters
     ----------
@@ -133,12 +135,16 @@ def has_permissions(*, check_any: bool = False, **permissions: bool) -> Callable
 
     Raises
     ------
+    TypeError
+        One or more permissions given were invalid.
     :exc:`commands.MissingPermissions`
         The user was missing one of the given permissions.
     :exc:`MissingAnyPermissions`
         The user was missing all of the given permissions.
         This only applies if ``check_any`` is ``True``.
     """
+    if invalid := set(permissions) - set(Permissions.VALID_FLAGS):
+        raise TypeError(f"Invalid permission(s): {', '.join(invalid)}")
 
     async def predicate(ctx: commands.Context) -> bool:
         if await ctx.bot.is_owner(ctx.author):
@@ -171,6 +177,9 @@ def has_guild_permissions(*, check_any: bool = False, **permissions: bool) -> Ca
           is ``True`` and the user has none of the specified
           permissions.
 
+    .. versionchanged:: 3.2
+        Raise :exc:`TypeError` for passing invalid permissions.
+
     Parameters
     ----------
     check_any: :class:`bool`
@@ -183,6 +192,8 @@ def has_guild_permissions(*, check_any: bool = False, **permissions: bool) -> Ca
 
     Raises
     ------
+    TypeError
+        One or more permissions given were invalid.
     :exc:`commands.MissingPermissions`
         The user was missing one of the given permissions.
     :exc:`.MissingAnyPermissions`
@@ -191,6 +202,8 @@ def has_guild_permissions(*, check_any: bool = False, **permissions: bool) -> Ca
     :exc:`commands.NoPrivateMessage`
         The command was executed in a private message.
     """
+    if invalid := set(permissions) - set(Permissions.VALID_FLAGS):
+        raise TypeError(f"Invalid permission(s): {', '.join(invalid)}")
 
     async def predicate(ctx: commands.Context) -> bool:
         if ctx.guild is None:
@@ -215,9 +228,15 @@ def has_guild_permissions(*, check_any: bool = False, **permissions: bool) -> Ca
 def bot_has_any_permissions(**permissions: bool) -> Callable[[T], T]:
     """Similar to :func:`commands.bot_has_permissions`,
     but checks if the bot's member has **ANY** of the
-    given permissions, instead of all.
+    given permissions.
+
+    This raises :exc:`BotMissingAnyPermissions` if the
+    bot is missing all of the given permissions.
 
     .. versionadded:: 3.0
+
+    .. versionchanged:: 3.2
+        Raise :exc:`TypeError` for passing invalid permissions.
 
     Parameters
     ----------
@@ -226,9 +245,13 @@ def bot_has_any_permissions(**permissions: bool) -> Callable[[T], T]:
 
     Raises
     ------
+    TypeError
+        One or more permissions given were invalid.
     :exc:`BotMissingAnyPermissions`
         The bot was missing all of the given permissions.
     """
+    if invalid := set(permissions) - set(Permissions.VALID_FLAGS):
+        raise TypeError(f"Invalid permission(s): {', '.join(invalid)}")
 
     def predicate(ctx: commands.Context) -> bool:
         channel_permissions = ctx.channel.permissions_for(ctx.me)  # type: ignore
@@ -248,6 +271,9 @@ def bot_has_any_guild_permissions(**permissions: bool) -> Callable[[T], T]:
 
     .. versionadded:: 3.0
 
+    .. versionchanged:: 3.2
+        Raise :exc:`TypeError` for passing invalid permissions.
+
     Parameters
     ----------
     permissions: Any
@@ -255,11 +281,15 @@ def bot_has_any_guild_permissions(**permissions: bool) -> Callable[[T], T]:
 
     Raises
     ------
+    TypeError
+        One or more permissions given were invalid.
     :exc:`BotMissingAnyPermissions`
         The bot was missing all of the given permissions.
     :exc:`commands.NoPrivateMessage`
         The command was executed in a private message.
     """
+    if invalid := set(permissions) - set(Permissions.VALID_FLAGS):
+        raise TypeError(f"Invalid permission(s): {', '.join(invalid)}")
 
     def predicate(ctx: commands.Context) -> bool:
         if ctx.guild is None:
@@ -362,6 +392,9 @@ def guild_manager_or_permissions(**permissions: bool) -> Callable[[T], T]:
         * Raise :exc:`.MissingAnyPermissions` instead of the
           generic :exc:`commands.CheckFailure`.
 
+    .. versionchanged:: 3.2
+        Raise :exc:`TypeError` for passing invalid permissions.
+
     Parameters
     ----------
     permissions: Any
@@ -369,6 +402,8 @@ def guild_manager_or_permissions(**permissions: bool) -> Callable[[T], T]:
 
     Raises
     ------
+    TypeError
+        One or more permissions given were invalid.
     :exc:`.MissingAnyPermissions`
         The user was missing all of the given permissions.
     """
@@ -393,6 +428,9 @@ def guild_admin_or_permissions(**permissions: bool) -> Callable[[T], T]:
         * Raise :exc:`.MissingAnyPermissions` instead of the
           generic :exc:`commands.CheckFailure`.
 
+    .. versionchanged:: 3.2
+        Raise :exc:`TypeError` for passing invalid permissions.
+
     Parameters
     ----------
     permissions: Any
@@ -400,6 +438,8 @@ def guild_admin_or_permissions(**permissions: bool) -> Callable[[T], T]:
 
     Raises
     ------
+    TypeError
+        One or more permissions given were invalid.
     :exc:`MissingAnyPermissions`
         The user was missing all of the given permissions.
     """
