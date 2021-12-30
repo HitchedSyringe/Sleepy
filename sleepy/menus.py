@@ -132,8 +132,8 @@ class BaseView(View):
 
     The following implement this base:
 
-    * :class:`.ConfirmationPrompt`
-    * :class:`.PaginationMenu`
+    * :class:`.ConfirmationView`
+    * :class:`.PaginationView`
 
     .. versionadded:: 3.2
 
