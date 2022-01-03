@@ -1,6 +1,9 @@
 aiofiles
 cachetools
-git+https://github.com/Rapptz/discord.py
+# This is my fork of discord.py which ONLY bumps
+# aiohttp to 3.8 for Python 3.10 support. There
+# are NO code changes in this fork.
+git+https://github.com/HitSyr/discord.py@aiohttp-unpinned
 git+https://github.com/Rapptz/discord-ext-menus
 # Essentially, this is a fork of XuaTheGrate's Flag-Parsing
 # package because the maintainer has deleted it. This can

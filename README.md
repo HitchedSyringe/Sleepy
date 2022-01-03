@@ -66,6 +66,7 @@ When adding commands, look at the other commands in the category and pick which 
 * [aiofiles](https://github.com/Tinche/aiofiles)
 * [cachetools](https://github.com/tkem/cachetools) (optional but recommended)
 * [discord.py 2.0.0a](https://github.com/Rapptz/discord.py)
+  * Using `requirements.txt` installs [my fork](https://github.com/HitSyr/discord.py/tree/aiohttp-unpinned) of the above repository. This fork **does not feature any code changes and only bumps `aiohttp` to 3.8**, allowing for Python 3.10+ support.
 * [discord-ext-menus](https://github.com/Rapptz/discord-ext-menus)
 * [discord-flags 2.1.0+](https://github.com/HitSyr/Flag-Parsing)
   * This package was originally maintained by XuaTheGrate and has since been deleted. Using `requirements.txt` will install my fork of the above repository.
