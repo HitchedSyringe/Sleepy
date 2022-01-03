@@ -78,41 +78,40 @@ class Covid(
             -0.01,
             "*Estimated based on given numbers of cases, deaths, and recoveries.",
             fontsize=7,
-            color="#565C65"
+            color="#99AAB5"
         )
 
         fig.text(
             0.895,
             -0.01,
-            "\N{COPYRIGHT SIGN} Sleepy 2020-2021",
+            "\N{COPYRIGHT SIGN} Sleepy 2020-2022",
             fontsize=7,
-            color="#565C65",
+            color="#99AAB5",
             ha="right"
         )
 
         axes = fig.subplots()
 
         axes.set_axisbelow(True)
-        axes.grid(color="#4F545C", linestyle="dashed", alpha=0.75, axis="x")
+        axes.xaxis.grid(color="#4F545C", linestyle="--", alpha=0.75)
 
         axes.spines["top"].set_visible(False)
-        for spine in axes.spines.values():
-            spine.set_color("#565C65")
+
+        for name in ("left", "right", "bottom"):
+            axes.spines[name].set_color("#565C65")
 
         axes.set_facecolor("#2F3136")
         axes.set_xlabel("Timeline", color="white")
         axes.set_ylabel("Amount", color="white")
         axes.tick_params(colors="white", labelsize="small")
 
-        handles = (
-            axes.plot(timeline, active, "-", color="#57FFE3", label="Active*")
-            + axes.plot(timeline, recovered, "-", color="lightgreen", label="Recovered")
-            + axes.plot(timeline, deaths, "-", color="#FF5E00", label="Deaths")
-            + axes.plot(timeline, cases, "-", color="#3AA9F2", label="Cases")
-        )
+        axes.plot(timeline, active, ":", color="aqua", label="Active*")
+        axes.plot(timeline, recovered, "-.", color="#65B558", label="Recovered")
+        axes.plot(timeline, deaths, "--", color="#ED7734", label="Deaths")
+        axes.plot(timeline, cases, "-", color="#1F94E2", label="Cases")
 
-        axes.fill_between(timeline, cases, recovered, color="#3AA9F2", alpha=0.5)
-        axes.fill_between(timeline, recovered, deaths, color="lightgreen", alpha=0.5)
+        axes.fill_between(timeline, cases, recovered, color="#0D87D8", alpha=0.5)
+        axes.fill_between(timeline, recovered, deaths, color="#52A046", alpha=0.5)
         axes.fill_between(timeline, deaths, color="#FF5E00", alpha=0.5)
 
         axes.xaxis.set_major_locator(AutoDateLocator(maxticks=8))
@@ -125,15 +124,21 @@ class Covid(
             axes.set_title("COVID-19 Historical Statistics (Logarithmic)", color="white")
             axes.set_yscale("symlog")
 
+            axes.yaxis.set_major_formatter(human_number_formatter)
+
             axes.plot(
                 datestr2num(tuple(vaccines)),
                 vaccines.values(),
-                "-",
+                "--",
                 color="#FFDC82",
-                label="Vaccine Doses"
+                label="Vaccine Doses",
+                dashes=(6, 2)
             )
+
+            handles = None
         else:
             axes.set_title("COVID-19 Historical Statistics (Linear)", color="white")
+            axes.yaxis.set_major_formatter(human_number_formatter)
 
             # The cases data would get squashed if the vaccine
             # Plotting the vaccine data linearly as-is without
@@ -144,24 +149,29 @@ class Covid(
             # y axes independent, then plot the data.
             v_axes = axes.twinx()
 
-            v_axes.set_ylabel("Vaccine Doses", color="#FFDC82", rotation=270, va="bottom")
-            v_axes.tick_params(axis="y", colors="#FFDC82", labelsize="small")
-
-            # Right spine gets set to black for some reason.
-            v_axes.spines["right"].set_color("#565C65")
             v_axes.set_frame_on(False)
+            v_axes.set_ylabel("Vaccine Doses", color="#FFDC82", rotation=270, va="bottom")
 
+            v_axes.tick_params(axis="y", colors="#FFDC82", labelsize="small")
             v_axes.yaxis.set_major_formatter(human_number_formatter)
+
+            handles, _ = axes.get_legend_handles_labels()
 
             handles += v_axes.plot(
                 datestr2num(tuple(vaccines)),
                 vaccines.values(),
-                "-",
+                "--",
                 color="#FFDC82",
-                label="Vaccine Doses"
+                label="Vaccine Doses",
+                dashes=(6, 2)
             )
 
-        axes.yaxis.set_major_formatter(human_number_formatter)
+            # Unfortunately, shadowing the original axes object,
+            # while normally a bad idea, is necessary since the
+            # legend must be drawn using v_axes, otherwise it is
+            # drawn under v_axes, which also comes with problems
+            # when using loc="best" (the default).
+            axes = v_axes
 
         axes.legend(
             handles=handles,
