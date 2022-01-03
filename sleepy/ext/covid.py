@@ -21,7 +21,6 @@ from matplotlib.dates import (
     datestr2num,
 )
 from matplotlib.figure import Figure
-from mpl_toolkits.axes_grid1 import host_subplot
 from sleepy.converters import _pseudo_bool_flag
 from sleepy.http import HTTPRequestFailed
 from sleepy.utils import awaitable, human_number, measure_performance
@@ -91,12 +90,7 @@ class Covid(
             ha="right"
         )
 
-        # We're using a host axis since generating
-        # the legend will be much easier when graphing
-        # linearly in that we won't have to keep track
-        # of lists of handlers and labels. In this case,
-        # we would just add a parasitic axis.
-        axes = host_subplot(111, figure=fig)
+        axes = fig.subplots()
 
         axes.set_axisbelow(True)
         axes.grid(color="#4F545C", linestyle="dashed", alpha=0.75, axis="x")
@@ -110,10 +104,12 @@ class Covid(
         axes.set_ylabel("Amount", color="white")
         axes.tick_params(colors="white", labelsize="small")
 
-        axes.plot(timeline, active, "-", color="#57FFE3", label="Active*")
-        axes.plot(timeline, recovered, "-", color="lightgreen", label="Recovered")
-        axes.plot(timeline, deaths, "-", color="#FF5E00", label="Deaths")
-        axes.plot(timeline, cases, "-", color="#3AA9F2", label="Cases")
+        handles = (
+            axes.plot(timeline, active, "-", color="#57FFE3", label="Active*")
+            + axes.plot(timeline, recovered, "-", color="lightgreen", label="Recovered")
+            + axes.plot(timeline, deaths, "-", color="#FF5E00", label="Deaths")
+            + axes.plot(timeline, cases, "-", color="#3AA9F2", label="Cases")
+        )
 
         axes.fill_between(timeline, cases, recovered, color="#3AA9F2", alpha=0.5)
         axes.fill_between(timeline, recovered, deaths, color="lightgreen", alpha=0.5)
@@ -157,7 +153,7 @@ class Covid(
 
             v_axes.yaxis.set_major_formatter(human_number_formatter)
 
-            v_axes.plot(
+            handles += v_axes.plot(
                 datestr2num(tuple(vaccines)),
                 vaccines.values(),
                 "-",
@@ -167,7 +163,13 @@ class Covid(
 
         axes.yaxis.set_major_formatter(human_number_formatter)
 
-        axes.legend(labelcolor="white", facecolor="0.1", edgecolor="none", fancybox=False)
+        axes.legend(
+            handles=handles,
+            labelcolor="white",
+            facecolor="0.1",
+            edgecolor="none",
+            fancybox=False
+        )
 
         buffer = io.BytesIO()
 
