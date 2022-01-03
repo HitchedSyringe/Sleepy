@@ -119,9 +119,9 @@ class HTTPRequester:
         if cache is not None and not isinstance(cache, MutableMapping):
             raise TypeError(f"cache must be MutableMapping or NoneType, not {type(cache)!r}.")
 
-        self._cache = cache
-        self._request_lock = asyncio.Lock()
-        self.__session = aiohttp.ClientSession(**kwargs)
+        self._cache: Optional[MutableMapping[str, Any]] = cache
+        self._request_lock: asyncio.Lock = asyncio.Lock()
+        self.__session: aiohttp.ClientSession = aiohttp.ClientSession(**kwargs)
 
         _LOG.info("Started a new session.")
 
