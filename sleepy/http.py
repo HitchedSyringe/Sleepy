@@ -95,6 +95,9 @@ class HTTPRequester:
     .. versionchanged:: 3.0
         Renamed to ``HTTPRequester``.
 
+    .. versionchanged:: 3.2
+        Removed the `loop` kwarg and property.
+
     Parameters
     ----------
     cache: Optional[:class:`MutableMapping`]
@@ -103,13 +106,9 @@ class HTTPRequester:
         HTTP requests entirely.
 
         .. versionadded:: 3.0
-    loop: :class:`asyncio.AbstractEventLoop`
-        The event loop to use for HTTP requests.
-
-        .. versionadded:: 2.0
     """
 
-    __slots__: Tuple[str, ...] = ("_cache", "_loop", "_request_lock", "__session")
+    __slots__: Tuple[str, ...] = ("_cache", "_request_lock", "__session")
 
     def __init__(
         self,
@@ -121,9 +120,8 @@ class HTTPRequester:
             raise TypeError(f"cache must be MutableMapping or NoneType, not {type(cache)!r}.")
 
         self._cache = cache
-        self._loop = loop = kwargs.pop("loop", None) or asyncio.get_event_loop()
-        self._request_lock = asyncio.Lock(loop=loop)
-        self.__session = aiohttp.ClientSession(loop=loop, **kwargs)
+        self._request_lock = asyncio.Lock()
+        self.__session = aiohttp.ClientSession(**kwargs)
 
         _LOG.info("Started a new session.")
 
@@ -141,17 +139,6 @@ class HTTPRequester:
             raise TypeError(f"cache must be MutableMapping or NoneType, not {type(value)!r}.")
 
         self._cache = value
-
-    @property
-    def loop(self) -> asyncio.AbstractEventLoop:
-        """:class:`asyncio.AbstractEventLoop`: The event loop used for HTTP requests.
-
-        .. versionadded:: 2.0
-
-        .. versionchanged:: 3.0
-            This is now a read-only property.
-        """
-        return self._loop
 
     @property
     def session(self) -> aiohttp.ClientSession:
