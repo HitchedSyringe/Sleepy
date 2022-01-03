@@ -14,13 +14,14 @@ from urllib.parse import quote
 
 from discord import Embed, File
 from discord.ext import commands
-from matplotlib import figure
+from matplotlib import pyplot as plt
 from matplotlib.dates import (
     AutoDateLocator,
     DateFormatter,
     datestr2num,
 )
-from matplotlib.pyplot import close as pyplot_close
+from matplotlib.figure import Figure
+from mpl_toolkits.axes_grid1 import host_subplot
 from sleepy.converters import _pseudo_bool_flag
 from sleepy.http import HTTPRequestFailed
 from sleepy.utils import awaitable, human_number, measure_performance
@@ -71,7 +72,7 @@ class Covid(
         # Have to use to figure object directly since pyplot
         # uses tkinter internally, which doesn't play nice
         # when async gets involed.
-        fig = figure.Figure(facecolor="#2F3136")
+        fig = Figure(facecolor="#2F3136")
 
         fig.text(
             0.13,
@@ -90,7 +91,12 @@ class Covid(
             ha="right"
         )
 
-        axes = fig.subplots()
+        # We're using a host axis since generating
+        # the legend will be much easier when graphing
+        # linearly in that we won't have to keep track
+        # of lists of handlers and labels. In this case,
+        # we would just add a parasitic axis.
+        axes = host_subplot(111, figure=fig)
 
         axes.set_axisbelow(True)
         axes.grid(color="#4F545C", linestyle="dashed", alpha=0.75, axis="x")
@@ -116,9 +122,13 @@ class Covid(
         axes.xaxis.set_major_locator(AutoDateLocator(maxticks=8))
         axes.xaxis.set_major_formatter(DateFormatter("%b %Y"))
 
-        human_number_formatter = lambda x, _: human_number(x)
+        def human_number_formatter(x, _):
+            return human_number(x)
 
         if logarithmic:
+            axes.set_title("COVID-19 Historical Statistics (Logarithmic)", color="white")
+            axes.set_yscale("symlog")
+
             axes.plot(
                 datestr2num(tuple(vaccines)),
                 vaccines.values(),
@@ -126,26 +136,28 @@ class Covid(
                 color="#FFDC82",
                 label="Vaccine Doses"
             )
-
-            axes.set_title("COVID-19 Historical Statistics (Logarithmic)", color="white")
-            axes.set_yscale("symlog")
-
-            legend = axes.legend(labelcolor="white", facecolor="0.1", fancybox=False)
         else:
             axes.set_title("COVID-19 Historical Statistics (Linear)", color="white")
 
-            # If I were to plot the vaccine data linearly as-is without
-            # scaling it relative to the other data, the other lines would
-            # get squashed due to how large the doses counts are compared
-            # to cases/deaths/recovered/active. Also, the data starts in
-            # December 2020. To work around this, clone the current axis
-            # and then plot the data using the new axis.
-            vaxes = axes.twinx()
-            vaxes.set_ylabel("Vaccine Doses", color="#FFDC82", rotation=270, va="bottom")
-            vaxes.tick_params(axis="y", colors="#FFDC82", labelsize="small")
-            vaxes.set_frame_on(False)
+            # The cases data would get squashed if the vaccine
+            # Plotting the vaccine data linearly as-is without
+            # scaling it relative to the other data squashes
+            # the since the doses counts are far greater than
+            # the cases counts. Also, the data starts in Dec
+            # 2020. To work around this, use twinx to make the
+            # y axes independent, then plot the data.
+            v_axes = axes.twinx()
 
-            vaxes.plot(
+            v_axes.set_ylabel("Vaccine Doses", color="#FFDC82", rotation=270, va="bottom")
+            v_axes.tick_params(axis="y", colors="#FFDC82", labelsize="small")
+
+            # Right spine gets set to black for some reason.
+            v_axes.spines["right"].set_color("#565C65")
+            v_axes.set_frame_on(False)
+
+            v_axes.yaxis.set_major_formatter(human_number_formatter)
+
+            v_axes.plot(
                 datestr2num(tuple(vaccines)),
                 vaccines.values(),
                 "-",
@@ -153,31 +165,14 @@ class Covid(
                 label="Vaccine Doses"
             )
 
-            vaxes.yaxis.set_major_formatter(human_number_formatter)
-
-            # Unfortunately, there's not cleaner way to combine the axes
-            # into a singular legend without overcomplicating things, so
-            # just get the handles and labels and then combine them. Also,
-            # we have to create the legend through vaxes to ensure best
-            # legend positioning (and so vaxes doesn't draw over legend).
-            handles, labels = axes.get_legend_handles_labels()
-            vhandles, vlabels = vaxes.get_legend_handles_labels()
-            legend = vaxes.legend(
-                handles + vhandles,
-                labels + vlabels,
-                labelcolor="white",
-                facecolor="0.1",
-                fancybox=False
-            )
-
-        legend.get_frame().set_linewidth(0)
-
         axes.yaxis.set_major_formatter(human_number_formatter)
+
+        axes.legend(labelcolor="white", facecolor="0.1", edgecolor="none", fancybox=False)
 
         buffer = io.BytesIO()
 
         fig.savefig(buffer, format="png", bbox_inches="tight")
-        pyplot_close(fig)
+        plt.close(fig)
 
         buffer.seek(0)
 
