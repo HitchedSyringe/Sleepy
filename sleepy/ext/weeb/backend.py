@@ -28,7 +28,6 @@ from ..images.helpers import get_accurate_text_size, wrap_text
 
 
 import io
-from math import radians, sin
 
 import cv2
 import numpy as np
@@ -40,9 +39,6 @@ from .templates import TEMPLATES
 
 
 LBP_ANIMEFACE = cv2.CascadeClassifier(str(CASCADES / "lbpcascade_animeface.xml"))
-
-RITSU_SINE = sin(radians(2))
-KANNA_SINE = sin(radians(13))
 
 
 @awaitable
@@ -175,7 +171,6 @@ def make_kanna_fact_meme(text, /):
 
         text = wrap_text(text, font, width=160)
         text_layer = Image.new("RGBA", get_accurate_text_size(font, text))
-        t_w, t_h = text_layer.size
 
         ImageDraw.Draw(text_layer).text(
             (0, 0),
@@ -187,13 +182,11 @@ def make_kanna_fact_meme(text, /):
 
         text_layer = text_layer.rotate(-13, expand=True)
 
-        # For reference, the midpoint is at (155, 171).
+        # For reference, the desired point to center the
+        # text around is (155, 151).
         template.paste(
             text_layer,
-            (
-                155 - (t_w + int(t_h * KANNA_SINE)) // 2,
-                151 - text_layer.height // 2
-            ),
+            (155 - text_layer.width // 2, 151 - text_layer.height // 2),
             text_layer
         )
 
@@ -291,7 +284,6 @@ def make_ritsu_fact_meme(text, /):
 
         text = wrap_text(text, font, width=270)
         text_layer = Image.new("RGBA", get_accurate_text_size(font, text))
-        t_w, t_h = text_layer.size
 
         ImageDraw.Draw(text_layer).text(
             (0, 0),
@@ -302,13 +294,11 @@ def make_ritsu_fact_meme(text, /):
         )
         text_layer = text_layer.rotate(-2, expand=True)
 
-        # For reference, the midpoint is at (727, 428).
+        # For reference, the desired point to center the
+        # text around is (727, 428).
         template.paste(
             text_layer,
-            (
-                727 - (t_w + int(t_h * RITSU_SINE)) // 2,
-                428 - text_layer.height // 2
-            ),
+            (727 - text_layer.width // 2, 428 - text_layer.height // 2),
             text_layer
         )
 

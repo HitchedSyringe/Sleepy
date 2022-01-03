@@ -34,7 +34,6 @@ __all__ = (
 
 
 import io
-from math import radians, sin
 from datetime import datetime, timezone
 
 import imageio
@@ -56,51 +55,14 @@ from .fonts import FONTS
 from .templates import TEMPLATES
 
 
-# Chars are ordered from dark -> light.
-ASCII_CHARS = (
-    " ",
-    ".",
-    "'",
-    "-",
-    ",",
-    "_",
-    '"',
-    "^",
-    "*",
-    ":",
-    ";",
-    "~",
-    "=",
-    "+",
-    "<",
-    ">",
-    "!",
-    "?",
-    "\\",
-    "/",
-    "|",
-    "(",
-    ")",
-    "]",
-    "[",
-    "}",
-    "{",
-    "#",
-    "&",
-    "$",
-    "%",
-    "@",
-)
-
-
-AXIOS_SINE = sin(radians(12.5))
-CMM_SINE = sin(radians(22.5))
-
-
 @awaitable
 @measure_performance
 def do_asciify(image_buffer, /, *, inverted=False):
-    chars = ASCII_CHARS[::-1] if inverted else ASCII_CHARS
+    # Chars are ordered from dark -> light.
+    chars = " .'-,_\"^*:;~=+<>!?\\/|()][}{#&$%@"
+
+    if inverted:
+        chars = chars[::-1]
 
     with Image.open(image_buffer) as image:
         data = numpy.asarray(ImageOps.contain(image.convert("L"), (61, 61)))
@@ -240,7 +202,6 @@ def make_axios_interview_meme(text, /):
 
         text = wrap_text(text, font, width=650)
         text_layer = Image.new("RGBA", get_accurate_text_size(font, text))
-        t_w, t_h = text_layer.size
 
         ImageDraw.Draw(text_layer).text(
             (0, 0),
@@ -252,21 +213,11 @@ def make_axios_interview_meme(text, /):
 
         text_layer = text_layer.rotate(-12.5, expand=True)
 
-        # For reference, centering the text uses the following:
-        # x = mid_x - ((text_layer_w + displacement) // 2)
-        # y = mid_y - ((rotated_text_layer_h + displacement) // 2)
-        # The midpoint of this image is at (502, 1002).
-        # Note that the displacement bit is necessary to account for
-        # the fact that the top left corner point is also translated
-        # (in this case, horizontally to the right) when the text
-        # layer is rotated. We need to base the paste location on the
-        # correct corner point in order to properly position this text.
+        # For reference, the desired point to center the
+        # text around is (530, 1000).
         template.paste(
             text_layer,
-            (
-                532 - (t_w + int(t_h * AXIOS_SINE)) // 2,
-                1002 - text_layer.height // 2
-            ),
+            (530 - text_layer.width // 2, 1000 - text_layer.height // 2),
             text_layer
         )
 
@@ -312,7 +263,6 @@ def make_change_my_mind_meme(text, /):
 
         text = wrap_text(text, font, width=620)
         text_layer = Image.new("RGBA", get_accurate_text_size(font, text))
-        t_w = text_layer.width
 
         ImageDraw.Draw(text_layer).text(
             (0, 0),
@@ -322,10 +272,47 @@ def make_change_my_mind_meme(text, /):
             align="center"
         )
 
-        text_layer = text_layer.rotate(22.5, expand=True)
+        # We want to center the text around a desired point.
+        # Since the image placement is relative to the upper
+        # left corner, the proper coordinates must be found
+        # to ensure desirable positioning of the text layer.
+        # Since the text layer is initially created with the
+        # dimensions matching the bounding box of the given
+        # text, rotating the layer will always result in a
+        # larger rectangle. In this case, the new rectangle
+        # consists of four similar triangles of empty space,
+        # displacing either the x or y coordinate of the
+        # corner point of the initial text layer.
 
-        # For reference, the midpoint is at (1245, 983).
-        template.alpha_composite(text_layer, (1245 - t_w // 2, 983 - int(t_w * CMM_SINE)))
+        # For reference, the desired point to center the
+        # text around is (1245, 983).
+
+        # For this command:
+        # - We find the proper x coordinate by subtracting
+        #   the x coordinate of the desired point by 1/2 of
+        #   the unrotated text layer width (the hypotenuse
+        #   of the top right triangle).
+        # - We find the proper y coordinate by subtracting
+        #   the y coordinate of the desired point by the y
+        #   displacement (the length of the short leg of
+        #   the top right triangle). To find the this, we
+        #   must do basic trigonometry. For reference, the
+        #   equation used is: h * sin(a), where h and a
+        #   are the hypotenuse length (the unrotated text
+        #   layer height) and rotation angle (22.5 deg),
+        #   respectively.
+
+        #   sin(22.5 deg) ~= 0.383; value is rounded to 3
+        #   sig figs as doesn't need to be overly precise.
+        #   Furthermore, this also avoids having to store
+        #   or repeatedly calculate the trig result.
+
+        hyp_length = text_layer.width
+
+        template.alpha_composite(
+            text_layer.rotate(22.5, expand=True),
+            (1245 - hyp_length // 2, 983 - int(hyp_length * 0.383))
+        )
 
         buffer = io.BytesIO()
 
