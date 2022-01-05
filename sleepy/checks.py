@@ -13,7 +13,6 @@ __all__ = (
     "are_users",
     "bot_has_any_guild_permissions",
     "bot_has_any_permissions",
-    "can_start_menu",
     "guild_admin_or_permissions",
     "guild_manager_or_permissions",
     "has_guild_permissions",
@@ -444,66 +443,6 @@ def guild_admin_or_permissions(**permissions: bool) -> Callable[[T], T]:
         The user was missing all of the given permissions.
     """
     return has_guild_permissions(check_any=True, administrator=True, **permissions)
-
-
-def can_start_menu(*, check_embed: bool = False) -> Callable[[T], T]:
-    """A :func:`commands.check` that checks if the bot
-    can start a reaction menu.
-
-    This checks for the following permissions:
-        * ``send_messages``
-        * ``add_reactions``
-        * ``read_message_history``
-
-    If ``check_embed`` is ``True``, then this will also
-    check if the bot has the ``embed_links`` permission.
-
-    Equivalent to: ::
-
-        # check_embed=False
-        commands.bot_has_permissions(
-            send_messages=True,
-            add_reactions=True,
-            read_message_history=True
-        )
-
-        # check_embed=True
-        commands.bot_has_permissions(
-            send_messages=True,
-            add_reactions=True,
-            read_message_history=True,
-            embed_links=True
-        )
-
-    .. versionadded:: 3.0
-
-    Parameters
-    ----------
-    check_embed: :class:`bool`
-        Whether or not to check the bot's member for the
-        ``embed_links`` permission.
-        Defaults to ``False``.
-
-    Raises
-    ------
-    :exc:`commands.BotMissingPermissions`
-        The bot does not have the permissions required
-        to start a reaction menu.
-    """
-    # Have to build a dictionary of the input kwargs due
-    # to how discord.py's command checks work. Inputting
-    # ``embed_links=False`` will exclusively check if
-    # the bot does not have the embed links permission.
-    permissions = {
-        "send_messages": True,
-        "add_reactions": True,
-        "read_message_history": True,
-    }
-
-    if check_embed:
-        permissions["embed_links"] = True
-
-    return commands.bot_has_permissions(**permissions)
 
 
 def is_in_guilds(*guild_ids: int) -> Callable[[T], T]:
