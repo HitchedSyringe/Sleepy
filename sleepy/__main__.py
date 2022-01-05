@@ -81,7 +81,7 @@ intents = Intents(
 # do caching at all, I'll just leave this to be optional.
 try:
     from cachetools import TTLCache
-except ImportError:
+except ModuleNotFoundError:
     http_cache = None
 else:
     # 64 items with TTL of 4 hours (14400 seconds).
@@ -93,7 +93,7 @@ else:
 # is running on Windows, which uvloop doesn't support.
 try:
     import uvloop
-except ImportError:
+except ModuleNotFoundError:
     pass
 else:
     uvloop.install()
