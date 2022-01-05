@@ -17,30 +17,54 @@ from urllib.parse import quote
 
 import discord
 from discord import Embed
-from discord.ext import commands, menus
+from discord.ext import commands
+from discord.ui import button
 from discord.utils import escape_mentions
 from sleepy.http import HTTPRequestFailed
-from sleepy.menus import PaginatorSource
+from sleepy.menus import BaseView, PaginatorSource
 from sleepy.paginators import WrappedPaginator
 
 
-class PistonResultMenu(menus.Menu):
+class PistonView(BaseView):
 
-    def __init__(self, lang, ver, code, out):
-        # This menu is set up to only delete itself if the
-        # bin button is pressed. Otherwise, the bin button
-        # will simply be cleared on timeout.
-        super().__init__(clear_reactions_after=True, timeout=300)
+    __slots__ = ("_message", "body", "ctx")
 
-        self._msg = \
-            f"**{lang} ({ver})**\n{out}\nExit code: {code}\n`Powered by Piston`"
+    def __init__(self, ctx, body):
+        super().__init__(owner_id=ctx.author.id, timeout=300)
 
-    async def send_initial_message(self, ctx, channel):
-        return await channel.send(self._msg)
+        self.ctx = ctx
+        self.body = body
+        self._message = None
 
-    @menus.button("\N{WASTEBASKET}\ufe0f")
-    async def dispose(self, payload):
-        self.delete_message_after = True
+    async def on_timeout(self):
+        try:
+            await self._message.delete()
+        except discord.HTTPException:
+            pass
+
+    def _format_message_content(self, data, out):
+        return (
+            f"**{data['language']} {data['version']}**"
+            f" \N{BULLET} `Powered by Piston`\n{out}"
+            f"\nExit code: {data['run']['code']}"
+        )
+
+    @button(
+        label="Repeat Execution",
+        emoji="\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS}"
+    )
+    async def repeat(self, button, itn):
+        data, out = await execute_on_piston(self.ctx, self.body)
+
+        if data is None:
+            await itn.response.send_message(out, ephemeral=True)
+        else:
+            content = self._format_message_content(data, out)
+            self._message = await self._message.edit(content=content)
+
+    @button(emoji="\N{WASTEBASKET}", style=discord.ButtonStyle.danger)
+    async def dispose(self, button, itn):
+        await self._message.delete()
         self.stop()
 
 
@@ -83,6 +107,46 @@ class PistonPayload(commands.Converter):
             "args": [a for a in args.rstrip().split("\n") if a],
             "stdin": stdin
         }
+
+
+async def execute_on_piston(ctx, body):
+    try:
+        data = await ctx.post("https://emkc.org/api/v2/piston/execute", json__=body)
+    except HTTPRequestFailed as exc:
+        msg = exc.data.get("message", "Compilation failed. Try again later?")
+        return None, msg
+
+    out = data["run"]["output"]
+
+    try:
+        out += data["compile"]["stderr"]
+    except (KeyError, TypeError):
+        pass
+
+    if not out:
+        fmt_out = "Your code produced no output."
+    elif len(out) < 1000 and out.count("\n") < 50:
+        fmt_out = "```\n" + escape_mentions(out.replace("`", "`\u200b")) + "\n```"
+    else:
+        paste = await create_paste(ctx, out)
+
+        if paste is None:
+            fmt_out = "Output was too long and uploading it failed."
+        else:
+            fmt_out = f"Output was too long, so I've uploaded it here:\n<{paste}>"
+
+    return data, fmt_out
+
+
+async def create_paste(ctx, data):
+    hastebin = "https://www.toptal.com/developers/hastebin"
+
+    try:
+        doc = await ctx.post(f"{hastebin}/documents", data__=data)
+    except HTTPRequestFailed:
+        return None
+
+    return f"{hastebin}/raw/{doc['key']}"
 
 
 class DeveloperUtilities(
@@ -206,44 +270,15 @@ class DeveloperUtilities(
         """
         await ctx.trigger_typing()
 
-        try:
-            data = await ctx.post("https://emkc.org/api/v2/piston/execute", json__=body)
-        except HTTPRequestFailed as exc:
-            msg = exc.data.get("message", "Compilation failed. Try again later?")
-            await ctx.send(msg)
-            return
+        data, out = await execute_on_piston(ctx, body)
 
-        run = data["run"]
-        out = run["output"]
-
-        try:
-            out += data["compile"]["stderr"]
-        except (KeyError, TypeError):
-            pass
-
-        if not out:
-            await ctx.send("Your code produced no output.\n`Powered by Piston`")
-            return
-
-        if len(out) < 1000 and out.count("\n") < 50:
-            out = "```\n" + escape_mentions(out.replace("`", "`\u200b")) + "\n```"
+        if data is None:
+            await ctx.send(out)
         else:
-            try:
-                doc = await ctx.post(
-                    "https://www.toptal.com/developers/hastebin/documents",
-                    data__=out
-                )
-            except HTTPRequestFailed:
-                await ctx.send("The output was too long and uploading it failed.")
-                return
+            view = PistonView(ctx, body)
 
-            out = (
-                "\nThe output was too long, so I've uploaded it here:"
-                f"\n<https://www.toptal.com/developers/hastebin/{doc['key']}>\n"
-            )
-
-        menu = PistonResultMenu(data["language"], data["version"], run["code"], out)
-        await menu.start(ctx)
+            content = view._format_message_content(data, out)
+            view._message = await ctx.send(content, view=view)
 
     @piston.error
     async def on_piston_error(self, ctx, error):
