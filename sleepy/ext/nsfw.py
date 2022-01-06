@@ -541,7 +541,7 @@ class NSFW(
             embed = Embed(
                 description=f"[Media Link]({media_url})",
                 colour=0xFF9ED0,
-                timestamp=datetime.utcfromtimestamp(post["created_at"])
+                timestamp=datetime.fromtimestamp(post["created_at"], timezone.utc)
             )
             embed.set_author(name=post["author"])
             embed.set_image(url=media_url)

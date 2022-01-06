@@ -12,7 +12,7 @@ import binascii
 import json
 import re
 import unicodedata
-from datetime import datetime
+from datetime import datetime, timezone
 from urllib.parse import quote
 
 import discord
@@ -373,11 +373,11 @@ class DeveloperUtilities(
             await ctx.send("Decoding the generation timestamp failed.")
             return
 
-        generated_at = datetime.utcfromtimestamp(ts)
+        generated_at = datetime.fromtimestamp(ts, timezone.utc)
 
         # We usually have to add the token epoch if before 2015.
         if generated_at.year < 2015:
-            generated_at = datetime.utcfromtimestamp(ts + 1293840000)
+            generated_at = datetime.fromtimestamp(ts + 1293840000, timezone.utc)
 
         await ctx.send(
             f"**{user} (ID: {user_id})**```ldif\nBot: {user.bot}\nUser Created: "

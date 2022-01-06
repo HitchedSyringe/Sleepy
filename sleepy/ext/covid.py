@@ -8,7 +8,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 
 import io
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from urllib.parse import quote
 
@@ -230,7 +230,7 @@ class Covid(
         embed = Embed(
             title="Global COVID-19 Statistics",
             colour=0x2F3136,
-            timestamp=datetime.utcfromtimestamp(latest["updated"] / 1000)
+            timestamp=datetime.fromtimestamp(latest["updated"] / 1000, timezone.utc)
         )
         embed.set_footer(text=f"Powered by disease.sh \N{BULLET} Took {delta:.2f} ms.")
         embed.set_image(url="attachment://covid19_graph.png")
@@ -348,7 +348,7 @@ class Covid(
         embed = Embed(
             title=f"{country} COVID-19 Statistics",
             colour=0x2F3136,
-            timestamp=datetime.utcfromtimestamp(latest["updated"] / 1000)
+            timestamp=datetime.fromtimestamp(latest["updated"] / 1000, timezone.utc)
         )
         embed.set_thumbnail(url=latest["countryInfo"]["flag"])
 
@@ -439,7 +439,7 @@ class Covid(
         embed = Embed(
             title="COVID-19 Statistics",
             colour=0x2F3136,
-            timestamp=datetime.utcfromtimestamp(latest["updated"] / 1000)
+            timestamp=datetime.fromtimestamp(latest["updated"] / 1000, timezone.utc)
         )
         embed.set_footer(text="Powered by disease.sh")
 
