@@ -644,7 +644,9 @@ class Web(
         for meaning in data["meanings"]:
             embed = base_embed.copy()
 
-            speech_part = meaning["partOfSpeech"]
+            # See: https://github.com/meetDeveloper/freeDictionaryAPI/issues/110
+            speech_part = meaning.get("partOfSpeech")
+
             # Humanise camelCase part of speech. In this case,
             # it's usually a cross reference.
             embed.title = "xref" if speech_part == "crossReference" else speech_part
