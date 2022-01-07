@@ -18,11 +18,7 @@ from discord import ActivityType, ChannelType, Embed, Status
 from discord.ext import commands, flags, menus
 from discord.utils import oauth_url, format_dt as fmt_dt, utcnow
 from sleepy.paginators import WrappedPaginator
-from sleepy.utils import (
-    bool_to_emoji,
-    plural,
-    progress_bar,
-)
+from sleepy.utils import bool_to_emoji, plural, progress_bar
 
 
 # (channel_type, is_locked): emoji

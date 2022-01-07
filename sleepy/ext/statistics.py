@@ -23,11 +23,7 @@ from discord.ext import commands
 from discord.utils import oauth_url, format_dt as fmt_dt
 from sleepy import __version__
 from sleepy.menus import PaginatorSource
-from sleepy.utils import (
-    human_delta,
-    plural,
-    tchart,
-)
+from sleepy.utils import human_delta, plural, tchart
 
 
 LOG = logging.getLogger(__name__)

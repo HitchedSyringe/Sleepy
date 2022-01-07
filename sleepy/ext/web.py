@@ -21,9 +21,9 @@ from discord import Embed, File
 from discord.ext import commands
 from discord.utils import format_dt
 from googletrans import Translator, LANGUAGES
-from sleepy import menus
 from sleepy.converters import _pseudo_argument_flag, real_float
 from sleepy.http import HTTPRequestFailed
+from sleepy.menus import EmbedSource
 from sleepy.paginators import WrappedPaginator
 from sleepy.utils import (
     awaitable,
@@ -308,7 +308,7 @@ class Web(
 
             embeds.append(embed)
 
-        await ctx.paginate(menus.EmbedSource(embeds))
+        await ctx.paginate(EmbedSource(embeds))
 
     # This function exists as a way to save memory when caching
     # data from PokeAPI. In this case, we're only caching what
@@ -675,7 +675,7 @@ class Web(
             embeds.append(embed)
 
         if embeds:
-            await ctx.paginate(menus.EmbedSource(embeds))
+            await ctx.paginate(EmbedSource(embeds))
         else:
             # Strange case with this API where nothing but the word
             # and phonetic is returned.
@@ -815,7 +815,7 @@ class Web(
 
             embeds.append(embed)
 
-        await ctx.paginate(menus.EmbedSource(embeds))
+        await ctx.paginate(EmbedSource(embeds))
 
     @commands.group(invoke_without_command=True, aliases=("search",))
     @commands.bot_has_permissions(embed_links=True)
@@ -1057,7 +1057,7 @@ class Web(
         if not embeds:
             await ctx.send("That subreddit doesn't have any posts.")
         else:
-            await ctx.paginate(menus.EmbedSource(embeds))
+            await ctx.paginate(EmbedSource(embeds))
 
     @commands.command(aliases=("ss", "snapshot"))
     @commands.bot_has_permissions(embed_links=True)
@@ -1308,7 +1308,7 @@ class Web(
 
             embeds.append(embed)
 
-        await ctx.paginate(menus.EmbedSource(embeds))
+        await ctx.paginate(EmbedSource(embeds))
 
     @commands.command(aliases=("vredditdownloader",))
     @commands.bot_has_permissions(attach_files=True)

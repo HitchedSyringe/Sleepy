@@ -11,8 +11,9 @@ from datetime import datetime, timezone
 
 from discord import Colour, Embed
 from discord.ext import commands
-from sleepy import converters, menus
+from sleepy.converters import ImageAssetConverter
 from sleepy.http import HTTPRequestFailed
+from sleepy.menus import EmbedSource
 
 
 NEKOBOT_IMAGE_COMMANDS = (
@@ -309,7 +310,7 @@ class NSFW(
                 "Discord or, for some reason, lack image links."
             )
         else:
-            await ctx.paginate(menus.EmbedSource(embeds))
+            await ctx.paginate(EmbedSource(embeds))
 
     @commands.command(require_var_positional=True)
     @commands.bot_has_permissions(embed_links=True)
@@ -377,7 +378,7 @@ class NSFW(
         if not embeds:
             await ctx.send("All results lack image links for some reason.")
         else:
-            await ctx.paginate(menus.EmbedSource(embeds))
+            await ctx.paginate(EmbedSource(embeds))
 
     @commands.command(aliases=("r34",), require_var_positional=True)
     @commands.bot_has_permissions(embed_links=True)
@@ -417,7 +418,7 @@ class NSFW(
 
             embeds.append(embed)
 
-        await ctx.paginate(menus.EmbedSource(embeds))
+        await ctx.paginate(EmbedSource(embeds))
 
     @commands.command(aliases=("sauce",))
     @commands.bot_has_permissions(embed_links=True)
@@ -426,7 +427,7 @@ class NSFW(
         self,
         ctx,
         *,
-        image: converters.ImageAssetConverter(max_filesize=20_000_000)
+        image: ImageAssetConverter(max_filesize=20_000_000)
     ):
         """Reverse searches an image using SauceNAO.
 
@@ -489,7 +490,7 @@ class NSFW(
 
             embeds.append(embed)
 
-        await ctx.paginate(menus.EmbedSource(embeds))
+        await ctx.paginate(EmbedSource(embeds))
 
     @commands.command(require_var_positional=True)
     @commands.bot_has_permissions(embed_links=True)
@@ -555,7 +556,7 @@ class NSFW(
         if not embeds:
             await ctx.send("All results involve banned content on Discord")
         else:
-            await ctx.paginate(menus.EmbedSource(embeds))
+            await ctx.paginate(EmbedSource(embeds))
 
 
 def setup(bot):
