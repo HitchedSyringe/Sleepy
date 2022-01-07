@@ -99,7 +99,7 @@ class BotHelpPageSource(menus.ListPageSource):
             cmds = self.mapping.get(cog)
 
             if not cmds:
-                return
+                continue
 
             if cog.description:
                 value = cog.description.split("\n", 1)[0] + "\n"
