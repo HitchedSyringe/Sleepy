@@ -604,7 +604,7 @@ class Meta(commands.Cog):
         embed.add_field(
             name=f"Server Boosts \N{BULLET} Tier {tier}",
             value=f"**{plural(boosts, ',d'):boost}** \N{BULLET} {next_}"
-                  f"\n\n0 {progress_bar(progress=boosts if boosts < 14 else 14, maximum=14)} 14",
+                  f"\n\n0 {progress_bar(progress=min(boosts, 14), maximum=14)} 14",
             inline=False
         )
 
