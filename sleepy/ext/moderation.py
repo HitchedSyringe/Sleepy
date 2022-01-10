@@ -101,13 +101,6 @@ class Reason(commands.Converter):
         return tag + argument
 
 
-def psuedo_object_converter(value):
-    try:
-        return discord.Object(value)
-    except TypeError:
-        raise commands.BadArgument("Invalid snowflake ID.") from None
-
-
 class Moderation(commands.Cog):
     """Commands having to do with server moderation.
 
@@ -135,6 +128,9 @@ class Moderation(commands.Cog):
             error.handled__ = True
         elif isinstance(error, BanEntryNotFound):
             await ctx.send("That user isn't banned.")
+            error.handled__ = True
+        elif isinstance(error, (commands.ChannelNotFound, commands.MessageNotFound)):
+            await ctx.send("That message ID, link, or URL was invalid.")
             error.handled__ = True
         elif isinstance(error, (CannotPerformAction, ReasonTooLong)):
             await ctx.send(error)
@@ -556,8 +552,8 @@ class Moderation(commands.Cog):
             )
 
     @flags.add_flag("--amount", type=int, default=10)
-    @flags.add_flag("--before", type=psuedo_object_converter)
-    @flags.add_flag("--after", type=psuedo_object_converter)
+    @flags.add_flag("--before", type=discord.PartialMessage)
+    @flags.add_flag("--after", type=discord.PartialMessage)
     @flags.add_flag("--startswith", "--starts", nargs="+")
     @flags.add_flag("--endswith", "--ends", nargs="+")
     @flags.add_flag("--contains", nargs="+")
@@ -593,9 +589,9 @@ class Moderation(commands.Cog):
         > Must be between 1 and 2000, inclusive.
         > Defaults to `10` if omitted.
         `--before`
-        > Target messages before the given message ID.
+        > Target messages before the given message.
         `--after`
-        > Target messages after the given message ID.
+        > Target messages after the given message.
         `--startswith` or `--starts`
         > Target messages that start with the given substring(s).
         > Substrings are case-sensitive.
