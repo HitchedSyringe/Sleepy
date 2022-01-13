@@ -36,8 +36,8 @@ __all__ = (
 import io
 from datetime import datetime, timezone
 
-import imageio
-import numpy
+import cv2
+import numpy as np
 from PIL import (
     Image,
     ImageDraw,
@@ -65,7 +65,7 @@ def do_asciify(image_buffer, /, *, inverted=False):
         chars = chars[::-1]
 
     with Image.open(image_buffer) as image:
-        data = numpy.asarray(ImageOps.contain(image.convert("L"), (61, 61)))
+        data = np.asarray(ImageOps.contain(image.convert("L"), (61, 61)))
 
     return "\n".join("".join(chars[c // 8] for c in r) for r in data[::2])
 
@@ -145,20 +145,17 @@ def do_deepfry(image_buffer, /):
 @measure_performance
 def do_invert(image_buffer, /):
     with Image.open(image_buffer) as image:
-        img = ImageOps.invert(image.convert("RGB"))
+        img = -np.asarray(image.convert("RGB"))
 
         try:
-            img.putalpha(image.getchannel("A"))
+            alpha = image.getchannel("A")
         except ValueError:
-            pass
+            cv2.cvtColor(img, cv2.COLOR_RGB2BGR, img)
+        else:
+            img = np.dstack((img, alpha))
+            cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA, img)
 
-    buffer = io.BytesIO()
-
-    img.save(buffer, "png")
-
-    buffer.seek(0)
-
-    return buffer
+    return io.BytesIO(cv2.imencode(".png", img)[1])
 
 
 @awaitable
@@ -179,19 +176,15 @@ def do_jpegify(image_buffer, /, *, quality=1):
 def do_swirl(image_buffer, /, *, intensity=1):
     with Image.open(image_buffer) as image:
         image = transform.swirl(
-            numpy.asarray(image.convert("RGBA")),
+            np.asarray(image.convert("RGBA")),
             strength=intensity,
             radius=image.height / 2,
             preserve_range=True
-        )
+        ).astype(np.uint8)
 
-    buffer = io.BytesIO()
+    cv2.cvtColor(image, cv2.COLOR_RGBA2BGRA, image)
 
-    imageio.imwrite(buffer, image.astype(numpy.uint8), "png", optimize=True)
-
-    buffer.seek(0)
-
-    return buffer
+    return io.BytesIO(cv2.imencode(".png", image)[1])
 
 
 @awaitable

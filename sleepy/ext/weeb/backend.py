@@ -66,7 +66,7 @@ def detect_anime_faces(image_buffer, /):
     # output image will look correct (red is the ending
     # band in the case of OpenCV. Shouts out to OpenCV
     # for being different and using BGR instead of RGB).
-    image = cv2.cvtColor(image, cv2.COLOR_RGBA2BGRA)
+    cv2.cvtColor(image, cv2.COLOR_RGBA2BGRA, image)
 
     for x, y, w, h in faces:
         image = cv2.rectangle(
