@@ -13,6 +13,7 @@ __all__ = (
     "do_deepfry",
     "do_invert",
     "do_jpegify",
+    "do_lensflare_eyes",
     "do_swirl",
     "make_axios_interview_meme",
     "make_captcha",
@@ -47,12 +48,16 @@ from PIL import (
     ImageOps,
     ImageSequence,
 )
+from cv2.data import haarcascades as cv2_haarcascades
 from skimage import transform
 from sleepy.utils import awaitable, measure_performance
 
-from .helpers import get_accurate_text_size, wrap_text
 from .fonts import FONTS
+from .helpers import get_accurate_text_size, wrap_text
 from .templates import TEMPLATES
+
+
+HAAR_EYES = cv2.CascadeClassifier(cv2_haarcascades + "haarcascade_eye.xml")
 
 
 @awaitable
@@ -165,6 +170,47 @@ def do_jpegify(image_buffer, /, *, quality=1):
         buffer = io.BytesIO()
 
         image.convert("RGB").save(buffer, "jpeg", quality=quality)
+
+    buffer.seek(0)
+
+    return buffer
+
+
+@awaitable
+@measure_performance
+def do_lensflare_eyes(image_buffer, /, *, colour=None):
+    with Image.open(image_buffer) as image:
+        image = image.convert("RGBA")
+
+    eyes = HAAR_EYES.detectMultiScale(
+        cv2.cvtColor(np.asarray(image), cv2.COLOR_RGBA2GRAY),
+        1.3,
+        5,
+        minSize=(24, 24)
+    )
+
+    if len(eyes) == 0:
+        raise RuntimeError("No eyes were detected.")
+
+    with Image.open(TEMPLATES / "lensflare.png") as flare:
+        if colour is not None:
+            flare_c = ImageOps.colorize(flare.convert("L"), colour, "white", colour)
+            flare_c = ImageEnhance.Color(flare_c).enhance(10)
+            flare_c.putalpha(flare.getchannel("A"))
+            flare = flare_c
+
+        for x, y, w, h in eyes:
+            flare_s = ImageOps.contain(flare, (x + w, y + h))
+
+            # For reference, the center of the flare is at (272, 157).
+            dest_x = int(x + w / 2 - 272 * (flare_s.width / flare.width))
+            dest_y = int(y + h / 2 - 157 * (flare_s.height / flare.height))
+
+            image.alpha_composite(flare_s, (dest_x, dest_y))
+
+    buffer = io.BytesIO()
+
+    image.save(buffer, "png")
 
     buffer.seek(0)
 

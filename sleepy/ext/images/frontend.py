@@ -493,6 +493,34 @@ class Images(
             file=File(buffer, "jpegified.jpg")
         )
 
+    @commands.command(aliases=("eyes",))
+    @commands.bot_has_permissions(attach_files=True)
+    @commands.max_concurrency(5, commands.BucketType.guild)
+    async def lensflareeyes(
+        self,
+        ctx,
+        colour: Optional[RGBColourConverter] = (255, 0, 0),
+        *,
+        image: ImageAssetConverter(max_filesize=40_000_000)
+    ):
+        async with ctx.typing():
+            try:
+                buffer, delta = await backend.do_lensflare_eyes(
+                    io.BytesIO(await image.read()),
+                    colour=colour
+                )
+            except discord.HTTPException:
+                await ctx.send("Downloading the image failed. Try again later?")
+                return
+            except RuntimeError:
+                await ctx.send("I didn't detect any eyes.")
+                return
+
+        await ctx.send(
+            f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
+            file=File(buffer, "lensflareeyes.jpg")
+        )
+
     @commands.command(aliases=("magic",))
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
