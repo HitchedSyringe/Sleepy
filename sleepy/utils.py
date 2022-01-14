@@ -63,28 +63,6 @@ if TYPE_CHECKING:
     PerfWrappedCoro = Func[Coro[Tuple[Any, float]]]
 
 
-_DEFAULT_SHORT_NUMBER_SUFFIXES: Tuple[str, ...] = (
-    "",
-    "K",
-    "M",
-    "B",
-    "T",
-    "P",
-    "E",
-    "Z",
-    "Y",
-)
-
-
-# Emojis used for the progress bar.
-_FR: str = "<:pb_r_f:786093987336421376>"
-_ER: str = "<:pb_r_e:786093986838347836>"
-_FL: str = "<:pb_l_f:786093987076374548>"
-_EL: str = "<:pb_l_e:786093986745942037>"
-_FB: str = "<:pb_b_f:786093986703605830>"
-_EB: str = "<:pb_b_e:786093986233188363>"
-
-
 class plural:
     """A formatting helper class that pluralises a string
     based on the given numerical value.
@@ -446,9 +424,9 @@ def human_number(
     sigfigs: int = 3,
     *,
     strip_trailing_zeroes: bool = True,
-    suffixes: Tuple[str, ...] = _DEFAULT_SHORT_NUMBER_SUFFIXES
+    suffixes: Sequence[str] = "\u200bKMBTPEZY"
 ):
-    """Humanizes a given number.
+    r"""Humanizes a given number.
 
     This shortens numbers using a base-1000 scale.
 
@@ -489,7 +467,7 @@ def human_number(
     suffixes: Sequence[:class:`str`]
         The suffixes to use for each power of 1000.
         The order of the sequence is in ascending order.
-        Defaults to ``("", "K", "M", "B", "T", "P", "E", "Z", "Y")``.
+        Defaults to ``"\u200bKMBTPEZY"``.
 
         .. versionchanged:: 3.0
             This is now a keyword-only argument.
@@ -671,13 +649,20 @@ def progress_bar(*, progress: int, maximum: int, per: int = 1) -> str:
     # the edge pieces, since we're doing the simple-but-
     # not-so-simple approach of calculating the body.
 
+    FR = "<:pb_r_f:786093987336421376>"
+    EL = "<:pb_l_e:786093986745942037>"
+    FB = "<:pb_b_f:786093986703605830>"
+    EB = "<:pb_b_e:786093986233188363>"
+
     if filled == total:
-        return _FR + _FB * (total - 2) + _FL
+        FL = "<:pb_l_f:786093987076374548>"
+        return FR + FB * (total - 2) + FL
 
     if filled == 0:
-        return _ER + _EB * (total - 2) + _EL
+        ER = "<:pb_r_e:786093986838347836>"
+        return ER + EB * (total - 2) + EL
 
-    return _FR + _FB * (filled - 1) + _EB * (total - filled - 1) + _EL
+    return FR + FB * (filled - 1) + EB * (total - filled - 1) + EL
 
 
 def randint(a: int, b: int, /, *, seed: Optional[Any] = None) -> int:
