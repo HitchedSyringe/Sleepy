@@ -33,13 +33,13 @@ from typing import (
 )
 
 import discord
-from discord.ext.menus import ListPageSource
+from discord.ext.menus import ListPageSource, PageSource
 from discord.ui import View, button
 
 
 if TYPE_CHECKING:
     from discord.ext.commands import Bot, Paginator
-    from discord.ext.menus import MenuPages, PageSource
+    from discord.ext.menus import MenuPages
     from discord.ui import Button, Item
 
     from .utils import Coro, Func
