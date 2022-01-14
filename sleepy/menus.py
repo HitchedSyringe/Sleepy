@@ -364,8 +364,6 @@ class PaginationView(BaseView):
 
         if more_than_two:
             self.add_item(self.last_page)  # type: ignore
-        else:
-            self.stop_menu.row = 0
 
         self.add_item(self.stop_menu)  # type: ignore
 
@@ -616,7 +614,7 @@ class PaginationView(BaseView):
         # handled initially when the view starts.
         await self.show_page(self._source.get_max_pages() - 1)  # type: ignore
 
-    @button(emoji="\N{OCTAGONAL SIGN}", label="Stop", style=discord.ButtonStyle.danger, row=1)
+    @button(emoji="\N{OCTAGONAL SIGN}", label="Stop", style=discord.ButtonStyle.danger)
     async def stop_menu(self, button: Button, itn: discord.Interaction) -> None:
         self.stop()
 
@@ -626,7 +624,7 @@ class PaginationView(BaseView):
             self._remove_view_after = True
             await self._do_items_cleanup()
 
-    @button(emoji="\N{PAGE WITH CURL}", label="Jump to page...", row=1)
+    @button(emoji="\N{PAGE WITH CURL}", label="Jump to page...")
     async def select_page(self, button: Button, itn: discord.Interaction) -> None:
         if self._lock.locked():
             await itn.response.send_message("I'm already awaiting your response.", ephemeral=True)
