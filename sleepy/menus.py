@@ -315,6 +315,7 @@ class PaginationView(BaseView):
         self.current_page: int = 0
         self.message: Optional[discord.Message] = None
 
+        self.clear_items()
         self._do_items_setup()
 
     @property
@@ -348,8 +349,6 @@ class PaginationView(BaseView):
             await self.message.edit(view=self)
 
     def _do_items_setup(self) -> None:
-        self.clear_items()
-
         if not self._source.is_paginating():
             return
 
@@ -531,8 +530,10 @@ class PaginationView(BaseView):
         self.current_page = 0
 
         if not self.is_finished():
-            await source._prepare_once()
+            self.clear_items()
             self._do_items_setup()
+
+            await source._prepare_once()
             await self.show_page(0)
 
     async def show_page(self, page_number: int) -> None:
