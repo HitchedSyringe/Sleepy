@@ -529,7 +529,7 @@ class PaginationView(BaseView):
         self._source = source
         self.current_page = 0
 
-        if not self.is_finished():
+        if self.message is not None:
             self.clear_items()
             self._do_items_setup()
 
