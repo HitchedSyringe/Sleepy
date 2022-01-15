@@ -43,7 +43,6 @@ from PIL import (
     Image,
     ImageDraw,
     ImageEnhance,
-    ImageFilter,
     ImageFont,
     ImageOps,
     ImageSequence,
@@ -417,19 +416,25 @@ def make_iphone_x(image_buffer, /):
 def make_live_tucker_reaction_meme(image_buffer, /):
     with Image.open(TEMPLATES / "live_tucker_reaction.png") as template:
         with Image.open(image_buffer) as image:
-            image = image.convert("RGBA")
             image.putalpha(255)
 
-        result = ImageOps.pad(image, template.size)
+            t_size = template.size
+            result = ImageOps.contain(image.convert("RGBA"), t_size)
 
         # If the foreground image has the same dimensions as the
         # template, then there isn't a need for whitespace to be
         # filled and we won't have to generate the blurred form.
-        if image.size != template.size:
-            result = Image.alpha_composite(
-                image.resize(template.size).filter(ImageFilter.GaussianBlur(10)),
-                result
+        if result.size != t_size:
+            blur = cv2.blur(np.asarray(result.resize(t_size)), (25, 25))
+            blur = Image.fromarray(blur)
+
+            center = (
+                (t_size[0] - result.width) // 2,
+                (t_size[1] - result.height) // 2
             )
+
+            blur.alpha_composite(result, center)
+            result = blur
 
         result.alpha_composite(template)
 
