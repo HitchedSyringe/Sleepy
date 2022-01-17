@@ -208,10 +208,9 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
         if "image/" not in resp.content_type:
             raise ImageAssetConversionFailure(argument)
 
-        if (
-            self.max_filesize is not None
-            and (filesize := int(resp.headers["Content-Length"])) > self.max_filesize
-        ):
+        filesize = int(resp.headers["Content-Length"])
+
+        if self.max_filesize is not None and filesize > self.max_filesize:
             raise ImageAssetTooLarge(url, filesize, self.max_filesize)
 
         return PartialAsset(ctx.bot._connection, url=url)
@@ -261,12 +260,11 @@ def real_float(*, max_decimal_places: Optional[int] = None) -> Callable[[str], f
         if not math.isfinite(f_arg):
             raise commands.BadArgument("Float must be a real finite value.")
 
-        if (
-            max_decimal_places is not None
-            and (p := arg[::-1].find(".")) > max_decimal_places
-        ):
+        decimal_places = arg[::-1].find(".")
+
+        if max_decimal_places is not None and decimal_places > max_decimal_places:
             raise commands.BadArgument(
-                f"Too many decimal places. ({p} > {max_decimal_places})"
+                f"Too many decimal places. ({decimal_places} > {max_decimal_places})"
             )
 
         return f_arg

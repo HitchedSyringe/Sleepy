@@ -431,11 +431,11 @@ class DeveloperUtilities(
 
         urls = data["project_urls"]
 
-        if (
-            urls is not None
-            and (links := "\n".join(f"[{n}]({u})" for n, u in urls.items() if u != "UNKNOWN"))
-        ):
-            embed.add_field(name="Links", value=links)
+        if urls is not None:
+            links = "\n".join(f"[{n}]({u})" for n, u in urls.items() if u != "UNKNOWN")
+
+            if links:
+                embed.add_field(name="Links", value=links)
 
         await ctx.send(embed=embed)
 

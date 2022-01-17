@@ -36,11 +36,9 @@ if TYPE_CHECKING:
 
 
 class Context(commands.Context):
-    """A custom context that provides some useful methods.
+    """A custom context class that provides some useful shorthands.
 
-    This class subclasses :class:`commands.Context` and, as a
-    result, anything that you can do with a :class:`commands.Context`,
-    you can do with this context.
+    Subclasses :class:`commands.Context`.
 
     .. versionadded:: 1.7
     """

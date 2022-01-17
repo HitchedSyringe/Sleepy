@@ -477,8 +477,10 @@ class NSFW(
 
             data = result["data"]
 
-            if (urls := data.pop("ext_urls", None)) is not None:
-                embed.add_field(name="External Links", value="\n".join(urls))
+            try:
+                embed.add_field(name="External Links", value="\n".join(data.pop("ext_urls")))
+            except KeyError:
+                pass
 
             embed.description = "\n".join(
                 f"**{k.replace('_', ' ').title()}:** "

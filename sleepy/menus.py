@@ -48,14 +48,12 @@ if TYPE_CHECKING:
 class EmbedSource(ListPageSource):
     """A basic data source for a sequence of embeds.
 
-    This class subclasses :class:`menus.ListPageSource` and, as a
-    result, anything you can do with :class:`menus.ListPageSource`,
-    you can also do with this page source.
+    Subclasses :class:`menus.ListPageSource`.
 
     .. versionadded:: 2.0
 
     .. versionchanged:: 3.0
-        Renamed ``show_page_numbers`` argument to ``show_page_count``
+        Renamed ``show_page_numbers`` argument to ``show_page_count``.
 
     .. versionchanged:: 3.2
 
@@ -93,14 +91,12 @@ class EmbedSource(ListPageSource):
 class PaginatorSource(ListPageSource):
     """A data source for a :class:`commands.Paginator`.
 
-    This class subclasses :class:`menus.ListPageSource` and, as a
-    result, anything you can do with :class:`menus.ListPageSource`,
-    you can also do with this page source.
+    Subclasses :class:`menus.ListPageSource`.
 
     .. versionadded:: 3.0
 
     .. versionchanged:: 3.0
-        Renamed ``show_page_numbers`` argument to ``show_page_count``
+        Renamed ``show_page_numbers`` argument to ``show_page_count``.
 
     .. versionchanged:: 3.2
         Removed ``show_page_count`` atribute. Page numbers are now
@@ -127,8 +123,7 @@ class PaginatorSource(ListPageSource):
 
 
 class BaseView(View):
-    """The base view class that the custom user interfaces
-    inherit from.
+    """Base view class that the custom views inherit from.
 
     The following implement this base:
 
@@ -568,7 +563,7 @@ class PaginationView(BaseView):
         Parameters
         ----------
         page_number: :class:`int`
-            The page number.
+            The page number to show.
         """
         max_pages = self._source.get_max_pages()
 

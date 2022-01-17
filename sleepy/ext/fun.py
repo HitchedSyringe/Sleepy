@@ -281,7 +281,7 @@ class Fun(
         > For a list of valid font names, refer to:
         > <https://artii.herokuapp.com/fonts_list>
 
-        **EXAMPLE:**
+        **EXAMPLES:**
         ```bnf
         <1> asciiart text: hello there!
         <2> asciiart font: taxi____ text: woah, cool!

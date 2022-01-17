@@ -65,16 +65,19 @@ class BanEntry(commands.Converter):
     @staticmethod
     async def convert(ctx, argument):
         try:
-            return await ctx.guild.fetch_ban(discord.Object(id=int(argument, base=10)))
+            return await ctx.guild.fetch_ban(discord.Object(id=int(argument)))
         except discord.NotFound:
             raise BanEntryNotFound(argument) from None
         except ValueError:
             pass
 
-        if (ban := find(lambda u: str(u.user) == argument, await ctx.guild.bans())) is None:
+        ban_entries = await ctx.guild.bans()
+        ban_entry = find(lambda e: str(e.user) == argument, ban_entries)
+
+        if ban_entry is None:
             raise BanEntryNotFound(argument)
 
-        return ban
+        return ban_entry
 
 
 class BannableUser(commands.Converter):
@@ -95,8 +98,11 @@ class Reason(commands.Converter):
     async def convert(ctx, argument):
         tag = f"{ctx.author} (ID: {ctx.author.id}): "
 
-        if (arg_len := len(argument)) > (limit := 512 - len(tag)):
-            raise ReasonTooLong(arg_len, limit)
+        argument_len = len(argument)
+        limit = 512 - len(tag)
+
+        if argument_len > limit:
+            raise ReasonTooLong(argument_len, limit)
 
         return tag + argument
 

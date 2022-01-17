@@ -102,13 +102,12 @@ class Images(
         """
         async with ctx.typing():
             try:
-                art, delta = await backend.do_asciify(
-                    io.BytesIO(await image.read()),
-                    inverted=inverted
-                )
+                image_bytes = await image.read()
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
+
+            art, delta = await backend.do_asciify(io.BytesIO(image_bytes), inverted=inverted)
 
         await ctx.send(f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms\n```\n{art}```")
 
@@ -161,13 +160,15 @@ class Images(
         """
         async with ctx.typing():
             try:
-                buffer, delta = await backend.do_blurpify(
-                    io.BytesIO(await image.read()),
-                    use_rebrand=use_rebrand
-                )
+                image_bytes = await image.read()
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
+
+            buffer, delta = await backend.do_blurpify(
+                io.BytesIO(image_bytes),
+                use_rebrand=use_rebrand
+            )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
@@ -249,13 +250,12 @@ class Images(
         """
         async with ctx.typing():
             try:
-                buffer, delta = await backend.make_captcha(
-                    io.BytesIO(await image.read()),
-                    text
-                )
+                image_bytes = await image.read()
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
+
+            buffer, delta = await backend.make_captcha(io.BytesIO(image_bytes), text)
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
@@ -339,12 +339,12 @@ class Images(
         """
         async with ctx.typing():
             try:
-                buffer, delta = await backend.do_deepfry(
-                    io.BytesIO(await image.read())
-                )
+                image_bytes = await image.read()
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
+
+            buffer, delta = await backend.do_deepfry(io.BytesIO(image_bytes))
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
@@ -421,10 +421,12 @@ class Images(
         """
         async with ctx.typing():
             try:
-                buffer, delta = await backend.do_invert(io.BytesIO(await image.read()))
+                image_bytes = await image.read()
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
+
+            buffer, delta = await backend.do_invert(io.BytesIO(image_bytes))
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
@@ -450,12 +452,12 @@ class Images(
         """
         async with ctx.typing():
             try:
-                buffer, delta = await backend.make_iphone_x(
-                    io.BytesIO(await image.read())
-                )
+                image_bytes = await image.read()
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
+
+            buffer, delta = await backend.make_iphone_x(io.BytesIO(image_bytes))
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
@@ -490,13 +492,15 @@ class Images(
 
         async with ctx.typing():
             try:
-                buffer, delta = await backend.do_jpegify(
-                    io.BytesIO(await image.read()),
-                    quality=11 - intensity
-                )
+                image_bytes = await image.read()
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
+
+            buffer, delta = await backend.do_jpegify(
+                io.BytesIO(image_bytes),
+                quality=11 - intensity
+            )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
@@ -515,16 +519,18 @@ class Images(
     ):
         async with ctx.typing():
             try:
-                buffer, delta = await backend.do_lensflare_eyes(
-                    io.BytesIO(await image.read()),
-                    colour=colour
-                )
+                image_bytes = await image.read()
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
             except RuntimeError:
                 await ctx.send("I didn't detect any eyes.")
                 return
+
+            buffer, delta = await backend.do_lensflare_eyes(
+                io.BytesIO(image_bytes),
+                colour=colour
+            )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
@@ -617,17 +623,19 @@ class Images(
 
         async with ctx.typing():
             try:
-                buffer, delta = await backend.make_pornhub_comment(
-                    user.display_name,
-                    io.BytesIO(await user.display_avatar.with_format("png").read()),
-                    text
-                )
+                avatar_bytes = await user.display_avatar.with_format("png").read()
             except discord.NotFound:
                 await ctx.send("Could not resolve the user's avatar. Try again later?")
                 return
             except discord.HTTPException:
                 await ctx.send("Downloading the user's avatar failed. Try again later?")
                 return
+
+            buffer, delta = await backend.make_pornhub_comment(
+                user.display_name,
+                io.BytesIO(avatar_bytes),
+                text
+            )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
@@ -657,17 +665,19 @@ class Images(
         """
         async with ctx.typing():
             try:
-                buffer, delta = await backend.make_roblox_cancel_meme(
-                    io.BytesIO(await user.display_avatar.with_format("png").read()),
-                    user.name,
-                    user.discriminator
-                )
+                avatar_bytes = await user.display_avatar.with_format("png").read()
             except discord.NotFound:
                 await ctx.send("Could not resolve the user's avatar. Try again later?")
                 return
             except discord.HTTPException:
                 await ctx.send("Downloading the user's avatar failed. Try again later?")
                 return
+
+            buffer, delta = await backend.make_roblox_cancel_meme(
+                io.BytesIO(avatar_bytes),
+                user.name,
+                user.discriminator
+            )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
@@ -708,16 +718,19 @@ class Images(
 
         async with ctx.typing():
             try:
-                buffer, delta = await backend.make_ship(
-                    io.BytesIO(await first_user.display_avatar.with_format("png").read()),
-                    io.BytesIO(await second_user.display_avatar.with_format("png").read()),
-                )
+                avatar1_bytes = await first_user.display_avatar.with_format("png").read()
+                avatar2_bytes = await second_user.display_avatar.with_format("png").read()
             except discord.NotFound:
                 await ctx.send("Could not resolve the avatars. Try again later?")
                 return
             except discord.HTTPException:
                 await ctx.send("Downloading the avatars failed. Try again later?")
                 return
+
+            buffer, delta = await backend.make_ship(
+                io.BytesIO(avatar1_bytes),
+                io.BytesIO(avatar2_bytes)
+            )
 
         first_name = first_user.name
         second_name = second_user.name
@@ -759,12 +772,12 @@ class Images(
         """
         async with ctx.typing():
             try:
-                buffer, delta = await backend.make_pointing_soyjaks_meme(
-                    io.BytesIO(await image.read())
-                )
+                image_bytes = await image.read()
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
+
+            buffer, delta = await backend.make_pointing_soyjaks_meme(io.BytesIO(image_bytes))
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
@@ -843,13 +856,15 @@ class Images(
 
         async with ctx.typing():
             try:
-                buffer, delta = await backend.do_swirl(
-                    io.BytesIO(await image.read()),
-                    intensity=intensity * 2.5
-                )
+                image_bytes = await image.read()
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
+
+            buffer, delta = await backend.do_swirl(
+                io.BytesIO(image_bytes),
+                intensity=intensity * 2.5
+            )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
@@ -939,12 +954,12 @@ class Images(
         """
         async with ctx.typing():
             try:
-                buffer, delta = await backend.make_threats_meme(
-                    io.BytesIO(await image.read())
-                )
+                image_bytes = await image.read()
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
+
+            buffer, delta = await backend.make_threats_meme(io.BytesIO(image_bytes))
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
@@ -972,14 +987,16 @@ class Images(
         """
         async with ctx.typing():
             try:
-                buffer, delta = await backend.make_trapcard(
-                    title,
-                    flavour_text,
-                    io.BytesIO(await image.read())
-                )
+                image_bytes = await image.read()
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
+
+            buffer, delta = await backend.make_trapcard(
+                title,
+                flavour_text,
+                io.BytesIO(image_bytes)
+            )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
@@ -1003,12 +1020,14 @@ class Images(
         """
         async with ctx.typing():
             try:
-                buffer, delta = await backend.make_live_tucker_reaction_meme(
-                    io.BytesIO(await image.read())
-                )
+                image_bytes = await image.read()
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
+
+            buffer, delta = await backend.make_live_tucker_reaction_meme(
+                io.BytesIO(image_bytes)
+            )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
@@ -1041,18 +1060,20 @@ class Images(
 
         async with ctx.typing():
             try:
-                buffer, delta = await backend.make_tweet(
-                    user.name,
-                    user.display_name,
-                    io.BytesIO(await user.display_avatar.with_format("png").read()),
-                    text
-                )
+                avatar_bytes = await user.display_avatar.with_format("png").read()
             except discord.NotFound:
                 await ctx.send("Could not resolve the user's avatar. Try again later?")
                 return
             except discord.HTTPException:
                 await ctx.send("Downloading the user's avatar failed. Try again later?")
                 return
+
+            buffer, delta = await backend.make_tweet(
+                user.name,
+                user.display_name,
+                io.BytesIO(avatar_bytes),
+                text
+            )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
@@ -1093,16 +1114,19 @@ class Images(
 
         async with ctx.typing():
             try:
-                buffer, delta = await backend.make_who_would_win_meme(
-                    io.BytesIO(await first_user.display_avatar.with_format("png").read()),
-                    io.BytesIO(await second_user.display_avatar.with_format("png").read()),
-                )
+                avatar1_bytes = await first_user.display_avatar.with_format("png").read()
+                avatar2_bytes = await second_user.display_avatar.with_format("png").read()
             except discord.NotFound:
                 await ctx.send("Could not resolve the avatars. Try again later?")
                 return
             except discord.HTTPException:
                 await ctx.send("Downloading the avatars failed. Try again later?")
                 return
+
+            buffer, delta = await backend.make_who_would_win_meme(
+                io.BytesIO(avatar1_bytes),
+                io.BytesIO(avatar2_bytes)
+            )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
@@ -1136,17 +1160,19 @@ class Images(
 
         async with ctx.typing():
             try:
-                buffer, delta = await backend.make_youtube_comment(
-                    user.display_name,
-                    io.BytesIO(await user.display_avatar.with_format("png").read()),
-                    text
-                )
+                avatar_bytes = await user.display_avatar.with_format("png").read()
             except discord.NotFound:
                 await ctx.send("Could not resolve the user's avatar. Try again later?")
                 return
             except discord.HTTPException:
                 await ctx.send("Downloading the user's avatar failed. Try again later?")
                 return
+
+            buffer, delta = await backend.make_youtube_comment(
+                user.display_name,
+                io.BytesIO(avatar_bytes),
+                text
+            )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",

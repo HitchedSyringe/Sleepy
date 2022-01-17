@@ -11,7 +11,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 # mimic the ones found in discord.py. These are likely
 # only accessible through using custom converters and,
 # like any normal Discord model, are not intended for
-# manual creation should be considered read-only.
+# manual creation and should be considered read-only.
 
 
 __all__ = (

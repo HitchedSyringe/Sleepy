@@ -40,9 +40,7 @@ _LOG = logging.getLogger(__name__)
 class Sleepy(commands.Bot):
     """The main Sleepy Discord bot class.
 
-    This class is a subclass of :class:`commands.Bot` and, as
-    a result, anything that you can do with a :class:`commands.Bot`,
-    you can do with this bot.
+    Subclasses :class:`commands.Bot`.
 
     .. versionchanged:: 1.4
         Renamed to ``DiscordBot``.

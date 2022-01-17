@@ -232,8 +232,10 @@ class Weeb(
         """
         async with ctx.typing():
             try:
+                image_bytes = await image.read()
+
                 (count, buffer), delta = await backend.detect_anime_faces(
-                    io.BytesIO(await image.read())
+                    io.BytesIO(image_bytes)
                 )
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
@@ -267,12 +269,12 @@ class Weeb(
         """
         async with ctx.typing():
             try:
-                buffer, delta = await backend.do_awooify(
-                    io.BytesIO(await image.read())
-                )
+                image_bytes = await image.read()
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
+
+            buffer, delta = await backend.do_awooify(io.BytesIO(image_bytes))
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
@@ -298,12 +300,12 @@ class Weeb(
         """
         async with ctx.typing():
             try:
-                buffer, delta = await backend.make_baguette_meme(
-                    io.BytesIO(await image.read())
-                )
+                image_bytes = await image.read()
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
+
+            buffer, delta = await backend.make_baguette_meme(io.BytesIO(image_bytes))
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
@@ -329,12 +331,12 @@ class Weeb(
         """
         async with ctx.typing():
             try:
-                buffer, delta = await backend.make_bodypillow_meme(
-                    io.BytesIO(await image.read())
-                )
+                image_bytes = await image.read()
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
+
+            buffer, delta = await backend.make_bodypillow_meme(io.BytesIO(image_bytes))
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
@@ -434,12 +436,12 @@ class Weeb(
         """
         async with ctx.typing():
             try:
-                buffer, delta = await backend.make_lolice_meme(
-                    io.BytesIO(await image.read())
-                )
+                image_bytes = await image.read()
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
+
+            buffer, delta = await backend.make_lolice_meme(io.BytesIO(image_bytes))
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
@@ -575,12 +577,12 @@ class Weeb(
         """
         async with ctx.typing():
             try:
-                buffer, delta = await backend.make_ritsu_dirt_meme(
-                    io.BytesIO(await image.read())
-                )
+                image_bytes = await image.read()
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
+
+            buffer, delta = await backend.make_ritsu_dirt_meme(io.BytesIO(image_bytes))
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
@@ -627,12 +629,12 @@ class Weeb(
         """
         async with ctx.typing():
             try:
-                buffer, delta = await backend.make_trash_waifu_meme(
-                    io.BytesIO(await image.read())
-                )
+                image_bytes = await image.read()
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
+
+            buffer, delta = await backend.make_trash_waifu_meme(io.BytesIO(image_bytes))
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
