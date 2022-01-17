@@ -21,7 +21,7 @@ from discord import Embed, File
 from discord.ext import commands
 from discord.utils import format_dt
 from googletrans import Translator, LANGUAGES
-from sleepy.converters import _pseudo_argument_flag, real_float
+from sleepy.converters import real_float
 from sleepy.http import HTTPRequestFailed
 from sleepy.menus import EmbedSource
 from sleepy.paginators import WrappedPaginator
@@ -40,6 +40,17 @@ def clean_subreddit(value):
         raise commands.BadArgument("Invalid subreddit.")
 
     return match.group(1).lower()
+
+
+def _prefixed_argument(prefix):
+
+    def convert(value):
+        if not value.startswith(prefix):
+            raise commands.BadArgument("Argument must begin with " + prefix) from None
+
+        return value[len(prefix):]
+
+    return convert
 
 
 class RedditSubmissionURL(commands.Converter):
@@ -1176,8 +1187,8 @@ class Web(
     async def translate(
         self,
         ctx,
-        destination: _pseudo_argument_flag(">", separator=">"),
-        source: Optional[_pseudo_argument_flag("$", separator="$")] = "auto",
+        destination: _prefixed_argument(">"),
+        source: Optional[_prefixed_argument("$")] = "auto",
         *,
         text: commands.clean_content(fix_channel_mentions=True) = None
     ):

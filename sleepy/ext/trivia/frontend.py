@@ -14,13 +14,15 @@ __all__ = (
 )
 
 
+from typing import Tuple
+
 import aiofiles
 import logging
 import traceback
 import yaml
 from discord import Embed, HTTPException
-from discord.ext import commands, flags
-from sleepy.utils import human_join, tchart
+from discord.ext import commands
+from sleepy.utils import _as_argparse_dict, human_join, tchart
 
 from .backend import TriviaQuestion, TriviaSession
 from .categories import CATEGORIES
@@ -46,6 +48,16 @@ def has_active_session():
 
 
 _LOG = logging.getLogger(__name__)
+
+
+class TriviaFlags(commands.FlagConverter):
+
+    categories: Tuple[str, ...]
+    max_score: int = commands.flag(name="max-score", default=10)
+    answer_time_limit: int = commands.flag(name="answer-time-limit", default=20)
+    bot_plays: bool = commands.flag(name="bot-plays", default=True)
+    reveal_answer: bool = commands.flag(name="reveal-answer", default=True)
+    give_hints: bool = commands.flag(name="show-hints", default=True)
 
 
 class TriviaMinigame(
@@ -132,48 +144,42 @@ class TriviaMinigame(
         # session should be removed from the active sessions.
         await session.end_game(send_results=False)
 
-    @flags.add_flag("--categories", type=str.lower, nargs="+", required=True)
-    @flags.add_flag("--max-score", type=int, default=10)
-    @flags.add_flag("--answer-time-limit", type=int, default=20)
-    @flags.add_flag("--no-bot", action="store_false", dest="bot_plays")
-    @flags.add_flag("--no-reveal-answer", action="store_false", dest="reveal_answer")
-    @flags.add_flag("--no-hints", action="store_false", dest="give_hints")
-    @flags.group(invoke_without_command=True, usage="<--categories> [options...]")
+    @commands.group(invoke_without_command=True, usage="categories: <categories...> [options...]")
     @commands.bot_has_permissions(embed_links=True)
-    async def trivia(self, ctx, **flags):
+    async def trivia(self, ctx, *, options: TriviaFlags):
         """Starts a new trivia session.
 
-        This uses a powerful "command-line" interface.
+        This command's interface is similar to Discord's slash commands.
         Values with spaces must be surrounded by quotation marks.
-        **All options except `--categories` are optional.**
 
-        __The following options are valid:__
+        Options can be given in any order and, unless otherwise stated,
+        are assumed to be optional.
 
-        `--categories`
-        > The categories to involve the questions from. **Required**
+        The following options are valid:
+
+        `categories: <categories...>` **Required**
+        > The categories to involve the questions from.
+        > This is case-sensitive.
         > Valid categories: `christmas`, `newyear`, `usabbreviations`,
         > `uscapitals`, `usflags`, `usmap`, `worldcapitals`, `worldflags`,
         > `worldmap`
-        `--max-score`
+        `max-score: <integer>`
         > The amount of points required to win.
         > Must be between 5 and 30, inclusive.
         > Defaults to `10`.
-        `--answer-time-limit`
+        `answer-time-limit: <integer>`
         > The time, in seconds, alotted to answer a question.
         > Must be between 15 and 50, inclusive.
         > Defaults to `20`.
-
-        __The remaining options do not take any arguments and are simply just flags:__
-
-        `--no-bot`
-        > If passed, I won't award myself points if nobody
-        > has correctly answered the question in time.
-        `--no-reveal-answer`
-        > If passed, I won't reveal the answer if nobody
-        > has correctly answered the question in time.
-        `--no-hints`
-        > If passed, I won't slowly reveal portions of the
-        > answer as the timer dwindles.
+        `bot-plays: <true|false>`
+        > If `true` (the default), I will award myself points if
+        > nobody has correctly answered the question in time.
+        `reveal-answer: <true|false>`
+        > If `true` (the default), I will reveal the answer if
+        > nobody has correctly answered the question in time.
+        `show-hints: <true|false>`
+        > If `true` (the default), then I will slowly reveal
+        > portions of the answer as the time dwindles.
 
         (Bot Needs: Embed Links)
         """
@@ -181,11 +187,11 @@ class TriviaMinigame(
             await ctx.send("There's already an active trivia session in this channel.")
             return
 
-        if not 5 <= flags["max_score"] <= 30:
+        if not 5 <= options.max_score <= 30:
             await ctx.send("Maximum score must be between 5 and 30, inclusive.")
             return
 
-        if not 15 <= flags["answer_time_limit"] <= 50:
+        if not 15 <= options.answer_time_limit <= 50:
             await ctx.send("Answer time limit must be between 15 and 50, inclusive.")
             return
 
@@ -193,7 +199,7 @@ class TriviaMinigame(
         questions = []
 
         async with ctx.typing():
-            for category in set(flags.pop("categories")):
+            for category in set(options.categories):
                 category_path = CATEGORIES.joinpath(category + ".yaml").resolve()
 
                 if not category_path.is_relative_to(CATEGORIES):
@@ -219,26 +225,20 @@ class TriviaMinigame(
                     for q, d in data.items()
                 )
 
+        kwargs = _as_argparse_dict(options)
+        del kwargs["categories"]
+
         embed = Embed(title="A new trivia session is starting!", colour=0x2F3136)
         embed.set_footer(text=f"Started by {ctx.author}")
         embed.add_field(name="Categories", value=human_join(creds), inline=False)
         embed.add_field(
             name="Settings",
-            value=f"```py\n{tchart(flags, lambda s: s.replace('_', ' ').title())}```"
+            value=f"```py\n{tchart(kwargs, lambda s: s.replace('_', ' ').title())}```"
         )
 
         await ctx.send(embed=embed)
 
-        self.active_sessions[ctx.channel.id] = TriviaSession.start(ctx, questions, **flags)
-
-    @trivia.error
-    async def on_trivia_error(self, ctx, error):
-        if isinstance(error, flags.ArgumentParsingError):
-            await ctx.send(
-                "An error occurred while processing your flag arguments."
-                "\nPlease double-check your input arguments and try again."
-            )
-            error.handled__ = True
+        self.active_sessions[ctx.channel.id] = TriviaSession.start(ctx, questions, **kwargs)
 
     @trivia.command(name="stop")
     @has_active_session()

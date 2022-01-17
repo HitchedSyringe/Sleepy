@@ -9,10 +9,10 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import re
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Optional, Tuple
 
 import discord
-from discord.ext import commands, flags
+from discord.ext import commands
 from discord.utils import find
 from sleepy import checks
 from sleepy.menus import PaginatorSource
@@ -101,6 +101,55 @@ class Reason(commands.Converter):
         return tag + argument
 
 
+class MassbanFlags(commands.FlagConverter):
+
+    reason: Reason = commands.flag(
+        aliases=("r",),
+        default=lambda ctx: f"{ctx.author} (ID: {ctx.author.id}): No reason provided."
+    )
+    delete_message_days: int = \
+        commands.flag(name="delete-message-days", aliases=("dmd",), default=0)
+
+    startswith: Optional[Tuple[str, ...]] = None
+    endswith: Optional[Tuple[str, ...]] = None
+    contains: Optional[Tuple[str, ...]] = None
+    matches: str = commands.flag(aliases=("regex",), default=None)
+
+    created: Optional[int] = None
+    joined: Optional[int] = None
+    joined_before: discord.Member = commands.flag(name="joined-before", default=None)
+    joined_after: discord.Member = commands.flag(name="joined-after", default=None)
+
+    has_no_avatar: bool = commands.flag(name="has-no-avatar", default=False)
+    has_no_roles: bool = commands.flag(name="has-no-roles", default=False)
+
+    show_users: bool = commands.flag(name="show-users", default=False)
+
+
+class PurgeFlags(commands.FlagConverter):
+
+    amount: int = 10
+
+    before: Optional[discord.PartialMessage] = None
+    after: Optional[discord.PartialMessage] = None
+
+    startswith: Optional[Tuple[str, ...]] = None
+    endswith: Optional[Tuple[str, ...]] = None
+    contains: Optional[Tuple[str, ...]] = None
+    matches: str = commands.flag(aliases=("regex",), default=None)
+
+    users: Tuple[discord.User, ...] = \
+        commands.flag(name="users", aliases=("user",), default=None)
+    sent_by_bot: bool = commands.flag(name="sent-by-bot", default=False)
+    has_embeds: bool = commands.flag(name="has-embeds", default=False)
+    has_emojis: bool = commands.flag(name="has-emojis", default=False)
+    has_attachments: bool = \
+        commands.flag(name="has-attachments", aliases=("has-files",), default=False)
+
+    logical_any: bool = commands.flag(name="any-applies", default=False)
+    logical_not: bool = commands.flag(name="invert", default=False)
+
+
 class Moderation(commands.Cog):
     """Commands having to do with server moderation.
 
@@ -117,13 +166,7 @@ class Moderation(commands.Cog):
         return True
 
     async def cog_command_error(self, ctx, error):
-        if isinstance(error, flags.ArgumentParsingError):
-            await ctx.send(
-                "An error occurred while processing your flag arguments."
-                "\nPlease double-check your input arguments and try again."
-            )
-            error.handled__ = True
-        elif isinstance(error, (commands.UserNotFound, commands.MemberNotFound)):
+        if isinstance(error, (commands.UserNotFound, commands.MemberNotFound)):
             await ctx.send("That user wasn't found.")
             error.handled__ = True
         elif isinstance(error, BanEntryNotFound):
@@ -146,11 +189,6 @@ class Moderation(commands.Cog):
         except discord.HTTPException:
             await ctx.send("Deleting the messages failed.\nTry again later?")
             return
-
-        # try:
-        #     await ctx.message.delete()
-        # except discord.HTTPException:  # oh well.
-        #     pass
 
         if deleted:
             await ctx.send(f"Deleted **{len(deleted)}/{limit}** messages.", delete_after=10)
@@ -208,9 +246,7 @@ class Moderation(commands.Cog):
         ```
         """
         if not 0 <= delete_message_days <= 7:
-            await ctx.send(
-                "Number of days worth of messages to delete must be between 1 and 7, inclusive."
-            )
+            await ctx.send("Days of messages to delete must be between 1 and 7, inclusive.")
             return
 
         if reason is None:
@@ -273,81 +309,64 @@ class Moderation(commands.Cog):
 
         await ctx.send("<a:sapphire_ok_hand:786093988679516160>")
 
-    @flags.add_flag("--reason", "-r", type=Reason)
-    @flags.add_flag("--delete-message-days", "-dmd", type=int, default=0)
-    @flags.add_flag("--contains", nargs="+")
-    @flags.add_flag("--endswith", "--ends", nargs="+")
-    @flags.add_flag("--startswith", "--starts", nargs="+")
-    @flags.add_flag("--matches", "--regex")
-    @flags.add_flag("--created", type=int)
-    @flags.add_flag("--joined", type=int)
-    @flags.add_flag("--joined-before", type=discord.Member)
-    @flags.add_flag("--joined-after", type=discord.Member)
-    @flags.add_flag("--no-avatar", action="store_const", const=lambda m: m.avatar is None)
-    @flags.add_flag("--no-roles", action="store_const", const=lambda m: len(m.roles) <= 1)
-    @flags.add_flag("--show", "-s", action="store_true")
-    @flags.command(usage="[options...]")
+    @commands.command(usage="[options...]")
     @checks.has_guild_permissions(ban_members=True)
     @commands.bot_has_guild_permissions(ban_members=True)
-    async def massban(self, ctx, **flags):
+    async def massban(self, ctx, *, options: MassbanFlags):
         """Bans multiple members from the server based on the given conditions.
 
-        This uses a powerful "command-line" interface.
+        Members will only be banned **if and only if** ALL of the
+        given conditions are met.
+
+        This command's interface is similar to Discord's slash commands.
         Values with spaces must be surrounded by quotation marks.
-        **All options are optional.**
 
-        Members are only banned **if and only if** all conditions
-        are met.
+        Options can be given in any order and, unless otherwise stated,
+        are assumed to be optional.
 
-        **If no conditions are passed, then ALL members will be
-        selected for banning.**
+        __**DANGER: If no conditions are given, then ALL members present
+        on the server will be banned.**__
 
-        Members can either be a name, ID, or mention.
+        The following options are valid:
 
-        __The following options are valid:__
-
-        `--reason` or `-r`
+        `reason: <reason>`
         > The reason for the ban.
-        `--delete-message-days` or `-dmd`
+        `[delete-message-days|dmd]: <integer>`
         > The number of days worth of a banned user's messages to delete.
-        `--contains`
-        > Target members whose usernames contain the given substring(s).
+        `startswith: <prefixes...>`
+        > Only target members whose usernames start with the given prefix(es).
+        > Prefixes are case-sensitive.
+        `contains: <substrings...>`
+        > Only target members whose usernames contain the given substring(s).
         > Substrings are case-sensitive.
-        `--endswith` or `--ends`
-        > Target members whose usernames end with the given substring(s).
-        > Substrings are case-sensitive.
-        `--startswith` or `--starts`
-        > Target members whose usernames start with the given substring(s).
-        > Substrings are case-sensitive.
-        `--matches` or `--regex`
-        > Target members whose usernames match with the given regex.
-        `--created`
-        > Target members whose accounts were created less than specified minutes ago.
-        `--joined`
-        > Target members who joined less than specified minutes ago.
-        `--joined-before`
-        > Target members who joined before the member given.
-        `--joined-after`
-        > Target members who joined after the member given.
-
-        __The remaining options do not take any arguments and are simply just flags:__
-
-        `--no-avatar`
-        > Target members that have a default avatar.
-        `--no-roles`
-        > Target members that do not have a role.
-        `--show` or `-s`
-        > Show members that meet the criteria for banning instead of actually banning them.
+        `endswith: <suffixes...>`
+        > Only target members whose usernames end with the given suffix(es).
+        > Suffixes are case-sensitive.
+        `[matches|regex]: <expression>`
+        > Only target members whose usernames match with the given regex.
+        `created: <integer>`
+        > Only target members whose accounts were created less than specified
+        > minutes ago.
+        `joined: <integer>`
+        > Only target members who joined less than specified minutes ago.
+        `joined-before: <member>`
+        > Only target members who joined before the given member.
+        > Member can either be a name, ID, or mention.
+        `joined-after: <member>`
+        > Only target members who joined after the given member.
+        > Member can either be a name, ID, or mention.
+        `has-no-avatar: <true|false>`
+        > If `true`, only target members that have a default avatar.
+        `has-no-roles: <true|false>`
+        > If `true`, only target members that do not have a role.
+        `show-users: <true|false>`
+        > If `true`, only show members that meet the banning criteria.
 
         (Permissions Needed: Ban Members)
         (Bot Needs: Ban Members)
         """
-        delete_message_days = flags.pop("delete_message_days")
-
-        if not 0 <= delete_message_days <= 7:
-            await ctx.send(
-                "Number of days worth of messages to delete must be between 0 and 7, inclusive."
-            )
+        if not 0 <= options.delete_message_days <= 7:
+            await ctx.send("Days of messages to delete must be between 0 and 7, inclusive.")
             return
 
         checks = [
@@ -356,22 +375,27 @@ class Moderation(commands.Cog):
                 and m.id != ctx.guild.owner_id
                 and ctx.author.top_role > m.top_role
                 and ctx.me.top_role > m.top_role
-            ),
-            *filter(callable, flags.values())
+            )
         ]
 
-        if contains := flags["contains"]:
-            checks.append(lambda m: any(sub in m.name for sub in contains))
+        if options.has_no_avatar:
+            checks.append(lambda m: m.avatar is None)
 
-        if ends := flags["endswith"]:
-            checks.append(lambda m: m.name.endswith(tuple(ends)))
+        if options.has_no_roles:
+            checks.append(lambda m: len(m.roles) <= 1)
 
-        if starts := flags["startswith"]:
-            checks.append(lambda m: m.name.startswith(tuple(starts)))
+        if options.contains:
+            checks.append(lambda m: any(sub in m.name for sub in options.contains))
 
-        if (matches := flags["matches"]) is not None:
+        if options.endswith:
+            checks.append(lambda m: m.name.endswith(options.endswith))
+
+        if options.startswith:
+            checks.append(lambda m: m.name.startswith(options.startswith))
+
+        if options.matches is not None:
             try:
-                regex = re.compile(matches)
+                regex = re.compile(options.matches)
             except re.error as exc:
                 await ctx.send(f"Invalid match regex: {exc}")
                 return
@@ -380,41 +404,33 @@ class Moderation(commands.Cog):
 
         now = datetime.now(timezone.utc)
 
-        if (c_minutes := flags["created"]) is not None:
+        if (c_minutes := options.created) is not None:
             if c_minutes <= 0:
                 await ctx.send("Created minutes ago must be greater than 0.")
                 return
 
             checks.append(lambda m: m.created_at > now - timedelta(minutes=c_minutes))
 
-        if (j_minutes := flags["joined"]) is not None:
+        if (j_minutes := options.joined) is not None:
             if j_minutes <= 0:
                 await ctx.send("Joined minutes ago must be greater than 0.")
                 return
 
             checks.append(lambda m: m.joined_at and m.joined_at > now - timedelta(minutes=j_minutes))
 
-        if (before := flags["joined_before"]) is not None:
+        if (before := options.joined_before) is not None:
             checks.append(lambda m: m.joined_at and before.joined_at and m.joined_at < before.joined_at)
 
-        if (after := flags["joined_after"]) is not None:
+        if (after := options.joined_after) is not None:
             checks.append(lambda m: m.joined_at and after.joined_at and m.joined_at > after.joined_at)
 
         members = [m for m in ctx.guild.members if all(c(m) for c in checks)]
+
         if not members:
             await ctx.send("No members met the criteria specified.")
             return
 
-        if flags["show"]:
-            perms = ctx.channel.permissions_for(ctx.me)
-
-            if not (perms.add_reactions and perms.read_message_history):
-                await ctx.send(
-                    "I need the `Add Reactions` and `Read Message History` permissions"
-                    " to show members that meet the given banning criteria."
-                )
-                return
-
+        if options.show_users:
             paginator = WrappedPaginator("```yaml", max_size=1000)
             members.sort(key=lambda m: m.joined_at or now)
 
@@ -431,8 +447,8 @@ class Moderation(commands.Cog):
         await self.do_multi_ban(
             ctx,
             members,
-            reason=flags["reason"] or f"{ctx.author} (ID: {ctx.author.id}): No reason provided.",
-            delete_message_days=delete_message_days
+            reason=options.reason,
+            delete_message_days=options.delete_message_days
         )
 
     @commands.command()
@@ -463,9 +479,7 @@ class Moderation(commands.Cog):
         ```
         """
         if not 0 <= delete_message_days <= 7:
-            await ctx.send(
-                "Number of days worth of messages to delete must be between 0 and 7, inclusive."
-            )
+            await ctx.send("Days of messages to delete must be between 1 and 7, inclusive.")
             return
 
         if not users:
@@ -551,97 +565,94 @@ class Moderation(commands.Cog):
                 check=lambda m: substring in m.content
             )
 
-    @flags.add_flag("--amount", type=int, default=10)
-    @flags.add_flag("--before", type=discord.PartialMessage)
-    @flags.add_flag("--after", type=discord.PartialMessage)
-    @flags.add_flag("--startswith", "--starts", nargs="+")
-    @flags.add_flag("--endswith", "--ends", nargs="+")
-    @flags.add_flag("--contains", nargs="+")
-    @flags.add_flag("--matches", "--regex")
-    @flags.add_flag("--users", "--user", nargs="+", type=discord.User)
-    @flags.add_flag("--bot", action="store_const", const=lambda m: m.author.bot)
-    @flags.add_flag("--embeds", action="store_const", const=lambda m: m.embeds)
-    @flags.add_flag("--emoji", action="store_const", const=lambda m: CUSTOM_EMOJI_REGEX.match(m.content))
-    @flags.add_flag("--files", "--attachments", action="store_const", const=lambda m: m.attachments)
-    @flags.add_flag("--any", action="store_true")
-    @flags.add_flag("--not", action="store_true")
-    @purge.command(cls=flags.FlagCommand, name="custom", aliases=("advanced",), usage="[options...]")
-    async def purge_custom(self, ctx, **flags):
+    @purge.command(name="custom", aliases=("advanced",), usage="[options...]")
+    async def purge_custom(self, ctx, *, options: PurgeFlags):
         """An advanced purge command that allows for granular control over filtering messages for deletion.
 
-        This uses a powerful "command-line" interface.
+        This command's interface is similar to Discord's slash commands.
         Values with spaces must be surrounded by quotation marks.
-        **All options are optional.**
 
-        By default, messages that meet ALL of the conditions given
-        are deleted, unless `--any` is passed, in which case only
-        if ANY are met.
+        Options can be given in any order and, unless otherwise stated,
+        are assumed to be optional.
 
-        If no flags or options are passed, then the previous 10
-        messages will be deleted.
+        By default, messages that meet ALL of the given conditions
+        are deleted unless `--any-applies true` is passed, in which
+        case only if ANY of the given conditions are met.
 
-        Users can either be a name, ID, or mention.
+        If no options are given, then the previous 10 messages will
+        be deleted.
 
-        __The following options are valid **(All options are optional.)**:__
+        The following options are valid:
 
-        `--amount`
+        `amount: <integer>`
         > The number of messages to search for and delete.
         > Must be between 1 and 2000, inclusive.
         > Defaults to `10` if omitted.
-        `--before`
-        > Target messages before the given message.
-        `--after`
-        > Target messages after the given message.
-        `--startswith` or `--starts`
-        > Target messages that start with the given substring(s).
+        `before: <message>`
+        > Only target messages sent before the given message.
+        > Message can either be a link or ID.
+        `after: <message>`
+        > Only target messages sent after the given message.
+        > Message can either be a link or ID.
+        `startswith: <prefixes...>`
+        > Only target messages that start with the given prefix(es).
+        > Prefixes are case-sensitive.
+        `contains: <substrings...>`
+        > Only target messages that contain the given substring(s).
         > Substrings are case-sensitive.
-        `--endswith` or `--ends`
-        > Target messages that end with the given substring(s).
-        > Substrings are case-sensitive.
-        `--contains`
-        > Target messages that contain the given substring(s).
-        > Substrings are case-sensitive.
-        `--matches` or `--regex`
-        > Target messages whose content matches the given regex.
-        `--users` or `--user`
-        > Target messages sent by the given user(s).
-
-        __The remaining options do not take any arguments and are simply just flags:__
-
-        `--bot`
-        > Target messages sent by a bot user.
-        `--embeds`
-        > Target messages that contain embeds.
-        `--emoji`
-        > Target messages that contain a custom emoji.
-        `--files` or `--attachments`
-        > Target messages that contain file attachments.
-        `--any`
-        > Targeted messages are only deleted if ANY conditions given are met.
-        `--not`
-        > Delete messages that do NOT meet the conditions given.
+        `endswith: <suffixes...>`
+        > Only target messages that end with the given suffix(es).
+        > Suffixes are case-sensitive.
+        `[matches|regex]: <expression>`
+        > Only target messages whose content matches the given regex.
+        `[users|user]: <users...>`
+        > Only Target messages sent by the given user(s).
+        > Users can either be a name, ID, or mention.
+        `sent-by-bot: <true|false>`
+        > If `true`, only target messages sent by bots.
+        `has-embeds: <true|false>`
+        > If `true`, only target messages that contain embeds.
+        `has-emoji: <true|false>`
+        > If `true`, only target messages that contain a custom emoji.
+        `[has-files|has-attachments]: <true|false>`
+        > If `true`, only target messages that contain file attachments.
+        `any-applies: <true|false>`
+        > If `true`, delete messages that meet ANY of the given conditions.
+        `invert: <true|false>`
+        > If `true`, delete messages that do NOT meet the given conditions.
 
         (Permissions Needed: Manage Messages)
         (Bot Needs: Manage Messages)
         """
-        checks = [v for v in flags.values() if callable(v)]
+        checks = []
 
-        if contains := flags["contains"]:
-            checks.append(lambda m: any(sub in m.content for sub in contains))
+        if options.contains is not None:
+            checks.append(lambda m: any(s in m.content for s in options.contains))
 
-        if ends := flags["endswith"]:
-            checks.append(lambda m: m.content.endswith(tuple(ends)))
+        if options.endswith is not None:
+            checks.append(lambda m: m.content.endswith(options.endswith))
 
-        if starts := flags["startswith"]:
-            checks.append(lambda m: m.content.startswith(tuple(starts)))
+        if options.startswith is not None:
+            checks.append(lambda m: m.content.startswith(options.startswith))
 
-        if users := flags["users"]:
-            checks.append(lambda m: m.author in users)
+        if options.users is not None:
+            checks.append(lambda m: m.author in options.target_users)
 
-        matches = flags["matches"]
-        if matches is not None:
+        if options.sent_by_bot:
+            checks.append(lambda m: m.author.bot)
+
+        if options.has_embeds:
+            checks.append(lambda m: bool(m.embeds))
+
+        if options.has_emojis:
+            checks.append(lambda m: bool(m.emojis))
+
+        if options.has_attachments:
+            checks.append(lambda m: bool(m.attachments))
+
+        if options.matches is not None:
             try:
-                regex = re.compile(matches)
+                regex = re.compile(options.matches)
             except re.error as exc:
                 await ctx.send(f"Invalid match regex: {exc}")
                 return
@@ -650,10 +661,10 @@ class Moderation(commands.Cog):
 
         if checks:
             def check(m):
-                func = any if flags["any"] else all
+                func = any if options.logical_any else all
                 result = func(c(m) for c in checks)
 
-                if flags["not"]:
+                if options.logical_not:
                     return not result
 
                 return result
@@ -662,10 +673,10 @@ class Moderation(commands.Cog):
 
         await self.do_purge_strategy(
             ctx,
-            limit=flags["amount"],
+            limit=options.amount,
             check=check,
-            before=flags["before"],
-            after=flags["after"]
+            before=options.before,
+            after=options.after
         )
 
     @purge.command(name="embeds")
@@ -812,9 +823,7 @@ class Moderation(commands.Cog):
         ```
         """
         if not 1 <= delete_message_days <= 7:
-            await ctx.send(
-                "Number of days worth of messages to delete must be between 1 and 7, inclusive."
-            )
+            await ctx.send("Days of messages to delete must be between 1 and 7, inclusive.")
             return
 
         if reason is None:

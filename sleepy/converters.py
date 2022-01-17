@@ -290,30 +290,6 @@ def _pseudo_bool_flag(*names: str) -> Callable[[str], bool]:
     return convert
 
 
-def _pseudo_argument_flag(*names: str, **kwargs: Any) -> Callable[[str], str]:
-    sep = kwargs.get("separator") or "="
-
-    def convert(value: str) -> str:
-        try:
-            flag, value = value.split(sep, 1)
-        except ValueError:
-            raise commands.BadArgument(
-                "Flag and argument must be separated by " + sep
-            ) from None
-
-        # If flag is an empty string, then it probably means
-        # that the separator is the flag name. I know this may
-        # potentially introduce a bunch of ambiguity, but I'll
-        # allow it for now since at least one command depends
-        # on this behaviour.
-        if flag and flag not in names:
-            raise commands.BadArgument("Invalid flag.")
-
-        return value
-
-    return convert
-
-
 _old_command_transform = commands.Command.transform
 
 

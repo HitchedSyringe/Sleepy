@@ -18,7 +18,7 @@ from typing import Optional
 
 import discord
 from discord import Embed, File
-from discord.ext import commands, flags
+from discord.ext import commands
 from PIL import UnidentifiedImageError
 from PIL.Image import DecompressionBombError
 from sleepy.converters import (
@@ -29,7 +29,7 @@ from sleepy.converters import (
 )
 from sleepy.http import HTTPRequestFailed
 from sleepy.menus import EmbedSource
-from sleepy.utils import progress_bar, randint as s_randint
+from sleepy.utils import _as_argparse_dict, progress_bar, randint
 
 from . import backend
 from .fonts import FONTS
@@ -43,6 +43,16 @@ class RGBColourConverter(commands.ColourConverter):
     async def convert(self, ctx, argument):
         colour = await super().convert(ctx, argument)
         return colour.to_rgb()
+
+
+class TTIFlags(commands.FlagConverter):
+    text: commands.clean_content(fix_channel_mentions=True)
+    font_path: str = commands.flag(name="font-path", default="Arimo-Regular")
+    text_colour: RGBColourConverter = \
+        commands.flag(name="text-colour", aliases=("text-color",), default=None)
+    bg_colour: RGBColourConverter = \
+        commands.flag(name="bg-colour", aliases=("bg-color",), default=None)
+    size: int = 35
 
 
 class Images(
@@ -711,7 +721,7 @@ class Images(
 
         first_name = first_user.name
         second_name = second_user.name
-        score = s_randint(0, 100, seed=first_user.id ^ second_user.id)
+        score = randint(0, 100, seed=first_user.id ^ second_user.id)
 
         embed = Embed(
             title=f"{first_name} \N{HEAVY BLACK HEART} {second_name}",
@@ -846,64 +856,60 @@ class Images(
             file=File(buffer, "swirl.png")
         )
 
-    @flags.add_flag("--text", required=True)
-    @flags.add_flag("--font", dest="font_path", default="Arimo-Regular")
-    @flags.add_flag("--textcolour", "--textcolor", dest="text_colour", type=RGBColourConverter)
-    @flags.add_flag("--bgcolour", "--bgcolor", dest="bg_colour", type=RGBColourConverter)
-    @flags.add_flag("--size", type=int, default=35)
-    @flags.command(aliases=("tti",), usage="<--text> [options...]")
+    @commands.command(aliases=("tti",), usage="text: <text> [options...]")
     @commands.bot_has_permissions(attach_files=True)
-    async def texttoimage(self, ctx, **flags):
+    async def texttoimage(self, ctx, *, options: TTIFlags):
         """Converts text into an image.
 
-        This uses a powerful "command-line" interface.
+        This command's interface is similar to Discord's slash commands.
         Values with spaces must be surrounded by quotation marks.
-        **All options except `--text` are optional.**
 
-        __**The following options are valid:**__
+        Options can be given in any order and, unless otherwise stated,
+        are assumed to be optional.
 
-        `--text`
-        > The text to convert into an image. **Required**
-        `--font`
+        The following options are valid:
+
+        `text: <text>` **Required**
+        > The text to convert into an image.
+        `font: <font>`
         > The font to use.
         > This is case-sensitive.
         > Valid fonts: `Arimo-Bold`, `Arimo-Regular`, `Catamaran-Regular`,
         > `Lustria-Regular`, `Roboto-Bold`, `Roboto-Medium`, `Roboto-Regular`,
         > `SourceSerifPro-SemiBold`
         > Defaults to `Arimo-Bold` if omitted.
-        `--textcolour` or `--textcolor`
-        > The colour of the text.
-        > Colour can either be a name, 6 digit hex value prefixed with either a
+        `[text-colour|text-color]: <colour>`
+        > The text colour.
+        > This can either be a name, 6 digit hex value prefixed with either a
         > `0x`, `#`, or `0x#`; or CSS RGB function (e.g. `rgb(103, 173, 242)`).
         > Defaults to `#99AAB5` if omitted.
-        `--bgcolour` or `--bgcolor`
-        > The colour of the background.
-        > Colour can either be a name, 6 digit hex value prefixed with either a
+        `[bg-colour|bg-color]: <colour>`
+        > The background colour.
+        > This can either be a name, 6 digit hex value prefixed with either a
         > `0x`, `#`, or `0x#`; or CSS RGB function (e.g. `rgb(103, 173, 242)`).
         > If omitted, the background will be transparent.
-        `--size`
+        `size: <integer>`
         > The size of the text.
         > Must be between 5 and 35, inclusive.
         > Defaults to `35` if omitted.
 
         (Bot Needs: Attach Files)
         """
-        if not 5 <= flags["size"] <= 35:
+        if not 5 <= options.size <= 35:
             await ctx.send("Text size must be between 5 and 35, inclusive.")
             return
 
-        # flags doesn't properly handle converter instances so we have to do this.
-        flags["text"] = await commands.clean_content(fix_channel_mentions=True).convert(ctx, flags["text"])
-
-        flags["font_path"] = font = FONTS.joinpath(flags["font_path"] + ".ttf").resolve()
+        options.font_path = font = FONTS.joinpath(options.font_path + ".ttf").resolve()
 
         if not font.is_relative_to(FONTS):
             await ctx.send("Nice try with the path traversal, buddy.")
             return
 
+        kwargs = _as_argparse_dict(options)
+
         async with ctx.typing():
             try:
-                buffer, delta = await backend.make_text_image(**flags)
+                buffer, delta = await backend.make_text_image(**kwargs)
             except OSError:
                 # TBH ImageFont.truetype should throw FileNotFoundError instead.
                 await ctx.send("The given font was invalid.")
@@ -913,15 +919,6 @@ class Images(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
             file=File(buffer, "tti.png")
         )
-
-    @texttoimage.error
-    async def on_texttoimage_error(self, ctx, error):
-        if isinstance(error, flags.ArgumentParsingError):
-            await ctx.send(
-                "An error occurred while processing your flag arguments."
-                "\nPlease double-check your input arguments and try again."
-            )
-            error.handled__ = True
 
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)

@@ -37,6 +37,7 @@ from typing import (
     Any,
     Callable,
     Coroutine,
+    Dict,
     Generator,
     Mapping,
     Optional,
@@ -51,6 +52,8 @@ from dateutil.relativedelta import relativedelta
 
 
 if TYPE_CHECKING:
+    from discord.ext.commands import FlagConverter
+
     T = TypeVar("T")
 
     Coro = Coroutine[Any, Any, T]
@@ -130,6 +133,11 @@ class plural:
             return f"{value:{self.__value_fmt}} {singular}"
 
         return f"{value:{self.__value_fmt}} {plural or singular + 's'}"
+
+
+def _as_argparse_dict(flag_converter: FlagConverter) -> Dict[str, Any]:
+    flags = flag_converter.get_flags().values()
+    return {f.attribute: getattr(flag_converter, f.attribute) for f in flags}
 
 
 def awaitable(func: AnyFunc) -> Func[AnyCoro]:

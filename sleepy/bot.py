@@ -376,6 +376,17 @@ class Sleepy(commands.Bot):
                 msg += f"\n```\n{param_match.string}\n{'^' * (end - start):>{end}}```"
 
             await ctx.send(msg)
+        elif isinstance(error, commands.MissingRequiredFlag):
+            ctx._refund_cooldown_token()
+            await ctx.send(f"`{error.flag.name}` is a required flag that is missing.")
+        elif isinstance(error, commands.MissingFlagArgument):
+            ctx._refund_cooldown_token()
+            await ctx.send(f"The `{error.flag.name}` flag requires a value.")
+        elif isinstance(error, commands.TooManyFlags):
+            ctx._refund_cooldown_token()
+
+            flag = error.flag
+            await ctx.send(f"The `{flag.name}` flag takes a maximum of {flag.max_args} value(s).")
         elif isinstance(error, (commands.BadArgument, commands.BadUnionArgument)):
             ctx._refund_cooldown_token()
             await ctx.send("Bad argument: Please double-check your input arguments and try again.")

@@ -5,11 +5,6 @@ cachetools
 # are NO code changes in this fork.
 git+https://github.com/HitSyr/discord.py@aiohttp-unpinned
 git+https://github.com/Rapptz/discord-ext-menus
-# Essentially, this is a fork of XuaTheGrate's Flag-Parsing
-# package because the maintainer has deleted it. This can
-# be safely removed if and when Sleepy updates to discord.py
-# v2.0.0a
-git+https://github.com/HitSyr/Flag-Parsing@fixes
 emoji>=1.1.0
 # See https://github.com/ssut/py-googletrans/issues/280
 googletrans>=4.0.0rc1

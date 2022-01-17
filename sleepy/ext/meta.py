@@ -15,7 +15,7 @@ from typing import Optional, Union
 
 import discord
 from discord import ActivityType, ChannelType, Embed, Status
-from discord.ext import commands, flags, menus
+from discord.ext import commands, menus
 from discord.utils import oauth_url, format_dt as fmt_dt, utcnow
 from sleepy.paginators import WrappedPaginator
 from sleepy.utils import bool_to_emoji, plural, progress_bar
@@ -147,10 +147,8 @@ class GroupPageSource(menus.ListPageSource):
             )
 
         for cmd in cmds:
-            sig = cmd.signature if not isinstance(cmd, flags.FlagCommand) else cmd.old_signature
-
             embed.add_field(
-                name=f"{cmd.qualified_name} {sig}",
+                name=f"{cmd.qualified_name} {cmd.signature}",
                 value=cmd.short_doc or "No help given.",
                 inline=False
             )
@@ -210,11 +208,6 @@ class SleepyHelpCommand(commands.HelpCommand):
 
         if parent:
             command_format = f"{parent} {command_format}"
-
-        # It's probably better to list what each flag
-        # actually does in the extended help string.
-        if isinstance(command, flags.FlagCommand):
-            return f"{command_format} {command.old_signature}"
 
         return f"{command_format} {command.signature}"
 

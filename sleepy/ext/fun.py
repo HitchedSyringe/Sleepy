@@ -23,7 +23,6 @@ from discord import Embed, File
 from discord.ext import commands
 from discord.ui import View, select
 from PIL import Image, ImageDraw
-from sleepy.converters import _pseudo_argument_flag
 from sleepy.utils import (
     awaitable,
     measure_performance,
@@ -201,6 +200,11 @@ class PollView(View):
         await itn.response.send_message("Your vote was successfully recorded.", ephemeral=True)
 
 
+class FigletFlags(commands.FlagConverter):
+    font: Optional[str.lower] = None
+    text: commands.clean_content(fix_channel_mentions=True)
+
+
 class Fun(
     commands.Cog,
     command_attrs={
@@ -256,35 +260,38 @@ class Fun(
 
         await ctx.send(f"{data['slip']['advice']}\n`Powered by adviceslip.com`")
 
-    @commands.command(aliases=("asskeyart", "figlet"))
+    @commands.command(aliases=("asskeyart", "figlet"), usage="text: <text> [options...]")
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def asciiart(
-        self,
-        ctx,
-        font: Optional[_pseudo_argument_flag("--font")] = None,
-        *,
-        text: commands.clean_content(fix_channel_mentions=True)
-    ):
+    async def asciiart(self, ctx, *, options: FigletFlags):
         """Generates ASCII art out of the given text.
 
-        By default, this chooses a random font to render
-        the text with. To specify a font to render with,
-        prefix the font name with `--font=` prior to the
-        text argument.
+        This command's interface is similar to Discord's slash commands.
+        Values with spaces must be surrounded by quotation marks.
 
-        For a list of valid font names, refer to:
-        <https://artii.herokuapp.com/fonts_list>
+        Options can be given in any order and, unless otherwise stated,
+        are assumed to be optional.
+
+        The following options are valid:
+
+        `text: <text>` **Required**
+        > The text to render into ASCII art.
+        `font: <font>`
+        > The font to render the text with.
+        > If omitted, then a random font will be chosen.
+        > For a list of valid font names, refer to:
+        > <https://artii.herokuapp.com/fonts_list>
 
         **EXAMPLE:**
         ```bnf
-        <1> asciiart hello there!
-        <2> asciiart --font=taxi____ woah, cool!
+        <1> asciiart text: hello there!
+        <2> asciiart font: taxi____ text: woah, cool!
         ```
         """
-        font = random.choice(pyfiglet.FigletFont.getFonts()) if font is None else font.lower()
+        if options.font is None:
+            options.font = random.choice(pyfiglet.FigletFont.getFonts())
 
         try:
-            output, delta = await self.figlet_format(text, font)
+            output, delta = await self.figlet_format(options.text, options.font)
         except pyfiglet.FontNotFound:
             await ctx.send("That font wasn't found.")
             return
@@ -294,7 +301,7 @@ class Fun(
             return
 
         content = (
-            f"Requested by: {ctx.author} \N{BULLET} Font: `{font}` "
+            f"Requested by: {ctx.author} \N{BULLET} Font: `{options.font}` "
             f"\N{BULLET} Took {delta:.2f} ms\n```\n{output}```"
         )
 
