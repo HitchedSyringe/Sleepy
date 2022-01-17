@@ -50,6 +50,10 @@ class Covid(
 ):
     """Commands related to the COVID-19 pandemic."""
 
+    # Defined up here in case I ever need to change
+    # the API base for whatever reason.
+    BASE = "https://disease.sh/v3/covid-19"
+
     async def cog_command_error(self, ctx, error):
         if isinstance(error, (commands.BadArgument, commands.MaxConcurrencyReached)):
             await ctx.send(error)
@@ -58,7 +62,7 @@ class Covid(
     @staticmethod
     @awaitable
     @measure_performance
-    def plot_historical_data(vaccines, cases, deaths, recovered, *, logarithmic=False):
+    def plot_historical_data(cases, deaths, recovered, vaccines=None, *, logarithmic=False):
         timeline = datestr2num(tuple(cases))
         cases = cases.values()
         deaths = deaths.values()
@@ -120,58 +124,65 @@ class Covid(
         def human_number_formatter(x, _):
             return human_number(x)
 
+        handles = None
+
         if logarithmic:
             axes.set_title("COVID-19 Historical Statistics (Logarithmic)", color="white")
             axes.set_yscale("symlog")
 
             axes.yaxis.set_major_formatter(human_number_formatter)
 
-            axes.plot(
-                datestr2num(tuple(vaccines)),
-                vaccines.values(),
-                "--",
-                color="#FFDC82",
-                label="Vaccine Doses",
-                dashes=(6, 2)
-            )
-
-            handles = None
+            if vaccines is not None:
+                axes.plot(
+                    datestr2num(tuple(vaccines)),
+                    vaccines.values(),
+                    "--",
+                    color="#FFDC82",
+                    label="Vaccine Doses",
+                    dashes=(6, 2)
+                )
         else:
             axes.set_title("COVID-19 Historical Statistics (Linear)", color="white")
             axes.yaxis.set_major_formatter(human_number_formatter)
 
-            # The cases data would get squashed if the vaccine
-            # Plotting the vaccine data linearly as-is without
-            # scaling it relative to the other data squashes
-            # the since the doses counts are far greater than
-            # the cases counts. Also, the data starts in Dec
-            # 2020. To work around this, use twinx to make the
-            # y axes independent, then plot the data.
-            v_axes = axes.twinx()
+            if vaccines is not None:
+                # The cases data would get squashed if the vaccine
+                # Plotting the vaccine data linearly as-is without
+                # scaling it relative to the other data squashes
+                # the since the doses counts are far greater than
+                # the cases counts. Also, the data starts in Dec
+                # 2020. To work around this, use twinx to make the
+                # y axes independent, then plot the data.
+                v_axes = axes.twinx()
 
-            v_axes.set_frame_on(False)
-            v_axes.set_ylabel("Vaccine Doses", color="#FFDC82", rotation=270, va="bottom")
+                v_axes.set_frame_on(False)
+                v_axes.set_ylabel(
+                    "Vaccine Doses",
+                    color="#FFDC82",
+                    rotation=270,
+                    va="bottom"
+                )
 
-            v_axes.tick_params(axis="y", colors="#FFDC82", labelsize="small")
-            v_axes.yaxis.set_major_formatter(human_number_formatter)
+                v_axes.tick_params(axis="y", colors="#FFDC82", labelsize="small")
+                v_axes.yaxis.set_major_formatter(human_number_formatter)
 
-            handles, _ = axes.get_legend_handles_labels()
+                handles, _ = axes.get_legend_handles_labels()
 
-            handles += v_axes.plot(
-                datestr2num(tuple(vaccines)),
-                vaccines.values(),
-                "--",
-                color="#FFDC82",
-                label="Vaccine Doses",
-                dashes=(6, 2)
-            )
+                handles += v_axes.plot(
+                    datestr2num(tuple(vaccines)),
+                    vaccines.values(),
+                    "--",
+                    color="#FFDC82",
+                    label="Vaccine Doses",
+                    dashes=(6, 2)
+                )
 
-            # Unfortunately, shadowing the original axes object,
-            # while normally a bad idea, is necessary since the
-            # legend must be drawn using v_axes, otherwise it is
-            # drawn under v_axes, which also comes with problems
-            # when using loc="best" (the default).
-            axes = v_axes
+                # Unfortunately, shadowing the original axes object,
+                # while normally a bad idea, is necessary since the
+                # legend must be drawn using v_axes, otherwise it is
+                # drawn under v_axes, which also comes with problems
+                # when using loc="best" (the default).
+                axes = v_axes
 
         axes.legend(
             handles=handles,
@@ -211,21 +222,19 @@ class Covid(
         (Bot Needs: Embed Links and Attach Files)
         """
         async with ctx.typing():
-            latest = await ctx.get("https://disease.sh/v3/covid-19/all", cache__=True)
+            latest = await ctx.get(self.BASE + "/all", cache__=True)
+
             hist = await ctx.get(
-                "https://disease.sh/v3/covid-19/historical/all?lastdays=all",
-                cache__=True,
-            )
-            vaccines_hist = await ctx.get(
-                "https://disease.sh/v3/covid-19/vaccine/coverage?lastdays=all",
-                cache__=True,
+                self.BASE + "/historical/all?lastdays=all",
+                cache__=True
             )
 
-            buffer, delta = await self.plot_historical_data(
-                vaccines_hist,
-                **hist,
-                logarithmic=logarithmic
+            hist["vaccines"] = await ctx.get(
+                self.BASE + "/vaccine/coverage?lastdays=all",
+                cache__=True
             )
+
+            buffer, delta = await self.plot_historical_data(**hist, logarithmic=logarithmic)
 
         embed = Embed(
             title="Global COVID-19 Statistics",
@@ -310,7 +319,7 @@ class Covid(
         async with ctx.typing():
             try:
                 latest = await ctx.get(
-                    f"https://disease.sh/v3/covid-19/countries/{quote(country)}",
+                    f"{self.BASE}/countries/{quote(country)}",
                     cache__=True
                 )
             except HTTPRequestFailed as exc:
@@ -324,13 +333,8 @@ class Covid(
 
             try:
                 hist = await ctx.get(
-                    f"https://disease.sh/v3/covid-19/historical/{country}?lastdays=all",
+                    f"{self.BASE}/historical/{country}?lastdays=all",
                     cache__=True
-                )
-
-                vaccines_hist = await ctx.get(
-                    f"https://disease.sh/v3/covid-19/vaccine/coverage/countries/{country}?lastdays=all",
-                    cache__=True,
                 )
             except HTTPRequestFailed:
                 # Either worldometers has data on a country that jhucsse
@@ -339,11 +343,21 @@ class Covid(
                 # can really do without overcomplicating things.
                 buffer = None
             else:
-                buffer, delta = await self.plot_historical_data(
-                    vaccines_hist["timeline"],
-                    **hist["timeline"],
-                    logarithmic=logarithmic
-                )
+                hist = hist["timeline"]
+
+                # I absolutely hate this level of nesting, but unfortunately,
+                # there isn't a better or cleaner way of doing this.
+                try:
+                    v_hist = await ctx.get(
+                        f"{self.BASE}/vaccine/coverage/countries/{country}?lastdays=all",
+                        cache__=True,
+                    )
+                except HTTPRequestFailed:
+                    pass
+                else:
+                    hist["vaccines"] = v_hist["timeline"]
+
+                buffer, delta = await self.plot_historical_data(**hist, logarithmic=logarithmic)
 
         embed = Embed(
             title=f"{country} COVID-19 Statistics",
