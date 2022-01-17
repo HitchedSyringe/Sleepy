@@ -178,6 +178,24 @@ class BaseView(View):
         if self.timeout is not None:
             self._View__timeout_expiry = time.monotonic() + self.timeout
 
+    def set_timeout(self, timeout: Optional[float]) -> None:
+        """Sets this view's timeout at runtime.
+
+        This resets the current timeout if already set.
+
+        Parameters
+        ----------
+        timeout: Optional[:class:`float`]
+            The new timeout, in seconds, from last interaction
+            with the UI before no longer accepting input.
+            ``None`` denotes no timeout.
+        """
+        self.timeout = timeout
+        self._View__timeout_expiry = timeout
+
+        if timeout is not None:
+            self._View__timeout_expiry += time.monotonic()  # type: ignore
+
     async def interaction_check(self, itn: discord.Interaction) -> bool:
         user_id = itn.user and itn.user.id
 
