@@ -47,7 +47,7 @@ class RGBColourConverter(commands.ColourConverter):
 
 class TTIFlags(commands.FlagConverter):
     text: commands.clean_content(fix_channel_mentions=True)
-    font_path: str = commands.flag(name="font-path", default="Arimo-Regular")
+    font_path: str = commands.flag(name="font", default="Arimo-Regular")
     text_colour: RGBColourConverter = \
         commands.flag(name="text-colour", aliases=("text-color",), default=None)
     bg_colour: RGBColourConverter = \
