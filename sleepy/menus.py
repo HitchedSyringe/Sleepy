@@ -644,6 +644,11 @@ class PaginationView(BaseView):
             return
 
         async with self._lock:
+            old_timeout = self.timeout
+
+            if old_timeout is not None:
+                self.set_timeout(old_timeout + 35)
+
             await itn.response.send_message("Type the page number to jump to.", ephemeral=True)
 
             def page_check(m: discord.Message) -> bool:
@@ -670,6 +675,9 @@ class PaginationView(BaseView):
 
             if self.is_finished():
                 return
+
+            if old_timeout is not None:
+                self.set_timeout(old_timeout)
 
             await self.show_checked_page(int(message.content) - 1)
 
