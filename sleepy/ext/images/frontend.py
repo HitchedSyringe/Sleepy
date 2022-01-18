@@ -322,6 +322,37 @@ class Images(
 
         await ctx.send(embed=embed)
 
+    @commands.command(aliases=("honeycomb",))
+    @commands.bot_has_permissions(attach_files=True)
+    @commands.max_concurrency(5, commands.BucketType.guild)
+    async def dalgona(
+        self,
+        ctx,
+        *,
+        image: ImageAssetConverter(max_filesize=40_000_000)
+    ):
+        """\N{IDEOGRAPHIC NUMBER ZERO}\N{WHITE UP-POINTING TRIANGLE}\N{BALLOT BOX}
+
+        Image can either be a user, custom emoji, link, or
+        attachment. Links and attachments must be under 40
+        MB.
+
+        (Bot Needs: Attach Files)
+        """
+        async with ctx.typing():
+            try:
+                image_bytes = await image.read()
+            except discord.HTTPException:
+                await ctx.send("Downloading the image failed. Try again later?")
+                return
+
+            buffer, delta = await backend.make_dalgona(io.BytesIO(image_bytes))
+
+        await ctx.send(
+            f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
+            file=File(buffer, "dalgona.png")
+        )
+
     @commands.command(aliases=("df",))
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)

@@ -19,6 +19,7 @@ __all__ = (
     "make_captcha",
     "make_change_my_mind_meme",
     "make_clyde_message",
+    "make_dalgona",
     "make_iphone_x",
     "make_live_tucker_reaction_meme",
     "make_pointing_soyjaks_meme",
@@ -386,6 +387,82 @@ def make_clyde_message(text, /, *, use_rebrand=False):
         buffer = io.BytesIO()
 
         template.save(buffer, "png")
+
+    buffer.seek(0)
+
+    return buffer
+
+
+@awaitable
+@measure_performance
+def make_dalgona(image_buffer, /):
+    with Image.open(image_buffer) as image:
+        size = (245, 205)
+
+        grey = np.asarray(image.convert("L").resize(size))
+
+    med = np.median(grey)
+    contours, _ = cv2.findContours(
+        cv2.Canny(grey, int(max(0, 0.67 * med)), int(min(255, 1.33 * med))),
+        cv2.RETR_EXTERNAL,
+        cv2.CHAIN_APPROX_NONE
+    )
+
+    # Annoyingly, we'll have to convert the greyscale
+    # image to a zeros array twice since the array is
+    # modified internally by the following two draw
+    # operations for whatever reason.
+    edges = cv2.drawContours(
+        np.zeros_like(grey),
+        contours,
+        -1,
+        255,
+        2,
+        cv2.LINE_AA
+    )
+
+    # Desired coordinates and axes for the ellipses.
+    mid = (size[0] // 2, size[1] // 2)
+    axes = (mid[0] - 2, mid[1] - 2)
+
+    mask = cv2.ellipse(
+        np.zeros_like(grey),
+        mid,
+        axes,
+        0,
+        0,
+        360,
+        255,
+        -1
+    )
+
+    outline = cv2.bitwise_and(edges, edges, mask=mask)
+
+    # Add a border circle. This is my attempt of making
+    # the result look somewhat decent since there isn't
+    # really anything I can do about stray lines that
+    # come up during the canny process.
+    cv2.ellipse(
+        outline,
+        mid,
+        axes,
+        0,
+        0,
+        360,
+        255,
+        2,
+        cv2.LINE_AA
+    )
+
+    image = Image.new("RGB", size, (145, 129, 76))
+    image.putalpha(Image.fromarray(outline))
+
+    with Image.open(TEMPLATES / "dalgona.png") as template:
+        template.paste(image, (205, 85), image)
+
+    buffer = io.BytesIO()
+
+    template.save(buffer, "png")
 
     buffer.seek(0)
 
