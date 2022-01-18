@@ -449,6 +449,75 @@ def make_live_tucker_reaction_meme(image_buffer, /):
 
 @awaitable
 @measure_performance
+def make_palette(image_buffer, /):
+    with Image.open(image_buffer) as image:
+        image = image.convert("RGB")
+        thumb = image.copy()
+
+        # This will somewhat ruin our accuracy, but it
+        # will also make this process go a lot faster.
+        thumb.thumbnail((300, 300))
+
+    _, labels, centroids = cv2.kmeans(
+        np.asarray(thumb).astype(np.float32).reshape((-1, 3)),
+        5,
+        None,
+        (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0),
+        10,
+        cv2.KMEANS_RANDOM_CENTERS
+    )
+
+    # Construct a histogram using the labels to find the
+    # approximate percentage of each colour in the image.
+    # This will also allow for sorting the colours (given
+    # in no particular order) by prominance later on.
+    hist, _ = np.histogram(labels, np.arange(len(np.unique(labels)) + 1))
+    hist = hist.astype(np.float32)
+    hist /= hist.sum()
+
+    # Merge the percentages and colours and sort them.
+    data = sorted(zip(hist, centroids), reverse=True, key=lambda x: x[0])
+
+    image = ImageEnhance.Brightness(image).enhance(0.4)
+    image = ImageOps.pad(image, (500, 500))
+
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.truetype(str(FONTS / "Arimo-Bold.ttf"), 30)
+
+    start = 0
+
+    for i, (percent, colour) in enumerate(data):
+        colour = tuple(map(int, colour))
+
+        text = "#{0:02x}{1:02x}{2:02x} ({3:.2%})".format(*colour, percent)
+        w, h = get_accurate_text_size(font, text)
+
+        draw.text(
+            (175 + (325 - w) // 2, 100 * i + 50 - h // 2),
+            text,
+            font=font,
+            stroke_fill=colour,
+            stroke_width=1
+        )
+
+        end = start + int(percent * 500) + 1
+
+        draw.rectangle((0, start, 175, end), colour)
+        draw.line((175, 0, 175, 500), "white", 2)
+
+        start = end
+
+    buffer = io.BytesIO()
+
+    image.save(buffer, "png")
+
+    buffer.seek(0)
+
+    return buffer
+
+
+@awaitable
+@measure_performance
 def make_pointing_soyjaks_meme(image_buffer, /):
     with Image.open(TEMPLATES / "pointing_soyjaks.png") as template:
         with Image.open(image_buffer) as image:

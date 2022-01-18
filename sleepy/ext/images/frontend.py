@@ -598,6 +598,37 @@ class Images(
             file=File(io.BytesIO(resp), "magik.png")
         )
 
+    @commands.command(aliases=("colours", "colors"))
+    @commands.bot_has_permissions(attach_files=True)
+    @commands.max_concurrency(5, commands.BucketType.guild)
+    async def palette(
+        self,
+        ctx,
+        *,
+        image: ImageAssetConverter(max_filesize=40_000_000)
+    ):
+        """Shows the five most prominent colours in an image.
+
+        Image can either be a user, custom emoji, link, or
+        attachment. Links and attachments must be under 40
+        MB.
+
+        (Bot Needs: Attach Files)
+        """
+        async with ctx.typing():
+            try:
+                image_bytes = await image.read()
+            except discord.HTTPException:
+                await ctx.send("Downloading the image failed. Try again later?")
+                return
+
+            buffer, delta = await backend.make_palette(io.BytesIO(image_bytes))
+
+        await ctx.send(
+            f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
+            file=File(buffer, "palette.png")
+        )
+
     @commands.command(aliases=("phcomment", "phc"))
     @commands.guild_only()
     @commands.bot_has_permissions(attach_files=True)
