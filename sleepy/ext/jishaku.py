@@ -71,6 +71,8 @@ class Owner(
     ||Ｃｏｎｓｏｏｍ　ｍａｇｎｅｔ　ｃｏｇ；　ｃｏｎｆｏｒｍ　ｔｏ　ｍａｇｎｅｔ　ｃｏｇ．||
     """
 
+    ICON = "\N{MAGNET}"
+
     def cog_unload(self):
         # Restore the old functionality.
         modules.resolve_extensions = _old_resolve_extensions

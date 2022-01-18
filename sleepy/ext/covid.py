@@ -50,6 +50,8 @@ class Covid(
 ):
     """Commands related to the COVID-19 pandemic."""
 
+    ICON = "\N{MICROBE}"
+
     # Defined up here in case I ever need to change
     # the API base for whatever reason.
     BASE = "https://disease.sh/v3/covid-19"

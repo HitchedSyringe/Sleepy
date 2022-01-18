@@ -162,6 +162,8 @@ class Moderation(commands.Cog):
     These obviously cannot be used in Private Messages.
     """
 
+    ICON = "\N{SHIELD}"
+
     # Most of the command checks should have internal
     # guild checks already. This is just a fallback
     # to ensure nothing slips through.

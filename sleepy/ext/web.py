@@ -230,6 +230,8 @@ class Web(
     These are usually intended to serve as utilities in a sense.
     """
 
+    ICON = "\N{GLOBE WITH MERIDIANS}"
+
     def __init__(self, config):
         self.steam_api_key = config["steam_api_key"]
         self.weatherapi_api_key = config["weatherapi_api_key"]

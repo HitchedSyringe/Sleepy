@@ -11,6 +11,9 @@ from __future__ import annotations
 
 
 __all__ = (
+    "DISCORD_SERVER_URL",
+    "GITHUB_URL",
+    "PERMISSIONS_VALUE",
     "plural",
     "awaitable",
     "bool_to_emoji",
@@ -64,6 +67,12 @@ if TYPE_CHECKING:
 
     PerfWrappedFunc = Func[Func[Tuple[Any, float]]]
     PerfWrappedCoro = Func[Coro[Tuple[Any, float]]]
+
+
+DISCORD_SERVER_URL: str = "https://discord.gg/xHgh2Xg"
+GITHUB_URL: str = "https://github.com/HitSyr/Sleepy"
+
+PERMISSIONS_VALUE: int = 309238033478
 
 
 class plural:

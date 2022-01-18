@@ -12,6 +12,7 @@ from __future__ import annotations
 
 __all__ = (
     "BaseView",
+    "BotLinksView",
     "ConfirmationView",
     "EmbedSource",
     "PaginatorSource",
@@ -28,19 +29,23 @@ from typing import (
     Dict,
     Optional,
     Sequence,
+    Tuple,
     Union,
     overload,
 )
 
 import discord
 from discord.ext.menus import ListPageSource, PageSource
-from discord.ui import View, button
+from discord.ui import Button, View, button
+from discord.utils import oauth_url
+
+from .utils import DISCORD_SERVER_URL, GITHUB_URL, PERMISSIONS_VALUE
 
 
 if TYPE_CHECKING:
     from discord.ext.commands import Bot, Paginator
     from discord.ext.menus import MenuPages
-    from discord.ui import Button, Item
+    from discord.ui import Item
 
     from .utils import Coro, Func
 
@@ -207,6 +212,41 @@ class BaseView(View):
             return False
 
         return True
+
+
+class BotLinksView(View):
+    """View class which contains URL buttons leading to
+    associated links with the bot.
+
+    Currently, this only includes the following links:
+
+    * Invite URL (generated via :func:`discord.utils.oauth_url`)
+    * [Discord Server](https://discord.gg/xHgh2Xg)
+    * [GitHub Repository](https://github.com/HitSyr/Sleepy)
+
+    .. versionadded:: 3.2
+
+    Parameters
+    ----------
+    client_id: int
+        The client's user ID.
+    """
+
+    buttons: Tuple[Button, ...]
+
+    def __init__(self, client_id: int) -> None:
+        super().__init__(timeout=None)
+
+        invite = oauth_url(client_id, permissions=discord.Permissions(PERMISSIONS_VALUE))
+
+        self.buttons = buttons = (
+            Button(label="Invite me!", emoji="\N{INBOX TRAY}", url=invite),
+            Button(label="Server", emoji="<:dc:871952362175086624>", url=DISCORD_SERVER_URL),
+            Button(label="GitHub", emoji="<:gh:871952362019901502>", url=GITHUB_URL)
+        )
+
+        for button in buttons:
+            self.add_item(button)
 
 
 class ConfirmationView(BaseView):

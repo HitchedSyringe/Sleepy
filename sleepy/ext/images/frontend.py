@@ -63,6 +63,8 @@ class Images(
 ):
     """Commands having to do with images and/or their manipulation."""
 
+    ICON = "\N{FRAME WITH PICTURE}"
+
     async def cog_command_error(self, ctx, error):
         error = getattr(error, "original", error)
 

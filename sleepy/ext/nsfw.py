@@ -192,6 +192,8 @@ class NSFW(
 ):
     """Don't act like you don't already know what this encompasses."""
 
+    ICON = "\N{NO ONE UNDER EIGHTEEN SYMBOL}"
+
     def __init__(self, config):
         self.saucenao_api_key = config["saucenao_api_key"]
 

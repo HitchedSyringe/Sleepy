@@ -76,6 +76,8 @@ class Weeb(
     Pretty sure the name was implicit.
     """
 
+    ICON = "\N{SUSHI}"
+
     def __init__(self):
         # Nekobot commands are handled this way in order to
         # allow for ease in supporting any new image endpoints.

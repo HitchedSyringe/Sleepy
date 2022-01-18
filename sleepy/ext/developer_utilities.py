@@ -158,6 +158,8 @@ class DeveloperUtilities(
 ):
     """Commands that serve as utilities for developers."""
 
+    ICON = "\N{WRENCH}"
+
     def __init__(self, bot):
         self.piston_runtimes = {}
 

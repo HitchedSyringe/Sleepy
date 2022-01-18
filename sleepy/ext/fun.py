@@ -216,6 +216,8 @@ class Fun(
     ||This totally isn't a dumping ground for janky commands! Not at all!||
     """
 
+    ICON = "\N{CIRCUS TENT}"
+
     def __init__(self):
         # This is here to create our own asynchronous and
         # performance-measured instance of figlet_format

@@ -69,6 +69,8 @@ class TriviaMinigame(
 ):
     """Commands having to do with the Trivia minigame."""
 
+    ICON = "\N{WHITE QUESTION MARK ORNAMENT}"
+
     def __init__(self):
         self.active_sessions = {}
 

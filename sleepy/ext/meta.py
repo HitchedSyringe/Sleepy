@@ -14,11 +14,25 @@ from os import path
 from typing import Optional, Union
 
 import discord
-from discord import ActivityType, ChannelType, Embed, Status
-from discord.ext import commands, menus
+from discord import (
+    ActivityType,
+    ChannelType,
+    Embed,
+    SelectOption,
+    Status,
+)
+from discord.ext import commands
+from discord.ext.menus import ListPageSource, PageSource
+from discord.ui import Select
 from discord.utils import oauth_url, format_dt as fmt_dt, utcnow
+from sleepy.menus import BotLinksView, PaginationView
 from sleepy.paginators import WrappedPaginator
-from sleepy.utils import bool_to_emoji, plural, progress_bar
+from sleepy.utils import (
+    PERMISSIONS_VALUE,
+    bool_to_emoji,
+    plural,
+    progress_bar,
+)
 
 
 # (channel_type, is_locked): emoji
@@ -56,95 +70,62 @@ BADGES = {
 }
 
 
-class BotHelpPageSource(menus.ListPageSource):
+class HomePageSource(PageSource):
 
-    def __init__(self, mapping, *, prefix, per_page):
-        super().__init__(
-            sorted(mapping, key=lambda c: c.qualified_name),
-            per_page=per_page
-        )
-
-        self.mapping = mapping
+    def __init__(self, *, prefix):
         self.prefix = prefix
 
-    async def format_page(self, menu, cogs):
+    async def format_page(self, menu, entries):
         embed = Embed(
-            title="Command Catalogue",
+            title="Hello! Welcome to the help menu.",
             description=(
-                "Use the reactions below to interact with this menu."
-                "\nUnderstanding my command syntax is simple:"
-                "```lasso"
+                "Select a category using the dropdown menu below."
+                f" Alternatively, you can also use `{self.prefix}help"
+                " <command|category>` to view more information about"
+                " a command or category."
+            ),
+            colour=0x2F3136
+        )
+        embed.set_footer(text="Check out our links using the buttons below!")
+
+        embed.add_field(
+            name="How do I read the command syntax?",
+            value=(
+                "Understanding my command syntax is quite simple:"
+                "\n```lasso"
                 "\n<argument> means the argument is 𝗿𝗲𝗾𝘂𝗶𝗿𝗲𝗱."
                 "\n[argument] means the argument is 𝗼𝗽𝘁𝗶𝗼𝗻𝗮𝗹."
                 "\n[A|B] means 𝗲𝗶𝘁𝗵𝗲𝗿 𝗔 𝗼𝗿 𝗕."
                 "\n[argument...] means 𝗺𝘂𝗹𝘁𝗶𝗽𝗹𝗲 arguments can be entered."
                 "```"
                 "\nWhatever you do, **do not include the brackets.**"
-                f"\nUse `{self.prefix}help <command|category>` for more info"
-                " on a command or category.\nFor additional help, please check"
-                " out my [support server](https://discord.gg/xHgh2Xg)."
             ),
-            colour=0x2F3136
+            inline=False
         )
-        max_pages = self.get_max_pages()
-
-        if max_pages > 1:
-            embed.set_footer(text=f"Page {menu.current_page + 1}/{max_pages}")
-
-        for cog in cogs:
-            cmds = self.mapping.get(cog)
-
-            if not cmds:
-                continue
-
-            if cog.description:
-                value = cog.description.split("\n", 1)[0] + "\n"
-            else:
-                value = "No help given.\n"
-
-            current_size = len(value)
-            cmd_names = []
-
-            for cmd in cmds:
-                cmd_name = f"`{cmd.name}`"
-                # Account for the separator.
-                current_size += len(cmd_name) + 1
-
-                if current_size > 800:
-                    break
-
-                cmd_names.append(cmd_name)
-
-            value += " ".join(cmd_names)
-            hidden_cmds = len(cmds) - len(cmd_names)
-
-            if hidden_cmds > 0:
-                value += f"\n[+{hidden_cmds} not shown.]"
-
-            embed.add_field(name=cog.qualified_name, value=value, inline=False)
 
         return embed
 
+    # These are needed for the pagination view to actually work.
 
-class GroupPageSource(menus.ListPageSource):
+    def is_paginating(self):
+        return False
 
-    def __init__(self, group, cmds, *, prefix, per_page):
+    async def get_page(self, page_number):
+        pass
+
+
+class GroupPageSource(ListPageSource):
+
+    def __init__(self, group, cmds, *, per_page=6):
         super().__init__(cmds, per_page=per_page)
 
         self.title = group.qualified_name
         self.description = group.description
 
         self.cmds = cmds
-        self.prefix = prefix
 
     async def format_page(self, menu, cmds):
         embed = Embed(title=self.title, description=self.description, colour=0x2F3136)
-        max_pages = self.get_max_pages()
-
-        if max_pages > 1:
-            embed.set_footer(
-                text=f"Page {menu.current_page + 1}/{max_pages} ({len(self.cmds)} commands)"
-            )
 
         for cmd in cmds:
             embed.add_field(
@@ -156,15 +137,80 @@ class GroupPageSource(menus.ListPageSource):
         return embed
 
 
+class CategorySelect(Select):
+
+    def __init__(self, bot, mapping):
+        self.bot = bot
+        self.mapping = mapping
+
+        options = [
+            SelectOption(
+                label=cog.qualified_name,
+                description=cog.description.split("\n", 1)[0] or None,
+                emoji=getattr(cog, "ICON", "\N{GEAR}")
+            )
+            for cog, cmds in mapping.items() if cmds
+        ]
+
+        super().__init__(placeholder="Select a category...", options=options)
+
+    async def callback(self, itn):
+        cog = self.bot.get_cog(self.values[0])
+
+        # The cog may have been unloaded while this was open.
+        if cog is None:
+            await itn.response.send_message("That category somehow doesn't exist.", ephemeral=True)
+            return
+
+        cmds = self.mapping[cog]
+
+        if not cmds:
+            await itn.response.send_message("That category has no visible commands.", ephemeral=True)
+            return
+
+        await self.view.change_source(GroupPageSource(cog, cmds))
+
+
+class BotHelpView(PaginationView):
+
+    def __init__(self, ctx, mapping):
+        self.bot = bot = ctx.bot
+        self.mapping = mapping
+
+        source = HomePageSource(prefix=ctx.clean_prefix)
+
+        super().__init__(
+            bot,
+            source,
+            owner_ids={ctx.author.id, bot.owner_id, *bot.owner_ids},
+            delete_message_when_stopped=True
+        )
+
+    def _do_items_setup(self):
+        self.add_item(CategorySelect(self.bot, self.mapping))
+        super()._do_items_setup()
+
+        # If we're on the main page, inject these
+        # button links into this view.
+        if hasattr(self._source, "prefix"):
+            bot_links = BotLinksView(self.bot.user.id)
+
+            for button in bot_links.buttons:
+                self.add_item(button)
+
+        if not self._source.is_paginating():
+            self.add_item(self.stop_menu)
+
+
 class SleepyHelpCommand(commands.HelpCommand):
 
     def _apply_formatting(self, embed_like, command):
         embed_like.title = self.get_command_signature(command)
-        embed_like.description = (
-            f"{command.description}\n\n{command.help}"
-            if command.description else
-            command.help or "No help given."
-        )
+
+        if command.description:
+            embed_like.description = f"{command.description}\n\n{command.help}"
+        else:
+            embed_like.description = command.help or "No help given."
 
     async def command_not_found(self, string):
         cmds = await self.filter_commands(self.context.bot.commands, sort=True)
@@ -195,47 +241,48 @@ class SleepyHelpCommand(commands.HelpCommand):
                 + "```"
             )
 
-        return "That command doesn't have any visible subcommands."
+        return "That command has no visible subcommands."
 
     def get_command_signature(self, command):
         if command.aliases:
             aliases = "|".join(command.aliases)
-            command_format = f"[{command.name}|{aliases}]"
+            cmd_fmt = f"[{command.name}|{aliases}]"
         else:
-            command_format = command.name
+            cmd_fmt = command.name
 
         parent = command.full_parent_name
 
         if parent:
-            command_format = f"{parent} {command_format}"
+            cmd_fmt = f"{parent} {cmd_fmt}"
 
-        return f"{command_format} {command.signature}"
+        return f"{cmd_fmt} {command.signature}"
 
     async def send_bot_help(self, mapping):
-        cmds = await self.filter_commands(self.context.bot.commands, sort=True)
+        ctx = self.context
+        cmds = await self.filter_commands(ctx.bot.commands, sort=True)
+
         sorted_mapping = defaultdict(list)
 
         for cmd in cmds:
             if cmd.cog is not None:
                 sorted_mapping[cmd.cog].append(cmd)
 
-        await self.context.paginate(
-            BotHelpPageSource(sorted_mapping, prefix=self.context.clean_prefix, per_page=4)
-        )
+        view = BotHelpView(ctx, sorted_mapping)
+        await view.send_to(ctx)
 
     async def send_cog_help(self, cog):
+        ctx = self.context
         cmds = await self.filter_commands(cog.get_commands(), sort=True)
 
         if not cmds:
-            await self.context.send("That category doesn't have any visible commands.")
+            await ctx.send("That category has no visible commands.")
             return
 
-        await self.context.paginate(
-            GroupPageSource(cog, cmds, prefix=self.context.clean_prefix, per_page=6)
-        )
+        await ctx.paginate(GroupPageSource(cog, cmds))
 
     async def send_command_help(self, command):
         embed = Embed(colour=0x2F3136)
+
         self._apply_formatting(embed, command)
 
         await self.context.send(embed=embed)
@@ -247,14 +294,18 @@ class SleepyHelpCommand(commands.HelpCommand):
             await self.send_command_help(group)
             return
 
-        source = GroupPageSource(group, cmds, prefix=self.context.clean_prefix, per_page=6)
+        ctx = self.context
+        source = GroupPageSource(group, cmds)
+
         self._apply_formatting(source, group)
 
-        await self.context.paginate(source)
+        await ctx.paginate(source)
 
 
 class Meta(commands.Cog):
     """Utility commands relating either to me or Discord itself."""
+
+    ICON = "\N{INFORMATION SOURCE}"
 
     def __init__(self, bot):
         self.bot = bot
@@ -357,7 +408,8 @@ class Meta(commands.Cog):
     @commands.command()
     async def invite(self, ctx):
         """Gives you the invite link to join me to your server."""
-        await ctx.send(f"<{oauth_url(ctx.me.id, permissions=discord.Permissions(388166))}>")
+        permissions = discord.Permissions(PERMISSIONS_VALUE)
+        await ctx.send(f"<{oauth_url(ctx.me.id, permissions=permissions)}>")
 
     @commands.command()
     async def ping(self, ctx):

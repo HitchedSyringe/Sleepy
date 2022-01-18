@@ -20,9 +20,9 @@ import discord
 import psutil
 from discord import Colour, Embed
 from discord.ext import commands
-from discord.utils import oauth_url, format_dt as fmt_dt
+from discord.utils import format_dt as fmt_dt
 from sleepy import __version__
-from sleepy.menus import PaginatorSource
+from sleepy.menus import BotLinksView, PaginatorSource
 from sleepy.utils import human_delta, plural, tchart
 
 
@@ -74,6 +74,8 @@ class Statistics(
 ):
     """Commands having to do with statistics about me."""
     # ...also responsible for some logging & error handling stuff.
+
+    ICON = "\N{BAR CHART}"
 
     def __init__(self, bot):
         self.bot = bot
@@ -254,15 +256,12 @@ class Statistics(
         )
         embed.set_author(name=ctx.me)
         embed.set_thumbnail(url=ctx.me.display_avatar.with_format("png"))
-        embed.set_footer(text="Now rewritten thrice woooo!")
+        embed.set_footer(text="Check out our links using the buttons below!")
 
         embed.add_field(
             name="About Me",
             value=(
-                "[Support Server](https://discord.gg/xHgh2Xg) "
-                f" \N{BULLET} [Invite]({oauth_url(ctx.me.id, permissions=discord.Permissions(388166))})"
-                f" \N{BULLET} [GitHub](https://github.com/HitSyr/Sleepy)"
-                f"\n<:ar:862433028088135711> **Owner:** {ctx.bot.owner}"
+                f"<:ar:862433028088135711> **Owner:** {ctx.bot.owner}"
                 f"\n<:ar:862433028088135711> **Created:** {fmt_dt(ctx.me.created_at, 'R')}"
                 f"\n<:ar:862433028088135711> **Booted:** {fmt_dt(ctx.bot.started_at, 'R')}"
                 f"\n<:ar:862433028088135711> **Servers:** {self.total_guilds:,d}"
@@ -280,7 +279,7 @@ class Statistics(
                 f"\N{CRESCENT MOON} {__version__}"
                 f" \N{BULLET} <:py:823367531724537887> {python_version()}"
                 f" \N{BULLET} <:dpy:823367531690590248> {discord.__version__}"
-                "\n\n<:ar:862433028088135711> **Memory Usage:**"
+                "\n<:ar:862433028088135711> **Memory Usage:**"
                 f" {self.process.memory_full_info().uss / 1024**2:.2f} MiB"
                 "\n<:ar:862433028088135711> **CPU Usage:**"
                 f" {self.process.cpu_percent() / psutil.cpu_count():.2f}%"
@@ -292,7 +291,7 @@ class Statistics(
             inline=False
         )
 
-        await ctx.send(embed=embed)
+        await ctx.send(embed=embed, view=BotLinksView(ctx.me.id))
 
     @commands.command(hidden=True)
     @commands.is_owner()
