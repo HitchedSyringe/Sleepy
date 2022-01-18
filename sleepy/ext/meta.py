@@ -303,7 +303,11 @@ class SleepyHelpCommand(commands.HelpCommand):
 
 
 class Meta(commands.Cog):
-    """Utility commands relating either to me or Discord itself."""
+    """Utility commands relating either to me or Discord itself.
+
+    ||This has absolutely nothing to do with a certain American
+    multinational technology conglomerate.||
+    """
 
     ICON = "\N{INFORMATION SOURCE}"
 
