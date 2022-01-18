@@ -730,30 +730,17 @@ class Images(
                 return
 
             buffer, delta = await backend.make_ship(
+                first_user.display_name,
                 io.BytesIO(avatar1_bytes),
-                io.BytesIO(avatar2_bytes)
+                second_user.display_name,
+                io.BytesIO(avatar2_bytes),
+                first_user.id ^ second_user.id
             )
 
-        first_name = first_user.name
-        second_name = second_user.name
-        score = randint(0, 100, seed=first_user.id ^ second_user.id)
-
-        embed = Embed(
-            title=f"{first_name} \N{HEAVY BLACK HEART} {second_name}",
-            colour=0x2F3136
+        await ctx.send(
+            f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
+            file=File(buffer, "ship.png")
         )
-        embed.set_author(
-            name=first_name[:len(first_name) // 2] + second_name[len(second_name) // 2:]
-        )
-        embed.set_image(url="attachment://ship.png")
-        embed.set_footer(text=f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.")
-
-        embed.add_field(
-            name=f"Confidence \N{BULLET} **{score}%**",
-            value=f"0 {progress_bar(progress=score, maximum=100, per=10)} 100"
-        )
-
-        await ctx.send(embed=embed, file=File(buffer, "ship.png"))
 
     @commands.command(aliases=("soyjacks", "soyjak", "soyjack"))
     @commands.bot_has_permissions(attach_files=True)

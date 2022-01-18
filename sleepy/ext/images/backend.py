@@ -49,7 +49,7 @@ from PIL import (
 )
 from cv2.data import haarcascades as cv2_haarcascades
 from skimage import transform
-from sleepy.utils import awaitable, measure_performance
+from sleepy.utils import awaitable, measure_performance, randint
 
 from .fonts import FONTS
 from .helpers import get_accurate_text_size, wrap_text
@@ -551,16 +551,52 @@ def make_roblox_cancel_meme(avatar, username, discriminator, /):
 
 @awaitable
 @measure_performance
-def make_ship(first_avatar, second_avatar, /):
+def make_ship(name1, avatar1_buffer, name2, avatar2_buffer, seed=None, /):
     with Image.open(TEMPLATES / "ship.png") as template:
-        mask = Image.new("1", (160, 160))
+        mask = Image.new("1", (80, 80))
         ImageDraw.Draw(mask).ellipse((0, 0, *mask.size), 255)
 
-        with Image.open(first_avatar) as first:
-            template.paste(first.convert("RGB").resize(mask.size), (185, 98), mask)
+        with Image.open(avatar1_buffer) as first:
+            template.paste(first.convert("RGB").resize(mask.size), (100, 45), mask)
 
-        with Image.open(second_avatar) as second:
-            template.paste(second.convert("RGB").resize(mask.size), (420, 55), mask)
+        with Image.open(avatar2_buffer) as second:
+            template.paste(second.convert("RGB").resize(mask.size), (495, 45), mask)
+
+        draw = ImageDraw.Draw(template)
+
+        # Show users
+        font = ImageFont.truetype(str(FONTS / "Arimo-Bold.ttf"), 26)
+
+        name1_wrap = wrap_text(name1, font, width=250)
+        name2_wrap = wrap_text(name2, font, width=250)
+        name1_w = get_accurate_text_size(font, name1_wrap)[0]
+        name2_w = get_accurate_text_size(font, name2_wrap)[0]
+
+        draw.text((140 - name1_w // 2, 129), name1_wrap, font=font, align="center")
+        draw.text((535 - name2_w // 2, 129), name2_wrap, font=font, align="center")
+
+        # Ship name
+        font = font.font_variant(size=22)
+
+        ship_name = name1[:len(name2) // 2] + name2[len(name2) // 2:]
+        ship_name_w = get_accurate_text_size(font, ship_name)[0]
+
+        draw.text(((675 - ship_name_w) // 2, 201), ship_name, font=font, align="center")
+
+        # Confidence meter
+        font = font.font_variant(size=16)
+
+        confidence = randint(0, 100, seed=seed)
+
+        if (fill := confidence // 10) != 0:
+            draw.rounded_rectangle((140, 234, 140 + 40 * fill, 264), 10, (221, 61, 72))
+
+        draw.rounded_rectangle((140, 234, 535, 264), 10, outline="white", width=2)
+
+        conf_text = f"{confidence}% confidence"
+        conf_text_w = get_accurate_text_size(font, conf_text)[0]
+
+        draw.text(((675 - conf_text_w) // 2, 241), conf_text, font=font, align="center")
 
         buffer = io.BytesIO()
 
