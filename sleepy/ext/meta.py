@@ -67,6 +67,7 @@ BADGES = {
     "partner": "<:po:886251265997299822>",
     "staff": "<:stl:886252968339460096>",
     "verified_bot_developer": "<:vd:886251266211184700>",
+    "discord_certified_moderator": "<:dcm:932853177894715392>",
 }
 
 
