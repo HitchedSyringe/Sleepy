@@ -546,10 +546,22 @@ class Images(
     async def lensflareeyes(
         self,
         ctx,
-        colour: Optional[RGBColourConverter] = (255, 0, 0),
+        colour: Optional[RGBColourConverter] = "red",
         *,
         image: ImageAssetConverter(max_filesize=40_000_000)
     ):
+        """Places lensflares of a given colour on human eyes.
+
+        Colour can either be a name, 6 digit hex value prefixed
+        with either a `0x`, `#`, or `0x#`; or CSS RGB function
+        (e.g. `rgb(103, 173, 242)`).
+
+        Image can either be a user, custom emoji, link, or
+        attachment. Links and attachments must be under 40
+        MB.
+
+        (Bot Needs: Attach Files)
+        """
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
