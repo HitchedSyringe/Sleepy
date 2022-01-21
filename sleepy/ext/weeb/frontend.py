@@ -25,7 +25,6 @@ from sleepy.converters import (
     ImageAssetConversionFailure,
     ImageAssetTooLarge,
 )
-from sleepy.http import HTTPRequestFailed
 from sleepy.utils import plural
 
 from . import backend
@@ -130,8 +129,8 @@ class Weeb(
     async def anime(self, ctx, *, query: str.lower):
         """Shows information about an anime on MyAnimeList.
 
-        The search results displayed are based on whether
-        or not this command was executed in an NSFW channel.
+        The search result displayed is based on whether or
+        not this command was executed in an NSFW channel.
 
         **EXAMPLE:**
         ```
@@ -142,76 +141,71 @@ class Weeb(
             await ctx.send("Search queries must be at least 3 characters long.")
             return
 
-        search_url = "https://api.jikan.moe/v3/search/anime?limit=1"
+        search_url = "https://api.jikan.moe/v4/anime?limit=1"
 
         if not ctx.channel.is_nsfw():
-            search_url += "&genre=9,12&genre_exclude=1"
+            search_url += "&genre=9,12,49&genre_exclude=1"
 
         await ctx.trigger_typing()
 
-        try:
-            search = await ctx.get(search_url, cache__=True, q=query)
-        except HTTPRequestFailed as exc:
-            if exc.status == 503:
-                await ctx.send("Jikan failed to fetch from MyAnimeList.")
-                return
-
-            raise
+        search = await ctx.get(search_url, cache__=True, q=query)
 
         try:
-            partial = search["results"][0]
+            data = search["data"][0]
         except IndexError:
             await ctx.send("No results found.")
             return
 
-        id_ = partial["mal_id"]
+        id_ = data["mal_id"]
 
         embed = Embed(
-            title=f"`{id_}` - {partial['title']}",
+            title=f"`{id_}` - {data['title']}",
             colour=0x2F3136,
-            url=partial["url"]
+            url=data["url"]
         )
-        embed.set_author(name=f"{plural(partial['episodes'], ',d'):Episode}")
-        embed.set_thumbnail(url=partial["image_url"])
+        embed.set_thumbnail(url=data["images"]["webp"]["large_image_url"])
         embed.set_footer(text="Powered by jikan.moe")
 
-        embed.add_field(name="Type", value=partial["type"])
+        if data["airing"]:
+            embed.set_author(name="Currently Ongoing")
+        else:
+            embed.set_author(name=f"{plural(data['episodes'] or 0, ',d'):Episode}")
 
-        full = await ctx.get(f"https://api.jikan.moe/v3/anime/{id_}/", cache__=True)
 
         embed.description = (
-            f"\U0001F1EC\U0001F1E7 English: {full['title_english'] or 'N/A'}"
-            f"\n\U0001F1EF\U0001F1F5 Japanese: {full['title_japanese'] or 'N/A'}\n\n"
-            + textwrap.shorten(full["synopsis"] or "No synopsis given.", 1990)
+            f"\U0001F1EC\U0001F1E7 English: {data['title_english'] or 'N/A'}"
+            f"\n\U0001F1EF\U0001F1F5 Japanese: {data['title_japanese'] or 'N/A'}\n\n"
+            + textwrap.shorten(data["synopsis"] or "No synopsis given.", 1990)
         )
 
-        embed.add_field(name="Status", value=full["status"])
-        embed.add_field(name="Aired", value=full["aired"]["string"])
-        embed.add_field(name="Duration", value=full["duration"])
-        embed.add_field(name="Rating", value=full["rating"])
+        embed.add_field(name="Type", value=data["type"])
+        embed.add_field(name="Status", value=data["status"])
+        embed.add_field(name="Aired", value=data["aired"]["string"])
+        embed.add_field(name="Duration", value=data["duration"])
+        embed.add_field(name="Rating", value=data["rating"])
         embed.add_field(
             name="Genres",
-            value="\n".join(g["name"] for g in full["genres"])
+            value="\n".join(g["name"] for g in data["genres"]) or "None"
         )
         embed.add_field(
             name="Studios",
-            value="\n".join(s["name"] for s in full["studios"]) or "None"
+            value="\n".join(s["name"] for s in data["studios"]) or "None"
         )
         embed.add_field(
             name="Producers",
-            value="\n".join(p["name"] for p in full["producers"]) or "None"
+            value="\n".join(p["name"] for p in data["producers"]) or "None"
         )
         embed.add_field(
             name="Licensors",
-            value="\n".join(i["name"] for i in full["licensors"]) or "None"
+            value="\n".join(i["name"] for i in data["licensors"]) or "None"
         )
         embed.add_field(
-            name=f"Score \N{BULLET} **Rank {full['rank'] or 'N/A'}**",
-            value=f"{partial['score']}/10 ({full['scored_by'] or 0:,} scored)"
+            name=f"Score \N{BULLET} **Rank {data['rank'] or 'N/A'}**",
+            value=f"{data['score'] or 0}/10 ({data['scored_by'] or 0:,} scored)"
         )
         embed.add_field(
-            name=f"Members \N{BULLET} **Rank {full['popularity'] or 'N/A'}**",
-            value=f"{partial['members']:,} ({full['favorites'] or 0:,} favourited)"
+            name=f"Members \N{BULLET} **Rank {data['popularity'] or 'N/A'}**",
+            value=f"{data['members']:,} ({data['favorites']:,} favourited)"
         )
 
         await ctx.send(embed=embed)
@@ -456,8 +450,8 @@ class Weeb(
     async def manga(self, ctx, *, query: str.lower):
         """Shows information about a manga on MyAnimeList.
 
-        The search results displayed are based on whether
-        or not this command was executed in an NSFW channel.
+        The search result displayed is based on whether or
+        not this command was executed in an NSFW channel.
 
         **EXAMPLE:**
         ```
@@ -468,73 +462,67 @@ class Weeb(
             await ctx.send("Search queries must be at least 3 characters long.")
             return
 
-        search_url = "https://api.jikan.moe/v3/search/manga?limit=1"
+        search_url = "https://api.jikan.moe/v4/manga?limit=1"
 
         if not ctx.channel.is_nsfw():
-            search_url += "&genre=9,12&genre_exclude=1"
+            search_url += "&genre=9,12,49&genre_exclude=1"
 
         await ctx.trigger_typing()
 
-        try:
-            search = await ctx.get(search_url, cache__=True, q=query)
-        except HTTPRequestFailed as exc:
-            if exc.status == 503:
-                await ctx.send("Jikan failed to fetch from MyAnimeList.")
-                return
-
-            raise
+        search = await ctx.get(search_url, cache__=True, q=query)
 
         try:
-            partial = search["results"][0]
+            data = search["data"][0]
         except IndexError:
             await ctx.send("No results found.")
             return
 
-        id_ = partial["mal_id"]
+        id_ = data["mal_id"]
 
         embed = Embed(
-            title=f"`{id_}` - {partial['title']}",
+            title=f"`{id_}` - {data['title']}",
             colour=0x2F3136,
-            url=partial["url"]
+            url=data["url"]
         )
-        embed.set_thumbnail(url=partial["image_url"])
+        embed.set_thumbnail(url=data["images"]["webp"]["large_image_url"])
         embed.set_footer(text="Powered by jikan.moe")
-        embed.set_author(
-            name=f"{plural(partial['chapters'], ',d'):Chapter} "
-                 f"\N{BULLET} {plural(partial['volumes'], ',d'):Volume}"
-        )
 
-        embed.add_field(name="Type", value=partial["type"])
-
-        full = await ctx.get(f"https://api.jikan.moe/v3/manga/{id_}/", cache__=True)
+        if data["publishing"]:
+            embed.set_author(name="Currently Ongoing")
+        else:
+            embed.set_author(
+                name=f"{plural(data['chapters'] or 0, ',d'):Chapter}"
+                    f" \N{BULLET} {plural(data['volumes'] or 0, ',d'):Volume}"
+            )
 
         embed.description = (
-            f"\U0001F1EC\U0001F1E7 English: {full['title_english'] or 'N/A'}"
-            f"\n\U0001F1EF\U0001F1F5 Japanese: {full['title_japanese'] or 'N/A'}\n\n"
-            + textwrap.shorten(full["synopsis"] or "No synopsis given.", 1990)
+            f"\U0001F1EC\U0001F1E7 English: {data['title_english'] or 'N/A'}"
+            f"\n\U0001F1EF\U0001F1F5 Japanese: {data['title_japanese'] or 'N/A'}\n\n"
+            + textwrap.shorten(data["synopsis"] or "No synopsis given.", 1990)
         )
 
-        embed.add_field(name="Status", value=full["status"])
-        embed.add_field(name="Published", value=full["published"]["string"])
+        embed.add_field(name="Type", value=data["type"])
+        embed.add_field(name="Status", value=data["status"])
+        embed.add_field(name="Published", value=data["published"]["string"])
         embed.add_field(
             name="Genres",
-            value="\n".join(g["name"] for g in full["genres"])
+            value="\n".join(g["name"] for g in data["genres"]) or "None"
         )
         embed.add_field(
             name="Authors",
-            value="\n".join(a["name"] for a in full["authors"])
+            value="\n".join(a["name"] for a in data["authors"])
         )
         embed.add_field(
             name="Serializations",
-            value="\n".join(s["name"] for s in full["serializations"]) or "None"
+            value="\n".join(s["name"] for s in data["serializations"]) or "None"
         )
         embed.add_field(
-            name=f"Score \N{BULLET} **Rank {full['rank'] or 'N/A'}**",
-            value=f"{partial['score']}/10 ({full['scored_by'] or 0:,} scored)"
+            name=f"Score \N{BULLET} **Rank {data['rank'] or 'N/A'}**",
+            value=f"{data['scored'] or 0}/10 ({data['scored_by'] or 0:,} scored)"
         )
         embed.add_field(
-            name=f"Members \N{BULLET} **Rank {full['popularity'] or 'N/A'}**",
-            value=f"{partial['members']:,} ({full['favorites'] or 0:,} favourited)"
+            name=f"Members \N{BULLET} **Rank {data['popularity'] or 'N/A'}**",
+            value=f"{data['members']:,} ({data['favorites']:,} favourited)"
         )
 
         await ctx.send(embed=embed)
