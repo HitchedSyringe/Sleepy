@@ -700,9 +700,6 @@ class Images(
         async with ctx.typing():
             try:
                 avatar_bytes = await user.display_avatar.with_format("png").read()
-            except discord.NotFound:
-                await ctx.send("Could not resolve the user's avatar. Try again later?")
-                return
             except discord.HTTPException:
                 await ctx.send("Downloading the user's avatar failed. Try again later?")
                 return
@@ -742,9 +739,6 @@ class Images(
         async with ctx.typing():
             try:
                 avatar_bytes = await user.display_avatar.with_format("png").read()
-            except discord.NotFound:
-                await ctx.send("Could not resolve the user's avatar. Try again later?")
-                return
             except discord.HTTPException:
                 await ctx.send("Downloading the user's avatar failed. Try again later?")
                 return
@@ -796,9 +790,6 @@ class Images(
             try:
                 avatar1_bytes = await first_user.display_avatar.with_format("png").read()
                 avatar2_bytes = await second_user.display_avatar.with_format("png").read()
-            except discord.NotFound:
-                await ctx.send("Could not resolve the avatars. Try again later?")
-                return
             except discord.HTTPException:
                 await ctx.send("Downloading the avatars failed. Try again later?")
                 return
@@ -1124,9 +1115,6 @@ class Images(
         async with ctx.typing():
             try:
                 avatar_bytes = await user.display_avatar.with_format("png").read()
-            except discord.NotFound:
-                await ctx.send("Could not resolve the user's avatar. Try again later?")
-                return
             except discord.HTTPException:
                 await ctx.send("Downloading the user's avatar failed. Try again later?")
                 return
@@ -1179,9 +1167,6 @@ class Images(
             try:
                 avatar1_bytes = await first_user.display_avatar.with_format("png").read()
                 avatar2_bytes = await second_user.display_avatar.with_format("png").read()
-            except discord.NotFound:
-                await ctx.send("Could not resolve the avatars. Try again later?")
-                return
             except discord.HTTPException:
                 await ctx.send("Downloading the avatars failed. Try again later?")
                 return
@@ -1224,9 +1209,6 @@ class Images(
         async with ctx.typing():
             try:
                 avatar_bytes = await user.display_avatar.with_format("png").read()
-            except discord.NotFound:
-                await ctx.send("Could not resolve the user's avatar. Try again later?")
-                return
             except discord.HTTPException:
                 await ctx.send("Downloading the user's avatar failed. Try again later?")
                 return
