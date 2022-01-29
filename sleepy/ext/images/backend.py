@@ -150,7 +150,7 @@ def do_deepfry(image_buffer, /):
 @measure_performance
 def do_invert(image_buffer, /):
     with Image.open(image_buffer) as image:
-        img = -np.asarray(image.convert("RGB"))
+        img = ~np.asarray(image.convert("RGB"))
 
         try:
             alpha = image.getchannel("A")
