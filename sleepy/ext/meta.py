@@ -842,10 +842,7 @@ class Meta(commands.Cog):
 
         if (activity := user.activity) is not None:
             if isinstance(activity, discord.CustomActivity):
-                embed.add_field(
-                    name="Activity",
-                    value=f"{activity.emoji or ''} {activity.name}"
-                )
+                embed.add_field(name="Activity", value=f"{activity.emoji or ''} {activity.name or ''}")
             else:
                 # activity type: activity type name
                 activity_verbs = {
