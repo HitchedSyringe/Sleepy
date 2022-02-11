@@ -387,11 +387,11 @@ class Web(
             url=f"https://xkcd.com/{number}",
             colour=0x708090
         )
-        embed.timestamp = datetime(
+        embed.timestamp = dt(
             month=int(comic["month"]),
             year=int(comic["year"]),
             day=int(comic["day"]),
-            tzinfo=timezone.utc
+            tzinfo=tz.utc
         )
         embed.set_author(name=f"#{number}")
         embed.set_image(url=comic["img"])
