@@ -354,7 +354,7 @@ class Meta(commands.Cog):
     @commands.command()
     async def invite(self, ctx):
         """Gives you the invite link to join me to your server."""
-        await ctx.send(f"<{oauth_url(ctx.me.id, discord.Permissions(388166))}>")
+        await ctx.send(f"<{oauth_url(ctx.bot.app_info.id, discord.Permissions(388166))}>")
 
     @commands.command()
     async def ping(self, ctx):
