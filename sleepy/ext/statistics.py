@@ -19,7 +19,7 @@ from platform import python_version
 import discord
 import psutil
 from discord import Colour, Embed
-from discord.ext import commands
+from discord.ext import commands, tasks
 from discord.utils import oauth_url
 from sleepy import __version__, checks
 from sleepy.menus import PaginatorSource
@@ -41,24 +41,33 @@ class GatewayWebhookHandler(logging.Handler):
 
         self._queue = asyncio.Queue()
         self._webhook = bot.webhook
-        self.__task = bot.loop.create_task(self.__log_gateway_status_loop())
 
-    async def __log_gateway_status_loop(self):
-        while not self.__task.cancelled():
-            rec = await self._queue.get()
-            created = datetime.utcfromtimestamp(rec.created)
+        # This is necessary because the loop won't preserve
+        # its internal state, causing it not to be properly
+        # cancelled later on. I'm not sure why exactly this
+        # happens, but it is likely related to how the loop
+        # implementation was changed to fix dpy issue #2294
+        # in 2020. I realise I could do all of the handling
+        # in the cog, but I'd rather keep everything in one
+        # place.
+        self.__worker = worker = self.__worker_loop
+        worker.start()
 
-            levels = {
-                "INFO": "\N{INFORMATION SOURCE}\ufe0f",
-                "WARNING": "\N{WARNING SIGN}\ufe0f",
-            }
-            lvl = levels.get(rec.levelname, "\N{CROSS MARK}")
+    async def __worker_loop(self):
+        rec = await self._queue.get()
+        created = datetime.utcfromtimestamp(rec.created)
 
-            await self._webhook.send(
-                textwrap.shorten(f"{lvl} [{human_ts(created, 'F')}] `{rec.message}`", 2000),
-                username="Gateway Status",
-                avatar_url="https://i.imgur.com/4PnCKB3.png"
-            )
+        levels = {
+            "INFO": "\N{INFORMATION SOURCE}\ufe0f",
+            "WARNING": "\N{WARNING SIGN}\ufe0f",
+        }
+        lvl = levels.get(rec.levelname, "\N{CROSS MARK}")
+
+        await self._webhook.send(
+            textwrap.shorten(f"{lvl} [{human_ts(created, 'F')}] `{rec.message}`", 2000),
+            username="Gateway Status",
+            avatar_url="https://i.imgur.com/4PnCKB3.png"
+        )
 
     def filter(self, record):
         return record.name in ("discord.gateway", "discord.shard")
@@ -67,7 +76,7 @@ class GatewayWebhookHandler(logging.Handler):
         self._queue.put_nowait(record)
 
     def close(self):
-        self.__task.cancel()
+        self.__worker.cancel()
         super().close()
 
 
