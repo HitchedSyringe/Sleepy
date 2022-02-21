@@ -122,6 +122,8 @@ class Sleepy(commands.Bot):
             This is now a UTC-aware datetime.
     """
 
+    extensions_directory: Path
+
     def __init__(self, config: Mapping[str, Any], /, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
 
@@ -134,8 +136,7 @@ class Sleepy(commands.Bot):
         self.config: Mapping[str, Any] = config
         self.started_at: Optional[datetime] = None
 
-        self.extensions_directory = exts_dir = \
-            Path(config["extensions_directory"] or ".")  # type: Path
+        self.extensions_directory = exts_dir = Path(config["extensions_directory"] or ".")
 
         headers = {
             "User-Agent": f"Sleepy-Discord-Bot/{__version__} (https://github.com/HitSyr/Sleepy)"

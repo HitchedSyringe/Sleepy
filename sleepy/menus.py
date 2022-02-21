@@ -62,7 +62,7 @@ class EmbedSource(ListPageSource):
 
     .. versionchanged:: 3.2
 
-        * Removed ``show_page_count`` atribute. Page numbers are now
+        * Removed ``show_page_count`` attribute. Page numbers are now
           natively shown within the pagination menu.
         * Allow ``per_page`` to be set, since bots are now allowed
           to send multiple embeds per message.
@@ -104,7 +104,7 @@ class PaginatorSource(ListPageSource):
         Renamed ``show_page_numbers`` argument to ``show_page_count``.
 
     .. versionchanged:: 3.2
-        Removed ``show_page_count`` atribute. Page numbers are now
+        Removed ``show_page_count`` attribute. Page numbers are now
         natively shown within the pagination menu.
 
     Parameters
@@ -118,8 +118,8 @@ class PaginatorSource(ListPageSource):
         The paginator used as the data source.
     """
 
-    def __init__(self, paginator: Paginator, /):
-        self.paginator = paginator
+    def __init__(self, paginator: Paginator, /) -> None:
+        self.paginator: Paginator = paginator
 
         super().__init__(paginator.pages, per_page=1)
 

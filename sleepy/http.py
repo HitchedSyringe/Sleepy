@@ -70,9 +70,11 @@ class HTTPRequestFailed(commands.CommandError):
         The data returned from the failed request.
     """
 
+    status: int
+
     def __init__(self, response: aiohttp.ClientResponse, data: HTTPResponseData) -> None:
         self.response: aiohttp.ClientResponse = response
-        self.status = status = response.status  # type: int
+        self.status = status = response.status
         self.reason: str = response.reason
         self.headers: CIMultiDictProxy[str] = response.headers
         self.data: HTTPResponseData = data
