@@ -755,7 +755,7 @@ class Fun(
         options = frozenset(options)
 
         if not 2 <= len(options) <= 15:
-            await ctx.send("You must have between 2 and 15 options, inclusive.")
+            await ctx.send("You must have between 2 and 15 unique options, inclusive.")
             return
 
         try:

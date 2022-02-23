@@ -228,9 +228,7 @@ class TriviaSession:
                 for i, a in enumerate(answer)
             )
 
-            embed.description = (
-                question.text + f"\n```yaml\nHint {number}/{max_hints}: {hint}```"
-            )
+            embed.description = f"{question.text}\n```yaml\nHint {number}/{max_hints}: {hint}```"
 
             if number == max_hints:
                 embed.set_footer(text="No more hints. Give it your best shot!")

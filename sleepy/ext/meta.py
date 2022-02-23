@@ -251,9 +251,7 @@ class SleepyHelpCommand(commands.HelpCommand):
         else:
             cmd_fmt = command.name
 
-        parent = command.full_parent_name
-
-        if parent:
+        if parent := command.full_parent_name:
             cmd_fmt = f"{parent} {cmd_fmt}"
 
         return f"{cmd_fmt} {command.signature}"

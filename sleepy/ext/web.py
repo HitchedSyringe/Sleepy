@@ -491,7 +491,7 @@ class Web(
 
     @calculate.command(name="tangentline")
     async def calculate_tangentline(self, ctx, x: int, *, expression):
-        """Finds the tangent line to the given expression at a given x value.
+        """Finds the equation of the tangent line to the given expression at a given x value.
 
         **EXAMPLES:**
         ```bnf
