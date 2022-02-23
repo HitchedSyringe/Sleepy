@@ -556,7 +556,7 @@ class Meta(commands.Cog):
             + "\n".join(f"{i}. {p}" for i, p in enumerate(prefixes, 1))
         )
 
-    @commands.command(aliases=("guildinfo",), usage="")
+    @commands.command(aliases=("guildinfo", "gi", "si"), usage="")
     @commands.guild_only()
     @commands.bot_has_permissions(embed_links=True)
     async def serverinfo(self, ctx, *, guild=None):
