@@ -438,7 +438,7 @@ def human_join(sequence: Sequence[Any], /, *, joiner: str = "and") -> str:
 def human_number(
     number: float,
     /,
-    sigfigs: int = 3,
+    sigfigs: Optional[int] = 3,
     *,
     strip_trailing_zeroes: bool = True,
     suffixes: Sequence[str] = "\u200bKMBTPEZY"
