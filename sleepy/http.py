@@ -75,7 +75,7 @@ class HTTPRequestFailed(commands.CommandError):
     def __init__(self, response: aiohttp.ClientResponse, data: HTTPResponseData) -> None:
         self.response: aiohttp.ClientResponse = response
         self.status = status = response.status
-        self.reason: str = response.reason
+        self.reason: str = response.reason  # type: ignore
         self.headers: CIMultiDictProxy[str] = response.headers
         self.data: HTTPResponseData = data
 
