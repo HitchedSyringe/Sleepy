@@ -20,7 +20,7 @@ import aiofiles
 import logging
 import traceback
 import yaml
-from discord import Embed, HTTPException
+from discord import AllowedMentions, Embed, HTTPException
 from discord.ext import commands
 from sleepy.utils import _as_argparse_dict, human_join, tchart
 
@@ -51,7 +51,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class TriviaFlags(commands.FlagConverter):
-
     categories: Tuple[str, ...]
     max_score: int = commands.flag(name="max-score", default=10)
     answer_time_limit: int = commands.flag(name="answer-time-limit", default=20)
@@ -96,7 +95,7 @@ class TriviaMinigame(
         )
 
     @commands.Cog.listener()
-    async def on_trivia_session_end(self, session):
+    async def on_trivia_session_end(self, session, send_results):
         _LOG.info(
             "Stopped session started by %s (ID: %s) in %s (ID: %d).",
             session.owner,
@@ -105,6 +104,25 @@ class TriviaMinigame(
             session.channel.id
         )
 
+        if session.scores and send_results:
+            top_ten = session.scores.most_common(10)
+            highest = top_ten[0][1]
+
+            winners = [
+                p.mention for p, s in session.scores.items()
+                if s == highest and not p.bot
+            ]
+
+            if winners:
+                msg = f"\N{PARTY POPPER} {human_join(winners)} won! Congrats!"
+            else:
+                msg = "Good game everyone! \N{SMILING FACE WITH SMILING EYES}"
+
+            msg += f"\n\n**Trivia Results** (Top 10)\n```hs\n{tchart(dict(top_ten))}```"
+
+            await session.channel.send(msg, allowed_mentions=AllowedMentions(users=False))
+
+        # Just in case it's removed somehow before getting here.
         self.active_sessions.pop(session.channel.id, None)
 
     @commands.Cog.listener()
@@ -144,7 +162,7 @@ class TriviaMinigame(
 
         # This internally dispatches trivia_session_end so this
         # session should be removed from the active sessions.
-        await session.end_game(send_results=False)
+        session.stop(send_results=False)
 
     @commands.group(invoke_without_command=True, usage="categories: <categories...> [options...]")
     @commands.bot_has_permissions(embed_links=True)
@@ -259,7 +277,7 @@ class TriviaMinigame(
             or await ctx.bot.is_owner(ctx.author)
         ):
             await ctx.send("Trivia session stopped.")
-            await session.end_game()
+            session.stop()
         else:
             await ctx.send("You do not have permission to manage this session.")
 
