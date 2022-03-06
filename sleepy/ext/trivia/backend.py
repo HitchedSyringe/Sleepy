@@ -22,8 +22,6 @@ from collections import Counter, namedtuple
 import discord
 from discord import Embed
 
-from sleepy.utils import human_join, tchart
-
 
 TIMEOUT_MSGS_REVEAL = (
     "Time's up! The answer is ||{0}||.",
@@ -130,7 +128,7 @@ class TriviaSession:
             # If some issue occurs with sending/editing messages
             # due to permissions or w/e, I'd rather the session
             # just silently terminate itself ASAP.
-            asyncio.create_task(self.end_game(send_results=False))
+            self.stop(send_results=False)
         except Exception as exc:
             self.bot.dispatch("trivia_session_error", self, exc)
 
@@ -184,7 +182,7 @@ class TriviaSession:
             except asyncio.TimeoutError:
                 if time.time() - self._last_guess >= self.answer_time_limit * 4:
                     await self.channel.send("Nobody's participating... I guess I'll stop now.")
-                    await self.end_game(send_results=False)
+                    self.stop(send_results=False)
                     return
 
                 if self.reveal_answer:
@@ -206,7 +204,7 @@ class TriviaSession:
         else:
             await self.channel.send("I've run out of questions to ask!")
 
-        await self.end_game()
+        self.stop()
 
     async def _do_hints(self, question, message):
         answer = question.answers[0]
@@ -265,27 +263,6 @@ class TriviaSession:
 
         return predicate
 
-    async def end_game(self, *, send_results=True):
-        if self.scores and send_results:
-            top_ten = self.scores.most_common(10)
-            highest = top_ten[0][1]
-
-            winners = [
-                p.mention for p, s in self.scores.items()
-                if s == highest and not p.bot
-            ]
-
-            if winners:
-                msg = f"\N{PARTY POPPER} {human_join(winners)} won! Congrats!"
-            else:
-                msg = "Good game everyone! \N{SMILING FACE WITH SMILING EYES}"
-
-            msg += f"\n\n**Trivia Results** (Top 10)\n```hs\n{tchart(dict(top_ten))}```"
-
-            await self.channel.send(msg, allowed_mentions=discord.AllowedMentions(users=False))
-
-        self.bot.dispatch("trivia_session_end", self)
+    def stop(self, *, send_results=True):
         self.__core_loop.cancel()
-
-    def stop(self):
-        self.__core_loop.cancel()
+        self.bot.dispatch("trivia_session_end", self, send_results)

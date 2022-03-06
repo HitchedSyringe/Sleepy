@@ -80,7 +80,7 @@ class TriviaMinigame(
         )
 
     @commands.Cog.listener()
-    async def on_trivia_session_end(self, session):
+    async def on_trivia_session_end(self, session, send_results):
         _LOG.info(
             "Stopped session started by %s (ID: %s) in %s (ID: %d).",
             session.owner,
@@ -89,6 +89,25 @@ class TriviaMinigame(
             session.channel.id
         )
 
+        if session.scores and send_results:
+            top_ten = session.scores.most_common(10)
+            highest = top_ten[0][1]
+
+            winners = [
+                p.mention for p, s in session.scores.items()
+                if s == highest and not p.bot
+            ]
+
+            if winners:
+                msg = f"\N{PARTY POPPER} {human_join(winners)} won! Congrats!"
+            else:
+                msg = "Good game everyone! \N{SMILING FACE WITH SMILING EYES}"
+
+            msg += f"\n\n**Trivia Results** (Top 10)\n```hs\n{tchart(dict(top_ten))}```"
+
+            await session.channel.send(msg, allowed_mentions=AllowedMentions(users=False))
+
+        # Just in case it's removed somehow before getting here.
         self.active_sessions.pop(session.channel.id, None)
 
     @commands.Cog.listener()
@@ -128,7 +147,7 @@ class TriviaMinigame(
 
         # This internally dispatches trivia_session_end so this
         # session should be removed from the active sessions.
-        await session.end_game(send_results=False)
+        session.stop(send_results=False)
 
     @flags.add_flag("--categories", type=str.lower, nargs="+", required=True)
     @flags.add_flag("--max-score", type=int, default=10)
@@ -255,7 +274,7 @@ class TriviaMinigame(
             or await ctx.bot.is_owner(ctx.author)
         ):
             await ctx.send("Trivia session stopped.")
-            await session.end_game()
+            session.stop()
         else:
             await ctx.send("You do not have permission to manage this session.")
 
