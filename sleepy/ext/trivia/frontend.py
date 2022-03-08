@@ -270,7 +270,7 @@ class TriviaMinigame(
 
         if (
             ctx.channel.permissions_for(ctx.author).manage_messages
-            or session.starter == ctx.author
+            or session.owner == ctx.author
             or await ctx.bot.is_owner(ctx.author)
         ):
             await ctx.send("Trivia session stopped.")
