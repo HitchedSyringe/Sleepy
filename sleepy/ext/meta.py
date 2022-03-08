@@ -194,7 +194,7 @@ class BotHelpView(PaginationView):
         # If we're on the main page, inject these
         # button links into this view.
         if hasattr(self._source, "prefix"):
-            bot_links = BotLinksView(self.bot.app_info.id)
+            bot_links = BotLinksView(self.bot.application_id)
 
             for button in bot_links.buttons:
                 self.add_item(button)
@@ -412,7 +412,7 @@ class Meta(commands.Cog):
     async def invite(self, ctx):
         """Gives you the invite link to join me to your server."""
         permissions = discord.Permissions(PERMISSIONS_VALUE)
-        await ctx.send(f"<{oauth_url(ctx.bot.app_info.id, permissions=permissions)}>")
+        await ctx.send(f"<{oauth_url(ctx.bot.application_id, permissions=permissions)}>")
 
     @commands.command()
     async def ping(self, ctx):
