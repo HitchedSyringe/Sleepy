@@ -155,7 +155,7 @@ class Statistics(
             timestamp=datetime.now(timezone.utc)
         )
         embed.set_author(name=guild)
-        embed.set_thumbnail(url=guild.icon_url)
+        embed.set_thumbnail(url=guild.icon)
 
         if joined:
             embed.title = "Joined a new server!"
