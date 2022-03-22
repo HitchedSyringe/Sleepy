@@ -778,7 +778,7 @@ class Meta(commands.Cog):
         if user is None:
             user = ctx.author
 
-        avatar_url = user.avatar.with_static_format("png")
+        avatar_url = user.display_avatar.with_static_format("png")
 
         embed = Embed(
             description=" ".join(v for k, v in BADGES.items() if getattr(user.public_flags, k)),
