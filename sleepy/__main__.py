@@ -80,7 +80,7 @@ intents = Intents(
 # may want to use different caching classes or maybe not
 # do caching at all, I'll just leave this to be optional.
 try:
-    from cachetools import TTLCache
+    from cachetools import TTLCache  # type: ignore
 except ModuleNotFoundError:
     http_cache = None
 else:
@@ -92,7 +92,7 @@ else:
 # since some either might not want to use it or this code
 # is running on Windows, which uvloop doesn't support.
 try:
-    import uvloop
+    import uvloop  # type: ignore
 except ModuleNotFoundError:
     pass
 else:
