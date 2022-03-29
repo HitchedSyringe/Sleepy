@@ -455,7 +455,7 @@ class PaginationView(BaseView):
         self.previous_page.disabled = on_first
 
         if (max_pages := self._source.get_max_pages()) is None:
-            self.page_number.label = self.current_page + 1
+            self.page_number.label = self.current_page + 1  # type: ignore
             return
 
         self.page_number.label = f"{self.current_page + 1} / {max_pages}"
