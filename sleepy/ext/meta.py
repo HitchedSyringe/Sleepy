@@ -794,7 +794,8 @@ class Meta(commands.Cog):
                   f"\n<:ar:862433028088135711> **Created:** {fmt_dt(user.created_at, 'R')}"
                   f"\n<:ar:862433028088135711> **Bot:** {bool_to_emoji(user.bot)}"
                   "\n<:ar:862433028088135711> **Shared Servers:** "
-                  + str(len(ctx.bot.guilds if user == ctx.me else user.mutual_guilds))
+                  + str(len(ctx.bot.guilds if user == ctx.me else user.mutual_guilds)),
+            inline=False
         )
 
         if isinstance(user, discord.User):
