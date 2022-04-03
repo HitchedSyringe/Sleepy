@@ -653,12 +653,10 @@ class Web(
 
         if phonetics := data.get("phonetics"):
             phonetic = phonetics[0]
-            base_embed.set_author(name=f"{data['word']} {phonetic.get('text', '')}")
-
-            if audio := phonetic.get("audio"):
-                # The API doesn't construct a full URL so I'm forced
-                # to add it in using the private attribute.
-                base_embed._author["url"] = "https:" + audio
+            base_embed.set_author(
+                name=f"{data['word']} {phonetic.get('text', '')}",
+                url=phonetic.get("audio") or Embed.Empty
+            )
         else:
             base_embed.set_author(name=data["word"])
 
