@@ -29,7 +29,7 @@ from sleepy.converters import (
 )
 from sleepy.http import HTTPRequestFailed
 from sleepy.menus import EmbedSource
-from sleepy.utils import _as_argparse_dict, progress_bar, randint
+from sleepy.utils import _as_argparse_dict
 
 from . import backend
 from .fonts import FONTS
