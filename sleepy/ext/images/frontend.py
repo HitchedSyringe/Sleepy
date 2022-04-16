@@ -1062,6 +1062,7 @@ class Images(
     async def tucker(
         self,
         ctx,
+        *,
         image: ImageAssetConverter(max_filesize=40_000_000)
     ):
         """Generates a live Tucker reaction meme.
