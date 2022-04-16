@@ -32,10 +32,11 @@ if TYPE_CHECKING:
     from discord.abc import MessageableChannel
     from discord.ext.menus import PageSource
 
+    from .bot import Sleepy
     from .http import HTTPResponseData, RequestUrl
 
 
-class Context(commands.Context):
+class Context(commands.Context["Sleepy"]):
     """A custom context class that provides some useful shorthands.
 
     Subclasses :class:`commands.Context`.
@@ -206,7 +207,7 @@ class Context(commands.Context):
             delete_message_when_stopped=delete_message_when_stopped,
             remove_view_after=remove_view_after,
             disable_view_after=disable_view_after,
-            owner_ids={self.author.id, self.bot.owner_id, *self.bot.owner_ids},
+            owner_ids={self.author.id, self.bot.owner_id, *self.bot.owner_ids},  # type: ignore
             **kwargs
         )
 
@@ -291,7 +292,7 @@ class Context(commands.Context):
             Attaching the menu to the given message failed.
         """
         view = ConfirmationView(
-            owner_ids={self.author.id, self.bot.owner_id, *self.bot.owner_ids},
+            owner_ids={self.author.id, self.bot.owner_id, *self.bot.owner_ids},  # type: ignore
             timeout=timeout
         )
 

@@ -38,8 +38,8 @@ from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
+    Awaitable,
     Callable,
-    Coroutine,
     Dict,
     Generator,
     Mapping,
@@ -54,19 +54,15 @@ from typing import (
 from dateutil.relativedelta import relativedelta
 
 
+_RT = TypeVar("_RT")
+
+
 if TYPE_CHECKING:
+    from typing_extensions import ParamSpec
+
     from discord.ext.commands import FlagConverter
 
-    T = TypeVar("T")
-
-    Coro = Coroutine[Any, Any, T]
-    Func = Callable[..., T]
-
-    AnyCoro = Coro[Any]
-    AnyFunc = Func[Any]
-
-    PerfWrappedFunc = Func[Func[Tuple[Any, float]]]
-    PerfWrappedCoro = Func[Coro[Tuple[Any, float]]]
+    _P = ParamSpec("_P")
 
 
 DISCORD_SERVER_URL: str = "https://discord.gg/xHgh2Xg"
@@ -149,7 +145,7 @@ def _as_argparse_dict(flag_converter: FlagConverter) -> Dict[str, Any]:
     return {f.attribute: getattr(flag_converter, f.attribute) for f in flags}
 
 
-def awaitable(func: AnyFunc) -> Func[AnyCoro]:
+def awaitable(func: Callable[_P, _RT]) -> Callable[_P, Awaitable[_RT]]:
     """A decorator that transforms a sync function into
     an awaitable function.
 
@@ -173,7 +169,7 @@ def awaitable(func: AnyFunc) -> Func[AnyCoro]:
     """
 
     @wraps(func)
-    async def decorator(*args: Any, **kwargs: Any) -> Any:
+    async def decorator(*args: _P.args, **kwargs: _P.kwargs) -> _RT:
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, partial(func, *args, **kwargs))
 
@@ -541,16 +537,18 @@ def human_number(
 
 
 @overload
-def measure_performance(func: AnyFunc) -> PerfWrappedFunc:
+def measure_performance(func: Callable[_P, _RT]) -> Callable[_P, Tuple[_RT, float]]:
     ...
 
 
 @overload
-def measure_performance(func: AnyCoro) -> PerfWrappedCoro:
+def measure_performance(func: Awaitable[_RT]) -> Callable[_P, Awaitable[Tuple[_RT, float]]]:
     ...
 
 
-def measure_performance(func: Union[AnyFunc, AnyCoro]) -> Union[PerfWrappedFunc, PerfWrappedCoro]:
+def measure_performance(
+    func: Union[Callable[_P, _RT], Awaitable[_RT]]
+) -> Callable[_P, Union[Tuple[_RT, float], Awaitable[Tuple[_RT, float]]]]:
     """A decorator that returns a function or coroutine's
     execution time in milliseconds.
 
@@ -589,7 +587,7 @@ def measure_performance(func: Union[AnyFunc, AnyCoro]) -> Union[PerfWrappedFunc,
     if asyncio.iscoroutinefunction(func):
 
         @wraps(func)  # type: ignore
-        async def decorator(*args: Any, **kwargs: Any) -> Tuple[Any, float]:  # type: ignore
+        async def decorator(*args: _P.args, **kwargs: _P.kwargs) -> Tuple[_RT, float]:  # type: ignore
             start = time.perf_counter()
             result = await func(*args, **kwargs)  # type: ignore
             return result, (time.perf_counter() - start) * 1000
@@ -597,12 +595,12 @@ def measure_performance(func: Union[AnyFunc, AnyCoro]) -> Union[PerfWrappedFunc,
     else:
 
         @wraps(func)  # type: ignore
-        def decorator(*args: Any, **kwargs: Any) -> Tuple[Any, float]:
+        def decorator(*args: _P.args, **kwargs: _P.kwargs) -> Tuple[_RT, float]:
             start = time.perf_counter()
-            result = func(*args, **kwargs)  # type: ignore
+            result: _RT = func(*args, **kwargs)  # type: ignore
             return result, (time.perf_counter() - start) * 1000
 
-    return decorator  # type: ignore
+    return decorator
 
 
 def progress_bar(*, progress: int, maximum: int, per: int = 1) -> str:

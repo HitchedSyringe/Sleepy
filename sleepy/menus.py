@@ -26,6 +26,8 @@ from collections.abc import Collection
 from typing import (
     TYPE_CHECKING,
     Any,
+    Awaitable,
+    Callable,
     Dict,
     Optional,
     Sequence,
@@ -46,8 +48,6 @@ if TYPE_CHECKING:
     from discord.ext.commands import Bot, Paginator
     from discord.ext.menus import MenuPages
     from discord.ui import Item
-
-    from .utils import Coro, Func
 
 
 class EmbedSource(ListPageSource):
@@ -427,7 +427,7 @@ class PaginationView(BaseView):
 
     async def _start(
         self,
-        action: Func[Coro[discord.Message]],
+        action: Callable[..., Awaitable[discord.Message]],
         *,
         wait: bool,
         mention_author: Optional[bool] = None
