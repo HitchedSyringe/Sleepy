@@ -9,7 +9,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import difflib
 import inspect
-from collections import defaultdict
+import itertools
 from os import path
 from typing import Optional, Union
 
@@ -258,13 +258,18 @@ class SleepyHelpCommand(commands.HelpCommand):
 
     async def send_bot_help(self, mapping):
         ctx = self.context
-        cmds = await self.filter_commands(ctx.bot.commands, sort=True)
 
-        sorted_mapping = defaultdict(list)
+        def key(command):
+            cog = command.cog
+            return cog is not None and cog.qualified_name
 
-        for cmd in cmds:
-            if cmd.cog is not None:
-                sorted_mapping[cmd.cog].append(cmd)
+        cmds = await self.filter_commands(ctx.bot.commands, sort=True, key=key)
+
+        sorted_mapping = {}
+
+        for cog_name, cmds in itertools.groupby(cmds, key=key):
+            cog = ctx.bot.get_cog(cog_name)
+            sorted_mapping[cog] = sorted(cmds, key=lambda c: c.qualified_name)
 
         view = BotHelpView(ctx, sorted_mapping)
         await view.send_to(ctx)
