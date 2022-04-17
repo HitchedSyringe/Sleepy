@@ -42,7 +42,6 @@ CHANNEL_EMOJI = {
     (ChannelType.stage_voice, True): "<:sc:828149291750785055> ",
     (ChannelType.news, True): "<:ac:828419969133314098> ",
     (ChannelType.category, True): "",
-    (ChannelType.store, True): "<:st:865637489855430686> ",
     (ChannelType.public_thread, True): "<:thc:917442358377869373> ",
 
     (ChannelType.text, False): "<:ltc:828149291533074544> ",
@@ -50,7 +49,6 @@ CHANNEL_EMOJI = {
     (ChannelType.stage_voice, False): "<:lsc:828149291590746112> ",
     (ChannelType.news, False): "<:lac:828149291578556416> ",
     (ChannelType.category, False): "",
-    (ChannelType.store, False): "<:ltc:828149291533074544> ",
     (ChannelType.private_thread, False): "<:thc:917442358377869373> ",
 }
 
@@ -741,13 +739,8 @@ class Meta(commands.Cog):
                 if ctx.guild.rules_channel == channel:
                     icon = "<:rc:828149291712774164> "
                 elif perms.read_messages:
-                    # Only text channels, store channels, and categories can
-                    # be NSFW. In this case, we only need to care about text
-                    # and store channels (if those are even still a thing).
-                    if (
-                        isinstance(channel, (discord.TextChannel, discord.StoreChannel))
-                        and channel.is_nsfw()
-                    ):
+                    # Only text channels and categories can be NSFW.
+                    if isinstance(channel, discord.TextChannel) and channel.is_nsfw():
                         icon = "<:ntc:828149291683807282> "
                     else:
                         icon = CHANNEL_EMOJI[(channel.type, True)]
