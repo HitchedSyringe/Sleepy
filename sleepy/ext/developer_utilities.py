@@ -19,7 +19,7 @@ import discord
 from discord import Embed
 from discord.ext import commands
 from discord.ui import button
-from discord.utils import escape_mentions
+from discord.utils import escape_mentions, snowflake_time
 from sleepy.http import HTTPRequestFailed
 from sleepy.menus import BaseView, PaginatorSource
 from sleepy.paginators import WrappedPaginator
@@ -346,7 +346,10 @@ class DeveloperUtilities(
         **Disclaimer: The token featured above in the example
         is a fake token. Don't leak your own token using this.**
         """
-        token_match = re.fullmatch(r"([\w-]{23,28})\.([\w-]{6,7})\.([\w-]{27})", token)
+        token_match = re.fullmatch(
+            r"([A-Za-z0-9_-]{23,28})\.([A-Za-z0-9_-]{6,7})\.([A-Za-z0-9_-]{27})",
+            token
+        )
 
         if token_match is None:
             await ctx.send("Invalid Discord API authorisation token.")
@@ -355,36 +358,49 @@ class DeveloperUtilities(
         enc_user_id, enc_ts, hmac = token_match.groups()
 
         try:
-            user_id = base64.b64decode(enc_user_id, validate=True).decode("utf-8")
+            user_id = base64.b64decode(enc_user_id).decode("ascii")
         except (binascii.Error, UnicodeError):
             await ctx.send("Decoding the user ID failed.")
             return
 
         try:
-            user = await commands.UserConverter().convert(ctx, user_id)
-        except commands.UserNotFound:
-            # The user doesn't exist, so we'll just create a "partial"
-            # user here with the info that we have.
-            user = discord.Object(user_id)
-            user.bot = "Unknown"
-            type(user).__repr__ = lambda _: "Unknown"
-
-        try:
-            ts = int.from_bytes(base64.b64decode(enc_ts + "==", validate=True), "big")
+            ts = int.from_bytes(base64.urlsafe_b64decode(enc_ts + "=="), "big")
         except (binascii.Error, ValueError):
-            await ctx.send("Decoding the generation timestamp failed.")
+            await ctx.send("Decoding the token creation timestamp failed.")
             return
 
-        generated_at = datetime.fromtimestamp(ts, timezone.utc)
+        created = datetime.fromtimestamp(ts, timezone.utc)
 
         # We usually have to add the token epoch if before 2015.
-        if generated_at.year < 2015:
-            generated_at = datetime.fromtimestamp(ts + 1293840000, timezone.utc)
+        if created.year < 2015:
+            created = datetime.fromtimestamp(ts + 1293840000, timezone.utc)
 
-        await ctx.send(
-            f"**{user} (ID: {user_id})**```ldif\nBot: {user.bot}\nUser Created: "
-            f"{user.created_at}\nToken Generated: {generated_at}\nHMAC: {hmac}```"
-        )
+        try:
+            user = await commands.UserConverter().convert(ctx, user_id)
+        except commands.UserNotFound:
+            user_created = snowflake_time(int(user_id))
+
+            await ctx.send(
+                "**Token Information**"
+                "\n```ldif"
+                f"\nUser ID: {user_id}"
+                f"\nUser Created: {user_created}"
+                f"\nToken Created: {created}"
+                f"\nHMAC: {hmac}"
+                "\n```"
+                "\n*Limited info is shown since user couldn't be resolved.*"
+            )
+        else:
+            await ctx.send(
+                "**Token Information**"
+                "\n```ldif"
+                f"\nUser: {user}"
+                f"\nID: {user_id}"
+                f"\nUser Created: {user.created_at}"
+                f"\nToken Created: {created}"
+                f"\nHMAC: {hmac}"
+                "\n```"
+            )
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
