@@ -17,10 +17,12 @@ __all__ = (
 
 import logging
 import re
+import traceback
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Generator, Mapping, Optional
 
 import discord
+from discord import Colour, Embed
 from discord.ext import commands
 from discord.utils import cached_property, utcnow
 
@@ -355,6 +357,42 @@ class Sleepy(commands.Bot):
             return
 
         await self.invoke(ctx)
+
+    async def on_error(self, event_method: str, *args: Any, **kwargs: Any) -> None:
+        p_args = "\n".join(f"[{i}] {a}" for i, a in enumerate(args)) or "N/A"
+        k_args = "\n".join(f"{k}: {v}" for k, v in kwargs.items()) or "N/A"
+
+        fmt = (
+            'Unhandled exception in event handler "%s":'
+            "\nPositional Arguments: --\n%s"
+            "\nKeyword Arguments: --\n%s"
+        )
+
+        _LOG.error(fmt, event_method, p_args, k_args, exc_info=True)
+
+        embed = Embed(
+            title="Event Handler Error",
+            description=f"```py\n{traceback.format_exc()}```",
+            colour=Colour.dark_red()
+        )
+        embed.set_author(name=event_method)
+
+        embed.add_field(
+            name="Positional Arguments",
+            value=f"```py\n{p_args}```",
+            inline=False
+        )
+
+        embed.add_field(
+            name="Keyword Arguments",
+            value=f"```py\n{k_args}```",
+            inline=False
+        )
+
+        try:
+            await self.webhook.send(embed=embed)
+        except discord.HTTPException:
+            pass
 
     async def on_command_error(self, ctx: Context, error: commands.CommandError) -> None:
         ignored = (

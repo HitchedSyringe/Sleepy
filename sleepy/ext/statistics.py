@@ -94,21 +94,12 @@ class Statistics(
         self.gw_handler = handler = GatewayWebhookHandler(bot)
         logging.getLogger("discord").addHandler(handler)
 
-        self.old_on_error = bot.on_error
-        # This approach keeps us from having to pass the class
-        # type and instance within super() in the new hook in
-        # order to access the original hook. This might break
-        # if the bot class implements __slots__, but I highly
-        # doubt this will ever be the case.
-        bot._old_before_identify_hook = bot.before_identify_hook
+        bot._original_before_identify_hook = bot.before_identify_hook
 
-        # I decided to just monkey-patch these in rather than
-        # including it in the bot class itself because I figured
-        # that not everyone would want to be forced to use these
-        # tools and that these are better off isolated here.
-        bot_inst = type(bot)
-        bot_inst.on_error = on_error
-        bot_inst.before_identify_hook = before_identify_hook
+        # I decided to just monkey-patch this in rather than
+        # including it in the bot class since I figured that
+        # not everyone would want to be forced to use this.
+        type(bot).before_identify_hook = _new_before_identify_hook
 
         # Mainly for the ``about``` command. This removes the
         # need to iterate through guilds on each command invoke.
@@ -124,11 +115,13 @@ class Statistics(
         self.gw_handler.close()
         logging.getLogger("discord").removeHandler(self.gw_handler)
 
-        bot_inst = type(self.bot)
-        bot_inst.on_error = self.old_on_error
-        bot_inst.before_identify_hook = self.bot._old_before_identify_hook
+        # NOTE: We don't delete any statistics collected since doing
+        # so would obliterate them every time this cog was reloaded.
 
-        del self.bot._old_before_identify_hook
+        bot = self.bot
+
+        type(bot).before_identify_hook = bot._original_before_identify_hook
+        del bot._original_before_identify_hook
 
     async def cache_bot_statistics(self):
         await self.bot.wait_until_ready()
@@ -461,42 +454,10 @@ class Statistics(
         )
 
 
-async def before_identify_hook(self, shard_id, *, initial):
+async def _new_before_identify_hook(self, shard_id, *, initial):
     self.identifies += 1
 
-    await self._old_before_identify_hook(shard_id, initial=initial)
-
-
-async def on_error(self, event, *args, **kwargs):
-    embed = Embed(
-        title="Event Handler Error",
-        description=f"```py\n{traceback.format_exc()}```",
-        colour=Colour.dark_red()
-    )
-    embed.set_author(name=event)
-
-    p_args = "\n".join(f"[{i}] {a}" for i, a in enumerate(args)) or "N/A"
-
-    embed.add_field(
-        name="Positional Arguments",
-        value=f"```py\n{p_args}```",
-        inline=False
-    )
-
-    k_args = "\n".join(f"{k}: {v}" for k, v in kwargs.items()) or "N/A"
-
-    embed.add_field(name="Keyword Arguments", value=f"```py\n{k_args}```")
-
-    _LOG.error(
-        "Something went wrong while handling an event."
-        "\nEvent: %s\nPositional Arguments: %s\nKeyword Arguments: %s",
-        event,
-        p_args,
-        k_args,
-        exc_info=True,
-    )
-
-    await self.webhook.send(embed=embed)
+    await self._original_before_identify_hook(shard_id, initial=initial)
 
 
 async def setup(bot):
