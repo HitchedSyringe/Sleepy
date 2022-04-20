@@ -68,7 +68,7 @@ if TYPE_CHECKING:
 DISCORD_SERVER_URL: str = "https://discord.gg/xHgh2Xg"
 GITHUB_URL: str = "https://github.com/HitSyr/Sleepy"
 
-PERMISSIONS_VALUE: int = 309238033478
+PERMISSIONS_VALUE: int = 274878295110
 
 
 class plural:
