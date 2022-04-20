@@ -18,5 +18,5 @@ from .frontend import Weeb
 from .templates import TEMPLATES
 
 
-def setup(bot):
-    bot.add_cog(Weeb())
+async def setup(bot):
+    await bot.add_cog(Weeb())

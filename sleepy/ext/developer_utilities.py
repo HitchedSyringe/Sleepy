@@ -53,7 +53,7 @@ class PistonView(BaseView):
         label="Repeat Execution",
         emoji="\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS}"
     )
-    async def repeat(self, button, itn):
+    async def repeat(self, itn, button):
         data, out = await execute_on_piston(self.ctx, self.body)
 
         if data is None:
@@ -63,7 +63,7 @@ class PistonView(BaseView):
             self._message = await self._message.edit(content=content)
 
     @button(emoji="\N{WASTEBASKET}", style=discord.ButtonStyle.danger)
-    async def dispose(self, button, itn):
+    async def dispose(self, itn, button):
         await self._message.delete()
         self.stop()
 
@@ -270,7 +270,7 @@ class DeveloperUtilities(
         hello world!
         ```
         """
-        await ctx.trigger_typing()
+        await ctx.typing()
 
         data, out = await execute_on_piston(ctx, body)
 
@@ -534,5 +534,5 @@ class DeveloperUtilities(
         )
 
 
-def setup(bot):
-    bot.add_cog(DeveloperUtilities(bot))
+async def setup(bot):
+    await bot.add_cog(DeveloperUtilities(bot))

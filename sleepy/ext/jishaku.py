@@ -29,15 +29,16 @@ from sleepy.utils import bool_to_emoji, find_extensions_in
 
 
 ExtensionConverter = modules.ExtensionConverter
-_old_resolve_extensions = modules.resolve_extensions
+_original_resolve_extensions = modules.resolve_extensions
 
 
 def resolve_extensions(bot, name):
     exts = []
+    exts_dir = ".".join(bot.extensions_directory.parts)
 
     for ext in braceexpand(name):
         if ext.startswith("$."):
-            ext = ext.replace("$", ".".join(bot.extensions_directory.parts), 1).lstrip(".")
+            ext = ext.replace("$", exts_dir, 1).lstrip(".")
 
         if ext.endswith(".*"):
             exts.extend(find_extensions_in(ext[:-2].replace(".", "/")))
@@ -74,8 +75,8 @@ class Owner(
     ICON = "\N{MAGNET}"
 
     def cog_unload(self):
-        # Restore the old functionality.
-        modules.resolve_extensions = _old_resolve_extensions
+        # Restore the original functionality.
+        modules.resolve_extensions = _original_resolve_extensions
 
     @Feature.Command(aliases=("pm",))
     async def dm(self, ctx, user: discord.User, *, content):
@@ -133,7 +134,7 @@ class Owner(
 
         for ext in itertools.chain(*extensions):
             try:
-                ctx.bot.load_extension(ext)
+                await ctx.bot.load_extension(ext)
             except commands.ExtensionAlreadyLoaded:
                 pass
             except:
@@ -164,7 +165,7 @@ class Owner(
 
         for ext in extensions:
             try:
-                ctx.bot.reload_extension(ext)
+                await ctx.bot.reload_extension(ext)
             except commands.ExtensionNotLoaded:
                 pass
             except:
@@ -196,7 +197,7 @@ class Owner(
                 continue
 
             try:
-                ctx.bot.unload_extension(ext)
+                await ctx.bot.unload_extension(ext)
             except commands.ExtensionNotLoaded:
                 pass
             except:
@@ -230,8 +231,8 @@ class Owner(
             await ctx.send("Aborted.")
 
 
-def setup(bot):
+async def setup(bot):
     os.environ["JISHAKU_RETAIN"] = "True"
     os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 
-    bot.add_cog(Owner(bot=bot))
+    await bot.add_cog(Owner(bot=bot))

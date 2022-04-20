@@ -137,7 +137,7 @@ class plural:
         if abs(value) == 1:
             return f"{value:{self.__value_fmt}} {singular}"
 
-        return f"{value:{self.__value_fmt}} {plural or singular + 's'}"
+        return f"{value:{self.__value_fmt}} {plural or f'{singular}s'}"
 
 
 def _as_argparse_dict(flag_converter: FlagConverter) -> Dict[str, Any]:
@@ -355,9 +355,9 @@ def human_delta(
         return humanised
 
     if dt1 > dt2:
-        return "In " + humanised
+        return f"In {humanised}"
 
-    return humanised + " ago"
+    return f"{humanised} ago"
 
 
 def human_join(sequence: Sequence[Any], /, *, joiner: str = "and") -> str:

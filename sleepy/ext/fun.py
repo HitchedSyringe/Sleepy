@@ -125,11 +125,8 @@ class PollView(View):
                 return
 
             await item.callback(itn)
-
-            if not itn.response._responded:
-                await itn.response.defer()
         except Exception as e:
-            return await self.on_error(e, item, itn)
+            return await self.on_error(itn, e, item)
 
     async def send_to(self, ctx):
         self.starter = author = ctx.author
@@ -193,7 +190,7 @@ class PollView(View):
         await channel.send(embed=embed)
 
     @select(placeholder="Select an option.")
-    async def vote(self, select, itn):
+    async def vote(self, itn, select):
         self.votes[select.values[0]] += 1
         self.__voted.add(itn.user.id)
 
@@ -961,5 +958,5 @@ class Fun(
             )
 
 
-def setup(bot):
-    bot.add_cog(Fun())
+async def setup(bot):
+    await bot.add_cog(Fun())

@@ -214,7 +214,7 @@ class Moderation(commands.Cog):
             await ctx.send("Aborted.")
             return
 
-        await ctx.trigger_typing()
+        await ctx.typing()
 
         failed = 0
         for user in users:
@@ -870,5 +870,5 @@ class Moderation(commands.Cog):
         )
 
 
-def setup(bot):
-    bot.add_cog(Moderation())
+async def setup(bot):
+    await bot.add_cog(Moderation())

@@ -134,7 +134,7 @@ class TriviaSession:
 
     async def __internal_loop(self):
         for question in self.questions:
-            await self.channel.trigger_typing()
+            await self.channel.typing()
             await asyncio.sleep(5)
 
             embed = Embed(description=question.text, colour=0x2F3136)

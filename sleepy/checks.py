@@ -33,7 +33,7 @@ from discord.ext import commands
 from .utils import human_join
 
 
-T = TypeVar("T")
+_T = TypeVar("_T")
 
 
 class MissingAnyPermissions(commands.CheckFailure):
@@ -99,7 +99,7 @@ def _has_any_permissions(permissions: Permissions, to_check: Dict[str, bool], /)
     return any(getattr(permissions, n, None) == v for n, v in to_check.items())
 
 
-def has_permissions(*, check_any: bool = False, **permissions: bool) -> Callable[[T], T]:
+def has_permissions(*, check_any: bool = False, **permissions: bool) -> Callable[[_T], _T]:
     """Similar to :func:`commands.has_permissions` except
     allows the option to check for either all or any given
     permissions.
@@ -162,7 +162,7 @@ def has_permissions(*, check_any: bool = False, **permissions: bool) -> Callable
     return commands.check(predicate)
 
 
-def has_guild_permissions(*, check_any: bool = False, **permissions: bool) -> Callable[[T], T]:
+def has_guild_permissions(*, check_any: bool = False, **permissions: bool) -> Callable[[_T], _T]:
     """Similar to :func:`has_permissions`, but operates on
     guild-wide permissions instead of the current channel
     permissions.
@@ -224,7 +224,7 @@ def has_guild_permissions(*, check_any: bool = False, **permissions: bool) -> Ca
     return commands.check(predicate)
 
 
-def bot_has_any_permissions(**permissions: bool) -> Callable[[T], T]:
+def bot_has_any_permissions(**permissions: bool) -> Callable[[_T], _T]:
     """Similar to :func:`commands.bot_has_permissions`,
     but checks if the bot's member has **ANY** of the
     given permissions.
@@ -263,7 +263,7 @@ def bot_has_any_permissions(**permissions: bool) -> Callable[[T], T]:
     return commands.check(predicate)
 
 
-def bot_has_any_guild_permissions(**permissions: bool) -> Callable[[T], T]:
+def bot_has_any_guild_permissions(**permissions: bool) -> Callable[[_T], _T]:
     """Similar to :func:`bot_has_any_permissions`, but
     operates on guild-wide permissions instead of the
     current channel permissions.
@@ -304,7 +304,7 @@ def bot_has_any_guild_permissions(**permissions: bool) -> Callable[[T], T]:
     return commands.check(predicate)
 
 
-def is_guild_owner() -> Callable[[T], T]:
+def is_guild_owner() -> Callable[[_T], _T]:
     """A :func:`commands.check` that checks if the user
     invoking this command is the guild owner.
 
@@ -328,7 +328,7 @@ def is_guild_owner() -> Callable[[T], T]:
     return commands.check(predicate)
 
 
-def is_guild_manager() -> Callable[[T], T]:
+def is_guild_manager() -> Callable[[_T], _T]:
     """A :func:`commands.check` that checks if the
     user invoking this command has the ``manage_guild``
     permission.
@@ -351,7 +351,7 @@ def is_guild_manager() -> Callable[[T], T]:
     return has_guild_permissions(manage_guild=True)
 
 
-def is_guild_admin() -> Callable[[T], T]:
+def is_guild_admin() -> Callable[[_T], _T]:
     """Same as :func:`is_guild_manager`, except checks
     for the ``administrator`` permission instead.
 
@@ -373,7 +373,7 @@ def is_guild_admin() -> Callable[[T], T]:
     return has_guild_permissions(administrator=True)
 
 
-def guild_manager_or_permissions(**permissions: bool) -> Callable[[T], T]:
+def guild_manager_or_permissions(**permissions: bool) -> Callable[[_T], _T]:
     """A :func:`commands.check` that checks if the
     user invoking this command has the ``manage_guild``
     permission or any of the given permissions.
@@ -409,7 +409,7 @@ def guild_manager_or_permissions(**permissions: bool) -> Callable[[T], T]:
     return has_guild_permissions(check_any=True, manage_guild=True, **permissions)
 
 
-def guild_admin_or_permissions(**permissions: bool) -> Callable[[T], T]:
+def guild_admin_or_permissions(**permissions: bool) -> Callable[[_T], _T]:
     """Similar to :func:`guild_manager_or_permissions`,
     except checks for the ``administrator`` permission
     or any of the given permissions instead.
@@ -445,7 +445,7 @@ def guild_admin_or_permissions(**permissions: bool) -> Callable[[T], T]:
     return has_guild_permissions(check_any=True, administrator=True, **permissions)
 
 
-def is_in_guilds(*guild_ids: int) -> Callable[[T], T]:
+def is_in_guilds(*guild_ids: int) -> Callable[[_T], _T]:
     """A :func:`commands.check` that checks if the user
     invoking this command is a member of any of the given
     guilds.
@@ -470,7 +470,7 @@ def is_in_guilds(*guild_ids: int) -> Callable[[T], T]:
     return commands.check(predicate)
 
 
-def is_in_channels(*channel_ids: int) -> Callable[[T], T]:
+def is_in_channels(*channel_ids: int) -> Callable[[_T], _T]:
     """Same as :func:`is_in_guilds`, except checks if
     the user is invoking this command in any of the
     given channels.
@@ -487,7 +487,7 @@ def is_in_channels(*channel_ids: int) -> Callable[[T], T]:
     return commands.check(predicate)
 
 
-def are_users(*user_ids: int) -> Callable[[T], T]:
+def are_users(*user_ids: int) -> Callable[[_T], _T]:
     """Same as :func:`is_in_guilds`, except checks if
     the user invoking this command is any of the given
     users.

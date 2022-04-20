@@ -146,7 +146,7 @@ class Weeb(
         if not ctx.channel.is_nsfw():
             search_url += "&genre=9,12,49&genre_exclude=1"
 
-        await ctx.trigger_typing()
+        await ctx.typing()
 
         search = await ctx.get(search_url, cache__=True, q=query)
 
@@ -467,7 +467,7 @@ class Weeb(
         if not ctx.channel.is_nsfw():
             search_url += "&genre=9,12,49&genre_exclude=1"
 
-        await ctx.trigger_typing()
+        await ctx.typing()
 
         search = await ctx.get(search_url, cache__=True, q=query)
 

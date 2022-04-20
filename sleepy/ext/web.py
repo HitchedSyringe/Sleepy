@@ -46,7 +46,7 @@ def _prefixed_argument(prefix):
 
     def convert(value):
         if not value.startswith(prefix):
-            raise commands.BadArgument("Argument must begin with " + prefix) from None
+            raise commands.BadArgument(f"Argument must begin with {prefix}") from None
 
         return value[len(prefix):]
 
@@ -70,7 +70,7 @@ class RedditSubmissionURL(commands.Converter):
         if url.host is None or not url.host.endswith(".reddit.com"):
             raise commands.BadArgument("Invalid Reddit or v.redd.it link.")
 
-        await ctx.trigger_typing()
+        await ctx.typing()
 
         try:
             resp = await ctx.get(url / ".json", cache__=True)
@@ -244,7 +244,7 @@ class Web(
 
     @staticmethod
     async def do_calculation(ctx, route, expr):
-        await ctx.trigger_typing()
+        await ctx.typing()
 
         try:
             resp = await ctx.get(
@@ -263,7 +263,7 @@ class Web(
             await ctx.send(f"```\n{result}```\n`Powered by newton.vercel.app`")
 
     async def do_google_search(self, ctx, query, *, search_images=False):
-        await ctx.trigger_typing()
+        await ctx.typing()
 
         url = "https://www.googleapis.com/customsearch/v1?searchInformation,items(title,link,snippet)"
 
@@ -292,23 +292,18 @@ class Web(
 
         embeds = []
         for result in results:
+            embed = Embed(title=result["title"], colour=0x4285F4)
+
             if search_images:
                 url = result["link"]
 
-                embed = Embed(
-                    title=result["title"],
-                    description=f"[Image Link]({url})",
-                    url=result["image"]["contextLink"],
-                    colour=0x4285F4
-                )
+                embed.description = f"[Image Link]({url})"
+                embed.url = result["image"]["contextLink"]
+
                 embed.set_image(url=url)
             else:
-                embed = Embed(
-                    title=result["title"],
-                    description=result["snippet"],
-                    colour=0x4285F4,
-                    url=result["link"]
-                )
+                embed.description = result["snippet"]
+                embed.url = result["link"]
 
             embed.set_author(
                 name=f"Results for '{truncate(query, 64)}'",
@@ -645,7 +640,7 @@ class Web(
             return
 
         base_embed = Embed(
-            description=data.get("origin") or Embed.Empty,
+            description=data.get("origin"),
             url=f"https://google.com/search?q=define:+{quote(term)}",
             colour=0x1B1F40
         )
@@ -655,7 +650,7 @@ class Web(
             phonetic = phonetics[0]
             base_embed.set_author(
                 name=f"{data['word']} {phonetic.get('text', '')}",
-                url=phonetic.get("audio") or Embed.Empty
+                url=phonetic.get("audio")
             )
         else:
             base_embed.set_author(name=data["word"])
@@ -786,7 +781,7 @@ class Web(
         lyrics Haddaway - What is love
         ```
         """
-        await ctx.trigger_typing()
+        await ctx.typing()
 
         try:
             resp = await ctx.get(
@@ -1621,5 +1616,5 @@ class Web(
         await ctx.send(embed=embed)
 
 
-def setup(bot):
-    bot.add_cog(Web(bot.config))
+async def setup(bot):
+    await bot.add_cog(Web(bot.config))

@@ -258,7 +258,7 @@ class NSFW(
         <2> danbooru uniform two-tone_hair
         ```
         """
-        await ctx.trigger_typing()
+        await ctx.typing()
 
         try:
             resp = await ctx.get(
@@ -331,7 +331,7 @@ class NSFW(
         <2> e621 feline two-tone_hair
         ```
         """
-        await ctx.trigger_typing()
+        await ctx.typing()
 
         try:
             resp = await ctx.get(
@@ -396,7 +396,7 @@ class NSFW(
         <2> rule34 speech_bubble two-tone_hair
         ```
         """
-        await ctx.trigger_typing()
+        await ctx.typing()
 
         resp = await ctx.get(
             "https://rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&limit=100",
@@ -439,7 +439,7 @@ class NSFW(
 
         (Bot Needs: Embed Links)
         """
-        await ctx.trigger_typing()
+        await ctx.typing()
 
         resp = await ctx.get(
             "https://saucenao.com/search.php?db=999&output_type=2&numres=24",
@@ -513,7 +513,7 @@ class NSFW(
         <2> yandere text two-tone_hair
         ```
         """
-        await ctx.trigger_typing()
+        await ctx.typing()
 
         try:
             resp = await ctx.get(
@@ -563,5 +563,5 @@ class NSFW(
             await ctx.paginate(EmbedSource(embeds))
 
 
-def setup(bot):
-    bot.add_cog(NSFW(bot.config))
+async def setup(bot):
+    await bot.add_cog(NSFW(bot.config))

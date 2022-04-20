@@ -26,7 +26,7 @@ from sleepy.menus import BotLinksView, PaginatorSource
 from sleepy.utils import human_delta, plural, tchart
 
 
-LOG = logging.getLogger(__name__)
+_LOG = logging.getLogger(__name__)
 
 
 class GatewayWebhookHandler(logging.Handler):
@@ -155,7 +155,7 @@ class Statistics(
             timestamp=datetime.now(timezone.utc)
         )
         embed.set_author(name=guild)
-        embed.set_thumbnail(url=guild.icon or Embed.Empty)
+        embed.set_thumbnail(url=guild.icon)
 
         if joined:
             embed.title = "Joined a new server!"
@@ -191,9 +191,15 @@ class Statistics(
         if hasattr(error, "handled__"):
             return
 
-        LOG.error(
+        error_fmt = (
             "Something went wrong whilst executing a command."
-            "\nInvoker: %s (ID: %s)\nChannel: %s (ID: %s)\nContent: %s",
+            "\nInvoker: %s (ID: %s)"
+            "\nChannel: %s (ID: %s)"
+            "\nContent: %s"
+        )
+
+        _LOG.error(
+            error_fmt,
             ctx.author,
             ctx.author.id,
             ctx.channel,
@@ -481,7 +487,7 @@ async def on_error(self, event, *args, **kwargs):
 
     embed.add_field(name="Keyword Arguments", value=f"```py\n{k_args}```")
 
-    LOG.error(
+    _LOG.error(
         "Something went wrong while handling an event."
         "\nEvent: %s\nPositional Arguments: %s\nKeyword Arguments: %s",
         event,
@@ -493,7 +499,7 @@ async def on_error(self, event, *args, **kwargs):
     await self.webhook.send(embed=embed)
 
 
-def setup(bot):
+async def setup(bot):
     # Allows preservation of the counters if this
     # cog gets unloaded/reloaded.
     if not hasattr(bot, "command_uses"):
@@ -505,4 +511,4 @@ def setup(bot):
     if not hasattr(bot, "identifies"):
         bot.identifies = 0
 
-    bot.add_cog(Statistics(bot))
+    await bot.add_cog(Statistics(bot))

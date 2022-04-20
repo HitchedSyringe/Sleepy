@@ -19,7 +19,7 @@
 
 </div>
 
-[invite]: https://discord.com/oauth2/authorize?client_id=507754861585235978&scope=bot&permissions=309238033478
+[invite]: https://discord.com/oauth2/authorize?client_id=507754861585235978&scope=bot&permissions=274878295110
 
 A Discord bot with server moderation, fun commands, image manipulation, and much more, all designed with user-friendliness and simplicity in mind.
 
@@ -51,12 +51,11 @@ When adding commands, look at the other commands in the category and pick which 
 
 * [aiofiles](https://github.com/Tinche/aiofiles)
 * [cachetools](https://github.com/tkem/cachetools) (optional but recommended)
-* [discord.py 2.0.0a @ 45d498c1b76deaf3b394d17ccf56112fa691d160](https://github.com/Rapptz/discord.py)
-  * Using `requirements.txt` installs [my fork](https://github.com/HitSyr/discord.py/tree/aiohttp-unpinned) of the above repository. This fork **does not feature any code changes and only bumps `aiohttp` to 3.8**, allowing for Python 3.10+ support.
+* [discord.py 2.0.0a](https://github.com/Rapptz/discord.py)
 * [discord-ext-menus](https://github.com/Rapptz/discord-ext-menus)
 * [emoji 1.1.0+](https://github.com/carpedm20/emoji)
 * [googletrans 4.0.0rc1+](https://github.com/ssut/py-googletrans)
-* [jishaku 2.2.0+](https://github.com/Gorialis/jishaku)
+* [jishaku 2.4.0+](https://github.com/Gorialis/jishaku)
 * [matplotlib](https://github.com/matplotlib/matplotlib)
 * [opencv-python-headless](https://github.com/opencv/opencv-python)
 * [Pillow 8.0.0+](https://github.com/python-pillow/Pillow)

@@ -27,7 +27,7 @@ from discord.utils import cached_property, utcnow
 from . import __version__
 from .context import Context
 from .http import HTTPRequester, HTTPRequestFailed
-from .utils import find_extensions_in, human_join
+from .utils import GITHUB_URL, find_extensions_in, human_join
 
 
 if TYPE_CHECKING:
@@ -122,8 +122,6 @@ class Sleepy(commands.Bot):
             This is now a UTC-aware datetime.
     """
 
-    extensions_directory: Path
-
     def __init__(self, config: Mapping[str, Any], /, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
 
@@ -132,51 +130,16 @@ class Sleepy(commands.Bot):
             # but unfortunately, this is the good and only way.
             self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 
-        self.app_info: Optional[discord.AppInfo] = None
         self.config: Mapping[str, Any] = config
+        self.extensions_directory: Path = Path(config["extensions_directory"] or ".")
+        self.http_requester: HTTPRequester = HTTPRequester(cache=kwargs.get("http_cache"))
+
+        self.app_info: Optional[discord.AppInfo] = None
         self.started_at: Optional[datetime] = None
-
-        self.extensions_directory = exts_dir = Path(config["extensions_directory"] or ".")
-
-        headers = {
-            "User-Agent": f"Sleepy-Discord-Bot/{__version__} (https://github.com/HitSyr/Sleepy)"
-        }
-        self.http_requester: HTTPRequester = \
-            HTTPRequester(cache=kwargs.get("http_cache"), headers=headers)
 
         # Cooldown mapping for people who excessively spam commands.
         self._spam_control: commands.CooldownMapping = \
             commands.CooldownMapping.from_cooldown(10, 12, commands.BucketType.user)
-
-        if config["enable_autoload"]:
-            to_load = self.get_all_extensions()
-        else:
-            to_load = []
-
-            for ext in config["extensions_list"]:
-                if ext.startswith("$/"):
-                    ext = ext.replace("$", "/".join(exts_dir.parts), 1).strip("/")
-
-                if ext.endswith("/*"):
-                    to_load.extend(find_extensions_in(Path(ext[:-1])))
-                else:
-                    to_load.append(".".join(ext.split("/")))
-
-        total = 0
-        loaded = 0
-        for ext in to_load:
-            total += 1
-
-            try:
-                self.load_extension(ext)
-            except Exception as exc:
-                _LOG.warning('Failed to load extension "%s".', ext, exc_info=exc)
-            else:
-                _LOG.info('Loaded extension "%s".', ext)
-                logging.getLogger(ext).setLevel(logging.INFO)
-                loaded += 1
-
-        _LOG.info("Extensions stats: %d loaded; %d failed; %d total", loaded, total - loaded, total)
 
     @cached_property
     def webhook(self) -> discord.Webhook:
@@ -241,44 +204,94 @@ class Sleepy(commands.Bot):
 
         return owner
 
-    async def __boot(self) -> None:
+    async def setup_hook(self) -> None:
+        # --- Populate general stuff. ---
+
+        config = self.config
+
         self.started_at = utcnow()
-        self.app_info = await self.application_info()
+        self.app_info = app_info = await self.application_info()
 
-        # Might as well manually populate the owner info if not
-        # initially given since :meth:`is_owner` just makes the
-        # same API call we just did internally. Also, this is
-        # better because it bothers to populate from both local
-        # config and the application information itself.
-        if self.owner_id is None and not self.owner_ids:
-            configured_owner_ids = self.config["owner_ids"]
+        # --- Set up HTTP requester session. ---
 
-            if len(configured_owner_ids) == 1:
-                self.owner_id = configured_owner_ids[0]
-            else:
-                # Doing this in case `None` was passed for this.
-                self.owner_ids = set(configured_owner_ids)
-                app_info = self.app_info
+        headers = {
+            "User-Agent": f"Sleepy-Bot/{__version__} ({GITHUB_URL})",
+        }
+        await self.http_requester.start(headers=headers)
 
-                if self.owner_ids:
-                    if app_info.team is None:
-                        self.owner_ids.add(app_info.owner.id)
-                    else:
-                        self.owner_ids.update(m.id for m in app_info.team.members)
-                else:
-                    self.owner_id = app_info.owner.id
+        # --- Load configured extensions ---
 
-        await self.wait_until_ready()
-
-        _LOG.info("Boot Successful! Running Sleepy %s", __version__)
-        _LOG.info("| User: %s (ID: %s)", self.user, self.user.id)  # type: ignore
-
-        if self.owner_id is not None:
-            _LOG.info("| Owner ID: %s", self.owner_id)
+        if config["enable_autoload"]:
+            to_load = self.get_all_extensions()
         else:
-            _LOG.info("| Owner IDS (%s): %s", len(self.owner_ids), self.owner_ids)
+            to_load = []
+            exts_dir = "/".join(self.extensions_directory.parts)
 
-        # _LOG.info("| Shard IDS (%s): %s", self.shard_count, self.shard_ids)
+            for ext in config["extensions_list"]:
+                if ext.startswith("$/"):
+                    ext = ext.replace("$", exts_dir, 1).strip("/")
+
+                if ext.endswith("/*"):
+                    to_load.extend(find_extensions_in(Path(ext[:-1])))
+                else:
+                    to_load.append(".".join(ext.split("/")))
+
+        total = 0
+        loaded = 0
+
+        for ext in to_load:
+            total += 1
+
+            try:
+                await self.load_extension(ext)
+            except Exception as exc:
+                _LOG.warning('Failed to load extension "%s".', ext, exc_info=exc)
+            else:
+                _LOG.info('Loaded extension "%s".', ext)
+                logging.getLogger(ext).setLevel(logging.INFO)
+                loaded += 1
+
+        # --- Populate owners if not initially set. ---
+
+        if self.owner_id is None and not self.owner_ids:
+            _LOG.info("No owner IDs were passed in, auto-detecting owners...")
+
+            owner_ids = set(self.config["owner_ids"])
+
+            if app_info.team is None:
+                owner_ids.add(app_info.owner.id)
+            else:
+                owner_ids.update(m.id for m in app_info.team.members)
+
+            _LOG.debug("Auto-detected owner IDs: %s", owner_ids)
+
+            if len(owner_ids) == 1:
+                self.owner_id = owner_ids.pop()
+            else:
+                # If there's somehow no owner IDs, then I really
+                # don't know if this is a bot we're dealing with.
+                self.owner_ids = owner_ids
+
+        # --- Display instance information. ---
+
+        _LOG.info("--------- Sleepy Instance Info ---------")
+        _LOG.info("| Version: %s", __version__)
+        _LOG.info("| Bot User: %s (ID: %s)", self.user, self.user.id)
+        _LOG.info("|\t- Application ID: %s", app_info.id)
+        _LOG.info("|\t- Public Bot: %s", app_info.bot_public)
+        _LOG.info("| Detected Extensions: %s", total)
+        _LOG.info("|\t- Loaded: %s", loaded)
+        _LOG.info("|\t- Failed: %s", total - loaded)
+
+        if owner_ids := self.owner_ids:
+            _LOG.info("| Owner IDs (%s): %s", len(owner_ids), owner_ids)
+        else:
+            _LOG.info("| Owner ID: %s", self.owner_id)
+
+        _LOG.info("| Intents: %s", ", ".join(k for k, v in self.intents if v))
+        _LOG.info("| Message Cache Cap: %s", self._connection.max_messages)
+
+        _LOG.info("Booted successfully, awaiting READY event...")
 
     def get_all_extensions(self) -> Generator[str, None, None]:
         """Returns a generator of all recognized extensions
@@ -296,21 +309,15 @@ class Sleepy(commands.Bot):
         """
         return find_extensions_in(self.extensions_directory)
 
-    async def login(self, token: str) -> None:
-        await super().login(token)
-        # This has to be a task since wait_until_ready
-        # will block from ever actually reaching ready.
-        self.loop.create_task(self.__boot())
-
     async def close(self) -> None:
         await self.http_requester.close()
         await super().close()
 
     async def on_ready(self) -> None:
-        _LOG.info("Bot ready.")
+        _LOG.info("Received a READY event.")
 
     async def on_resumed(self) -> None:
-        _LOG.info("Bot resumed.")
+        _LOG.info("Received a RESUME event.")
 
     async def process_commands(self, message: discord.Message) -> None:
         author = message.author

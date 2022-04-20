@@ -196,7 +196,7 @@ class Images(
         """
         url = str(image)
 
-        await ctx.trigger_typing()
+        await ctx.typing()
 
         try:
             caption = await ctx.post(

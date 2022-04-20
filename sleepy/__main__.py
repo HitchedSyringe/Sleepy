@@ -73,6 +73,7 @@ intents = Intents(
     messages=True,
     members=True,
     presences=True,
+    message_content=True,
 )
 
 # Since I figure some people want to use this file and

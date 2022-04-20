@@ -224,15 +224,15 @@ class Covid(
         (Bot Needs: Embed Links and Attach Files)
         """
         async with ctx.typing():
-            latest = await ctx.get(self.BASE + "/all", cache__=True)
+            latest = await ctx.get(f"{self.BASE}/all", cache__=True)
 
             hist = await ctx.get(
-                self.BASE + "/historical/all?lastdays=all",
+                f"{self.BASE}/historical/all?lastdays=all",
                 cache__=True
             )
 
             hist["vaccines"] = await ctx.get(
-                self.BASE + "/vaccine/coverage?lastdays=all",
+                f"{self.BASE}/vaccine/coverage?lastdays=all",
                 cache__=True
             )
 
@@ -497,5 +497,5 @@ class Covid(
         await ctx.send(embed=embed)
 
 
-def setup(bot):
-    bot.add_cog(Covid())
+async def setup(bot):
+    await bot.add_cog(Covid())

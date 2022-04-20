@@ -29,6 +29,7 @@ from sleepy.menus import BotLinksView, PaginationView
 from sleepy.paginators import WrappedPaginator
 from sleepy.utils import (
     PERMISSIONS_VALUE,
+    GITHUB_URL,
     bool_to_emoji,
     plural,
     progress_bar,
@@ -676,7 +677,7 @@ class Meta(commands.Cog):
     @commands.command()
     async def source(self, ctx, *, command=None):
         """Sends a link to my full source code or for a specific command."""
-        base = "https://github.com/HitSyr/Sleepy"
+        base = GITHUB_URL
 
         if command is None:
             await ctx.send(f"<{base}>")
@@ -859,5 +860,5 @@ class Meta(commands.Cog):
         await ctx.send(embed=embed)
 
 
-def setup(bot):
-    bot.add_cog(Meta(bot))
+async def setup(bot):
+    await bot.add_cog(Meta(bot))

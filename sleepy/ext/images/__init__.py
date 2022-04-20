@@ -26,5 +26,5 @@ from .frontend import Images, RGBColourConverter
 from .templates import TEMPLATES
 
 
-def setup(bot):
-    bot.add_cog(Images())
+async def setup(bot):
+    await bot.add_cog(Images())
