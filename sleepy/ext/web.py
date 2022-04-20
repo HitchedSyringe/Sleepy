@@ -36,7 +36,9 @@ from sleepy.utils import (
 
 
 def clean_subreddit(value):
-    if (match := re.search(r"(?:\/?[rR]\/)?([\w]{3,21})", value)) is None:
+    match = re.search(r"(?:\/?[rR]\/)?([A-Za-z0-9_]{3,21})", value)
+
+    if match is None:
         raise commands.BadArgument("Invalid subreddit.")
 
     return match.group(1).lower()
@@ -109,7 +111,7 @@ class SteamAccountMeta:
 
     URL_REGEX = re.compile(
         r"(?:https?\:\/\/)?(?:w{3}\.?)?steamcommunity\.com\/"
-        r"(?:id|profile)\/([\w\-]{2,32})\/?"
+        r"(?:id|profile)\/([A-Za-z0-9_-]{2,32})\/?"
     )
 
     def __init__(self, id_, id_3, id_64):
@@ -205,7 +207,7 @@ class SteamAccountMeta:
 # variant of /c which is no /c.
 YOUTUBE_URL = re.compile(
     r"(?:https?\:\/\/)?(?:w{3}\.?)?youtube\.com"
-    r"(?:\/c|\/user|\/channel)?\/([\w\-]+)"
+    r"(?:\/c|\/user|\/channel)?\/([A-Za-z0-9_\-]+)"
 )
 
 
@@ -213,7 +215,7 @@ def youtube_channel_kwargs(value):
     if (match := YOUTUBE_URL.fullmatch(value.strip("<>"))) is not None:
         value = match.group(1)
 
-    if re.fullmatch(r"UC[\w\-]{21}[AQgw]", value) is not None:
+    if re.fullmatch(r"UC[A-Za-z0-9_-]{21}[AQgw]", value) is not None:
         return {"id": value}
 
     return {"forUsername": value.lower()}
