@@ -139,10 +139,10 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
         The maximum filesize, in bytes, an attachment or URL
         can be. This will raise :exc:`.ImageAssetTooLarge` if
         an attachment or URL exceeds this filesize limit.
-        ``None`` (the default) denotes disabling filesize
-        checking.
+        ``None`` denotes disabling filesize checking.
+        Defaults to ``40_000_000`` (40 MB).
 
-        .. danger::
+        .. warning::
 
             Disabling filesize checking leaves you vulnerable to
             a denial-of-service attack. Unless you are doing your
@@ -156,6 +156,9 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
 
         .. versionadded:: 3.0
 
+        .. versionchanged::
+            Changed default value to ``40_000_000`` (40 MB).
+
     Attributes
     ----------
     max_filesize: Optional[:class:`int`]
@@ -165,7 +168,7 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
         .. versionadded:: 3.0
     """
 
-    def __init__(self, *, max_filesize: Optional[int] = None) -> None:
+    def __init__(self, *, max_filesize: Optional[int] = 40_000_000) -> None:
         if max_filesize is not None and max_filesize <= 0:
             raise ValueError(f"invalid max_filesize {max_filesize} (must be > 0).")
 

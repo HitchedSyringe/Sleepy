@@ -212,12 +212,7 @@ class Weeb(
 
     @commands.command()
     @commands.cooldown(1, 8, commands.BucketType.member)
-    async def animeface(
-        self,
-        ctx,
-        *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
-    ):
+    async def animeface(self, ctx, *, image: ImageAssetConverter):
         """Detects and highlights anime faces in an image.
 
         Image can either be a user, custom emoji, link, or
@@ -249,12 +244,7 @@ class Weeb(
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def awooify(
-        self,
-        ctx,
-        *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
-    ):
+    async def awooify(self, ctx, *, image: ImageAssetConverter):
         """Awooifies an image.
 
         Image can either be a user, custom emoji, link, or
@@ -280,12 +270,7 @@ class Weeb(
     @commands.command(aliases=("france",))
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def baguette(
-        self,
-        ctx,
-        *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
-    ):
+    async def baguette(self, ctx, *, image: ImageAssetConverter):
         """Turns an image into an anime girl eating a baguette.
 
         Image can either be a user, custom emoji, link, or
@@ -311,12 +296,7 @@ class Weeb(
     @commands.command(aliases=("bp",))
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def bodypillow(
-        self,
-        ctx,
-        *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
-    ):
+    async def bodypillow(self, ctx, *, image: ImageAssetConverter):
         """Turns an image into an anime body pillow.
 
         Image can either be a user, custom emoji, link, or
@@ -416,12 +396,7 @@ class Weeb(
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def lolice(
-        self,
-        ctx,
-        *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
-    ):
+    async def lolice(self, ctx, *, image: ImageAssetConverter):
         """Submits an image to the lolice.
 
         Image can either be a user, custom emoji, link, or
@@ -551,12 +526,7 @@ class Weeb(
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def ritsudirt(
-        self,
-        ctx,
-        *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
-    ):
+    async def ritsudirt(self, ctx, *, image: ImageAssetConverter):
         """Generates a Ritsu dirt meme.
 
         Image can either be a user, custom emoji, link, or
@@ -603,12 +573,7 @@ class Weeb(
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def trash(
-        self,
-        ctx,
-        *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
-    ):
+    async def trash(self, ctx, *, image: ImageAssetConverter):
         """Generates a trash waifu meme.
 
         Image can either be a user, custom emoji, link, or

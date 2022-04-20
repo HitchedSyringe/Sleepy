@@ -88,7 +88,7 @@ class Images(
         ctx,
         inverted: Optional[_pseudo_bool_flag("--invert")] = False,
         *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
+        image: ImageAssetConverter
     ):
         """Converts an image into ASCII art.
 
@@ -146,7 +146,7 @@ class Images(
         ctx,
         use_rebrand: Optional[_pseudo_bool_flag("--rebranded")] = False,
         *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
+        image: ImageAssetConverter
     ):
         """Blurplefies an image.
 
@@ -180,12 +180,7 @@ class Images(
     @commands.command(aliases=("captionthis",))
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def caption(
-        self,
-        ctx,
-        *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
-    ):
+    async def caption(self, ctx, *, image: ImageAssetConverter):
         """Captions an image.
 
         Image can either be a user, custom emoji, link, or
@@ -242,7 +237,7 @@ class Images(
     async def captcha(
         self,
         ctx,
-        image: ImageAssetConverter(max_filesize=40_000_000),
+        image: ImageAssetConverter,
         *,
         text: commands.clean_content(fix_channel_mentions=True)
     ):
@@ -325,12 +320,7 @@ class Images(
     @commands.command(aliases=("honeycomb",))
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
-    async def dalgona(
-        self,
-        ctx,
-        *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
-    ):
+    async def dalgona(self, ctx, *, image: ImageAssetConverter):
         """\N{IDEOGRAPHIC NUMBER ZERO}\N{WHITE UP-POINTING TRIANGLE}\N{BALLOT BOX}
 
         Image can either be a user, custom emoji, link, or
@@ -356,12 +346,7 @@ class Images(
     @commands.command(aliases=("df",))
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
-    async def deepfry(
-        self,
-        ctx,
-        *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
-    ):
+    async def deepfry(self, ctx, *, image: ImageAssetConverter):
         """Deep fries an image.
 
         Image can either be a user, custom emoji, link, or
@@ -438,12 +423,7 @@ class Images(
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
-    async def invert(
-        self,
-        ctx,
-        *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
-    ):
+    async def invert(self, ctx, *, image: ImageAssetConverter):
         """Inverts an image's colours.
 
         Image can either be a user, custom emoji, link, or
@@ -469,12 +449,7 @@ class Images(
     @commands.command(aliases=("iphone10",))
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
-    async def iphonex(
-        self,
-        ctx,
-        *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
-    ):
+    async def iphonex(self, ctx, *, image: ImageAssetConverter):
         """Fits an image into an iPhone X screen.
 
         Image can either be a user, custom emoji, link, or
@@ -505,7 +480,7 @@ class Images(
         ctx,
         intensity: Optional[int] = 5,
         *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
+        image: ImageAssetConverter
     ):
         """JPEGifies an image to an optional intensity.
 
@@ -548,7 +523,7 @@ class Images(
         ctx,
         colour: Optional[RGBColourConverter] = "red",
         *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
+        image: ImageAssetConverter
     ):
         """Places lensflares of a given colour on human eyes.
 
@@ -590,7 +565,7 @@ class Images(
         ctx,
         intensity: Optional[int] = 1,
         *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
+        image: ImageAssetConverter
     ):
         """Heavily warps an image to an optional intensity.
 
@@ -644,12 +619,7 @@ class Images(
     @commands.command(aliases=("colours", "colors"))
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
-    async def palette(
-        self,
-        ctx,
-        *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
-    ):
+    async def palette(self, ctx, *, image: ImageAssetConverter):
         """Shows the five most prominent colours in an image.
 
         Image can either be a user, custom emoji, link, or
@@ -810,12 +780,7 @@ class Images(
     @commands.command(aliases=("soyjacks", "soyjak", "soyjack"))
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
-    async def soyjaks(
-        self,
-        ctx,
-        *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
-    ):
+    async def soyjaks(self, ctx, *, image: ImageAssetConverter):
         """Generates a consoomer soyjaks pointing meme.
 
         Image can either be a user, custom emoji, link, or
@@ -843,12 +808,7 @@ class Images(
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(2, commands.BucketType.guild)
     @commands.cooldown(1, 40, commands.BucketType.member)
-    async def stickbug(
-        self,
-        ctx,
-        *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
-    ):
+    async def stickbug(self, ctx, *, image: ImageAssetConverter):
         """Generates a stickbug meme.
 
         Image can either be a user, custom emoji, link, or
@@ -890,7 +850,7 @@ class Images(
         ctx,
         intensity: Optional[int] = 5,
         *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
+        image: ImageAssetConverter
     ):
         """Swirls an image to an optional intensity.
 
@@ -992,12 +952,7 @@ class Images(
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
-    async def threats(
-        self,
-        ctx,
-        *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
-    ):
+    async def threats(self, ctx, *, image: ImageAssetConverter):
         """Generates a "three threats to society" meme.
 
         Image can either be a user, custom emoji, link, or
@@ -1027,7 +982,7 @@ class Images(
         self,
         ctx,
         title: commands.clean_content(fix_channel_mentions=True),
-        image: ImageAssetConverter(max_filesize=40_000_000),
+        image: ImageAssetConverter,
         *,
         flavour_text: commands.clean_content(fix_channel_mentions=True)
     ):
@@ -1059,12 +1014,7 @@ class Images(
 
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
-    async def tucker(
-        self,
-        ctx,
-        *,
-        image: ImageAssetConverter(max_filesize=40_000_000)
-    ):
+    async def tucker(self, ctx, *, image: ImageAssetConverter):
         """Generates a live Tucker reaction meme.
 
         Image can either be a user, custom emoji, link, or
