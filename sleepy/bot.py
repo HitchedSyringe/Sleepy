@@ -19,7 +19,14 @@ import logging
 import re
 import traceback
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Generator, Mapping, Optional
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    List,
+    Generator,
+    Mapping,
+    Optional
+)
 
 import discord
 from discord import Colour, Embed
@@ -188,6 +195,8 @@ class Sleepy(commands.Bot):
         else:
             owner = None
 
+        app_info = self.app_info
+
         # NOTE: Doing a fallback like this could pose a potential
         # security issue if the app owners are different from the
         # configured owners. Essentially, this potentially impacts
@@ -209,6 +218,36 @@ class Sleepy(commands.Bot):
                 owner = self.get_user(self.app_info.team.owner_id)  # type: ignore
 
         return owner
+
+    @property
+    def owners(self) -> List[discord.User]:
+        """List[:class:`discord.User`]: The bot's owners.
+
+        This resolves the users using the owner IDs. If no owner IDs
+        were set, then the application information is used as a
+        fallback.
+
+        Users that could not be resolved from the cache are excluded
+        from the resulting list.
+
+        .. versionadded:: 3.3
+        """
+        if self.owner_ids is not None:
+            ids = set(self.owner_ids)
+        elif self.owner_id is not None:
+            ids = {self.owner_id}
+        else:
+            app_info = self.app_info
+
+            if app_info is None:
+                return []
+
+            if app_info.team is None:
+                ids = {app_info.owner.id}
+            else:
+                ids = {m.id for m in app_info.team.members}
+
+        return [u for i in ids if (u := self.get_user(i)) is not None]
 
     async def setup_hook(self) -> None:
         # --- Populate general stuff. ---
