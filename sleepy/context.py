@@ -207,7 +207,7 @@ class Context(commands.Context["Sleepy"]):
             delete_message_when_stopped=delete_message_when_stopped,
             remove_view_after=remove_view_after,
             disable_view_after=disable_view_after,
-            owner_ids={self.author.id, self.bot.owner_id, *self.bot.owner_ids},
+            owner_ids={self.author.id, self.bot.owner_id, *self.bot.owner_ids},  # type: ignore
             **kwargs
         )
 
@@ -292,7 +292,7 @@ class Context(commands.Context["Sleepy"]):
             Attaching the menu to the given message failed.
         """
         view = ConfirmationView(
-            owner_ids={self.author.id, self.bot.owner_id, *self.bot.owner_ids},
+            owner_ids={self.author.id, self.bot.owner_id, *self.bot.owner_ids},  # type: ignore
             timeout=timeout
         )
 
@@ -450,7 +450,7 @@ class Context(commands.Context["Sleepy"]):
             The new context with the applied message properties.
         """
         copied_message = copy.copy(self.message)
-        copied_message._update(properties)
+        copied_message._update(properties)  # type: ignore -- This is fine.
 
         if author is not None:
             copied_message.author = author
@@ -468,6 +468,7 @@ class Context(commands.Context["Sleepy"]):
         if not self.valid:
             return
 
+        # This is covered by the above check.
         mapping = self.command._buckets  # type: ignore
 
         if not mapping.valid:

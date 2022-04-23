@@ -1,0 +1,23 @@
+[tool.black]
+line-length = 90
+skip-string-normalization = true
+
+[tool.isort]
+profile = "black"
+line_length = 90
+combine_as_imports = true
+combine_star = true
+
+[tool.pyright]
+pythonVersion = "3.8"
+typeCheckingMode = "basic"
+include = [
+    "sleepy",
+    "sleepy/ext",
+]
+exclude = [
+    "**/__pycache__",
+]
+reportUnnecessaryTypeIgnoreComment = "warning"
+reportUnusedImport = "error"
+strictParameterNoneValue = false

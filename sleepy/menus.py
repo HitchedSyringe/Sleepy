@@ -271,12 +271,13 @@ class PaginationView(BaseView):
 
     .. warning::
 
-        Due to the nature of this implementation, this view
-        **cannot** be used via the conventional manner. There
-        is minor necessary setup that must be done beforehand.
-        Calling either :meth:`send_to`, :meth:`attach_to`, or
-        :meth:`reply_to` is recommended as these methods will
-        interally perform the setup for you.
+        Due to implementation details regarding the :class:`View`
+        and :class:`PageSource` classes, this view **cannot** be
+        sent via :meth:`Messageable.send` as there is necessary
+        setup that must be done beforehand. Calling either the
+        :meth:`send_to`, :meth:`attach_to`, or :meth:`reply_to`
+        methods is preferred as these will interally perform the
+        setup for you.
 
     .. versionadded:: 3.2
 
@@ -435,7 +436,7 @@ class PaginationView(BaseView):
         self.previous_page.disabled = on_first
 
         if (max_pages := self._source.get_max_pages()) is None:
-            self.page_number.label = self.current_page + 1
+            self.page_number.label = self.current_page + 1  # type: ignore
             return
 
         self.page_number.label = f"{self.current_page + 1} / {max_pages}"

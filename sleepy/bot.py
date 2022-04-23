@@ -321,7 +321,8 @@ class Sleepy(commands.Bot):
 
         _LOG.info("--------- Sleepy Instance Info ---------")
         _LOG.info("| Version: %s", __version__)
-        _LOG.info("| Bot User: %s (ID: %s)", self.user, self.user.id)
+        # At this point, the user data has already been populated.
+        _LOG.info("| Bot User: %s (ID: %s)", self.user, self.user.id)  # type: ignore
         _LOG.info("|\t- Application ID: %s", app_info.id)
         _LOG.info("|\t- Public Bot: %s", app_info.bot_public)
         _LOG.info("| Detected Extensions: %s", total)
@@ -376,7 +377,7 @@ class Sleepy(commands.Bot):
         if not ctx.valid:
             return
 
-        if await self.is_owner(author):  # type: ignore
+        if await self.is_owner(author):
             await self.invoke(ctx)
             ctx.command.reset_cooldown(ctx)  # type: ignore
             return
