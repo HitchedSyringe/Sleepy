@@ -38,7 +38,7 @@ from typing import (
 import discord
 from discord.ext.menus import ListPageSource, PageSource
 from discord.ui import Button, View, button
-from discord.utils import oauth_url
+from discord.utils import MISSING, oauth_url
 
 from .utils import DISCORD_SERVER_URL, GITHUB_URL, PERMISSIONS_VALUE
 
@@ -153,19 +153,27 @@ class BaseView(View):
     owner_id: Optional[:class:`int`]
         The user ID that owns the view.
     owner_ids: Optional[Collection[:class:`int`]]
-        The user IDs that own the view.
+        The user IDs that own the view, similar to :attr:`owner_id`.
         For performance reasons, it is recommended to use a
         :class:`set` for the collection. You cannot set both
         ``owner_id`` and ``owner_ids``.
 
+        .. warning::
+            If no owners are set, then all users can interact with
+            this view.
+
     Attributes
     ----------
-    owner_ids: Collection[:class:`int`]
-        The user IDs that own this view.
-    """
+    owner_id: Optional[:class:`int`]
+        The user ID that owns this menu.
 
-    if TYPE_CHECKING:
-        owner_ids: Collection[int]
+        .. versionadded:: 3.3
+    owner_ids: Optional[Collection[:class:`int`]]
+        The user IDs that own this menu, similar to :attr:`owner_id`.
+
+        .. versionchanged:: 3.3
+            This is ``None`` if ``owner_ids`` was not passed.
+    """
 
     def __init__(
         self,
@@ -182,25 +190,38 @@ class BaseView(View):
         if owner_ids and not isinstance(owner_ids, Collection):
             raise TypeError(f"owner_ids must be a collection, not {type(owner_ids)!r}")
 
-        if not (owner_id or owner_ids):
-            self.owner_ids = set()
-        elif owner_ids is None:
-            self.owner_ids = {owner_id}  # type: ignore
-        else:
-            self.owner_ids = owner_ids
+        self.owner_ids: Optional[Collection[int]] = owner_ids
+        self.owner_id: Optional[int] = owner_id
 
     def reset_timeout(self) -> None:
         """Resets this view's timeout. Does nothing if no timeout was set."""
         super()._refresh_timeout()
 
-    async def interaction_check(self, itn: discord.Interaction) -> bool:
-        user_id = itn.user and itn.user.id
+    def can_use_menu(self, user: Union[discord.User, discord.Member]) -> bool:
+        """:class:`bool`: Indicates whether a given user can use this menu.
 
-        if user_id is None:
+        This **always** returns ``True`` if neither :attr:`owner_id` nor
+        :attr:`owner_ids` are set, meaning that anyone can use this menu.
+
+        .. versionadded:: 3.3
+        """
+        if self.owner_id is not None:
+            return user.id == self.owner_id
+
+        if self.owner_ids:
+            return user.id in self.owner_ids
+
+        return True
+
+    async def interaction_check(self, itn: discord.Interaction) -> bool:
+        # interaction.user can be MISSING. I don't know how likely
+        # this is or how this would occur, but I'll just handle it
+        # anyway and move on.
+        if itn.user is MISSING:
             return False
 
-        if self.owner_ids and user_id not in self.owner_ids:
-            await itn.response.send_message("Sorry, you can't control this menu.", ephemeral=True)
+        if not self.can_use_menu(itn.user):
+            await itn.response.send_message("You can't use this menu. Sorry.", ephemeral=True)
             return False
 
         return True
@@ -713,7 +734,7 @@ class PaginationView(BaseView):
             def page_check(m: discord.Message) -> bool:
                 return (
                     m.channel == self.message.channel  # type: ignore
-                    and m.author.id in self.owner_ids
+                    and self.can_use_menu(m.author)
                     and m.content.isdigit()
                     and m.content != "0"
                 )
