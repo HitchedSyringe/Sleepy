@@ -77,16 +77,24 @@ class EmbedSource(ListPageSource):
         super().__init__(entries, per_page=per_page)
 
     @overload
-    async def format_page(self, menu: MenuPages, page: discord.Embed) -> discord.Embed:
+    async def format_page(
+        self,
+        menu: Union[PaginationView, MenuPages],
+        page: discord.Embed
+    ) -> discord.Embed:
         ...
 
     @overload
-    async def format_page(self, menu: MenuPages, page: Sequence[discord.Embed]) -> Dict[str, Any]:
+    async def format_page(
+        self,
+        menu: Union[PaginationView, MenuPages],
+        page: Sequence[discord.Embed]
+    ) -> Dict[str, Any]:
         ...
 
     async def format_page(
         self,
-        menu: MenuPages,
+        menu: Union[PaginationView, MenuPages],
         page: Union[discord.Embed, Sequence[discord.Embed]]
     ) -> Union[discord.Embed, Dict[str, Any]]:
         return {"embeds": page} if self.per_page > 1 else page  # type: ignore
@@ -122,7 +130,11 @@ class PaginatorSource(ListPageSource):
 
         super().__init__(paginator.pages, per_page=1)
 
-    async def format_page(self, menu: MenuPages, page: str) -> str:
+    async def format_page(
+        self,
+        menu: Union[PaginationView, MenuPages],
+        page: str
+    ) -> str:
         return page
 
 
