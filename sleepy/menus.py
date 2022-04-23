@@ -550,10 +550,16 @@ class PaginationView(BaseView):
         This effectively changes the :attr:`current_page`
         to 0.
 
+        .. versionchanged:: 3.3
+            Raise :exc:`RuntimeError` if :attr:`message` is ``None``.
+
         Raises
         ------
         TypeError
             A :class:`menus.PageSource` was not passed.
+        RuntimeError
+            This view didn't have an associated message to edit,
+            that is, :attr:`message` was left as ``None``.
         """
         if not isinstance(source, PageSource):
             raise TypeError(f"Expected PageSource, not {type(source)!r}.")
@@ -561,12 +567,11 @@ class PaginationView(BaseView):
         self._source = source
         self.current_page = 0
 
-        if self.message is not None:
-            self.clear_items()
-            self._do_items_setup()
+        self.clear_items()
+        self._do_items_setup()
 
-            await source._prepare_once()
-            await self.show_page(0)
+        await source._prepare_once()
+        await self.show_page(0)
 
     async def show_page(self, page_number: int) -> None:
         """|coro|
@@ -578,11 +583,23 @@ class PaginationView(BaseView):
         is the page source's maximum page count, if applicable,
         as provided by :meth:`PageSource.get_max_pages`.
 
+        .. versionchanged:: 3.3
+            Raise :exc:`RuntimeError` if :attr:`message` is ``None``.
+
         Parameters
         ----------
         page_number: :class:`int`
             The page number to show.
+
+        Raises
+        ------
+        RuntimeError
+            This view didn't have an associated message to edit,
+            that is, :attr:`message` was left as ``None``.
         """
+        if self.message is None:
+            raise RuntimeError("PaginationView has no associated message to edit.")
+
         self.current_page = page_number
 
         page = await self._source.get_page(page_number)
@@ -599,10 +616,19 @@ class PaginationView(BaseView):
         the page. This does nothing if the page number is
         invalid, i.e. doesn't point to a page.
 
+        .. versionchanged:: 3.3
+            Raise :exc:`RuntimeError` if :attr:`message` is ``None``.
+
         Parameters
         ----------
         page_number: :class:`int`
             The page number to show.
+
+        Raises
+        ------
+        RuntimeError
+            This view didn't have an associated message to edit,
+            that is, :attr:`message` was left as ``None``.
         """
         max_pages = self._source.get_max_pages()
 
