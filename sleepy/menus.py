@@ -425,6 +425,9 @@ class PaginationView(BaseView):
         if more_than_two:
             self.add_item(self.first_page)
 
+            self.page_number.emoji = "\N{INPUT SYMBOL FOR NUMBERS}"
+            self.page_number.disabled = False
+
         self.add_item(self.previous_page)
         self.add_item(self.page_number)
         self.add_item(self.next_page)
@@ -433,9 +436,6 @@ class PaginationView(BaseView):
             self.add_item(self.last_page)
 
         self.add_item(self.stop_menu)
-
-        if more_than_two:
-            self.add_item(self.select_page)
 
         self._update_items(0)
 
@@ -695,30 +695,6 @@ class PaginationView(BaseView):
 
     @button(style=discord.ButtonStyle.primary, disabled=True)
     async def page_number(self, itn: discord.Interaction, button: Button) -> None:
-        pass
-
-    @button(emoji="<:fwd:862407042114125845>")
-    async def next_page(self, itn: discord.Interaction, button: Button) -> None:
-        await self.show_checked_page(self.current_page + 1)
-
-    @button(emoji="<:ffwd:862378579794460723>")
-    async def last_page(self, itn: discord.Interaction, button: Button) -> None:
-        # This call is safe since the button itself is already
-        # handled initially when the view starts.
-        await self.show_page(self._source.get_max_pages() - 1)
-
-    @button(emoji="\N{OCTAGONAL SIGN}", label="Stop", style=discord.ButtonStyle.danger)
-    async def stop_menu(self, itn: discord.Interaction, button: Button) -> None:
-        self.stop()
-
-        if self._delete_message_when_stopped:
-            await self.message.delete()  # type: ignore
-        else:
-            self._remove_view_after = True
-            await self._do_items_cleanup()
-
-    @button(emoji="\N{PAGE WITH CURL}", label="Jump to page...")
-    async def select_page(self, itn: discord.Interaction, button: Button) -> None:
         if self._lock.locked():
             await itn.response.send_message("I'm already awaiting your response.", ephemeral=True)
             return
@@ -765,3 +741,23 @@ class PaginationView(BaseView):
                 await message.delete()
             except discord.HTTPException:
                 pass
+
+    @button(emoji="<:fwd:862407042114125845>")
+    async def next_page(self, itn: discord.Interaction, button: Button) -> None:
+        await self.show_checked_page(self.current_page + 1)
+
+    @button(emoji="<:ffwd:862378579794460723>")
+    async def last_page(self, itn: discord.Interaction, button: Button) -> None:
+        # This call is safe since the button itself is already
+        # handled initially when the view starts.
+        await self.show_page(self._source.get_max_pages() - 1)
+
+    @button(emoji="\N{OCTAGONAL SIGN}", label="Stop", style=discord.ButtonStyle.danger)
+    async def stop_menu(self, itn: discord.Interaction, button: Button) -> None:
+        self.stop()
+
+        if self._delete_message_when_stopped:
+            await self.message.delete()  # type: ignore
+        else:
+            self._remove_view_after = True
+            await self._do_items_cleanup()
