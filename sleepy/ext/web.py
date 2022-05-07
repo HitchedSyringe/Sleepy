@@ -1067,57 +1067,6 @@ class Web(
         else:
             await ctx.paginate(EmbedSource(embeds))
 
-    @commands.command(aliases=("ss", "snapshot"))
-    @commands.bot_has_permissions(embed_links=True)
-    @commands.cooldown(1, 10, commands.BucketType.member)  # So we don't overload magmafuck.
-    async def screenshot(self, ctx, url):
-        """Screenshots a website.
-
-        **DISCLAIMER:** Due to a limitation with the service,
-        websites are not checked for any NSFW content before
-        screenshotting.
-
-        (Bot Needs: Embed Links)
-
-        **EXAMPLE:**
-        ```
-        screenshot google.com
-        ```
-        """
-        async with ctx.typing():
-            try:
-                resp = await ctx.get(
-                    "https://magmafuck.herokuapp.com/api/v1",
-                    headers__={"website": url.strip("<>")}
-                )
-            except HTTPRequestFailed as exc:
-                # MagmaChain is a Heroku free tier service so it fluctuates often.
-                if exc.status == 503:
-                    await ctx.send("MagmaChain is down right now. Try again later?")
-                    return
-
-                raise
-
-        # Sometimes, a TypeError gets thrown internally on MagmaChain's
-        # end and, for some reason, causes the API to return a response
-        # containing the traceback (as a string) on HTTP status 200.
-        if not isinstance(resp, dict):
-            await ctx.send("Something went wrong internally on MagmaChain's end. Try again later?")
-            return
-
-        embed = Embed(
-            title="Snapshot",
-            description=f"[Link to Website]({resp['website']})",
-            color=0x2F3136,
-            timestamp=dt.now(tz.utc)
-        )
-        embed.set_image(url=resp["snapshot"])
-        embed.set_footer(
-            text=f"Requested by: {ctx.author} \N{BULLET} Powered by magmafuck.herokuapp.com"
-        )
-
-        await ctx.send(embed=embed)
-
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
     async def steaminfo(self, ctx, *, account: SteamAccountMeta):
