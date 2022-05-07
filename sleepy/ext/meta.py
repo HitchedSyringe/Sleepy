@@ -168,7 +168,7 @@ class CategorySelect(Select):
             await itn.response.send_message("That category has no visible commands.", ephemeral=True)
             return
 
-        await self.view.change_source(GroupPageSource(cog, cmds))
+        await self.view.change_source(GroupPageSource(cog, cmds), itn)
 
 
 class BotHelpView(PaginationView):

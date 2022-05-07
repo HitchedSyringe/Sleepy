@@ -60,7 +60,7 @@ class PistonView(BaseView):
             await itn.response.send_message(out, ephemeral=True)
         else:
             content = self._format_message_content(data, out)
-            self._message = await self._message.edit(content=content)
+            await itn.response.edit_message(content=content)
 
     @button(emoji="\N{WASTEBASKET}", style=discord.ButtonStyle.danger)
     async def dispose(self, itn, button):

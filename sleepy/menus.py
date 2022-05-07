@@ -572,7 +572,11 @@ class PaginationView(BaseView):
         """
         return await self._start(destination.send, wait=wait)
 
-    async def change_source(self, source: PageSource) -> None:
+    async def change_source(
+        self,
+        source: PageSource,
+        interaction: Optional[discord.Interaction] = None
+    ) -> None:
         """|coro|
 
         Changes the :class:`menus.PageSource` to a different
@@ -586,13 +590,25 @@ class PaginationView(BaseView):
         .. versionchanged:: 3.3
             Raise :exc:`RuntimeError` if :attr:`message` is ``None``.
 
+        Parameters
+        ----------
+        source: :class:`menus.PageSource`
+            The page source to change to.
+        interaction: Optional[:class:`discord.Interaction`]
+            The interaction to use to edit the message, if necessary.
+            If this is ``None``, then :attr:`message` is used to edit
+            the message.
+
+            .. versionadded:: 3.3
+
         Raises
         ------
         TypeError
             A :class:`menus.PageSource` was not passed.
         RuntimeError
             This view didn't have an associated message to edit,
-            that is, :attr:`message` was left as ``None``.
+            that is, no interaction was passed and :attr:`message`
+            was left as ``None``.
         """
         if not isinstance(source, PageSource):
             raise TypeError(f"Expected PageSource, not {type(source)!r}.")
@@ -604,44 +620,63 @@ class PaginationView(BaseView):
         self._do_items_setup()
 
         await source._prepare_once()
-        await self.show_page(0)
+        await self.show_page(0, interaction)
 
-    async def show_page(self, page_number: int) -> None:
+    async def show_page(
+        self,
+        page_number: int,
+        interaction: Optional[discord.Interaction] = None
+    ) -> None:
         """|coro|
 
-        Shows the page at the given page number and updates
-        this view.
+        Prepares the page at the given page number and updates
+        this view accordingly.
 
         Page numbers are zero-indexed between `[0, n)` where n
         is the page source's maximum page count, if applicable,
         as provided by :meth:`PageSource.get_max_pages`.
 
         .. versionchanged:: 3.3
-            Raise :exc:`RuntimeError` if :attr:`message` is ``None``.
+            Raise :exc:`RuntimeError` if :attr:`message` is ``None``
+            and no interaction was passed.
 
         Parameters
         ----------
         page_number: :class:`int`
             The page number to show.
+        interaction: Optional[:class:`discord.Interaction`]
+            The interaction to use to edit the message, if necessary.
+            If this is ``None``, then :attr:`message` is used to edit
+            the message.
+
+            .. versionadded:: 3.3
 
         Raises
         ------
         RuntimeError
             This view didn't have an associated message to edit,
-            that is, :attr:`message` was left as ``None``.
+            that is, no interaction was passed and :attr:`message`
+            was left as ``None``.
         """
-        if self.message is None:
-            raise RuntimeError("PaginationView has no associated message to edit.")
-
-        self.current_page = page_number
-
         page = await self._source.get_page(page_number)
         kwargs = await self._get_kwargs_from_page(page)
 
+        self.current_page = page_number
         self._update_items(page_number)
-        self.message = await self.message.edit(**kwargs, view=self)  # type: ignore
 
-    async def show_checked_page(self, page_number: int) -> None:
+        if interaction is None:
+            if self.message is None:
+                raise RuntimeError("No associated message to edit.")
+
+            self.message = await self.message.edit(**kwargs, view=self)
+        else:
+            await interaction.response.edit_message(**kwargs, view=self)
+
+    async def show_checked_page(
+        self,
+        page_number: int,
+        interaction: Optional[discord.Interaction] = None
+    ) -> None:
         """|coro|
 
         Similar to :meth:`show_page`, but runs some checks
@@ -650,18 +685,26 @@ class PaginationView(BaseView):
         invalid, i.e. doesn't point to a page.
 
         .. versionchanged:: 3.3
-            Raise :exc:`RuntimeError` if :attr:`message` is ``None``.
+            Raise :exc:`RuntimeError` if :attr:`message` is ``None``
+            and no interaction was passed.
 
         Parameters
         ----------
         page_number: :class:`int`
             The page number to show.
+        interaction: Optional[:class:`discord.Interaction`]
+            The interaction to use to edit the message, if necessary.
+            If this is ``None``, then :attr:`message` is used to edit
+            the message.
+
+            .. versionadded:: 3.3
 
         Raises
         ------
         RuntimeError
             This view didn't have an associated message to edit,
-            that is, :attr:`message` was left as ``None``.
+            that is, no interaction was passed and :attr:`message`
+            was left as ``None``.
         """
         max_pages = self._source.get_max_pages()
 
@@ -669,7 +712,7 @@ class PaginationView(BaseView):
             return
 
         try:
-            await self.show_page(page_number)
+            await self.show_page(page_number, interaction)
         except IndexError:
             pass
 
@@ -687,11 +730,11 @@ class PaginationView(BaseView):
 
     @button(emoji="<:rrwnd:862379040802865182>")
     async def first_page(self, itn: discord.Interaction, button: Button) -> None:
-        await self.show_page(0)
+        await self.show_page(0, itn)
 
     @button(emoji="<:back:862407042172715038>")
     async def previous_page(self, itn: discord.Interaction, button: Button) -> None:
-        await self.show_checked_page(self.current_page - 1)
+        await self.show_checked_page(self.current_page - 1, itn)
 
     @button(style=discord.ButtonStyle.primary, disabled=True)
     async def page_number(self, itn: discord.Interaction, button: Button) -> None:
@@ -735,6 +778,8 @@ class PaginationView(BaseView):
             if old_timeout is not None:
                 self.timeout = old_timeout
 
+            # The interaction has already responded by this point,
+            # so passing the interaction here is pointless.
             await self.show_checked_page(int(message.content) - 1)
 
             try:
@@ -744,13 +789,13 @@ class PaginationView(BaseView):
 
     @button(emoji="<:fwd:862407042114125845>")
     async def next_page(self, itn: discord.Interaction, button: Button) -> None:
-        await self.show_checked_page(self.current_page + 1)
+        await self.show_checked_page(self.current_page + 1, itn)
 
     @button(emoji="<:ffwd:862378579794460723>")
     async def last_page(self, itn: discord.Interaction, button: Button) -> None:
         # This call is safe since the button itself is already
         # handled initially when the view starts.
-        await self.show_page(self._source.get_max_pages() - 1)
+        await self.show_page(self._source.get_max_pages() - 1, itn)
 
     @button(emoji="\N{OCTAGONAL SIGN}", label="Stop", style=discord.ButtonStyle.danger)
     async def stop_menu(self, itn: discord.Interaction, button: Button) -> None:
