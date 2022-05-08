@@ -183,6 +183,9 @@ class Context(commands.Context["Sleepy"]):
             Defaults to ``False``.
 
             .. versionadded:: 3.2
+        kwargs:
+            The remaining parameters to be passed to the
+            :class:`PaginationView` constructor.
 
         Returns
         -------
