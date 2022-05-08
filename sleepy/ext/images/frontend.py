@@ -178,41 +178,6 @@ class Images(
             file=File(buffer)
         )
 
-    @commands.command(aliases=("captionthis",))
-    @commands.bot_has_permissions(embed_links=True)
-    @commands.cooldown(1, 5, commands.BucketType.member)
-    async def caption(self, ctx, *, image: ImageAssetConverter):
-        """Captions an image.
-
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
-
-        (Bot Needs: Embed Links)
-        """
-        url = str(image)
-
-        await ctx.typing()
-
-        try:
-            caption = await ctx.post(
-                "https://captionbot2.azurewebsites.net/api/messages",
-                headers__={"Content-Type": "application/json; charset=utf-8"},
-                json__={"Content": url, "Type": "CaptionRequest"}
-            )
-        except HTTPRequestFailed:
-            await ctx.send("Captioning the image failed.")
-            return
-
-        embed = Embed(title=f'"{caption}"', colour=0x2F3136)
-        embed.set_image(url=url)
-        embed.set_footer(
-            text=f"Requested by: {ctx.author} "
-                 "\N{BULLET} Powered by Microsoft CaptionBot"
-        )
-
-        await ctx.send(embed=embed)
-
     @commands.command(aliases=("meow",))
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
