@@ -55,7 +55,7 @@ HAAR_EYES = cv2.CascadeClassifier(cv2_haarcascades + "haarcascade_eye.xml")
 
 @awaitable
 @measure_performance
-def do_asciify(image_buffer, /, *, inverted=False):
+def do_asciify(image_buffer, *, inverted=False):
     # Chars are ordered from dark -> light.
     chars = " .'-,_\"^*:;~=+<>!?\\/|()][}{#&$%@"
 
@@ -70,7 +70,7 @@ def do_asciify(image_buffer, /, *, inverted=False):
 
 @awaitable
 @measure_performance
-def do_blurpify(image_buffer, /, *, use_rebrand=False):
+def do_blurpify(image_buffer, *, use_rebrand=False):
     with Image.open(image_buffer) as image:
         blurple = (88, 101, 242) if use_rebrand else (114, 137, 218)
 
@@ -99,7 +99,7 @@ def do_blurpify(image_buffer, /, *, use_rebrand=False):
 
 @awaitable
 @measure_performance
-def do_deepfry(image_buffer, /):
+def do_deepfry(image_buffer):
     with Image.open(image_buffer) as image:
         frames = []
         for frame in ImageSequence.Iterator(image):
@@ -132,7 +132,7 @@ def do_deepfry(image_buffer, /):
 
 @awaitable
 @measure_performance
-def do_invert(image_buffer, /):
+def do_invert(image_buffer):
     with Image.open(image_buffer) as image:
         img = ~np.asarray(image.convert("RGB"))
 
@@ -149,7 +149,7 @@ def do_invert(image_buffer, /):
 
 @awaitable
 @measure_performance
-def do_jpegify(image_buffer, /, *, quality=1):
+def do_jpegify(image_buffer, *, quality=1):
     with Image.open(image_buffer) as image:
         buffer = io.BytesIO()
 
@@ -162,7 +162,7 @@ def do_jpegify(image_buffer, /, *, quality=1):
 
 @awaitable
 @measure_performance
-def do_lensflare_eyes(image_buffer, /, *, colour=None):
+def do_lensflare_eyes(image_buffer, *, colour=None):
     with Image.open(image_buffer) as image:
         image = image.convert("RGBA")
 
@@ -200,7 +200,7 @@ def do_lensflare_eyes(image_buffer, /, *, colour=None):
 
 @awaitable
 @measure_performance
-def do_swirl(image_buffer, /, *, intensity=1):
+def do_swirl(image_buffer, *, intensity=1):
     with Image.open(image_buffer) as image:
         image = transform.swirl(
             np.asarray(image.convert("RGBA")),
@@ -216,7 +216,7 @@ def do_swirl(image_buffer, /, *, intensity=1):
 
 @awaitable
 @measure_performance
-def make_axios_interview_meme(text, /):
+def make_axios_interview_meme(text):
     with Image.open(TEMPLATES / "axios_interview.jpg") as template:
         font = ImageFont.truetype(str(FONTS / "Arimo-Regular.ttf"), 60)
 
@@ -246,7 +246,7 @@ def make_axios_interview_meme(text, /):
 
 @awaitable
 @measure_performance
-def make_captcha(image_buffer, text, /):
+def make_captcha(image_buffer, text):
     with Image.open(TEMPLATES / "captcha.png") as template:
         with Image.open(image_buffer) as image:
             binder = Image.new("RGB", template.size)
@@ -269,7 +269,7 @@ def make_captcha(image_buffer, text, /):
 
 @awaitable
 @measure_performance
-def make_change_my_mind_meme(text, /):
+def make_change_my_mind_meme(text):
     with Image.open(TEMPLATES / "change_my_mind.png") as template:
         font = ImageFont.truetype(str(FONTS / "Arimo-Regular.ttf"), 50)
 
@@ -331,7 +331,7 @@ def make_change_my_mind_meme(text, /):
 
 @awaitable
 @measure_performance
-def make_clyde_message(text, /, *, use_rebrand=False):
+def make_clyde_message(text, *, use_rebrand=False):
     clyde = "rebrand_clyde.png" if use_rebrand else "classic_clyde.png"
 
     with Image.open(TEMPLATES / clyde) as template:
@@ -357,7 +357,7 @@ def make_clyde_message(text, /, *, use_rebrand=False):
 
 @awaitable
 @measure_performance
-def make_dalgona(image_buffer, /):
+def make_dalgona(image_buffer):
     with Image.open(image_buffer) as image:
         size = (245, 205)
 
@@ -407,7 +407,7 @@ def make_dalgona(image_buffer, /):
 
 @awaitable
 @measure_performance
-def make_iphone_x(image_buffer, /):
+def make_iphone_x(image_buffer):
     with Image.open(TEMPLATES / "iphonex.png") as template:
         with Image.open(image_buffer) as image:
             binder = Image.new("RGBA", template.size)
@@ -426,7 +426,7 @@ def make_iphone_x(image_buffer, /):
 
 @awaitable
 @measure_performance
-def make_live_tucker_reaction_meme(image_buffer, /):
+def make_live_tucker_reaction_meme(image_buffer):
     with Image.open(TEMPLATES / "live_tucker_reaction.png") as template:
         with Image.open(image_buffer) as image:
             image.putalpha(255)
@@ -459,7 +459,7 @@ def make_live_tucker_reaction_meme(image_buffer, /):
 
 @awaitable
 @measure_performance
-def make_palette(image_buffer, /):
+def make_palette(image_buffer):
     with Image.open(image_buffer) as image:
         image = image.convert("RGB")
         thumb = image.copy()
@@ -528,7 +528,7 @@ def make_palette(image_buffer, /):
 
 @awaitable
 @measure_performance
-def make_pointing_soyjaks_meme(image_buffer, /):
+def make_pointing_soyjaks_meme(image_buffer):
     with Image.open(TEMPLATES / "pointing_soyjaks.png") as template:
         with Image.open(image_buffer) as image:
             image = image.convert("RGBA")
@@ -551,7 +551,7 @@ def make_pointing_soyjaks_meme(image_buffer, /):
 
 @awaitable
 @measure_performance
-def make_pornhub_comment(username, avatar, comment, /):
+def make_pornhub_comment(username, avatar, comment):
     with Image.open(TEMPLATES / "pornhub_comment.png") as template:
         with Image.open(avatar) as avi:
             template.paste(avi.convert("RGB").resize((52, 52)), (24, 264))
@@ -573,7 +573,7 @@ def make_pornhub_comment(username, avatar, comment, /):
 
 @awaitable
 @measure_performance
-def make_roblox_cancel_meme(avatar, username, discriminator, /):
+def make_roblox_cancel_meme(avatar, username, discriminator):
     with Image.open(TEMPLATES / "roblox_cancel.jpg") as template:
         with Image.open(avatar) as avi:
             mask = Image.new("1", (80, 80))
@@ -622,7 +622,7 @@ def make_roblox_cancel_meme(avatar, username, discriminator, /):
 
 @awaitable
 @measure_performance
-def make_ship(name1, avatar1_buffer, name2, avatar2_buffer, seed=None, /):
+def make_ship(name1, avatar1_buffer, name2, avatar2_buffer, seed=None):
     with Image.open(TEMPLATES / "ship.png") as template:
         mask = Image.new("1", (80, 80))
         ImageDraw.Draw(mask).ellipse((0, 0, *mask.size), 255)
@@ -678,9 +678,6 @@ def make_ship(name1, avatar1_buffer, name2, avatar2_buffer, seed=None, /):
     return buffer
 
 
-# Not enforcing positionals here since the actual command
-# just passes the flags in as kwargs, which would break
-# what was an easy and simple approach to frontending this.
 @awaitable
 @measure_performance
 def make_text_image(text, font_path, *, size, text_colour=None, bg_colour=None):
@@ -703,7 +700,7 @@ def make_text_image(text, font_path, *, size, text_colour=None, bg_colour=None):
 
 @awaitable
 @measure_performance
-def make_threats_meme(image_buffer, /):
+def make_threats_meme(image_buffer):
     with Image.open(TEMPLATES / "threats.png") as template:
         with Image.open(image_buffer) as image:
             template.paste(image.convert("RGB").resize((330, 230)), (735, 125))
@@ -719,7 +716,7 @@ def make_threats_meme(image_buffer, /):
 
 @awaitable
 @measure_performance
-def make_trapcard(title, flavour_text, image_buffer, /):
+def make_trapcard(title, flavour_text, image_buffer):
     with Image.open(TEMPLATES / "trapcard.png") as template:
         with Image.open(image_buffer) as image:
             template.paste(image.convert("RGB").resize((526, 526)), (107, 210))
@@ -747,7 +744,7 @@ def make_trapcard(title, flavour_text, image_buffer, /):
 
 @awaitable
 @measure_performance
-def make_tweet(handle, display_name, avatar, text, /):
+def make_tweet(handle, display_name, avatar, text):
     with Image.open(TEMPLATES / "tweet.png") as template:
         with Image.open(avatar) as avi:
             mask = Image.new("1", (49, 49))
@@ -792,7 +789,7 @@ def make_tweet(handle, display_name, avatar, text, /):
 
 @awaitable
 @measure_performance
-def make_who_would_win_meme(left_image, right_image, /):
+def make_who_would_win_meme(left_image, right_image):
     with Image.open(TEMPLATES / "who_would_win.png") as template:
         with Image.open(left_image) as left:
             template.paste(left.convert("RGB").resize((1024, 1220)), (85, 380))
@@ -811,7 +808,7 @@ def make_who_would_win_meme(left_image, right_image, /):
 
 @awaitable
 @measure_performance
-def make_youtube_comment(username, avatar, comment, /):
+def make_youtube_comment(username, avatar, comment):
     with Image.open(TEMPLATES / "youtube_comment.png") as template:
         with Image.open(avatar) as avi:
             mask = Image.new("1", (40, 40))

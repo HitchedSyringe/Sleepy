@@ -117,7 +117,6 @@ class Context(commands.Context["Sleepy"]):
     async def paginate(
         self,
         source: PageSource,
-        /,
         *,
         delete_message_when_stopped: bool = True,
         remove_view_after: bool = False,
@@ -149,6 +148,9 @@ class Context(commands.Context["Sleepy"]):
 
             .. versionchanged:: 3.0
                 This is now a positional-only argument.
+
+            .. versionchanged:: 3.3
+                This is no longer a positional-only argument.
         delete_message_when_stopped: :class:`bool`
             Whether or not to delete the message when the user
             presses the stop button.
@@ -202,7 +204,6 @@ class Context(commands.Context["Sleepy"]):
     async def prompt(
         self,
         message: Union[str, discord.Message],
-        /,
         *,
         delete_message_on_interact: bool = True,
         remove_view_after: bool = False,
@@ -235,6 +236,9 @@ class Context(commands.Context["Sleepy"]):
 
             .. versionchanged:: 3.0
                 This is now a positional-only argument.
+
+            .. versionchanged:: 3.3
+                This is no longer a positional-only argument.
         delete_message_on_interact: :class:`bool`
             Whether or not to delete the message when the user
             interacts with the view.

@@ -95,7 +95,7 @@ class BotMissingAnyPermissions(commands.CheckFailure):
         )
 
 
-def _has_any_permissions(permissions: Permissions, to_check: Dict[str, bool], /) -> bool:
+def _has_any_permissions(permissions: Permissions, to_check: Dict[str, bool]) -> bool:
     return any(getattr(permissions, n, None) == v for n, v in to_check.items())
 
 

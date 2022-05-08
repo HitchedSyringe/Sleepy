@@ -231,7 +231,6 @@ def find_extensions_in(path: Union[str, Path]) -> Generator[str, None, None]:
 def human_delta(
     dt1: datetime,
     dt2: Optional[datetime] = None,
-    /,
     *,
     brief: bool = False,
     absolute: bool = False,
@@ -275,6 +274,8 @@ def human_delta(
             be UTC-aware. Additionally, microseconds are
             disregarded internally when calculating.
 
+        .. versionchanged:: 3.3
+            This is no longer a positional-only argument.
     brief: :class:`bool`
         Whether or not to only return the first component of
         the humanised delta.
@@ -674,7 +675,7 @@ def progress_bar(*, progress: int, maximum: int, per: int = 1) -> str:
     return FR + FB * (filled - 1) + EB * (total - filled - 1) + EL
 
 
-def randint(a: int, b: int, /, *, seed: Optional[Any] = None) -> int:
+def randint(a: int, b: int, *, seed: Optional[Any] = None) -> int:
     """Similar to :func:`random.randint`, but allows
     for setting a seed without modifying the global
     :class:`random.Random` instance.
@@ -684,8 +685,15 @@ def randint(a: int, b: int, /, *, seed: Optional[Any] = None) -> int:
     Parameters
     ----------
     a: :class:`int`
+        The lower limit of the range.
+
+        .. versionchanged:: 3.3
+            This is no longer a positional-only argument.
     b: :class:`int`
-        The integers to pick between.
+        The upper limit of the range.
+
+        .. versionchanged:: 3.3
+            This is no longer a positional-only argument.
     seed: Optional[Any]
         The seed for randomisation.
 
@@ -738,7 +746,7 @@ def tchart(
     return "\n".join(f"{keys_formatter(k):<{width}} | {v}" for k, v in items.items())
 
 
-def truncate(text: str, /, width: int, *, placeholder: str = "...") -> str:
+def truncate(text: str, width: int, *, placeholder: str = "...") -> str:
     """Truncates a long string to the given width.
 
     If the string does not exceed the given width,
@@ -771,6 +779,9 @@ def truncate(text: str, /, width: int, *, placeholder: str = "...") -> str:
 
         .. versionchanged:: 3.0
             This is now a positional-only argument.
+
+        .. versionchanged:: 3.3
+            This is no longer a positional-only argument.
     width: :class:`int`
         The maximum length of the string.
     placeholder: :class:`str`

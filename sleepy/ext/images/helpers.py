@@ -16,13 +16,13 @@ __all__ = (
 import textwrap
 
 
-def get_accurate_text_size(font, text, /):
+def get_accurate_text_size(font, text):
     # The normal getsize doesn't account for newline characters.
     width, height = font.getsize_multiline(text)
     return width, height + font.getmetrics()[1]
 
 
-def wrap_text(text, font, /, *, width):
+def wrap_text(text, font, *, width):
     text_width = font.getsize(text)[0]
     adjusted_width = len(text) * width // text_width
 

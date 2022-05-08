@@ -55,6 +55,12 @@ class Sleepy(commands.Bot):
         The loaded configuration values.
 
         .. versionadded:: 1.12
+
+        .. versionchanged:: 3.0
+            This is now a positional-only argument.
+
+        .. versionchanged:: 3.3
+            This is no longer a positional-only argument.
     http_cache: Optional[:class:`MutableMapping`]
         A mapping to store the data received from requests
         made by the HTTP requester.
@@ -123,7 +129,7 @@ class Sleepy(commands.Bot):
             This is now a UTC-aware datetime.
     """
 
-    def __init__(self, config: Mapping[str, Any], /, *args: Any, **kwargs: Any) -> None:
+    def __init__(self, config: Mapping[str, Any], *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
 
         if kwargs.get("case_insensitive_cogs"):

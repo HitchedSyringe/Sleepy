@@ -81,7 +81,6 @@ class TriviaSession:
         self,
         ctx,
         questions,
-        /,
         *,
         max_score=10,
         answer_time_limit=20,
@@ -105,7 +104,7 @@ class TriviaSession:
         self.__core_loop = None
 
     @classmethod
-    def start(cls, ctx, questions, /, **settings):
+    def start(cls, ctx, questions, **settings):
         random.shuffle(questions)
 
         session = cls(ctx, questions, **settings)
