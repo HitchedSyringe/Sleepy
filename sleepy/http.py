@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple, Union
 
 import aiohttp
 from discord.ext import commands
+from discord.utils import MISSING
 
 
 _LOG = logging.getLogger(__name__)
@@ -100,6 +101,11 @@ class HTTPRequester:
     .. versionchanged:: 3.2
         Removed the `loop` kwarg and property.
 
+    .. versionchanged:: 3.3
+        Sessions are no longer implicitly started during
+        class construction. The new :meth:`start` method
+        must now be explicitly called with `await`.
+
     Parameters
     ----------
     cache: Optional[:class:`MutableMapping`]
@@ -110,22 +116,15 @@ class HTTPRequester:
         .. versionadded:: 3.0
     """
 
-    __slots__: Tuple[str, ...] = ("_cache", "_request_lock", "__session")
+    __slots__: Tuple[str, ...] = ("_cache", "_lock", "__session")
 
-    def __init__(
-        self,
-        *,
-        cache: Optional[MutableMapping[str, Any]] = None,
-        **kwargs: Any
-    ) -> None:
+    def __init__(self, *, cache: Optional[MutableMapping[str, Any]] = None) -> None:
         if cache is not None and not isinstance(cache, MutableMapping):
-            raise TypeError(f"cache must be MutableMapping or NoneType, not {type(cache)!r}.")
+            raise TypeError(f"cache must be MutableMapping, not {type(cache)!r}.")
 
         self._cache: Optional[MutableMapping[str, Any]] = cache
-        self._request_lock: asyncio.Lock = asyncio.Lock()
-        self.__session: aiohttp.ClientSession = aiohttp.ClientSession(**kwargs)
-
-        _LOG.info("Started a new session.")
+        self._lock: asyncio.Lock = asyncio.Lock()
+        self.__session: aiohttp.ClientSession = MISSING
 
     @property
     def cache(self) -> Optional[MutableMapping[str, Any]]:
@@ -138,7 +137,7 @@ class HTTPRequester:
     @cache.setter
     def cache(self, value: Optional[MutableMapping[str, Any]]) -> None:
         if value is not None and not isinstance(value, MutableMapping):
-            raise TypeError(f"cache must be MutableMapping or NoneType, not {type(value)!r}.")
+            raise TypeError(f"cache must be MutableMapping or None, not {type(value)!r}.")
 
         self._cache = value
 
@@ -147,27 +146,68 @@ class HTTPRequester:
         """:class:`aiohttp.ClientSession`: The client session used for handling requests."""
         return self.__session
 
+    def is_closed(self):
+        """:class:`bool`: Indicates whether the underlying HTTP client session is closed.
+
+        .. versionadded:: 3.3
+        """
+        return self.__session is MISSING or self.__session.closed
+
+    async def start(self, **session_kwargs: Any) -> None:
+        """|coro|
+
+        Starts this HTTP requester session.
+
+        .. versionadded:: 3.3
+
+        Parameters
+        ----------
+        session_kwargs
+            The remaining parameters to be passed to the
+            :class:`aiohttp.ClientSession` constructor.
+
+        Raises
+        ------
+        RuntimeError
+            This HTTP requester session is already active.
+        """
+        if not self.is_closed():
+            raise RuntimeError("HTTP requester session is active.")
+
+        self.__session = aiohttp.ClientSession(**session_kwargs)
+
+        _LOG.info("New HTTP requester session started.")
+
     async def close(self) -> None:
         """|coro|
 
-        Closes the session.
+        Closes this HTTP requester session.
         """
-        await self.__session.close()
-        _LOG.info("Session closed.")
+        if self.is_closed():
+            return
 
-    async def __request(
+        if self.__session is not MISSING:
+            await self.__session.close()
+            self.__session = MISSING
+
+        _LOG.info("Closed HTTP requester session.")
+
+    async def _perform_http_request(
         self,
         method: str,
         url: RequestUrl,
         /,
-        **kwargs: Any
+        **options: Any
     ) -> HTTPResponseData:
+        if self.is_closed():
+            raise RuntimeError("HTTP requester session is closed.")
+
         # Allows this to work with params__ in case an API requires
         # a parameter that is the same name as a reserved keyword.
-        params = kwargs.pop("params__", {})
-        params.update(kwargs.copy())
+        params = options.pop("params__", {})
+        params.update(options)
 
-        kwargs = {k[:-2]: params.pop(k) for k in kwargs if k.endswith("__")}
+        kwargs = {k[:-2]: params.pop(k) for k in options if k.endswith("__")}
 
         async with self.__session.request(method, url, params=params, **kwargs) as resp:
             if "application/json" in resp.content_type:
@@ -194,16 +234,11 @@ class HTTPRequester:
         /,
         *,
         cache__: bool = False,
-        **kwargs: Any
+        **options: Any
     ) -> HTTPResponseData:
         """|coro|
 
         Performs an HTTP request and optionally caches the response.
-
-        .. note::
-
-            Any kwargs that :meth:`aiohttp.ClientSession.request`
-            takes must be suffixed with a dunder.
 
         .. versionchanged:: 3.0
             Renamed ``cache`` argument to ``cache__``.
@@ -211,7 +246,7 @@ class HTTPRequester:
         Parameters
         ----------
         method: :class:`str`
-            The HTTP method.
+            The HTTP request method.
 
             .. versionchanged:: 3.0
                 This is now a positional-only argument.
@@ -222,10 +257,17 @@ class HTTPRequester:
                 This is now a positional-only argument.
         cache__: :class:`bool`
             Whether or not to cache the response data.
-            If :attr:`cache` is ``None``, then caching
-            the data will be disabled regardless of
-            this setting.
+            If :attr:`cache` is ``None``, then caching the data will
+            be disabled regardless of this setting.
             Defaults to ``False``.
+        options:
+            The remaining parameters to be passed into either the URL
+            itself or the :meth:`aiohttp.ClientSession.request` method.
+            For the latter case, options must be suffixed with a dunder.
+
+            .. versionchanged:: 3.3
+                Renamed to `options` and added explicit documentation.
+                In versions prior, this was only implied in a small note.
 
         Returns
         -------
@@ -236,18 +278,21 @@ class HTTPRequester:
         ------
         :exc:`.HTTPRequestFailed`
             The request returned a status code of either 4xx or 5xx.
+        RuntimeError
+            The underlying HTTP client session was closed when trying
+            to fetch data.
         """
         if not cache__ or self._cache is None:
-            return await self.__request(method, url, **kwargs)
+            return await self._perform_http_request(method, url, **options)
 
-        async with self._request_lock:
-            key = f"{method}:{url}:<{' '.join(f'{k}={v}' for k, v in kwargs.items())}>"
+        async with self._lock:
+            key = f"{method}:{url}:<{' '.join(f'{k}={v}' for k, v in options.items())}>"
 
             if (cached := self._cache.get(key)) is not None:
                 _LOG.debug("%s %s got %s from the cache.", method, url, cached)
                 return cached
 
-            data = await self.__request(method, url, **kwargs)
+            data = await self._perform_http_request(method, url, **options)
 
             self._cache[key] = data
             _LOG.debug("Inserted %s into the cache.", data)

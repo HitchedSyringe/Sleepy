@@ -33,7 +33,6 @@ from .utils import GITHUB_URL, find_extensions_in, human_join
 if TYPE_CHECKING:
     from datetime import datetime
 
-
 _LOG = logging.getLogger(__name__)
 
 
@@ -149,11 +148,16 @@ class Sleepy(commands.Bot):
 
         .. versionchanged:: 2.1
             This is now a cached property.
+
+        .. versionchanged:: 3.3
+            Accessing this will now raise :exc:`RuntimeError` if there
+            is no active HTTP requester session.
         """
-        return discord.Webhook.partial(
-            **self.config["discord_webhook"],
-            session=self.http_requester.session
-        )
+        if self.http_requester.is_closed():
+            raise RuntimeError("HTTP requester session is closed.")
+
+        session = self.http_requester.session
+        return discord.Webhook.partial(**self.config["discord_webhook"], session=session)
 
     @property
     def owner(self) -> Optional[discord.User]:

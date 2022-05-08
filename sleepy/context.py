@@ -54,7 +54,7 @@ class Context(commands.Context["Sleepy"]):
 
     @property
     def session(self) -> ClientSession:
-        """:class:`aiohttp.ClientSession`: The http requester's client session."""
+        """:class:`aiohttp.ClientSession`: The HTTP requester's underlying client session."""
         return self.bot.http_requester.session
 
     @cached_property
@@ -77,7 +77,7 @@ class Context(commands.Context["Sleepy"]):
         /,
         *,
         cache__: bool = False,
-        **kwargs: Any
+        **options: Any
     ) -> HTTPResponseData:
         """|coro|
 
@@ -88,7 +88,7 @@ class Context(commands.Context["Sleepy"]):
         .. versionchanged:: 3.0
             ``method`` and ``url`` are now positional-only arguments.
         """
-        return await self.bot.http_requester.request(method, url, cache__=cache__, **kwargs)
+        return await self.bot.http_requester.request(method, url, cache__=cache__, **options)
 
     async def get(
         self,
@@ -96,7 +96,7 @@ class Context(commands.Context["Sleepy"]):
         /,
         *,
         cache__: bool = False,
-        **kwargs: Any
+        **options: Any
     ) -> HTTPResponseData:
         """|coro|
 
@@ -107,7 +107,7 @@ class Context(commands.Context["Sleepy"]):
         .. versionchanged:: 3.0
             ``url`` is now a positional-only argument.
         """
-        return await self.request("GET", url, cache__=cache__, **kwargs)
+        return await self.request("GET", url, cache__=cache__, **options)
 
     async def post(
         self,
@@ -115,7 +115,7 @@ class Context(commands.Context["Sleepy"]):
         /,
         *,
         cache__: bool = False,
-        **kwargs: Any
+        **options: Any
     ) -> HTTPResponseData:
         """|coro|
 
@@ -126,7 +126,7 @@ class Context(commands.Context["Sleepy"]):
         .. versionchanged:: 3.0
             ``url`` is now a positional-only argument.
         """
-        return await self.request("POST", url, cache__=cache__, **kwargs)
+        return await self.request("POST", url, cache__=cache__, **options)
 
     async def paginate(
         self,
