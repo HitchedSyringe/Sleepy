@@ -40,7 +40,6 @@ from .fonts import FONTS
 # converted to 3 item tuple RGB values without having
 # to manually do the conversions within commands.
 class RGBColourConverter(commands.ColourConverter):
-
     async def convert(self, ctx, argument):
         colour = await super().convert(ctx, argument)
         return colour.to_rgb()
@@ -49,18 +48,22 @@ class RGBColourConverter(commands.ColourConverter):
 class TTIFlags(commands.FlagConverter):
     text: commands.clean_content(fix_channel_mentions=True)
     font_path: str = commands.flag(name="font", default="Arimo-Regular")
-    text_colour: RGBColourConverter = \
-        commands.flag(name="text-colour", aliases=("text-color",), default=None)
-    bg_colour: RGBColourConverter = \
-        commands.flag(name="bg-colour", aliases=("bg-color",), default=None)
+    text_colour: RGBColourConverter = commands.flag(
+        name="text-colour", aliases=("text-color",), default=None
+    )
+    bg_colour: RGBColourConverter = commands.flag(
+        name="bg-colour", aliases=("bg-color",), default=None
+    )
     size: int = 35
 
 
 class Images(
     commands.Cog,
     command_attrs={
-        "cooldown": commands.CooldownMapping.from_cooldown(1, 10, commands.BucketType.member),
-    }
+        "cooldown": commands.CooldownMapping.from_cooldown(
+            1, 10, commands.BucketType.member
+        ),
+    },
 ):
     """Commands having to do with images and/or their manipulation."""
 
@@ -70,10 +73,14 @@ class Images(
         error = getattr(error, "original", error)
 
         if isinstance(error, (ImageAssetConversionFailure, UnidentifiedImageError)):
-            await ctx.send("The user, custom emoji, image attachment, or image link was invalid.")
+            await ctx.send(
+                "The user, custom emoji, image attachment, or image link was invalid."
+            )
             error.handled__ = True
         elif isinstance(error, ImageAssetTooLarge):
-            await ctx.send(f"Image must not exceed {error.max_filesize / 1e6:.0f} MB in size.")
+            await ctx.send(
+                f"Image must not exceed {error.max_filesize / 1e6:.0f} MB in size."
+            )
             error.handled__ = True
         elif isinstance(error, DecompressionBombError):
             await ctx.send("Go be Ted Kaczynski somewhere else.")
@@ -89,7 +96,7 @@ class Images(
         ctx,
         inverted: Optional[_pseudo_bool_flag("--invert")] = False,
         *,
-        image: ImageAssetConverter
+        image: ImageAssetConverter,
     ):
         """Converts an image into ASCII art.
 
@@ -110,18 +117,19 @@ class Images(
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
 
-            art, delta = await backend.do_asciify(io.BytesIO(image_bytes), inverted=inverted)
+            art, delta = await backend.do_asciify(
+                io.BytesIO(image_bytes), inverted=inverted
+            )
 
-        await ctx.send(f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms\n```\n{art}```")
+        await ctx.send(
+            f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms\n```\n{art}```"
+        )
 
     @commands.command(aliases=("axios", "axiosinterview", "trumpinterview"))
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def axiostrumpinterview(
-        self,
-        ctx,
-        *,
-        text: commands.clean_content(fix_channel_mentions=True)
+        self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)
     ):
         """Generates an Axios interview with Trump meme.
 
@@ -132,13 +140,12 @@ class Images(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "axios_trump_interview.png")
+            file=File(buffer, "axios_trump_interview.png"),
         )
 
     # No, this wasn't made because of Project Blurple.
     @commands.command(
-        aliases=("blurpify", "bpify", "discordify"),
-        usage="[--rebranded] <image>"
+        aliases=("blurpify", "bpify", "discordify"), usage="[--rebranded] <image>"
     )
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
@@ -147,7 +154,7 @@ class Images(
         ctx,
         use_rebrand: Optional[_pseudo_bool_flag("--rebranded")] = False,
         *,
-        image: ImageAssetConverter
+        image: ImageAssetConverter,
     ):
         """Blurplefies an image.
 
@@ -169,13 +176,12 @@ class Images(
                 return
 
             buffer, delta = await backend.do_blurpify(
-                io.BytesIO(image_bytes),
-                use_rebrand=use_rebrand
+                io.BytesIO(image_bytes), use_rebrand=use_rebrand
             )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer)
+            file=File(buffer),
         )
 
     @commands.command(aliases=("meow",))
@@ -205,7 +211,7 @@ class Images(
         ctx,
         image: ImageAssetConverter,
         *,
-        text: commands.clean_content(fix_channel_mentions=True)
+        text: commands.clean_content(fix_channel_mentions=True),
     ):
         """Generates a fake Google image captcha.
 
@@ -222,17 +228,14 @@ class Images(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "captcha.png")
+            file=File(buffer, "captcha.png"),
         )
 
     @commands.command(aliases=("cmm",))
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def changemymind(
-        self,
-        ctx,
-        *,
-        text: commands.clean_content(fix_channel_mentions=True)
+        self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)
     ):
         """Generates a "change my mind" meme.
 
@@ -243,7 +246,7 @@ class Images(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "change_my_mind.png")
+            file=File(buffer, "change_my_mind.png"),
         )
 
     @commands.command(usage="[--rebranded] <text>")
@@ -254,7 +257,7 @@ class Images(
         ctx,
         use_rebrand: Optional[_pseudo_bool_flag("--rebranded")] = False,
         *,
-        text: commands.clean_content(fix_channel_mentions=True)
+        text: commands.clean_content(fix_channel_mentions=True),
     ):
         """Generates a fake Clyde bot message.
 
@@ -265,11 +268,13 @@ class Images(
         (Bot Needs: Attach Files)
         """
         async with ctx.typing():
-            buffer, delta = await backend.make_clyde_message(text, use_rebrand=use_rebrand)
+            buffer, delta = await backend.make_clyde_message(
+                text, use_rebrand=use_rebrand
+            )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "clyde.png")
+            file=File(buffer, "clyde.png"),
         )
 
     @commands.command(aliases=("cupofjoe",))
@@ -306,7 +311,7 @@ class Images(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "dalgona.png")
+            file=File(buffer, "dalgona.png"),
         )
 
     @commands.command(aliases=("df",))
@@ -332,7 +337,7 @@ class Images(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer)
+            file=File(buffer),
         )
 
     @commands.command(aliases=("doggos", "woof"))
@@ -409,7 +414,7 @@ class Images(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "inverted.png")
+            file=File(buffer, "inverted.png"),
         )
 
     @commands.command(aliases=("iphone10",))
@@ -435,18 +440,14 @@ class Images(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "iphone_x.png")
+            file=File(buffer, "iphone_x.png"),
         )
 
     @commands.command(aliases=("needsmorejpeg", "jpegify"))
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def jpeg(
-        self,
-        ctx,
-        intensity: Optional[int] = 5,
-        *,
-        image: ImageAssetConverter
+        self, ctx, intensity: Optional[int] = 5, *, image: ImageAssetConverter
     ):
         """JPEGifies an image to an optional intensity.
 
@@ -472,13 +473,12 @@ class Images(
                 return
 
             buffer, delta = await backend.do_jpegify(
-                io.BytesIO(image_bytes),
-                quality=11 - intensity
+                io.BytesIO(image_bytes), quality=11 - intensity
             )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "jpegified.jpg")
+            file=File(buffer, "jpegified.jpg"),
         )
 
     @commands.command(aliases=("eyes",))
@@ -489,7 +489,7 @@ class Images(
         ctx,
         colour: Optional[RGBColourConverter] = "red",
         *,
-        image: ImageAssetConverter
+        image: ImageAssetConverter,
     ):
         """Places lensflares of a given colour on human eyes.
 
@@ -514,24 +514,19 @@ class Images(
                 return
 
             buffer, delta = await backend.do_lensflare_eyes(
-                io.BytesIO(image_bytes),
-                colour=colour
+                io.BytesIO(image_bytes), colour=colour
             )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "lensflareeyes.jpg")
+            file=File(buffer, "lensflareeyes.jpg"),
         )
 
     @commands.command(aliases=("magic",))
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def magik(
-        self,
-        ctx,
-        intensity: Optional[int] = 1,
-        *,
-        image: ImageAssetConverter
+        self, ctx, intensity: Optional[int] = 1, *, image: ImageAssetConverter
     ):
         """Heavily warps an image to an optional intensity.
 
@@ -557,7 +552,7 @@ class Images(
                 resp = await ctx.get(
                     "https://nekobot.xyz/api/imagegen?type=magik&raw=1",
                     image=str(image),
-                    intensity=intensity
+                    intensity=intensity,
                 )
             except HTTPRequestFailed as exc:
                 # For whatever reason, NekoBot doesn't actually
@@ -579,7 +574,7 @@ class Images(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Powered by nekobot.xyz",
-            file=File(io.BytesIO(resp), "magik.png")
+            file=File(io.BytesIO(resp), "magik.png"),
         )
 
     @commands.command(aliases=("colours", "colors"))
@@ -605,7 +600,7 @@ class Images(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "palette.png")
+            file=File(buffer, "palette.png"),
         )
 
     @commands.command(aliases=("phcomment", "phc"))
@@ -617,7 +612,7 @@ class Images(
         ctx,
         user: Optional[discord.Member],
         *,
-        text: commands.clean_content(fix_channel_mentions=True)
+        text: commands.clean_content(fix_channel_mentions=True),
     ):
         """Generates a fake Pr0nhub comment from the specified user.
 
@@ -641,14 +636,12 @@ class Images(
                 return
 
             buffer, delta = await backend.make_pornhub_comment(
-                user.display_name,
-                io.BytesIO(avatar_bytes),
-                text
+                user.display_name, io.BytesIO(avatar_bytes), text
             )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "pornhub_comment.png")
+            file=File(buffer, "pornhub_comment.png"),
         )
 
     # This remixes an image posted by a member of a server
@@ -680,14 +673,12 @@ class Images(
                 return
 
             buffer, delta = await backend.make_roblox_cancel_meme(
-                io.BytesIO(avatar_bytes),
-                user.name,
-                user.discriminator
+                io.BytesIO(avatar_bytes), user.name, user.discriminator
             )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "roblox_cancel.png")
+            file=File(buffer, "roblox_cancel.png"),
         )
 
     @commands.command()
@@ -695,10 +686,7 @@ class Images(
     @commands.bot_has_permissions(embed_links=True, attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def ship(
-        self,
-        ctx,
-        first_user: discord.Member,
-        second_user: discord.Member = None
+        self, ctx, first_user: discord.Member, second_user: discord.Member = None
     ):
         """Ships two users.
 
@@ -735,12 +723,12 @@ class Images(
                 io.BytesIO(avatar1_bytes),
                 second_user.display_name,
                 io.BytesIO(avatar2_bytes),
-                first_user.id ^ second_user.id
+                first_user.id ^ second_user.id,
             )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "ship.png")
+            file=File(buffer, "ship.png"),
         )
 
     @commands.command(aliases=("soyjacks", "soyjak", "soyjack"))
@@ -762,11 +750,13 @@ class Images(
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
 
-            buffer, delta = await backend.make_pointing_soyjaks_meme(io.BytesIO(image_bytes))
+            buffer, delta = await backend.make_pointing_soyjaks_meme(
+                io.BytesIO(image_bytes)
+            )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "soyjak.png")
+            file=File(buffer, "soyjak.png"),
         )
 
     # Long and strict RL due to Nekobot processing.
@@ -786,8 +776,7 @@ class Images(
         async with ctx.typing():
             try:
                 resp = await ctx.get(
-                    "https://nekobot.xyz/api/imagegen?type=stickbug",
-                    url=str(image)
+                    "https://nekobot.xyz/api/imagegen?type=stickbug", url=str(image)
                 )
             except HTTPRequestFailed as exc:
                 # I'm not sure if this is filetype-specific or not,
@@ -805,18 +794,14 @@ class Images(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Powered by nekobot.xyz",
-            file=File(io.BytesIO(await ctx.get(resp["message"])), "stickbug.mp4")
+            file=File(io.BytesIO(await ctx.get(resp["message"])), "stickbug.mp4"),
         )
 
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def swirl(
-        self,
-        ctx,
-        intensity: Optional[int] = 5,
-        *,
-        image: ImageAssetConverter
+        self, ctx, intensity: Optional[int] = 5, *, image: ImageAssetConverter
     ):
         """Swirls an image to an optional intensity.
 
@@ -842,13 +827,12 @@ class Images(
                 return
 
             buffer, delta = await backend.do_swirl(
-                io.BytesIO(image_bytes),
-                intensity=intensity * 2.5
+                io.BytesIO(image_bytes), intensity=intensity * 2.5
             )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "swirl.png")
+            file=File(buffer, "swirl.png"),
         )
 
     @commands.command(aliases=("tti",), usage="text: <text> [options...]")
@@ -912,7 +896,7 @@ class Images(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "tti.png")
+            file=File(buffer, "tti.png"),
         )
 
     @commands.command()
@@ -938,7 +922,7 @@ class Images(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "threats.png")
+            file=File(buffer, "threats.png"),
         )
 
     @commands.command()
@@ -950,7 +934,7 @@ class Images(
         title: commands.clean_content(fix_channel_mentions=True),
         image: ImageAssetConverter,
         *,
-        flavour_text: commands.clean_content(fix_channel_mentions=True)
+        flavour_text: commands.clean_content(fix_channel_mentions=True),
     ):
         """Generates a fake Yu-Gi-Oh! trap card.
 
@@ -968,14 +952,12 @@ class Images(
                 return
 
             buffer, delta = await backend.make_trapcard(
-                title,
-                flavour_text,
-                io.BytesIO(image_bytes)
+                title, flavour_text, io.BytesIO(image_bytes)
             )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "trapcard.png")
+            file=File(buffer, "trapcard.png"),
         )
 
     @commands.command()
@@ -1002,7 +984,7 @@ class Images(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "live_tucker_reaction.png")
+            file=File(buffer, "live_tucker_reaction.png"),
         )
 
     @commands.command()
@@ -1013,7 +995,7 @@ class Images(
         ctx,
         user: Optional[discord.Member],
         *,
-        text: commands.clean_content(fix_channel_mentions=True)
+        text: commands.clean_content(fix_channel_mentions=True),
     ):
         """Generates a fake Tweet from the specified user.
 
@@ -1037,15 +1019,12 @@ class Images(
                 return
 
             buffer, delta = await backend.make_tweet(
-                user.name,
-                user.display_name,
-                io.BytesIO(avatar_bytes),
-                text
+                user.name, user.display_name, io.BytesIO(avatar_bytes), text
             )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "tweet.png")
+            file=File(buffer, "tweet.png"),
         )
 
     @commands.command(aliases=("www",))
@@ -1053,10 +1032,7 @@ class Images(
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def whowouldwin(
-        self,
-        ctx,
-        first_user: discord.Member,
-        second_user: discord.Member = None
+        self, ctx, first_user: discord.Member, second_user: discord.Member = None
     ):
         """Generates a "who would win" meme.
 
@@ -1089,13 +1065,12 @@ class Images(
                 return
 
             buffer, delta = await backend.make_who_would_win_meme(
-                io.BytesIO(avatar1_bytes),
-                io.BytesIO(avatar2_bytes)
+                io.BytesIO(avatar1_bytes), io.BytesIO(avatar2_bytes)
             )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "who_would_win.png")
+            file=File(buffer, "who_would_win.png"),
         )
 
     @commands.command(aliases=("ytcomment", "ytc"))
@@ -1107,7 +1082,7 @@ class Images(
         ctx,
         user: Optional[discord.Member],
         *,
-        text: commands.clean_content(fix_channel_mentions=True)
+        text: commands.clean_content(fix_channel_mentions=True),
     ):
         """Generates a fake YouTube comment from the specified user.
 
@@ -1131,12 +1106,10 @@ class Images(
                 return
 
             buffer, delta = await backend.make_youtube_comment(
-                user.display_name,
-                io.BytesIO(avatar_bytes),
-                text
+                user.display_name, io.BytesIO(avatar_bytes), text
             )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "youtube_comment.png")
+            file=File(buffer, "youtube_comment.png"),
         )

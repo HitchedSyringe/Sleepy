@@ -23,7 +23,7 @@ def _set_up_logging() -> None:
     logging.basicConfig(
         datefmt="%Y-%m-%d %H:%M:%S",
         format="[{asctime}] [{levelname:<7}] {name}: {message}",
-        style="{"
+        style="{",
     )
 
     # discord.py logging
@@ -59,7 +59,7 @@ def _create_bot(config: Dict[str, Any]) -> Sleepy:
 
     activity = Streaming(
         name=f"{prefix}help \N{BULLET} Sleepy v{__version__}",
-        url="https://youtube.com/watch?v=PobQzVsj7GE"
+        url="https://youtube.com/watch?v=PobQzVsj7GE",
     )
 
     intents = Intents(
@@ -91,7 +91,7 @@ def _create_bot(config: Dict[str, Any]) -> Sleepy:
         activity=activity,
         allowed_mentions=AllowedMentions(everyone=False, roles=False),
         intents=intents,
-        max_messages=None
+        max_messages=None,
     )
 
 

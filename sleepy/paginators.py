@@ -7,9 +7,11 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+# fmt: off
 __all__ = (
     "WrappedPaginator",
 )
+# fmt: on
 
 
 from typing import Sequence
@@ -61,7 +63,7 @@ class WrappedPaginator(commands.Paginator):
         wrap_on: Sequence[str] = (" ", "\n"),
         *,
         force_wrapping: bool = False,
-        wrap_with_delimiters: bool = True
+        wrap_with_delimiters: bool = True,
     ) -> None:
         super().__init__(prefix, suffix, max_size, linesep)
 
@@ -117,7 +119,7 @@ class WrappedPaginator(commands.Paginator):
                 if not self.force_wrapping:
                     raise RuntimeError(f"Could not wrap with delimiters: {self.wrap_on}.")
 
-                super().add_line(line[:self.actual_max_size - 1])
-                line = line[self.actual_max_size - 1:]
+                super().add_line(line[: self.actual_max_size - 1])
+                line = line[self.actual_max_size - 1 :]
 
         super().add_line(line, empty=empty)

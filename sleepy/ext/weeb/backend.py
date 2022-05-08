@@ -60,7 +60,7 @@ def detect_anime_faces(image_buffer, /):
         cv2.equalizeHist(cv2.cvtColor(image, cv2.COLOR_RGBA2GRAY)),
         1.1,
         5,
-        minSize=(24, 24)
+        minSize=(24, 24),
     )
 
     if (count := len(faces)) == 0:
@@ -73,13 +73,7 @@ def detect_anime_faces(image_buffer, /):
     cv2.cvtColor(image, cv2.COLOR_RGBA2BGRA, image)
 
     for x, y, w, h in faces:
-        image = cv2.rectangle(
-            image,
-            (x, y),
-            (x + w, y + h),
-            (0, 0, 255, 255),
-            2
-        )
+        image = cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255, 255), 2)
 
     return count, io.BytesIO(cv2.imencode(".png", image)[1])
 
@@ -155,7 +149,7 @@ def make_hifumi_fact_meme(text, /):
             text,
             "black",
             font,
-            align="center"
+            align="center",
         )
 
         buffer = io.BytesIO()
@@ -176,13 +170,7 @@ def make_kanna_fact_meme(text, /):
         text = wrap_text(text, font, width=160)
         text_layer = Image.new("RGBA", get_accurate_text_size(font, text))
 
-        ImageDraw.Draw(text_layer).text(
-            (0, 0),
-            text,
-            "black",
-            font,
-            align="center"
-        )
+        ImageDraw.Draw(text_layer).text((0, 0), text, "black", font, align="center")
 
         text_layer = text_layer.rotate(-13, expand=True)
 
@@ -191,7 +179,7 @@ def make_kanna_fact_meme(text, /):
         template.paste(
             text_layer,
             (155 - text_layer.width // 2, 151 - text_layer.height // 2),
-            text_layer
+            text_layer,
         )
 
         buffer = io.BytesIO()
@@ -241,20 +229,14 @@ def make_nichijou_gif_meme(text, /):
                     "mm",
                     align="center",
                     stroke_fill=0,
-                    stroke_width=2
+                    stroke_width=2,
                 )
 
             frames.append(frame.convert("P"))
 
     buffer = io.BytesIO()
 
-    frames[0].save(
-        buffer,
-        "gif",
-        save_all=True,
-        optimize=True,
-        append_images=frames[1:]
-    )
+    frames[0].save(buffer, "gif", save_all=True, optimize=True, append_images=frames[1:])
 
     buffer.seek(0)
 
@@ -289,13 +271,7 @@ def make_ritsu_fact_meme(text, /):
         text = wrap_text(text, font, width=270)
         text_layer = Image.new("RGBA", get_accurate_text_size(font, text))
 
-        ImageDraw.Draw(text_layer).text(
-            (0, 0),
-            text,
-            "black",
-            font,
-            align="center"
-        )
+        ImageDraw.Draw(text_layer).text((0, 0), text, "black", font, align="center")
         text_layer = text_layer.rotate(-2, expand=True)
 
         # For reference, the desired point to center the
@@ -303,7 +279,7 @@ def make_ritsu_fact_meme(text, /):
         template.paste(
             text_layer,
             (727 - text_layer.width // 2, 428 - text_layer.height // 2),
-            text_layer
+            text_layer,
         )
 
         buffer = io.BytesIO()

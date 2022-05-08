@@ -56,9 +56,7 @@ SMART_QUOTE_REGEX = re.compile("|".join(SMART_QUOTES))
 
 
 TriviaQuestion = namedtuple(
-    "TriviaQuestion",
-    "category text answers image_url author",
-    defaults=(None, None)
+    "TriviaQuestion", "category text answers image_url author", defaults=(None, None)
 )
 
 
@@ -89,7 +87,7 @@ class TriviaSession:
         answer_time_limit=20,
         bot_plays=True,
         reveal_answer=True,
-        give_hints=True
+        give_hints=True,
     ):
         self.bot = ctx.bot
         self.channel = ctx.channel
@@ -156,10 +154,12 @@ class TriviaSession:
                     # complete if no correct answers are given.
                     done, pending = await asyncio.wait(
                         (
-                            asyncio.ensure_future(self.bot.wait_for("message", check=check)),
+                            asyncio.ensure_future(
+                                self.bot.wait_for("message", check=check)
+                            ),
                             asyncio.ensure_future(self._do_hints(question, msg)),
                         ),
-                        return_when=asyncio.FIRST_COMPLETED
+                        return_when=asyncio.FIRST_COMPLETED,
                     )
 
                     for task in pending:
@@ -174,13 +174,13 @@ class TriviaSession:
                     await self.channel.send(embed=embed)
 
                     message = await self.bot.wait_for(
-                        "message",
-                        check=check,
-                        timeout=self.answer_time_limit
+                        "message", check=check, timeout=self.answer_time_limit
                     )
             except asyncio.TimeoutError:
                 if time.time() - self._last_guess >= self.answer_time_limit * 4:
-                    await self.channel.send("Nobody's participating... I guess I'll stop now.")
+                    await self.channel.send(
+                        "Nobody's participating... I guess I'll stop now."
+                    )
                     self.stop(send_results=False)
                     return
 
@@ -196,7 +196,9 @@ class TriviaSession:
                 await self.channel.send(msg)
             else:
                 self.scores[message.author] += 1
-                await message.reply("Correct! **+1 point** for you!", mention_author=False)
+                await message.reply(
+                    "Correct! **+1 point** for you!", mention_author=False
+                )
 
             if max(self.scores.values()) >= self.max_score:
                 break
@@ -221,11 +223,12 @@ class TriviaSession:
                 break
 
             hint = "".join(
-                a if i % 5 < number or a.isspace() else "-"
-                for i, a in enumerate(answer)
+                a if i % 5 < number or a.isspace() else "-" for i, a in enumerate(answer)
             )
 
-            embed.description = f"{question.text}\n```yaml\nHint {number}/{max_hints}: {hint}```"
+            embed.description = (
+                f"{question.text}\n```yaml\nHint {number}/{max_hints}: {hint}```"
+            )
 
             if number == max_hints:
                 embed.set_footer(text="No more hints. Give it your best shot!")
@@ -240,7 +243,6 @@ class TriviaSession:
             await asyncio.sleep(delay)
 
     def _get_answer_check(self, answers):
-
         def predicate(message):
             if message.channel != self.channel or message.author.bot:
                 return False
@@ -248,13 +250,11 @@ class TriviaSession:
             self._last_guess = time.time()
 
             guess = SMART_QUOTE_REGEX.sub(
-                lambda m: SMART_QUOTES.get(m.group(0), ""),
-                message.content.lower()
+                lambda m: SMART_QUOTES.get(m.group(0), ""), message.content.lower()
             )
 
             return any(
-                (" " in a and a.lower() in guess)
-                or a.lower() in guess.split()
+                (" " in a and a.lower() in guess) or a.lower() in guess.split()
                 for a in answers
             )
 

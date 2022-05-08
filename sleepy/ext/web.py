@@ -39,18 +39,16 @@ def clean_subreddit(value):
 
 
 def _prefixed_argument(prefix):
-
     def convert(value):
         if not value.startswith(prefix):
             raise commands.BadArgument(f"Argument must begin with {prefix}") from None
 
-        return value[len(prefix):]
+        return value[len(prefix) :]
 
     return convert
 
 
 class RedditSubmissionURL(commands.Converter):
-
     async def convert(self, ctx, argument):
         try:
             url = yarl.URL(argument.strip("<>"))
@@ -116,7 +114,9 @@ class SteamAccountMeta:
     @classmethod
     async def convert(cls, ctx, argument):
         # Steam ID 3
-        if (id_3_match := re.fullmatch(r"U:1:([0-9]+)", argument.strip("[]"))) is not None:
+        if (
+            id_3_match := re.fullmatch(r"U:1:([0-9]+)", argument.strip("[]"))
+        ) is not None:
             return cls.from_id_3(int(id_3_match.group(1)))
 
         # Steam ID
@@ -149,7 +149,7 @@ class SteamAccountMeta:
             "https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1",
             key=ctx.cog.steam_api_key,
             vanityurl=argument.lower(),
-            cache__=True
+            cache__=True,
         )
 
         try:
@@ -170,7 +170,7 @@ class SteamAccountMeta:
         return cls(
             f"STEAM_0:{account_type}:{number_id}",
             f"[U:1:{id_3_n}]",
-            cls.BASE_ID_64 + id_3_n
+            cls.BASE_ID_64 + id_3_n,
         )
 
     @classmethod
@@ -178,7 +178,9 @@ class SteamAccountMeta:
         a_type = number_id % 2
         id_n = number_id + a_type
 
-        return cls(f"STEAM_0:{a_type}:{id_n}", f"[U:1:{number_id}]", cls.BASE_ID_64 + id_n)
+        return cls(
+            f"STEAM_0:{a_type}:{id_n}", f"[U:1:{number_id}]", cls.BASE_ID_64 + id_n
+        )
 
     @classmethod
     def from_id_64(cls, id_64):
@@ -186,9 +188,7 @@ class SteamAccountMeta:
         a_type = id_3_n % 2
 
         return cls(
-            f"STEAM_0:{a_type}:{round((id_3_n - a_type) / 2)}",
-            f"[U:1:{id_3_n}]",
-            id_64
+            f"STEAM_0:{a_type}:{round((id_3_n - a_type) / 2)}", f"[U:1:{id_3_n}]", id_64
         )
 
 
@@ -218,8 +218,10 @@ def youtube_channel_kwargs(value):
 class Web(
     commands.Cog,
     command_attrs={
-        "cooldown": commands.CooldownMapping.from_cooldown(2, 5, commands.BucketType.member),
-    }
+        "cooldown": commands.CooldownMapping.from_cooldown(
+            2, 5, commands.BucketType.member
+        ),
+    },
 ):
     """Commands that grab data from various websites and APIs.
 
@@ -245,7 +247,7 @@ class Web(
         try:
             resp = await ctx.get(
                 f"https://newton.vercel.app/api/v2/{route}/{quote(expr.replace('/', '(over)'))}",
-                cache__=True
+                cache__=True,
             )
         except HTTPRequestFailed:
             await ctx.send("Calculating the expression failed. Try again later?")
@@ -274,7 +276,7 @@ class Web(
             cache__=True,
             key=self.google_api_key,
             cx=self.google_search_engine_id,
-            q=query
+            q=query,
         )
 
         try:
@@ -303,11 +305,11 @@ class Web(
 
             embed.set_author(
                 name=f"Results for '{truncate(query, 64)}'",
-                url=f"https://google.com/search?q={quote(query)}"
+                url=f"https://google.com/search?q={quote(query)}",
             )
             embed.set_footer(
                 text=f"About {total} results. ({delta} seconds) "
-                     "\N{BULLET} Powered by Google Search"
+                "\N{BULLET} Powered by Google Search"
             )
 
             embeds.append(embed)
@@ -340,10 +342,11 @@ class Web(
                 "pokedex_url": f"https://pokemon.com/us/pokedex/{pokemon_name}",
                 "flavour_text": next(
                     (
-                        f["flavor_text"] for f in spec["flavor_text_entries"]
+                        f["flavor_text"]
+                        for f in spec["flavor_text_entries"]
                         if f["language"]["name"] == "en"
                     ),
-                    None
+                    None,
                 ),
                 "front_sprite_url": poke["sprites"]["front_default"],
                 "order": poke["order"],
@@ -353,13 +356,19 @@ class Web(
                 "weight": poke["weight"],
                 "height": poke["height"],
                 "colour": spec["color"]["name"].title(),
-                "abilities": "\n".join(a["ability"]["name"].title() for a in poke["abilities"]),
+                "abilities": "\n".join(
+                    a["ability"]["name"].title() for a in poke["abilities"]
+                ),
                 "types": "\n".join(t["type"]["name"].title() for t in poke["types"]),
-                "stats": {s["stat"]["name"].title(): s["base_stat"] for s in poke["stats"]},
+                "stats": {
+                    s["stat"]["name"].title(): s["base_stat"] for s in poke["stats"]
+                },
             }
 
             try:
-                slimmed_data["evolves_from"] = spec["evolves_from_species"]["name"].title()
+                slimmed_data["evolves_from"] = spec["evolves_from_species"][
+                    "name"
+                ].title()
             except TypeError:
                 slimmed_data["evolves_from"] = None
 
@@ -376,13 +385,13 @@ class Web(
             title=comic['title'],
             description=comic["alt"],
             url=f"https://xkcd.com/{number}",
-            colour=0x708090
+            colour=0x708090,
         )
         embed.timestamp = dt(
             month=int(comic["month"]),
             year=int(comic["year"]),
             day=int(comic["day"]),
-            tzinfo=tz.utc
+            tzinfo=tz.utc,
         )
         embed.set_author(name=f"#{number}")
         embed.set_image(url=comic["img"])
@@ -393,10 +402,7 @@ class Web(
     # NOTE: Endpoints not included due to either limited
     # functionality or existing functional equivalent: `abs`,
     # `arccos`, `arcsin`, `arctan`, `cosine`, `sine`, `tan`.
-    @commands.group(
-        aliases=("calc", "calculator", "math"),
-        invoke_without_command=True
-    )
+    @commands.group(aliases=("calc", "calculator", "math"), invoke_without_command=True)
     async def calculate(self, ctx, *, expression):
         """Evaluates the solution to the given expression.
 
@@ -411,7 +417,9 @@ class Web(
         """
         await self.do_calculation(ctx, "simplify", expression)
 
-    @calculate.command(name="antiderivative", aliases=("integral", "indefiniteintegral", "∫"))
+    @calculate.command(
+        name="antiderivative", aliases=("integral", "indefiniteintegral", "∫")
+    )
     async def calculate_antiderivative(self, ctx, *, expression):
         """Finds the antiderivative of the given expression.
 
@@ -520,8 +528,7 @@ class Web(
         <3> countryinfo UK
         """
         resp = await ctx.get(
-            f"https://restcountries.com/v2/name/{quote(country)}",
-            cache__=True
+            f"https://restcountries.com/v2/name/{quote(country)}", cache__=True
         )
 
         if "message" in resp:
@@ -565,26 +572,27 @@ class Web(
                 f"\n\N{SMALL BLUE DIAMOND} **Gini Index:** {data.get('gini', 'N/A')}"
                 f"\n\N{SMALL BLUE DIAMOND} **Top Level Domains:** {', '.join(data['topLevelDomain'])}"
             ),
-            colour=0x2F3136
+            colour=0x2F3136,
         )
         embed.set_footer(text="Powered by restcountries.com")
         embed.set_thumbnail(url=data["flags"]["png"])
 
         embed.add_field(
-            name="Languages",
-            value="\n".join(i['name'] for i in data["languages"])
+            name="Languages", value="\n".join(i['name'] for i in data["languages"])
         )
         embed.add_field(
             name="Currencies",
-            value="\n".join(f"{c['name']} ({c['symbol']})" for c in data["currencies"])
+            value="\n".join(f"{c['name']} ({c['symbol']})" for c in data["currencies"]),
         )
         embed.add_field(name="Timezones", value="\n".join(data["timezones"]))
 
         try:
             embed.add_field(
                 name="Regional Blocs",
-                value="\n".join(f"{b['name']} ({b['acronym']})" for b in data["regionalBlocs"]),
-                inline=False
+                value="\n".join(
+                    f"{b['name']} ({b['acronym']})" for b in data["regionalBlocs"]
+                ),
+                inline=False,
             )
         except KeyError:
             pass
@@ -610,7 +618,7 @@ class Web(
         try:
             resp = await ctx.get(
                 f"https://api.dictionaryapi.dev/api/v2/entries/en/{quote(term)}",
-                cache__=True
+                cache__=True,
             )
         except HTTPRequestFailed as exc:
             if exc.status == 404:
@@ -638,7 +646,7 @@ class Web(
         base_embed = Embed(
             description=data.get("origin"),
             url=f"https://google.com/search?q=define:+{quote(term)}",
-            colour=0x1B1F40
+            colour=0x1B1F40,
         )
         base_embed.set_footer(text="Powered by dictionaryapi.dev")
 
@@ -646,7 +654,7 @@ class Web(
             phonetic = phonetics[0]
             base_embed.set_author(
                 name=f"{data['word']} {phonetic.get('text', '')}",
-                url=phonetic.get("audio")
+                url=phonetic.get("audio"),
             )
         else:
             base_embed.set_author(name=data["word"])
@@ -693,7 +701,7 @@ class Web(
         ctx,
         base: str.upper,
         amount: Optional[real_float(max_decimal_places=4)] = 1,
-        *currencies: str.upper
+        *currencies: str.upper,
     ):
         """Shows the exchange rate between two or more currencies.
 
@@ -719,7 +727,9 @@ class Web(
         ```
         """
         if not 0 < amount <= 1_000_000_000:
-            await ctx.send("Conversion amount must be greater than 0 and less than 1000000000.")
+            await ctx.send(
+                "Conversion amount must be greater than 0 and less than 1000000000."
+            )
             return
 
         # Probably a niche O(n) check but it saves an HTTP request
@@ -739,7 +749,7 @@ class Web(
                 "https://api.vatcomply.com/rates",
                 cache__=True,
                 base=base,
-                symbols=",".join(currencies)
+                symbols=",".join(currencies),
             )
         except HTTPRequestFailed as exc:
             if exc.status == 400:
@@ -781,9 +791,7 @@ class Web(
 
         try:
             resp = await ctx.get(
-                "https://some-random-api.ml/lyrics",
-                cache__=True,
-                title=song_title
+                "https://some-random-api.ml/lyrics", cache__=True, title=song_title
             )
         except HTTPRequestFailed as exc:
             if exc.status == 404:
@@ -809,7 +817,7 @@ class Web(
                 title=truncate(resp["title"], 128),
                 description=page,
                 colour=0xFFFF64,
-                url=resp["links"]["genius"]
+                url=resp["links"]["genius"],
             )
             embed.set_author(name=resp["author"])
             embed.set_thumbnail(url=resp["thumbnail"]["genius"])
@@ -871,8 +879,7 @@ class Web(
         """
         try:
             data = await ctx.get(
-                f"https://api.ashcon.app/mojang/v2/user/{quote(account)}",
-                cache__=True
+                f"https://api.ashcon.app/mojang/v2/user/{quote(account)}", cache__=True
             )
         except HTTPRequestFailed as exc:
             if exc.status == 400:
@@ -890,13 +897,15 @@ class Web(
         embed = Embed(
             title=data["username"],
             description=f"**[Skin]({textures['skin']['url']})**",
-            colour=0x2F3136
+            colour=0x2F3136,
         )
         embed.set_thumbnail(url=f"https://crafatar.com/renders/body/{data['uuid']}")
 
         if (joined := data["created_at"]) is not None:
             embed.timestamp = dt.fromisoformat(joined).replace(tzinfo=tz.utc)
-            embed.set_footer(text="Powered by ashcon.app & crafatar.com \N{BULLET} Created")
+            embed.set_footer(
+                text="Powered by ashcon.app & crafatar.com \N{BULLET} Created"
+            )
         else:
             embed.set_footer(text="Powered by ashcon.app & crafatar.com")
 
@@ -908,9 +917,9 @@ class Web(
         embed.add_field(
             name="Information",
             value=f"\n\N{SMALL BLUE DIAMOND} **UUID:** {data['uuid']}"
-                  f"\n\N{SMALL BLUE DIAMOND} **Demo:** {bool_to_emoji(data.get('demo', False))}"
-                  f"\n\N{SMALL BLUE DIAMOND} **Legacy:** {bool_to_emoji(data.get('legacy', False))}"
-                  f"\n\N{SMALL BLUE DIAMOND} **Slim Skin:** {bool_to_emoji(textures['slim'])}"
+            f"\n\N{SMALL BLUE DIAMOND} **Demo:** {bool_to_emoji(data.get('demo', False))}"
+            f"\n\N{SMALL BLUE DIAMOND} **Legacy:** {bool_to_emoji(data.get('legacy', False))}"
+            f"\n\N{SMALL BLUE DIAMOND} **Slim Skin:** {bool_to_emoji(textures['slim'])}",
         )
 
         history = data["username_history"]
@@ -932,12 +941,14 @@ class Web(
             else:
                 h_iter = enumerate(history, 1)
 
-            h_fmt += "\n".join(f"<{i}> {e['username']} ({e['changed_at']})" for i, e in h_iter)
+            h_fmt += "\n".join(
+                f"<{i}> {e['username']} ({e['changed_at']})" for i, e in h_iter
+            )
 
             embed.add_field(
                 name=f"Name History \N{BULLET} {plural(count, ',d'):entry|entries}",
                 value=f"```bnf\n{h_fmt}\n```",
-                inline=False
+                inline=False,
             )
 
         await ctx.send(embed=embed)
@@ -967,7 +978,7 @@ class Web(
             title=data["name"],
             description=data["flavour_text"],
             url=data["pokedex_url"],
-            colour=0x3B4CCA
+            colour=0x3B4CCA,
         )
         embed.set_thumbnail(url=data["front_sprite_url"])
         embed.set_footer(text="Powered by pokeapi.co")
@@ -978,7 +989,9 @@ class Web(
         embed.add_field(name="Capture Rate", value=data["capture_rate"])
 
         weight = data["weight"]
-        embed.add_field(name="Weight", value=f"{weight / 10} kg ({weight / 4.536:.1f} lbs.)")
+        embed.add_field(
+            name="Weight", value=f"{weight / 10} kg ({weight / 4.536:.1f} lbs.)"
+        )
 
         height = data["height"]
         feet, inches = divmod(round(height * 3.93701), 12)
@@ -991,7 +1004,9 @@ class Web(
 
         embed.add_field(name="Abilities", value=data["abilities"])
         embed.add_field(name="Types", value=data["types"])
-        embed.add_field(name="Stats", value=f"```dns\n{tchart(data['stats'])}```", inline=False)
+        embed.add_field(
+            name="Stats", value=f"```dns\n{tchart(data['stats'])}```", inline=False
+        )
 
         await ctx.send(embed=embed)
 
@@ -1013,8 +1028,7 @@ class Web(
         """
         try:
             resp = await ctx.get(
-                f"https://reddit.com/r/{subreddit}/hot.json",
-                cache__=True
+                f"https://reddit.com/r/{subreddit}/hot.json", cache__=True
             )
         except HTTPRequestFailed as exc:
             # For reference:
@@ -1037,15 +1051,15 @@ class Web(
                 title=truncate(post["title"], 128),
                 description=truncate(post["selftext"], 1024),
                 url=f"https://reddit.com/{post['id']}",
-                colour=0xFF5700
+                colour=0xFF5700,
             )
             embed.set_author(
                 name=f"u/{post['author']} (r/{subreddit})",
-                url=f"https://reddit.com/user/{post['author']}"
+                url=f"https://reddit.com/user/{post['author']}",
             )
             embed.set_footer(
                 text=f"\N{UPWARDS BLACK ARROW}\ufe0f {post['ups']:,d} "
-                     "\N{BULLET} Powered by Reddit"
+                "\N{BULLET} Powered by Reddit"
             )
 
             if not embed.description:
@@ -1082,7 +1096,7 @@ class Web(
             "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2",
             key=self.steam_api_key,
             steamids=account.id_64,
-            cache__=True
+            cache__=True,
         )
 
         accounts = resp["response"]["players"]
@@ -1113,24 +1127,28 @@ class Web(
                 f"\n\N{SMALL BLUE DIAMOND} **Steam ID 3:** {account.id_3}"
                 f"\n\N{SMALL BLUE DIAMOND} **Status:** {steam_statuses[status]}"
             ),
-            colour=0x555555 if status == 0 else 0x53A4C4
+            colour=0x555555 if status == 0 else 0x53A4C4,
         )
         embed.set_author(name=data["personaname"], url=data["profileurl"])
-        embed.set_footer(text="Showing basic public information. \N{BULLET} Powered by Steam")
+        embed.set_footer(
+            text="Showing basic public information. \N{BULLET} Powered by Steam"
+        )
         embed.set_thumbnail(url=avatar_url)
 
         await ctx.send(embed=embed)
 
     @commands.command(aliases=("tr",))
     @commands.bot_has_permissions(embed_links=True)
-    @commands.cooldown(1, 5, commands.BucketType.member)  # Curb possibility of being blocked.
+    @commands.cooldown(
+        1, 5, commands.BucketType.member
+    )  # Curb possibility of being blocked.
     async def translate(
         self,
         ctx,
         destination: _prefixed_argument(">"),
         source: Optional[_prefixed_argument("$")] = "auto",
         *,
-        text: commands.clean_content(fix_channel_mentions=True) = None
+        text: commands.clean_content(fix_channel_mentions=True) = None,
     ):
         """Translates some text using Google Translate.
         This allows you to either provide text or use a
@@ -1189,9 +1207,9 @@ class Web(
 
         embed.set_footer(
             text=f"{LANGUAGES.get(tsl.src, '(Auto-detected)').title()} ({tsl.src}) "
-                 "\N{THREE-D BOTTOM-LIGHTED RIGHTWARDS ARROWHEAD} "
-                 f"{LANGUAGES.get(tsl.dest, 'Unknown').title()} ({tsl.dest}) "
-                 "\N{BULLET} Powered by Google Translate"
+            "\N{THREE-D BOTTOM-LIGHTED RIGHTWARDS ARROWHEAD} "
+            f"{LANGUAGES.get(tsl.dest, 'Unknown').title()} ({tsl.dest}) "
+            "\N{BULLET} Powered by Google Translate"
         )
 
         await ctx.send(embed=embed)
@@ -1216,9 +1234,7 @@ class Web(
         ```
         """
         resp = await ctx.get(
-            "https://api.urbandictionary.com/v0/define",
-            cache__=True,
-            term=term
+            "https://api.urbandictionary.com/v0/define", cache__=True, term=term
         )
 
         entries = resp["list"]
@@ -1228,7 +1244,6 @@ class Web(
             return
 
         def apply_hyperlinks(string):
-
             def hyperlink_brackets(m):
                 word = m.group(1).strip("[]")
                 return f"[{word}](http://{word.replace(' ', '-')}.urbanup.com)"
@@ -1239,8 +1254,10 @@ class Web(
         for entry in entries:
             embed = Embed(
                 description=textwrap.shorten(apply_hyperlinks(entry["definition"]), 2000),
-                timestamp=dt.fromisoformat(entry["written_on"][:-1]).replace(tzinfo=tz.utc),
-                colour=0x1D2439
+                timestamp=dt.fromisoformat(entry["written_on"][:-1]).replace(
+                    tzinfo=tz.utc
+                ),
+                colour=0x1D2439,
             )
             embed.set_author(name=entry["word"], url=entry["permalink"])
             embed.set_footer(
@@ -1251,7 +1268,7 @@ class Web(
                 embed.add_field(
                     name="Example",
                     value=textwrap.shorten(apply_hyperlinks(example), 1000),
-                    inline=False
+                    inline=False,
                 )
 
             embed.add_field(name=":thumbsup:", value=entry["thumbs_up"])
@@ -1290,7 +1307,7 @@ class Web(
 
             await ctx.send(
                 f"Requested by {ctx.author} (ID: {ctx.author.id})",
-                file=File(io.BytesIO(await resp.read()), "submission.mp4")
+                file=File(io.BytesIO(await resp.read()), "submission.mp4"),
             )
 
     @reddit.error
@@ -1329,7 +1346,7 @@ class Web(
                 "https://api.weatherapi.com/v1/current.json",
                 cache__=True,
                 key=self.weatherapi_api_key,
-                q=location
+                q=location,
             )
         except HTTPRequestFailed as exc:
             if exc.status == 400:
@@ -1346,7 +1363,7 @@ class Web(
             title=f"{loc['name']}, {region + ', ' if region else ''}{loc['country']}",
             description=f"(Lat. {loc['lat']}°, Lon. {loc['lon']}°)",
             colour=0xE3C240 if data["is_day"] == 1 else 0x1D50A8,
-            timestamp=dt.fromtimestamp(data["last_updated_epoch"], tz.utc)
+            timestamp=dt.fromtimestamp(data["last_updated_epoch"], tz.utc),
         )
 
         condition = data["condition"]
@@ -1357,29 +1374,27 @@ class Web(
         embed.add_field(
             name="Temperature",
             value=f"{data['temp_c']}°C ({data['temp_f']}°F)\n"
-                  f"Feels Like: {data['feelslike_c']}°C ({data['feelslike_f']}°F)",
+            f"Feels Like: {data['feelslike_c']}°C ({data['feelslike_f']}°F)",
         )
         embed.add_field(
             name="Wind Speed",
-            value=f"{data['wind_kph']} kph ({data['wind_mph']} mph) {data['wind_dir']}"
+            value=f"{data['wind_kph']} kph ({data['wind_mph']} mph) {data['wind_dir']}",
         )
         embed.add_field(
-            name="Wind Gust",
-            value=f"{data['gust_kph']} kph ({data['gust_mph']} mph)"
+            name="Wind Gust", value=f"{data['gust_kph']} kph ({data['gust_mph']} mph)"
         )
         embed.add_field(
             name="Precipitation",
-            value=f"{data['precip_mm']} mm ({data['precip_in']} in.)"
+            value=f"{data['precip_mm']} mm ({data['precip_in']} in.)",
         )
         embed.add_field(name="Humidity", value=f"{data['humidity']}%")
         embed.add_field(name="Cloud Coverage", value=f"{data['cloud']}%")
         embed.add_field(
             name="Atmospheric Pressure",
-            value=f"{data['pressure_mb']} mb ({data['pressure_in']} in. Hg)"
+            value=f"{data['pressure_mb']} mb ({data['pressure_in']} in. Hg)",
         )
         embed.add_field(
-            name="Visibility",
-            value=f"{data['vis_km']} km ({data['vis_miles']} mi)"
+            name="Visibility", value=f"{data['vis_km']} km ({data['vis_miles']} mi)"
         )
         embed.add_field(name="UV Index", value=data["uv"])
 
@@ -1413,12 +1428,12 @@ class Web(
         embed = Embed(
             description=resp["extract"],
             colour=0xE3E3E3,
-            timestamp=dt.fromisoformat(resp["timestamp"][:-1]).replace(tzinfo=tz.utc)
+            timestamp=dt.fromisoformat(resp["timestamp"][:-1]).replace(tzinfo=tz.utc),
         )
         embed.set_author(
             name=truncate(resp["title"], 128),
             url=resp["content_urls"]["desktop"]["page"],
-            icon_url="https://w.wiki/3dCP"
+            icon_url="https://w.wiki/3dCP",
         )
         embed.set_footer(text="Powered by Wikipedia \N{BULLET} Last Edited")
 
@@ -1483,10 +1498,7 @@ class Web(
             resp = await ctx.get("https://xkcd.com/info.0.json", cache__=True)
             number = random.randint(405, resp["num"])
 
-        comic = await ctx.get(
-            f"https://xkcd.com/{number}/info.0.json",
-            cache__=True
-        )
+        comic = await ctx.get(f"https://xkcd.com/{number}/info.0.json", cache__=True)
 
         await self.send_formatted_comic_embed(ctx, comic)
 
@@ -1515,7 +1527,7 @@ class Web(
             cache__=True,
             key=self.google_api_key,
             maxResults=1,
-            **channel
+            **channel,
         )
 
         try:
@@ -1534,7 +1546,7 @@ class Web(
         embed = Embed(
             description=snip["localized"]["description"],
             colour=0xFF0000,
-            timestamp=dt.fromisoformat(snip["publishedAt"][:-1]).replace(tzinfo=tz.utc)
+            timestamp=dt.fromisoformat(snip["publishedAt"][:-1]).replace(tzinfo=tz.utc),
         )
 
         id_ = data["id"]
@@ -1546,7 +1558,9 @@ class Web(
         stats = data["statistics"]
 
         if not stats["hiddenSubscriberCount"]:
-            embed.add_field(name="Subscribers", value=human_number(int(stats["subscriberCount"])))
+            embed.add_field(
+                name="Subscribers", value=human_number(int(stats["subscriberCount"]))
+            )
 
         embed.add_field(name="Views", value=f"{int(stats['viewCount']):,d}")
         embed.add_field(name="Videos", value=f"{int(stats['videoCount']):,d}")

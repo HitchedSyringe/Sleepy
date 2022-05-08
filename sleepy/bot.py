@@ -9,9 +9,11 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
+# fmt: off
 __all__ = (
     "Sleepy",
 )
+# fmt: on
 
 
 import logging
@@ -137,8 +139,9 @@ class Sleepy(commands.Bot):
         self.started_at: Optional[datetime] = None
 
         # Cooldown mapping for people who excessively spam commands.
-        self._spam_control: commands.CooldownMapping = \
+        self._spam_control: commands.CooldownMapping = (
             commands.CooldownMapping.from_cooldown(10, 12, commands.BucketType.user)
+        )
 
     @cached_property
     def webhook(self) -> discord.Webhook:
@@ -383,7 +386,7 @@ class Sleepy(commands.Bot):
                 author.id,
                 message.channel,
                 message.channel.id,
-                retry_after
+                retry_after,
             )
             return
 
@@ -404,20 +407,16 @@ class Sleepy(commands.Bot):
         embed = Embed(
             title="Event Handler Error",
             description=f"```py\n{traceback.format_exc()}```",
-            colour=Colour.dark_red()
+            colour=Colour.dark_red(),
         )
         embed.set_author(name=event_method)
 
         embed.add_field(
-            name="Positional Arguments",
-            value=f"```py\n{p_args}```",
-            inline=False
+            name="Positional Arguments", value=f"```py\n{p_args}```", inline=False
         )
 
         embed.add_field(
-            name="Keyword Arguments",
-            value=f"```py\n{k_args}```",
-            inline=False
+            name="Keyword Arguments", value=f"```py\n{k_args}```", inline=False
         )
 
         try:
@@ -446,7 +445,7 @@ class Sleepy(commands.Bot):
             msg = f"Missing required argument: `{error.param.name}`."
             param_match = re.search(
                 fr"<{error.param.name}(?:\.{{3}})?>",
-                f"{ctx.command.qualified_name} {ctx.command.signature}"  # type: ignore
+                f"{ctx.command.qualified_name} {ctx.command.signature}",  # type: ignore
             )
 
             # Command signature may not be in a format we expect.
@@ -465,30 +464,42 @@ class Sleepy(commands.Bot):
             ctx._refund_cooldown_token()
 
             flag = error.flag
-            await ctx.send(f"The `{flag.name}` flag takes a maximum of {flag.max_args} value(s).")
+            await ctx.send(
+                f"The `{flag.name}` flag takes a maximum of {flag.max_args} value(s)."
+            )
         elif isinstance(error, (commands.BadArgument, commands.BadUnionArgument)):
             ctx._refund_cooldown_token()
-            await ctx.send("Bad argument: Please double-check your input arguments and try again.")
+            await ctx.send(
+                "Bad argument: Please double-check your input arguments and try again."
+            )
         elif isinstance(error, commands.ArgumentParsingError):
             ctx._refund_cooldown_token()
             await ctx.send(f"An error occurred while processing your arguments: {error}")
         elif isinstance(error, commands.CommandOnCooldown):
-            await ctx.send(f"You are on cooldown. Try again in **{error.retry_after:.2f}** seconds.")
+            await ctx.send(
+                f"You are on cooldown. Try again in **{error.retry_after:.2f}** seconds."
+            )
         elif isinstance(error, commands.MissingPermissions):
             perms = [
                 p.replace('_', ' ').replace('guild', 'server').title()
                 for p in error.missing_permissions
             ]
 
-            await ctx.send(f"You need the `{human_join(perms)}` permission(s) to use that command.")
+            await ctx.send(
+                f"You need the `{human_join(perms)}` permission(s) to use that command."
+            )
         elif isinstance(error, commands.BotMissingPermissions):
             perms = [
                 p.replace('_', ' ').replace('guild', 'server').title()
                 for p in error.missing_permissions
             ]
 
-            await ctx.send(f"I need the `{human_join(perms)}` permission(s) to execute that command.")
+            await ctx.send(
+                f"I need the `{human_join(perms)}` permission(s) to execute that command."
+            )
         elif isinstance(error, commands.NotOwner):
             await ctx.send("Huh? You're not one of my higher-ups! Scram, skid!")
         elif isinstance(error, HTTPRequestFailed):
-            await ctx.send(f"HTTP request failed with status code {error.status} {error.reason}")
+            await ctx.send(
+                f"HTTP request failed with status code {error.status} {error.reason}"
+            )

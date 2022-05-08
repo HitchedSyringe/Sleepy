@@ -28,19 +28,16 @@ class CannotPerformAction(commands.BadArgument):
 
 
 class BanEntryNotFound(commands.BadArgument):
-
     def __init__(self, argument):
         super().__init__(f'User "{argument}" isn\'t banned.')
 
 
 class ReasonTooLong(commands.BadArgument):
-
     def __init__(self, argument_length, max_length):
         super().__init__(f"Reason is too long. ({argument_length} > {max_length})")
 
 
 class ActionableMember(commands.Converter):
-
     @staticmethod
     async def convert(ctx, argument):
         member = await commands.MemberConverter().convert(ctx, argument)
@@ -52,16 +49,19 @@ class ActionableMember(commands.Converter):
             raise CannotPerformAction("I will not allow you to overthrow the owner.")
 
         if ctx.me.top_role <= member.top_role:
-            raise CannotPerformAction("I can't do this action on that user due to role hierarchy.")
+            raise CannotPerformAction(
+                "I can't do this action on that user due to role hierarchy."
+            )
 
         if ctx.author.top_role <= member.top_role:
-            raise CannotPerformAction("You can't do this action on that user due to role hierarchy.")
+            raise CannotPerformAction(
+                "You can't do this action on that user due to role hierarchy."
+            )
 
         return member
 
 
 class BanEntry(commands.Converter):
-
     @staticmethod
     async def convert(ctx, argument):
         try:
@@ -81,7 +81,6 @@ class BanEntry(commands.Converter):
 
 
 class BannableUser(commands.Converter):
-
     @staticmethod
     async def convert(ctx, argument):
         try:
@@ -93,7 +92,6 @@ class BannableUser(commands.Converter):
 
 
 class Reason(commands.Converter):
-
     @staticmethod
     async def convert(ctx, argument):
         tag = f"{ctx.author} (ID: {ctx.author.id}): "
@@ -111,10 +109,11 @@ class MassbanFlags(commands.FlagConverter):
 
     reason: Reason = commands.flag(
         aliases=("r",),
-        default=lambda ctx: f"{ctx.author} (ID: {ctx.author.id}): No reason provided."
+        default=lambda ctx: f"{ctx.author} (ID: {ctx.author.id}): No reason provided.",
     )
-    delete_message_days: int = \
-        commands.flag(name="delete-message-days", aliases=("dmd",), default=0)
+    delete_message_days: int = commands.flag(
+        name="delete-message-days", aliases=("dmd",), default=0
+    )
 
     startswith: Optional[Tuple[str, ...]] = None
     endswith: Optional[Tuple[str, ...]] = None
@@ -144,13 +143,15 @@ class PurgeFlags(commands.FlagConverter):
     contains: Optional[Tuple[str, ...]] = None
     matches: str = commands.flag(aliases=("regex",), default=None)
 
-    users: Tuple[discord.User, ...] = \
-        commands.flag(name="users", aliases=("user",), default=None)
+    users: Tuple[discord.User, ...] = commands.flag(
+        name="users", aliases=("user",), default=None
+    )
     sent_by_bot: bool = commands.flag(name="sent-by-bot", default=False)
     has_embeds: bool = commands.flag(name="has-embeds", default=False)
     has_emojis: bool = commands.flag(name="has-emojis", default=False)
-    has_attachments: bool = \
-        commands.flag(name="has-attachments", aliases=("has-files",), default=False)
+    has_attachments: bool = commands.flag(
+        name="has-attachments", aliases=("has-files",), default=False
+    )
 
     logical_any: bool = commands.flag(name="any-applies", default=False)
     logical_not: bool = commands.flag(name="invert", default=False)
@@ -193,13 +194,17 @@ class Moderation(commands.Cog):
             before = ctx.message
 
         try:
-            deleted = await ctx.channel.purge(limit=limit, check=check, before=before, after=after)
+            deleted = await ctx.channel.purge(
+                limit=limit, check=check, before=before, after=after
+            )
         except discord.HTTPException:
             await ctx.send("Deleting the messages failed.\nTry again later?")
             return
 
         if deleted:
-            await ctx.send(f"Deleted **{len(deleted)}/{limit}** messages.", delete_after=10)
+            await ctx.send(
+                f"Deleted **{len(deleted)}/{limit}** messages.", delete_after=10
+            )
         else:
             await ctx.send("No messages were deleted.")
 
@@ -219,7 +224,9 @@ class Moderation(commands.Cog):
         failed = 0
         for user in users:
             try:
-                await ctx.guild.ban(user, reason=reason, delete_message_days=delete_message_days)
+                await ctx.guild.ban(
+                    user, reason=reason, delete_message_days=delete_message_days
+                )
             except discord.HTTPException:
                 failed += 1
 
@@ -234,7 +241,7 @@ class Moderation(commands.Cog):
         user: BannableUser,
         delete_message_days: Optional[int] = 0,
         *,
-        reason: Reason = None
+        reason: Reason = None,
     ):
         """Bans a user, optionally deleting *x* days worth of their messages.
 
@@ -254,7 +261,9 @@ class Moderation(commands.Cog):
         ```
         """
         if not 0 <= delete_message_days <= 7:
-            await ctx.send("Days of messages to delete must be between 1 and 7, inclusive.")
+            await ctx.send(
+                "Days of messages to delete must be between 1 and 7, inclusive."
+            )
             return
 
         if reason is None:
@@ -374,7 +383,9 @@ class Moderation(commands.Cog):
         (Bot Needs: Ban Members)
         """
         if not 0 <= options.delete_message_days <= 7:
-            await ctx.send("Days of messages to delete must be between 0 and 7, inclusive.")
+            await ctx.send(
+                "Days of messages to delete must be between 0 and 7, inclusive."
+            )
             return
 
         checks = [
@@ -424,13 +435,23 @@ class Moderation(commands.Cog):
                 await ctx.send("Joined minutes ago must be greater than 0.")
                 return
 
-            checks.append(lambda m: m.joined_at and m.joined_at > now - timedelta(minutes=j_minutes))
+            checks.append(
+                lambda m: m.joined_at and m.joined_at > now - timedelta(minutes=j_minutes)
+            )
 
         if (before := options.joined_before) is not None:
-            checks.append(lambda m: m.joined_at and before.joined_at and m.joined_at < before.joined_at)
+            checks.append(
+                lambda m: m.joined_at
+                and before.joined_at
+                and m.joined_at < before.joined_at
+            )
 
         if (after := options.joined_after) is not None:
-            checks.append(lambda m: m.joined_at and after.joined_at and m.joined_at > after.joined_at)
+            checks.append(
+                lambda m: m.joined_at
+                and after.joined_at
+                and m.joined_at > after.joined_at
+            )
 
         members = [m for m in ctx.guild.members if all(c(m) for c in checks)]
 
@@ -456,7 +477,7 @@ class Moderation(commands.Cog):
             ctx,
             members,
             reason=options.reason,
-            delete_message_days=options.delete_message_days
+            delete_message_days=options.delete_message_days,
         )
 
     @commands.command()
@@ -468,7 +489,7 @@ class Moderation(commands.Cog):
         users: commands.Greedy[BannableUser],
         delete_message_days: Optional[int] = 0,
         *,
-        reason: Reason = None
+        reason: Reason = None,
     ):
         """Bans multiple users, optionally deleting *x* days worth of their messages.
 
@@ -487,7 +508,9 @@ class Moderation(commands.Cog):
         ```
         """
         if not 0 <= delete_message_days <= 7:
-            await ctx.send("Days of messages to delete must be between 1 and 7, inclusive.")
+            await ctx.send(
+                "Days of messages to delete must be between 1 and 7, inclusive."
+            )
             return
 
         if not users:
@@ -497,7 +520,9 @@ class Moderation(commands.Cog):
         if reason is None:
             reason = f"{ctx.author} (ID: {ctx.author.id}): No reason provided."
 
-        await self.do_multi_ban(ctx, users, reason=reason, delete_message_days=delete_message_days)
+        await self.do_multi_ban(
+            ctx, users, reason=reason, delete_message_days=delete_message_days
+        )
 
     @commands.group(aliases=("remove",), invoke_without_command=True)
     @checks.has_permissions(manage_messages=True)
@@ -541,7 +566,7 @@ class Moderation(commands.Cog):
             check=lambda m: (
                 (m.webhook_id is None and m.author.bot)
                 or (prefix is not None and m.content.startswith(prefix))
-            )
+            ),
         )
 
     @purge.command(name="contains")
@@ -568,9 +593,7 @@ class Moderation(commands.Cog):
             await ctx.send("Substrings must be at least 3 characters long.")
         else:
             await self.do_purge_strategy(
-                ctx,
-                limit=amount,
-                check=lambda m: substring in m.content
+                ctx, limit=amount, check=lambda m: substring in m.content
             )
 
     @purge.command(name="custom", aliases=("advanced",), usage="[options...]")
@@ -668,6 +691,7 @@ class Moderation(commands.Cog):
                 checks.append(lambda m: regex.match(m.content))
 
         if checks:
+
             def check(m):
                 func = any if options.logical_any else all
                 result = func(c(m) for c in checks)
@@ -676,6 +700,7 @@ class Moderation(commands.Cog):
                     return not result
 
                 return result
+
         else:
             check = lambda _: True
 
@@ -684,7 +709,7 @@ class Moderation(commands.Cog):
             limit=options.amount,
             check=check,
             before=options.before,
-            after=options.after
+            after=options.after,
         )
 
     @purge.command(name="embeds")
@@ -724,7 +749,7 @@ class Moderation(commands.Cog):
         await self.do_purge_strategy(
             ctx,
             limit=amount,
-            check=lambda m: CUSTOM_EMOJI_REGEX.match(m.content) is not None
+            check=lambda m: CUSTOM_EMOJI_REGEX.match(m.content) is not None,
         )
 
     @purge.command(name="files", aliases=("attachments",))
@@ -766,14 +791,18 @@ class Moderation(commands.Cog):
             await ctx.send("Amount must be between 0 and 2000, inclusive.")
 
         total = 0
-        async for msg in ctx.history(limit=amount, before=ctx.message).filter(lambda m: m.reactions):
+        async for msg in ctx.history(limit=amount, before=ctx.message).filter(
+            lambda m: m.reactions
+        ):
             total += sum(r.count for r in msg.reactions)
             await msg.clear_reactions()
 
         await ctx.send(f"Removed **{plural(total, ',d'):reaction}**.")
 
     @purge.command(name="users", aliases=("user",))
-    async def purge_users(self, ctx, users: commands.Greedy[discord.User], amount: int = 10):
+    async def purge_users(
+        self, ctx, users: commands.Greedy[discord.User], amount: int = 10
+    ):
         """Deletes a user or list of users' messages.
 
         If no amount is specified, then the previous 10
@@ -790,7 +819,9 @@ class Moderation(commands.Cog):
         ```
         """
         if users:
-            await self.do_purge_strategy(ctx, limit=amount, check=lambda m: m.author in users)
+            await self.do_purge_strategy(
+                ctx, limit=amount, check=lambda m: m.author in users
+            )
         else:
             await ctx.send("You must specify at least **1 user** to purge messages for.")
 
@@ -803,7 +834,7 @@ class Moderation(commands.Cog):
         member: BannableUser,
         delete_message_days: Optional[int] = 1,
         *,
-        reason: Reason = None
+        reason: Reason = None,
     ):
         """Softbans a user.
 
@@ -831,13 +862,17 @@ class Moderation(commands.Cog):
         ```
         """
         if not 1 <= delete_message_days <= 7:
-            await ctx.send("Days of messages to delete must be between 1 and 7, inclusive.")
+            await ctx.send(
+                "Days of messages to delete must be between 1 and 7, inclusive."
+            )
             return
 
         if reason is None:
             reason = f"{ctx.author} (ID: {ctx.author.id}): No reason provided."
 
-        await ctx.guild.ban(member, reason=reason, delete_message_days=delete_message_days)
+        await ctx.guild.ban(
+            member, reason=reason, delete_message_days=delete_message_days
+        )
         await ctx.guild.unban(member, reason=reason)
 
         await ctx.send("<a:sapphire_ok_hand:786093988679516160>")

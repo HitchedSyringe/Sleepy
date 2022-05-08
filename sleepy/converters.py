@@ -177,9 +177,7 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
         pass
 
     def _convert_attachment(
-        self,
-        state: ConnectionState,
-        attachment: Attachment
+        self, state: ConnectionState, attachment: Attachment
     ) -> PartialAsset:
         mime = attachment.content_type
 
@@ -307,7 +305,6 @@ def real_float(*, max_decimal_places: Optional[int] = None) -> Callable[[str], f
 # confusing to document properly in addition to
 # the countless ambiguities associated.
 def _pseudo_bool_flag(*names: str) -> Callable[[str], bool]:
-
     def convert(value: str) -> bool:
         if value not in names:
             raise commands.BadArgument("Invalid flag.")
@@ -329,7 +326,7 @@ def _process_attachments(
     command: commands.Command,
     converter: ImageAssetConverter,
     ctx: AnyContext,
-    param: Parameter
+    param: Parameter,
 ) -> Parameter:
     ref = ctx.message.reference
 

@@ -42,8 +42,10 @@ class Covid(
     commands.Cog,
     name="COVID-19",
     command_attrs={
-        "cooldown": commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.member),
-    }
+        "cooldown": commands.CooldownMapping.from_cooldown(
+            1, 5, commands.BucketType.member
+        ),
+    },
 ):
     """Commands related to the COVID-19 pandemic."""
 
@@ -61,7 +63,9 @@ class Covid(
     @staticmethod
     @awaitable
     @measure_performance
-    def plot_historical_data(cases, deaths, recovered, vaccines=None, *, logarithmic=False):
+    def plot_historical_data(
+        cases, deaths, recovered, vaccines=None, *, logarithmic=False
+    ):
         timeline = datestr2num(tuple(cases))
         cases = cases.values()
         deaths = deaths.values()
@@ -81,7 +85,7 @@ class Covid(
             -0.01,
             "*Estimated based on given numbers of cases, deaths, and recoveries.",
             fontsize=7,
-            color="#99AAB5"
+            color="#99AAB5",
         )
 
         fig.text(
@@ -90,7 +94,7 @@ class Covid(
             "\N{COPYRIGHT SIGN} Sleepy 2020-2022",
             fontsize=7,
             color="#99AAB5",
-            ha="right"
+            ha="right",
         )
 
         axes = fig.subplots()
@@ -138,7 +142,7 @@ class Covid(
                     "--",
                     color="#FFDC82",
                     label="Vaccine Doses",
-                    dashes=(6, 2)
+                    dashes=(6, 2),
                 )
         else:
             axes.set_title("COVID-19 Historical Statistics (Linear)", color="white")
@@ -156,10 +160,7 @@ class Covid(
 
                 v_axes.set_frame_on(False)
                 v_axes.set_ylabel(
-                    "Vaccine Doses",
-                    color="#FFDC82",
-                    rotation=270,
-                    va="bottom"
+                    "Vaccine Doses", color="#FFDC82", rotation=270, va="bottom"
                 )
 
                 v_axes.tick_params(axis="y", colors="#FFDC82", labelsize="small")
@@ -173,7 +174,7 @@ class Covid(
                     "--",
                     color="#FFDC82",
                     label="Vaccine Doses",
-                    dashes=(6, 2)
+                    dashes=(6, 2),
                 )
 
                 # Unfortunately, shadowing the original axes object,
@@ -188,7 +189,7 @@ class Covid(
             labelcolor="white",
             facecolor="0.1",
             edgecolor="none",
-            fancybox=False
+            fancybox=False,
         )
 
         buffer = io.BytesIO()
@@ -203,14 +204,14 @@ class Covid(
     @commands.group(
         invoke_without_command=True,
         aliases=("covid", "coronavirus", "corona"),
-        usage="[--logarithmic|--log]"
+        usage="[--logarithmic|--log]",
     )
     @commands.bot_has_permissions(embed_links=True, attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def covid19(
         self,
         ctx,
-        logarithmic: Optional[_pseudo_bool_flag("--log", "--logarithmic")] = False
+        logarithmic: Optional[_pseudo_bool_flag("--log", "--logarithmic")] = False,
     ):
         """Shows detailed global COVID-19 statistics.
 
@@ -223,22 +224,20 @@ class Covid(
         async with ctx.typing():
             latest = await ctx.get(f"{self.BASE}/all", cache__=True)
 
-            hist = await ctx.get(
-                f"{self.BASE}/historical/all?lastdays=all",
-                cache__=True
-            )
+            hist = await ctx.get(f"{self.BASE}/historical/all?lastdays=all", cache__=True)
 
             hist["vaccines"] = await ctx.get(
-                f"{self.BASE}/vaccine/coverage?lastdays=all",
-                cache__=True
+                f"{self.BASE}/vaccine/coverage?lastdays=all", cache__=True
             )
 
-            buffer, delta = await self.plot_historical_data(**hist, logarithmic=logarithmic)
+            buffer, delta = await self.plot_historical_data(
+                **hist, logarithmic=logarithmic
+            )
 
         embed = Embed(
             title="Global COVID-19 Statistics",
             colour=0x2F3136,
-            timestamp=datetime.fromtimestamp(latest["updated"] / 1000, timezone.utc)
+            timestamp=datetime.fromtimestamp(latest["updated"] / 1000, timezone.utc),
         )
         embed.set_footer(text=f"Powered by disease.sh \N{BULLET} Took {delta:.2f} ms.")
         embed.set_image(url="attachment://covid19_graph.png")
@@ -250,42 +249,36 @@ class Covid(
 
         embed.add_field(
             name="Cases",
-            value=f"{latest['cases']:,d} {f'({new_cases:+,d})' if new_cases != 0 else ''}"
+            value=f"{latest['cases']:,d} {f'({new_cases:+,d})' if new_cases != 0 else ''}",
         )
         embed.add_field(name="Tests", value=f"{latest['tests']:,d}")
         embed.add_field(
             name="Deaths",
-            value=f"{latest['deaths']:,d} {f'({new_dead:+,d})' if new_dead != 0 else ''}"
+            value=f"{latest['deaths']:,d} {f'({new_dead:+,d})' if new_dead != 0 else ''}",
         )
         embed.add_field(
-            name="Cases Per Million",
-            value=f"{latest['casesPerOneMillion']:,.2f}"
+            name="Cases Per Million", value=f"{latest['casesPerOneMillion']:,.2f}"
         )
         embed.add_field(
-            name="Tests Per Million",
-            value=f"{latest['testsPerOneMillion']:,.2f}"
+            name="Tests Per Million", value=f"{latest['testsPerOneMillion']:,.2f}"
         )
         embed.add_field(
-            name="Deaths Per Million",
-            value=f"{latest['deathsPerOneMillion']:,.2f}"
+            name="Deaths Per Million", value=f"{latest['deathsPerOneMillion']:,.2f}"
         )
         embed.add_field(
             name="Recovered",
-            value=f"{latest['recovered']:,d} {f'({new_recover:+,d})' if new_recover != 0 else ''}"
+            value=f"{latest['recovered']:,d} {f'({new_recover:+,d})' if new_recover != 0 else ''}",
         )
         embed.add_field(name="Active Cases", value=f"{latest['active']:,d}")
         embed.add_field(name="Critical Cases", value=f"{latest['critical']:,d}")
         embed.add_field(
-            name="Recovered Per Million",
-            value=f"{latest['recoveredPerOneMillion']:,.2f}"
+            name="Recovered Per Million", value=f"{latest['recoveredPerOneMillion']:,.2f}"
         )
         embed.add_field(
-            name="Active Per Million",
-            value=f"{latest['activePerOneMillion']:,.2f}"
+            name="Active Per Million", value=f"{latest['activePerOneMillion']:,.2f}"
         )
         embed.add_field(
-            name="Critical Per Million",
-            value=f"{latest['criticalPerOneMillion']:,.2f}"
+            name="Critical Per Million", value=f"{latest['criticalPerOneMillion']:,.2f}"
         )
         embed.add_field(name="Population", value=f"{latest['population']:,d}")
         embed.add_field(name="Affected Countries", value=latest['affectedCountries'])
@@ -299,7 +292,7 @@ class Covid(
         ctx,
         logarithmic: Optional[_pseudo_bool_flag("--log", "--logarithmic")] = False,
         *,
-        country: clean_input
+        country: clean_input,
     ):
         """Shows detailed COVID-19 statistics for a country.
 
@@ -318,8 +311,7 @@ class Covid(
         async with ctx.typing():
             try:
                 latest = await ctx.get(
-                    f"{self.BASE}/countries/{quote(country)}",
-                    cache__=True
+                    f"{self.BASE}/countries/{quote(country)}", cache__=True
                 )
             except HTTPRequestFailed as exc:
                 if exc.status == 404:
@@ -332,8 +324,7 @@ class Covid(
 
             try:
                 hist = await ctx.get(
-                    f"{self.BASE}/historical/{country}?lastdays=all",
-                    cache__=True
+                    f"{self.BASE}/historical/{country}?lastdays=all", cache__=True
                 )
             except HTTPRequestFailed:
                 # Either worldometers has data on a country that jhucsse
@@ -356,12 +347,14 @@ class Covid(
                 else:
                     hist["vaccines"] = v_hist["timeline"]
 
-                buffer, delta = await self.plot_historical_data(**hist, logarithmic=logarithmic)
+                buffer, delta = await self.plot_historical_data(
+                    **hist, logarithmic=logarithmic
+                )
 
         embed = Embed(
             title=f"{country} COVID-19 Statistics",
             colour=0x2F3136,
-            timestamp=datetime.fromtimestamp(latest["updated"] / 1000, timezone.utc)
+            timestamp=datetime.fromtimestamp(latest["updated"] / 1000, timezone.utc),
         )
         embed.set_thumbnail(url=latest["countryInfo"]["flag"])
 
@@ -371,48 +364,44 @@ class Covid(
 
         embed.add_field(
             name="Cases",
-            value=f"{latest['cases']:,d} {f'({new_cases:+,d})' if new_cases != 0 else ''}"
+            value=f"{latest['cases']:,d} {f'({new_cases:+,d})' if new_cases != 0 else ''}",
         )
         embed.add_field(name="Tests", value=f"{latest['tests']:,d}")
         embed.add_field(
             name="Deaths",
-            value=f"{latest['deaths']:,d} {f'({new_dead:+,d})' if new_dead != 0 else ''}"
+            value=f"{latest['deaths']:,d} {f'({new_dead:+,d})' if new_dead != 0 else ''}",
         )
         embed.add_field(
-            name="Cases Per Million",
-            value=f"{latest['casesPerOneMillion']:,.2f}"
+            name="Cases Per Million", value=f"{latest['casesPerOneMillion']:,.2f}"
         )
         embed.add_field(
-            name="Tests Per Million",
-            value=f"{latest['testsPerOneMillion']:,.2f}"
+            name="Tests Per Million", value=f"{latest['testsPerOneMillion']:,.2f}"
         )
         embed.add_field(
-            name="Deaths Per Million",
-            value=f"{latest['deathsPerOneMillion']:,.2f}"
+            name="Deaths Per Million", value=f"{latest['deathsPerOneMillion']:,.2f}"
         )
         embed.add_field(
             name="Recovered",
-            value=f"{latest['recovered']:,d} {f'({new_recover:+,d})' if new_recover != 0 else ''}"
+            value=f"{latest['recovered']:,d} {f'({new_recover:+,d})' if new_recover != 0 else ''}",
         )
         embed.add_field(name="Active Cases", value=f"{latest['active']:,d}")
         embed.add_field(name="Critical Cases", value=f"{latest['critical']:,d}")
         embed.add_field(
-            name="Recovered Per Million",
-            value=f"{latest['recoveredPerOneMillion']:,.2f}"
+            name="Recovered Per Million", value=f"{latest['recoveredPerOneMillion']:,.2f}"
         )
         embed.add_field(
-            name="Active Per Million",
-            value=f"{latest['activePerOneMillion']:,.2f}"
+            name="Active Per Million", value=f"{latest['activePerOneMillion']:,.2f}"
         )
         embed.add_field(
-            name="Critical Per Million",
-            value=f"{latest['criticalPerOneMillion']:,.2f}"
+            name="Critical Per Million", value=f"{latest['criticalPerOneMillion']:,.2f}"
         )
         embed.add_field(name="Population", value=f"{latest['population']:,d}")
         embed.add_field(name="Continent", value=latest['continent'] or "N/A")
 
         if buffer is not None:
-            embed.set_footer(text=f"Powered by disease.sh \N{BULLET} Took {delta:.2f} ms.")
+            embed.set_footer(
+                text=f"Powered by disease.sh \N{BULLET} Took {delta:.2f} ms."
+            )
             embed.set_image(url="attachment://covid19_graph.png")
             await ctx.send(embed=embed, file=File(buffer, filename="covid19_graph.png"))
         else:
@@ -449,7 +438,7 @@ class Covid(
         embed = Embed(
             title="COVID-19 Statistics",
             colour=0x2F3136,
-            timestamp=datetime.fromtimestamp(latest["updated"] / 1000, timezone.utc)
+            timestamp=datetime.fromtimestamp(latest["updated"] / 1000, timezone.utc),
         )
         embed.set_footer(text="Powered by disease.sh")
 
@@ -458,7 +447,7 @@ class Covid(
 
         embed.set_author(
             name=name,
-            icon_url=f"https://cdn.civil.services/us-states/flags/{name_url}-large.png"
+            icon_url=f"https://cdn.civil.services/us-states/flags/{name_url}-large.png",
         )
         embed.set_thumbnail(
             url=f"https://cdn.civil.services/us-states/seals/{name_url}-large.png"
@@ -469,24 +458,21 @@ class Covid(
 
         embed.add_field(
             name="Cases",
-            value=f"{latest['cases']:,d} {f'({new_cases:+,d})' if new_cases != 0 else ''}"
+            value=f"{latest['cases']:,d} {f'({new_cases:+,d})' if new_cases != 0 else ''}",
         )
         embed.add_field(name="Tests", value=f"{latest['tests']:,d}")
         embed.add_field(
             name="Deaths",
-            value=f"{latest['deaths']:,d} {f'({new_dead:+,d})' if new_dead != 0 else ''}"
+            value=f"{latest['deaths']:,d} {f'({new_dead:+,d})' if new_dead != 0 else ''}",
         )
         embed.add_field(
-            name="Cases Per Million",
-            value=f"{latest['casesPerOneMillion']:,.2f}"
+            name="Cases Per Million", value=f"{latest['casesPerOneMillion']:,.2f}"
         )
         embed.add_field(
-            name="Tests Per Million",
-            value=f"{latest['testsPerOneMillion']:,.2f}"
+            name="Tests Per Million", value=f"{latest['testsPerOneMillion']:,.2f}"
         )
         embed.add_field(
-            name="Deaths Per Million",
-            value=f"{latest['deathsPerOneMillion']:,.2f}"
+            name="Deaths Per Million", value=f"{latest['deathsPerOneMillion']:,.2f}"
         )
         embed.add_field(name="Recovered", value=f"{latest['recovered']:,d}")
         embed.add_field(name="Active Cases", value=f"{latest['active']:,d}")

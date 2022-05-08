@@ -115,12 +115,7 @@ class plural:
 
     __slots__: Tuple[str, ...] = ("__value", "__value_fmt")
 
-    def __init__(
-        self,
-        value: float,
-        /,
-        value_format_spec: Optional[str] = None
-    ) -> None:
+    def __init__(self, value: float, /, value_format_spec: Optional[str] = None) -> None:
         if not isinstance(value, (int, float)):
             raise TypeError(f"Expected value to be int or float, not {type(value)!r}.")
 
@@ -239,7 +234,7 @@ def human_delta(
     /,
     *,
     brief: bool = False,
-    absolute: bool = False
+    absolute: bool = False,
 ) -> str:
     """Humanizes the delta between two given datetimes.
 
@@ -434,7 +429,7 @@ def human_number(
     sigfigs: Optional[int] = 3,
     *,
     strip_trailing_zeroes: bool = True,
-    suffixes: Sequence[str] = "\u200bKMBTPEZY"
+    suffixes: Sequence[str] = "\u200bKMBTPEZY",
 ):
     r"""Humanizes a given number.
 
@@ -539,7 +534,9 @@ def measure_performance(func: Callable[_P, _RT]) -> Callable[_P, Tuple[_RT, floa
 
 
 @overload
-def measure_performance(func: Awaitable[_RT]) -> Callable[_P, Awaitable[Tuple[_RT, float]]]:
+def measure_performance(
+    func: Awaitable[_RT],
+) -> Callable[_P, Awaitable[Tuple[_RT, float]]]:
     ...
 
 
@@ -701,9 +698,7 @@ def randint(a: int, b: int, /, *, seed: Optional[Any] = None) -> int:
 
 
 def tchart(
-    items: Mapping[Any, Any],
-    /,
-    keys_formatter: Optional[Callable[[Any], str]] = None
+    items: Mapping[Any, Any], /, keys_formatter: Optional[Callable[[Any], str]] = None
 ) -> str:
     """Renders a T-Chart.
 
@@ -812,4 +807,4 @@ def truncate(text: str, /, width: int, *, placeholder: str = "...") -> str:
     if len(text) < width:
         return text
 
-    return text[:width - placeholder_length].rstrip() + placeholder
+    return text[: width - placeholder_length].rstrip() + placeholder

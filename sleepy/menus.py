@@ -65,35 +65,25 @@ class EmbedSource(ListPageSource):
           to send multiple embeds per message.
     """
 
-    def __init__(
-        self,
-        entries: Sequence[discord.Embed],
-        /,
-        *,
-        per_page: int = 1
-    ) -> None:
+    def __init__(self, entries: Sequence[discord.Embed], /, *, per_page: int = 1) -> None:
         super().__init__(entries, per_page=per_page)
 
     @overload
     async def format_page(
-        self,
-        menu: Union[PaginationView, MenuPages],
-        page: discord.Embed
+        self, menu: Union[PaginationView, MenuPages], page: discord.Embed
     ) -> discord.Embed:
         ...
 
     @overload
     async def format_page(
-        self,
-        menu: Union[PaginationView, MenuPages],
-        page: Sequence[discord.Embed]
+        self, menu: Union[PaginationView, MenuPages], page: Sequence[discord.Embed]
     ) -> Dict[str, Any]:
         ...
 
     async def format_page(
         self,
         menu: Union[PaginationView, MenuPages],
-        page: Union[discord.Embed, Sequence[discord.Embed]]
+        page: Union[discord.Embed, Sequence[discord.Embed]],
     ) -> Union[discord.Embed, Dict[str, Any]]:
         return {"embeds": page} if self.per_page > 1 else page  # type: ignore
 
@@ -128,11 +118,7 @@ class PaginatorSource(ListPageSource):
 
         super().__init__(paginator.pages, per_page=1)
 
-    async def format_page(
-        self,
-        menu: Union[PaginationView, MenuPages],
-        page: str
-    ) -> str:
+    async def format_page(self, menu: Union[PaginationView, MenuPages], page: str) -> str:
         return page
 
 
@@ -178,7 +164,7 @@ class BaseView(View):
         *,
         timeout: Optional[float] = 180,
         owner_id: Optional[int] = None,
-        owner_ids: Optional[Collection[int]] = None
+        owner_ids: Optional[Collection[int]] = None,
     ) -> None:
         super().__init__(timeout=timeout)
 
@@ -219,7 +205,9 @@ class BaseView(View):
             return False
 
         if not self.can_use_menu(itn.user):
-            await itn.response.send_message("You can't use this menu. Sorry.", ephemeral=True)
+            await itn.response.send_message(
+                "You can't use this menu. Sorry.", ephemeral=True
+            )
             return False
 
         return True
@@ -252,8 +240,10 @@ class BotLinksView(View):
 
         self.buttons = buttons = (
             Button(label="Invite me!", emoji="\N{INBOX TRAY}", url=invite),
-            Button(label="Server", emoji="<:dc:871952362175086624>", url=DISCORD_SERVER_URL),
-            Button(label="GitHub", emoji="<:gh:871952362019901502>", url=GITHUB_URL)
+            Button(
+                label="Server", emoji="<:dc:871952362175086624>", url=DISCORD_SERVER_URL
+            ),
+            Button(label="GitHub", emoji="<:gh:871952362019901502>", url=GITHUB_URL),
         )
 
         for button in buttons:
@@ -365,7 +355,7 @@ class PaginationView(BaseView):
         delete_message_when_stopped: bool = False,
         remove_view_after: bool = False,
         disable_view_after: bool = True,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
 
@@ -442,7 +432,7 @@ class PaginationView(BaseView):
         action: Callable[..., Awaitable[discord.Message]],
         *,
         wait: bool,
-        mention_author: Optional[bool] = None
+        mention_author: Optional[bool] = None,
     ) -> discord.Message:
         await self._source._prepare_once()
 
@@ -482,7 +472,7 @@ class PaginationView(BaseView):
         message: discord.Message,
         *,
         mention_author: Optional[bool] = None,
-        wait: bool = False
+        wait: bool = False,
     ) -> discord.Message:
         """|coro|
 
@@ -513,10 +503,7 @@ class PaginationView(BaseView):
         return await self._start(message.reply, wait=wait, mention_author=mention_author)
 
     async def attach_to(
-        self,
-        message: discord.Message,
-        *,
-        wait: bool = False
+        self, message: discord.Message, *, wait: bool = False
     ) -> discord.Message:
         """|coro|
 
@@ -542,10 +529,7 @@ class PaginationView(BaseView):
         return await self._start(message.edit, wait=wait)
 
     async def send_to(
-        self,
-        destination: discord.abc.Messageable,
-        *,
-        wait: bool = False
+        self, destination: discord.abc.Messageable, *, wait: bool = False
     ) -> discord.Message:
         """|coro|
 
@@ -571,9 +555,7 @@ class PaginationView(BaseView):
         return await self._start(destination.send, wait=wait)
 
     async def change_source(
-        self,
-        source: PageSource,
-        interaction: Optional[discord.Interaction] = None
+        self, source: PageSource, interaction: Optional[discord.Interaction] = None
     ) -> None:
         """|coro|
 
@@ -621,9 +603,7 @@ class PaginationView(BaseView):
         await self.show_page(0, interaction)
 
     async def show_page(
-        self,
-        page_number: int,
-        interaction: Optional[discord.Interaction] = None
+        self, page_number: int, interaction: Optional[discord.Interaction] = None
     ) -> None:
         """|coro|
 
@@ -671,9 +651,7 @@ class PaginationView(BaseView):
             await interaction.response.edit_message(**kwargs, view=self)
 
     async def show_checked_page(
-        self,
-        page_number: int,
-        interaction: Optional[discord.Interaction] = None
+        self, page_number: int, interaction: Optional[discord.Interaction] = None
     ) -> None:
         """|coro|
 
@@ -720,11 +698,15 @@ class PaginationView(BaseView):
         except discord.HTTPException:
             pass
 
-    async def on_error(self, itn: discord.Interaction, item: Item, error: Exception) -> None:
+    async def on_error(
+        self, itn: discord.Interaction, item: Item, error: Exception
+    ) -> None:
         if itn.response.is_done():
             await itn.followup.send("Sorry, but something went wrong.", ephemeral=True)
         else:
-            await itn.response.send_message("Sorry, but something went wrong.", ephemeral=True)
+            await itn.response.send_message(
+                "Sorry, but something went wrong.", ephemeral=True
+            )
 
     @button(emoji="<:rrwnd:862379040802865182>")
     async def first_page(self, itn: discord.Interaction, button: Button) -> None:
@@ -737,7 +719,9 @@ class PaginationView(BaseView):
     @button(style=discord.ButtonStyle.primary, disabled=True)
     async def page_number(self, itn: discord.Interaction, button: Button) -> None:
         if self._lock.locked():
-            await itn.response.send_message("I'm already awaiting your response.", ephemeral=True)
+            await itn.response.send_message(
+                "I'm already awaiting your response.", ephemeral=True
+            )
             return
 
         async with self._lock:
@@ -746,7 +730,9 @@ class PaginationView(BaseView):
             if old_timeout is not None:
                 self.timeout = old_timeout + 35
 
-            await itn.response.send_message("Type the page number to jump to.", ephemeral=True)
+            await itn.response.send_message(
+                "Type the page number to jump to.", ephemeral=True
+            )
 
             def page_check(m: discord.Message) -> bool:
                 return (
@@ -765,7 +751,9 @@ class PaginationView(BaseView):
                 message = await self.bot.wait_for("message", check=page_check, timeout=30)
             except asyncio.TimeoutError:
                 if not self.is_finished():
-                    await itn.followup.send("You took too long to respond.", ephemeral=True)
+                    await itn.followup.send(
+                        "You took too long to respond.", ephemeral=True
+                    )
                     await asyncio.sleep(5)
 
                 return

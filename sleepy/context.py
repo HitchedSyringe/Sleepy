@@ -9,9 +9,11 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
+# fmt: off
 __all__ = (
     "Context",
 )
+# fmt: on
 
 
 import asyncio
@@ -69,13 +71,7 @@ class Context(commands.Context["Sleepy"]):
         return None
 
     async def request(
-        self,
-        method: str,
-        url: RequestUrl,
-        /,
-        *,
-        cache__: bool = False,
-        **options: Any
+        self, method: str, url: RequestUrl, /, *, cache__: bool = False, **options: Any
     ) -> HTTPResponseData:
         """|coro|
 
@@ -86,15 +82,12 @@ class Context(commands.Context["Sleepy"]):
         .. versionchanged:: 3.0
             ``method`` and ``url`` are now positional-only arguments.
         """
-        return await self.bot.http_requester.request(method, url, cache__=cache__, **options)
+        return await self.bot.http_requester.request(
+            method, url, cache__=cache__, **options
+        )
 
     async def get(
-        self,
-        url: RequestUrl,
-        /,
-        *,
-        cache__: bool = False,
-        **options: Any
+        self, url: RequestUrl, /, *, cache__: bool = False, **options: Any
     ) -> HTTPResponseData:
         """|coro|
 
@@ -108,12 +101,7 @@ class Context(commands.Context["Sleepy"]):
         return await self.request("GET", url, cache__=cache__, **options)
 
     async def post(
-        self,
-        url: RequestUrl,
-        /,
-        *,
-        cache__: bool = False,
-        **options: Any
+        self, url: RequestUrl, /, *, cache__: bool = False, **options: Any
     ) -> HTTPResponseData:
         """|coro|
 
@@ -135,7 +123,7 @@ class Context(commands.Context["Sleepy"]):
         remove_view_after: bool = False,
         disable_view_after: bool = True,
         wait: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> discord.Message:
         """|coro|
 
@@ -206,7 +194,7 @@ class Context(commands.Context["Sleepy"]):
             remove_view_after=remove_view_after,
             disable_view_after=disable_view_after,
             owner_ids={self.author.id, self.bot.owner_id, *self.bot.owner_ids},  # type: ignore
-            **kwargs
+            **kwargs,
         )
 
         return await view.send_to(self, wait=wait)
@@ -219,7 +207,7 @@ class Context(commands.Context["Sleepy"]):
         delete_message_on_interact: bool = True,
         remove_view_after: bool = False,
         disable_view_after: bool = True,
-        timeout: Optional[float] = 30
+        timeout: Optional[float] = 30,
     ) -> Optional[bool]:
         """|coro|
 
@@ -291,7 +279,7 @@ class Context(commands.Context["Sleepy"]):
         """
         view = ConfirmationView(
             owner_ids={self.author.id, self.bot.owner_id, *self.bot.owner_ids},  # type: ignore
-            timeout=timeout
+            timeout=timeout,
         )
 
         if isinstance(message, discord.Message):
@@ -322,7 +310,7 @@ class Context(commands.Context["Sleepy"]):
         /,
         formatter: Optional[Callable[[Any], str]] = None,
         *,
-        timeout: Optional[float] = 30
+        timeout: Optional[float] = 30,
     ) -> Any:
         """|coro|
 
@@ -407,7 +395,9 @@ class Context(commands.Context["Sleepy"]):
             try:
                 return matches[int(message.content) - 1]
             except IndexError:
-                await self.send(f"Invalid option. {plural(2 - attempt):try|tries} remaining.")
+                await self.send(
+                    f"Invalid option. {plural(2 - attempt):try|tries} remaining."
+                )
 
         raise ValueError("Too many invalid attempts. Aborting...")
 
@@ -416,7 +406,7 @@ class Context(commands.Context["Sleepy"]):
         *,
         author: Optional[Union[discord.Member, discord.User]] = None,
         channel: Optional[MessageableChannel] = None,
-        **properties: Any
+        **properties: Any,
     ) -> "Context":
         """|coro|
 

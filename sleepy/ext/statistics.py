@@ -30,7 +30,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class GatewayWebhookHandler(logging.Handler):
-
     def __init__(self, bot):
         super().__init__(logging.INFO)
 
@@ -62,7 +61,7 @@ class GatewayWebhookHandler(logging.Handler):
         await self._webhook.send(
             textwrap.shorten(f"{lvl} [{fmt_dt(created, 'F')}] `{rec.message}`", 2000),
             username="Gateway Status",
-            avatar_url="https://i.imgur.com/4PnCKB3.png"
+            avatar_url="https://i.imgur.com/4PnCKB3.png",
         )
 
     def filter(self, record):
@@ -79,10 +78,13 @@ class GatewayWebhookHandler(logging.Handler):
 class Statistics(
     commands.Cog,
     command_attrs={
-        "cooldown": commands.CooldownMapping.from_cooldown(2, 3, commands.BucketType.member),
-    }
+        "cooldown": commands.CooldownMapping.from_cooldown(
+            2, 3, commands.BucketType.member
+        ),
+    },
 ):
     """Commands having to do with statistics about me."""
+
     # ...also responsible for some logging & error handling stuff.
 
     ICON = "\N{BAR CHART}"
@@ -145,7 +147,7 @@ class Statistics(
                 f"\n\N{BLACK DIAMOND} **Created:** {fmt_dt(guild.created_at, 'R')}"
                 f"\n\N{BLACK DIAMOND} **Shard ID:** {guild.shard_id or 'N/A'}"
             ),
-            timestamp=datetime.now(timezone.utc)
+            timestamp=datetime.now(timezone.utc),
         )
         embed.set_author(name=guild)
         embed.set_thumbnail(url=guild.icon)
@@ -159,8 +161,8 @@ class Statistics(
                 embed.add_field(
                     name="\N{WARNING SIGN} Potential Bot Farm Alert \N{WARNING SIGN}",
                     value="__Heads up! This server could be a bot farm.__"
-                          "\nThis server was automatically flagged due to bots making"
-                          f" up around **{bot_percentage:.2%}** of its membership.",
+                    "\nThis server was automatically flagged due to bots making"
+                    f" up around **{bot_percentage:.2%}** of its membership.",
                 )
             else:
                 embed.colour = 0x36BF38
@@ -198,7 +200,7 @@ class Statistics(
             ctx.channel,
             ctx.channel.id,
             ctx.message.content,
-            exc_info=error
+            exc_info=error,
         )
 
         tb = traceback.format_exception(None, error, error.__traceback__, 4)
@@ -206,7 +208,7 @@ class Statistics(
         embed = Embed(
             title="Command Error",
             description=f"```py\n{''.join(tb)}```",
-            colour=Colour.red()
+            colour=Colour.red(),
         )
         embed.set_footer(text=f"Sent from: {ctx.channel} (ID: {ctx.channel.id})")
 
@@ -215,7 +217,7 @@ class Statistics(
         embed.add_field(
             name="Content",
             value=textwrap.shorten(ctx.message.content, width=512),
-            inline=False
+            inline=False,
         )
 
         await self.bot.webhook.send(embed=embed)
@@ -261,7 +263,7 @@ class Statistics(
         """
         embed = Embed(
             description=ctx.bot.description or ctx.bot.app_info.description,
-            colour=0x2F3136
+            colour=0x2F3136,
         )
         embed.set_author(name=ctx.me)
         embed.set_thumbnail(url=ctx.me.display_avatar.with_format("png"))
@@ -280,7 +282,7 @@ class Statistics(
                 f" \N{BULLET} <:sc:828149291750785055> {self.total_stage:,d}"
                 f"\n<:ar:862433028088135711> **Members:** {self.total_members:,d}"
                 f" ({len(ctx.bot.users):,d} unique)"
-            )
+            ),
         )
         embed.add_field(
             name="Technical Information",
@@ -297,7 +299,7 @@ class Statistics(
                 f"\n<:ar:862433028088135711> **Extensions:** {len(ctx.bot.extensions)}"
                 f"\n<:ar:862433028088135711> **Shards:** {ctx.bot.shard_count or 'N/A'}"
             ),
-            inline=False
+            inline=False,
         )
 
         await ctx.send(embed=embed, view=BotLinksView(ctx.me.id))
@@ -316,7 +318,7 @@ class Statistics(
         embed = Embed(
             title="Health Diagnosis",
             colour=Colour.green(),
-            timestamp=datetime.now(timezone.utc)
+            timestamp=datetime.now(timezone.utc),
         )
 
         spammers = [e for e, b in ctx.bot._spam_control._cache.items() if b._tokens == 0]
@@ -325,7 +327,7 @@ class Statistics(
             embed.add_field(
                 name=f"Spammers \N{BULLET} {len(spammers)}",
                 value="\n".join(spammers) or "None",
-                inline=False
+                inline=False,
             )
             embed.colour = Colour.orange()
 
@@ -358,7 +360,7 @@ class Statistics(
             embed.add_field(
                 name=f"Failed Internal Tasks \N{BULLET} {len(bad_internal)}",
                 value=', '.join(bad_internal),
-                inline=False
+                inline=False,
             )
             embed.colour = Colour.orange()
 

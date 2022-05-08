@@ -76,10 +76,9 @@ def do_blurpify(image_buffer, /, *, use_rebrand=False):
 
         frames = [
             ImageOps.colorize(
-                ImageEnhance.Contrast(f.convert("L")).enhance(1000),
-                blurple,
-                "white"
-            ) for f in ImageSequence.Iterator(image)
+                ImageEnhance.Contrast(f.convert("L")).enhance(1000), blurple, "white"
+            )
+            for f in ImageSequence.Iterator(image)
         ]
 
     buffer = io.BytesIO()
@@ -89,11 +88,7 @@ def do_blurpify(image_buffer, /, *, use_rebrand=False):
         buffer.name = "blurplefied.png"
     else:
         frames[0].save(
-            buffer,
-            "gif",
-            save_all=True,
-            optimize=True,
-            append_images=frames[1:]
+            buffer, "gif", save_all=True, optimize=True, append_images=frames[1:]
         )
         buffer.name = "blurplefied.gif"
 
@@ -126,11 +121,7 @@ def do_deepfry(image_buffer, /):
         buffer.name = "deepfried.jpeg"
     else:
         frames[0].save(
-            buffer,
-            "gif",
-            save_all=True,
-            optimize=True,
-            append_images=frames[1:]
+            buffer, "gif", save_all=True, optimize=True, append_images=frames[1:]
         )
         buffer.name = "deepfried.gif"
 
@@ -176,10 +167,7 @@ def do_lensflare_eyes(image_buffer, /, *, colour=None):
         image = image.convert("RGBA")
 
     eyes = HAAR_EYES.detectMultiScale(
-        cv2.cvtColor(np.asarray(image), cv2.COLOR_RGBA2GRAY),
-        1.3,
-        5,
-        minSize=(24, 24)
+        cv2.cvtColor(np.asarray(image), cv2.COLOR_RGBA2GRAY), 1.3, 5, minSize=(24, 24)
     )
 
     if len(eyes) == 0:
@@ -218,7 +206,7 @@ def do_swirl(image_buffer, /, *, intensity=1):
             np.asarray(image.convert("RGBA")),
             strength=intensity,
             radius=image.height / 2,
-            preserve_range=True
+            preserve_range=True,
         ).astype(np.uint8)
 
     cv2.cvtColor(image, cv2.COLOR_RGBA2BGRA, image)
@@ -235,13 +223,7 @@ def make_axios_interview_meme(text, /):
         text = wrap_text(text, font, width=650)
         text_layer = Image.new("RGBA", get_accurate_text_size(font, text))
 
-        ImageDraw.Draw(text_layer).text(
-            (0, 0),
-            text,
-            "black",
-            font,
-            align="center"
-        )
+        ImageDraw.Draw(text_layer).text((0, 0), text, "black", font, align="center")
 
         text_layer = text_layer.rotate(-12.5, expand=True)
 
@@ -250,7 +232,7 @@ def make_axios_interview_meme(text, /):
         template.paste(
             text_layer,
             (530 - text_layer.width // 2, 1000 - text_layer.height // 2),
-            text_layer
+            text_layer,
         )
 
         buffer = io.BytesIO()
@@ -271,9 +253,7 @@ def make_captcha(image_buffer, text, /):
             binder.paste(image.convert("RGB").resize((386, 386)), (5, 127))
 
         ImageDraw.Draw(template).text(
-            (29, 46),
-            text,
-            font=ImageFont.truetype(str(FONTS / "Roboto-Black.ttf"), 28)
+            (29, 46), text, font=ImageFont.truetype(str(FONTS / "Roboto-Black.ttf"), 28)
         )
 
         binder.paste(template, template)
@@ -296,13 +276,7 @@ def make_change_my_mind_meme(text, /):
         text = wrap_text(text, font, width=620)
         text_layer = Image.new("RGBA", get_accurate_text_size(font, text))
 
-        ImageDraw.Draw(text_layer).text(
-            (0, 0),
-            text,
-            "black",
-            font,
-            align="center"
-        )
+        ImageDraw.Draw(text_layer).text((0, 0), text, "black", font, align="center")
 
         # We want to center the text around a desired point.
         # Since the image placement is relative to the upper
@@ -343,7 +317,7 @@ def make_change_my_mind_meme(text, /):
 
         template.alpha_composite(
             text_layer.rotate(22.5, expand=True),
-            (1245 - hyp_length // 2, 983 - int(hyp_length * 0.383))
+            (1245 - hyp_length // 2, 983 - int(hyp_length * 0.383)),
         )
 
         buffer = io.BytesIO()
@@ -368,14 +342,9 @@ def make_clyde_message(text, /, *, use_rebrand=False):
             (209, 4),
             datetime.now(timezone.utc).strftime("%H:%M"),
             (114, 118, 125),
-            font.font_variant(size=14)
+            font.font_variant(size=14),
         )
-        draw.text(
-            (74, 25),
-            wrap_text(text, font, width=745),
-            (220, 221, 222),
-            font
-        )
+        draw.text((74, 25), wrap_text(text, font, width=745), (220, 221, 222), font)
 
         buffer = io.BytesIO()
 
@@ -398,36 +367,20 @@ def make_dalgona(image_buffer, /):
     contours, _ = cv2.findContours(
         cv2.Canny(grey, int(max(0, 0.67 * med)), int(min(255, 1.33 * med))),
         cv2.RETR_EXTERNAL,
-        cv2.CHAIN_APPROX_NONE
+        cv2.CHAIN_APPROX_NONE,
     )
 
     # Annoyingly, we'll have to convert the greyscale
     # image to a zeros array twice since the array is
     # modified internally by the following two draw
     # operations for whatever reason.
-    edges = cv2.drawContours(
-        np.zeros_like(grey),
-        contours,
-        -1,
-        255,
-        2,
-        cv2.LINE_AA
-    )
+    edges = cv2.drawContours(np.zeros_like(grey), contours, -1, 255, 2, cv2.LINE_AA)
 
     # Desired coordinates and axes for the ellipses.
     mid = (size[0] // 2, size[1] // 2)
     axes = (mid[0] - 2, mid[1] - 2)
 
-    mask = cv2.ellipse(
-        np.zeros_like(grey),
-        mid,
-        axes,
-        0,
-        0,
-        360,
-        255,
-        -1
-    )
+    mask = cv2.ellipse(np.zeros_like(grey), mid, axes, 0, 0, 360, 255, -1)
 
     outline = cv2.bitwise_and(edges, edges, mask=mask)
 
@@ -435,17 +388,7 @@ def make_dalgona(image_buffer, /):
     # the result look somewhat decent since there isn't
     # really anything I can do about stray lines that
     # come up during the canny process.
-    cv2.ellipse(
-        outline,
-        mid,
-        axes,
-        0,
-        0,
-        360,
-        255,
-        2,
-        cv2.LINE_AA
-    )
+    cv2.ellipse(outline, mid, axes, 0, 0, 360, 255, 2, cv2.LINE_AA)
 
     image = Image.new("RGB", size, (145, 129, 76))
     image.putalpha(Image.fromarray(outline))
@@ -498,10 +441,7 @@ def make_live_tucker_reaction_meme(image_buffer, /):
             blur = cv2.blur(np.asarray(result.resize(t_size)), (25, 25))
             blur = Image.fromarray(blur)
 
-            center = (
-                (t_size[0] - result.width) // 2,
-                (t_size[1] - result.height) // 2
-            )
+            center = ((t_size[0] - result.width) // 2, (t_size[1] - result.height) // 2)
 
             blur.alpha_composite(result, center)
             result = blur
@@ -534,7 +474,7 @@ def make_palette(image_buffer, /):
         None,
         (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0),
         10,
-        cv2.KMEANS_RANDOM_CENTERS
+        cv2.KMEANS_RANDOM_CENTERS,
     )
 
     # Construct a histogram using the labels to find the
@@ -567,7 +507,7 @@ def make_palette(image_buffer, /):
             text,
             font=font,
             stroke_fill=colour,
-            stroke_width=1
+            stroke_width=1,
         )
 
         end = start + int(percent * 500) + 1
@@ -595,10 +535,7 @@ def make_pointing_soyjaks_meme(image_buffer, /):
 
         # Replace any transparency with white.
         if image.getextrema()[3][0] < 255:
-            image = Image.alpha_composite(
-                Image.new("RGBA", image.size, "white"),
-                image
-            )
+            image = Image.alpha_composite(Image.new("RGBA", image.size, "white"), image)
 
         image = ImageOps.pad(image, template.size, color="white")
         image.alpha_composite(template)
@@ -652,16 +589,11 @@ def make_roblox_cancel_meme(avatar, username, discriminator, /):
             (25 + username_font.getsize(username)[0], 219),
             f"#{discriminator}",
             (185, 187, 190),
-            ImageFont.truetype(str(FONTS / "Catamaran-Regular.ttf"), 14)
+            ImageFont.truetype(str(FONTS / "Catamaran-Regular.ttf"), 14),
         )
 
         cancel_font_big = ImageFont.truetype(str(FONTS / "Roboto-Black.ttf"), 32)
-        draw.text(
-            (155, -2),
-            f"{username}!!",
-            "white",
-            cancel_font_big
-        )
+        draw.text((155, -2), f"{username}!!", "white", cancel_font_big)
 
         cancel_font_small = cancel_font_big.font_variant(size=16)
         draw.text(
@@ -717,7 +649,7 @@ def make_ship(name1, avatar1_buffer, name2, avatar2_buffer, seed=None, /):
         # Ship name
         font = font.font_variant(size=22)
 
-        ship_name = name1[:len(name2) // 2] + name2[len(name2) // 2:]
+        ship_name = name1[: len(name2) // 2] + name2[len(name2) // 2 :]
         ship_name_w = get_accurate_text_size(font, ship_name)[0]
 
         draw.text(((675 - ship_name_w) // 2, 201), ship_name, font=font, align="center")
@@ -795,18 +727,13 @@ def make_trapcard(title, flavour_text, image_buffer, /):
         font = ImageFont.truetype(str(FONTS / "Lustria-Regular.ttf"), 24)
 
         draw = ImageDraw.Draw(template)
-        draw.text(
-            (74, 786),
-            wrap_text(flavour_text, font, width=575),
-            "black",
-            font
-        )
+        draw.text((74, 786), wrap_text(flavour_text, font, width=575), "black", font)
 
         draw.text(
             (74, 70),
             title.upper(),
             "black",
-            ImageFont.truetype(str(FONTS / "SourceSerifPro-SemiBold.ttf"), 50)
+            ImageFont.truetype(str(FONTS / "SourceSerifPro-SemiBold.ttf"), 50),
         )
 
         buffer = io.BytesIO()
@@ -833,7 +760,7 @@ def make_tweet(handle, display_name, avatar, text, /):
             (72, 14),
             display_name,
             (217, 217, 217),
-            ImageFont.truetype(str(FONTS / "Arimo-Bold.ttf"), 15)
+            ImageFont.truetype(str(FONTS / "Arimo-Bold.ttf"), 15),
         )
 
         text_font = ImageFont.truetype(str(FONTS / "Arimo-Regular.ttf"), 23)
@@ -842,7 +769,7 @@ def make_tweet(handle, display_name, avatar, text, /):
             wrap_text(text, text_font, width=568),
             (217, 217, 217),
             text_font,
-            spacing=8
+            spacing=8,
         )
 
         small_text_font = text_font.font_variant(size=15)
@@ -850,7 +777,7 @@ def make_tweet(handle, display_name, avatar, text, /):
             (13, 208),
             f"{datetime.now(timezone.utc):%I:%M %p · %b %d, %Y} \N{MIDDLE DOT} Sleepy",
             (110, 118, 125),
-            small_text_font
+            small_text_font,
         )
         draw.text((72, 33), f"@{handle}", (110, 118, 125), small_text_font)
 
@@ -899,17 +826,14 @@ def make_youtube_comment(username, avatar, comment, /):
 
         text_font = ImageFont.truetype(str(FONTS / "Roboto-Regular.ttf"), 14)
         draw.text(
-            (84, 47),
-            wrap_text(comment, text_font, width=450),
-            (3, 3, 3),
-            text_font
+            (84, 47), wrap_text(comment, text_font, width=450), (3, 3, 3), text_font
         )
         draw.text(
             # Arbitrary positioning of comment timestamp.
             (username_font.getsize(username)[0] + 94, 25),
             "1 week ago",
             (96, 96, 96),
-            text_font
+            text_font,
         )
 
         buffer = io.BytesIO()

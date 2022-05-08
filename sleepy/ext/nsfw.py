@@ -176,9 +176,7 @@ def ensure_safe_tags(value):
     # This also allows people to use quotes without any
     # trouble.
     if has_any_banned_tags(value.split()):
-        raise commands.BadArgument(
-            "One or more tags involve banned content on Discord."
-        )
+        raise commands.BadArgument("One or more tags involve banned content on Discord.")
 
     return value
 
@@ -187,8 +185,10 @@ def ensure_safe_tags(value):
 class NSFW(
     commands.Cog,
     command_attrs={
-        "cooldown": commands.CooldownMapping.from_cooldown(2, 5, commands.BucketType.member),
-    }
+        "cooldown": commands.CooldownMapping.from_cooldown(
+            2, 5, commands.BucketType.member
+        ),
+    },
 ):
     """Don't act like you don't already know what this encompasses."""
 
@@ -206,7 +206,7 @@ class NSFW(
             async def nekobot_image_command(cog, ctx):
                 resp = await ctx.get(
                     "https://nekobot.xyz/api/image",
-                    type=ctx.command.__original_kwargs__.get("type", ctx.command.name)
+                    type=ctx.command.__original_kwargs__.get("type", ctx.command.name),
                 )
 
                 embed = Embed(colour=Colour(resp["color"]))
@@ -264,7 +264,7 @@ class NSFW(
             resp = await ctx.get(
                 "https://danbooru.donmai.us/post/index.json?limit=200",
                 cache__=True,
-                tags=" ".join(tags)
+                tags=" ".join(tags),
             )
         except HTTPRequestFailed as exc:
             # Hit the two tag limit.
@@ -295,7 +295,9 @@ class NSFW(
             embed = Embed(
                 description=f"[Media Link]({url})",
                 colour=0x9EECFF,
-                timestamp=datetime.fromisoformat(post["created_at"]).replace(tzinfo=timezone.utc)
+                timestamp=datetime.fromisoformat(post["created_at"]).replace(
+                    tzinfo=timezone.utc
+                ),
             )
             embed.set_author(name=post["author"])
             embed.set_image(url=url)
@@ -335,9 +337,7 @@ class NSFW(
 
         try:
             resp = await ctx.get(
-                "https://e621.net/posts.json",
-                cache__=True,
-                tags=" ".join(tags)
+                "https://e621.net/posts.json", cache__=True, tags=" ".join(tags)
             )
         except HTTPRequestFailed as exc:
             # Hit the 40 tag limit.
@@ -367,7 +367,9 @@ class NSFW(
             embed = Embed(
                 description=f"[Media Link]({url})",
                 colour=0x3B6AA3,
-                timestamp=datetime.fromisoformat(post["created_at"]).replace(tzinfo=timezone.utc)
+                timestamp=datetime.fromisoformat(post["created_at"]).replace(
+                    tzinfo=timezone.utc
+                ),
             )
             embed.set_image(url=url)
             embed.set_footer(text="Powered by e621.net")
@@ -401,7 +403,7 @@ class NSFW(
         resp = await ctx.get(
             "https://rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&limit=100",
             cache__=True,
-            tags=self.safe_query(tags, " ", exclude_prefix="-")
+            tags=self.safe_query(tags, " ", exclude_prefix="-"),
         )
 
         if not resp:
@@ -425,12 +427,7 @@ class NSFW(
     @commands.command(aliases=("sauce",))
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 8, commands.BucketType.member)
-    async def saucenao(
-        self,
-        ctx,
-        *,
-        image: ImageAssetConverter(max_filesize=20_000_000)
-    ):
+    async def saucenao(self, ctx, *, image: ImageAssetConverter(max_filesize=20_000_000)):
         """Reverse searches an image using SauceNAO.
 
         Image can either be a user, custom emoji, link, or
@@ -444,7 +441,7 @@ class NSFW(
         resp = await ctx.get(
             "https://saucenao.com/search.php?db=999&output_type=2&numres=24",
             api_key=self.saucenao_api_key,
-            url=str(image)
+            url=str(image),
         )
 
         # Don't know why, nor do I want to know why, but for
@@ -480,7 +477,9 @@ class NSFW(
             data = result["data"]
 
             try:
-                embed.add_field(name="External Links", value="\n".join(data.pop("ext_urls")))
+                embed.add_field(
+                    name="External Links", value="\n".join(data.pop("ext_urls"))
+                )
             except KeyError:
                 pass
 
@@ -517,9 +516,7 @@ class NSFW(
 
         try:
             resp = await ctx.get(
-                "https://yande.re/post.json?limit=100",
-                cache__=True,
-                tags=" ".join(tags)
+                "https://yande.re/post.json?limit=100", cache__=True, tags=" ".join(tags)
             )
         except HTTPRequestFailed as exc:
             # Assuming from testing, there's probably a hard limit of 6 tags.
@@ -546,7 +543,7 @@ class NSFW(
             embed = Embed(
                 description=f"[Media Link]({media_url})",
                 colour=0xFF9ED0,
-                timestamp=datetime.fromtimestamp(post["created_at"], timezone.utc)
+                timestamp=datetime.fromtimestamp(post["created_at"], timezone.utc),
             )
             embed.set_author(name=post["author"])
             embed.set_image(url=media_url)

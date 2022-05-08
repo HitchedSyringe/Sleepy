@@ -69,7 +69,6 @@ OWO_TRANSLATIONS = {
 
 
 class resolve_emote_char(commands.Converter):
-
     @staticmethod
     async def convert(ctx, argument):
         argument = await commands.clean_content().convert(ctx, argument)
@@ -111,7 +110,9 @@ class PollView(View):
 
         for option in options:
             if not 0 < len(option) <= 100:
-                raise ValueError("Options must be between 1 and 100 characters, inclusive.")
+                raise ValueError(
+                    "Options must be between 1 and 100 characters, inclusive."
+                )
 
             self.vote.add_option(label=option)
 
@@ -134,11 +135,10 @@ class PollView(View):
         embed = Embed(
             title="Everyone will be voting on:",
             description=self.question,
-            colour=0x2F3136
+            colour=0x2F3136,
         )
         embed.set_author(
-            name=f"{author} is calling a vote!",
-            icon_url=author.display_avatar
+            name=f"{author} is calling a vote!", icon_url=author.display_avatar
         )
         embed.set_footer(
             text="Use the dropdown below to cast your vote! Voting ends in 1 minute."
@@ -178,11 +178,10 @@ class PollView(View):
         embed = Embed(
             title="Voting has ended and the results are in!",
             description=f"```\n{tchart(dict(votes.most_common()))}```",
-            colour=0x2F3136
+            colour=0x2F3136,
         )
         embed.set_footer(
-            text=f"Started by: {self.starter}",
-            icon_url=self.starter.display_avatar
+            text=f"Started by: {self.starter}", icon_url=self.starter.display_avatar
         )
         embed.add_field(name="Everyone voted on:", value=self.question)
         embed.add_field(name="Total Votes", value=format(sum(votes.values()), ","))
@@ -194,7 +193,9 @@ class PollView(View):
         self.votes[select.values[0]] += 1
         self.__voted.add(itn.user.id)
 
-        await itn.response.send_message("Your vote was successfully recorded.", ephemeral=True)
+        await itn.response.send_message(
+            "Your vote was successfully recorded.", ephemeral=True
+        )
 
 
 class FigletFlags(commands.FlagConverter):
@@ -205,8 +206,10 @@ class FigletFlags(commands.FlagConverter):
 class Fun(
     commands.Cog,
     command_attrs={
-        "cooldown": commands.CooldownMapping.from_cooldown(2, 5, commands.BucketType.member),
-    }
+        "cooldown": commands.CooldownMapping.from_cooldown(
+            2, 5, commands.BucketType.member
+        ),
+    },
 ):
     """Commands provided for your entertainment and not to be taken seriously.
 
@@ -333,10 +336,7 @@ class Fun(
 
     @choose.command(name="bestof")
     async def choose_bestof(
-        self,
-        ctx,
-        times: Optional[int],
-        *choices: commands.clean_content
+        self, ctx, times: Optional[int], *choices: commands.clean_content
     ):
         """Recursively chooses between the given choices.
 
@@ -473,22 +473,21 @@ class Fun(
 
             await ctx.send(
                 f"{user.mention} {resp['compliment']}.\n`Powered by complimentr.com`",
-                allowed_mentions=discord.AllowedMentions(users=False)
+                allowed_mentions=discord.AllowedMentions(users=False),
             )
 
     @commands.command(aliases=("pun",))
     async def dadjoke(self, ctx):
         """Tells a dad joke (or a pun, whatever you want to call it.)"""
         resp = await ctx.get(
-            "https://icanhazdadjoke.com/",
-            headers__={"Accept": "application/json"}
+            "https://icanhazdadjoke.com/", headers__={"Accept": "application/json"}
         )
 
         await ctx.send(f"{resp['joke']}\n`Powered by icanhazdadjoke.com`")
 
     @commands.command(aliases=("emojidick", "emojidong", "emojipp"))
     async def emojipenis(self, ctx, *, emote: resolve_emote_char):
-        """"___\\_\\_\\_ penis"
+        """ "___\\_\\_\\_ penis"
 
         **EXAMPLES:**
         ```bnf
@@ -515,7 +514,7 @@ class Fun(
 
     @commands.command(aliases=("emojipussy", "emojivulva", "emojiclit"))
     async def emojivagina(self, ctx, *, emote: resolve_emote_char):
-        """"___\\_\\_\\_ vagina"
+        """ "___\\_\\_\\_ vagina"
 
         **EXAMPLES:**
         ```bnf
@@ -558,23 +557,25 @@ class Fun(
         elif await ctx.bot.is_owner(user) or user == ctx.me:
             await ctx.send(
                 f"You fought {user.mention} and got erased from existence.",
-                allowed_mentions=discord.AllowedMentions(users=False)
+                allowed_mentions=discord.AllowedMentions(users=False),
             )
         elif random.random() < 0.5:
             await ctx.send(
                 f"You fought {user.mention} and whooped them.",
-                allowed_mentions=discord.AllowedMentions(users=False)
+                allowed_mentions=discord.AllowedMentions(users=False),
             )
         else:
             await ctx.send(
                 f"You fought {user.mention} and got your nose bloodied.\nGo see a doctor.",
-                allowed_mentions=discord.AllowedMentions(users=False)
+                allowed_mentions=discord.AllowedMentions(users=False),
             )
 
     @commands.command()
     async def flipcoin(self, ctx):
         """Flips a coin."""
-        await ctx.send(f"You flipped **{'Heads' if random.random() < 0.5 else 'Tails'}**!")
+        await ctx.send(
+            f"You flipped **{'Heads' if random.random() < 0.5 else 'Tails'}**!"
+        )
 
     @commands.command(aliases=("bored", "boredidea"))
     @commands.bot_has_permissions(embed_links=True)
@@ -603,7 +604,9 @@ class Fun(
         ```
         """
         if user == ctx.author:
-            await ctx.send("Self-deprecation isn't cool.\nInsult somebody besides yourself.")
+            await ctx.send(
+                "Self-deprecation isn't cool.\nInsult somebody besides yourself."
+            )
         elif user == ctx.me:
             await ctx.send(
                 "How original. No one else had thought of trying to get me to insult myself."
@@ -617,7 +620,7 @@ class Fun(
 
             await ctx.send(
                 f"{user.mention} {insult}\n`Powered by evilinsult.com`",
-                allowed_mentions=discord.AllowedMentions(users=False)
+                allowed_mentions=discord.AllowedMentions(users=False),
             )
 
     @commands.command()
@@ -648,7 +651,7 @@ class Fun(
 
         await ctx.send(
             f"{user.mention} has at least **{iq}** IQ.",
-            allowed_mentions=discord.AllowedMentions(users=False)
+            allowed_mentions=discord.AllowedMentions(users=False),
         )
 
     @commands.command()
@@ -697,7 +700,7 @@ class Fun(
         else:
             await ctx.send(
                 f"{user.mention}'s penis length: `8{'=' * s_randint(0, 40, seed=user.id)}D`",
-                allowed_mentions=discord.AllowedMentions(users=False)
+                allowed_mentions=discord.AllowedMentions(users=False),
             )
 
     @commands.command()
@@ -746,7 +749,9 @@ class Fun(
         # checks normally provided for kwargs manually. This just
         # makes sure that the user didn't pass whitespace or "".
         if not 0 < len(question) <= 1000 or question.isspace():
-            await ctx.send("The poll question must be between 1 and 1000 characters, inclusive.")
+            await ctx.send(
+                "The poll question must be between 1 and 1000 characters, inclusive."
+            )
             return
 
         options = frozenset(options)
@@ -802,7 +807,7 @@ class Fun(
 
         await ctx.send(
             f"I would give {user.mention} a **{rate}/10**!",
-            allowed_mentions=discord.AllowedMentions(users=False)
+            allowed_mentions=discord.AllowedMentions(users=False),
         )
 
     @commands.command(aliases=("rps",))
@@ -869,15 +874,14 @@ class Fun(
         embed = Embed(
             colour=0x2F3136,
             description=content,
-            timestamp=ctx.message.created_at or ctx.message.edited_at
+            timestamp=ctx.message.created_at or ctx.message.edited_at,
         )
         embed.set_author(
-            name=f"{ctx.author} (ID: {ctx.author.id})",
-            icon_url=ctx.author.display_avatar
+            name=f"{ctx.author} (ID: {ctx.author.id})", icon_url=ctx.author.display_avatar
         )
         embed.set_footer(
             text="This message is user-generated and does not reflect "
-                 f"the views or values of {ctx.me.name}."
+            f"the views or values of {ctx.me.name}."
         )
 
         await ctx.send(embed=embed)
@@ -889,7 +893,7 @@ class Fun(
 
     @commands.command()
     async def sheriff(self, ctx, *, emote: resolve_emote_char):
-        """"howdy. i'm the sheriff of ___\\_\\_\\_"
+        """ "howdy. i'm the sheriff of ___\\_\\_\\_"
 
         **EXAMPLES:**
         ```bnf
@@ -954,7 +958,7 @@ class Fun(
 
             await ctx.send(
                 f"{user.mention} {resp['joke']}\n`Powered by yomomma.info`",
-                allowed_mentions=discord.AllowedMentions(users=False)
+                allowed_mentions=discord.AllowedMentions(users=False),
             )
 
 

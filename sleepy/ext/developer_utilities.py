@@ -52,7 +52,7 @@ class PistonView(BaseView):
 
     @button(
         label="Repeat Execution",
-        emoji="\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS}"
+        emoji="\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS}",
     )
     async def repeat(self, itn, button):
         data, out = await execute_on_piston(self.ctx, self.body)
@@ -77,7 +77,7 @@ class PistonPayload(commands.Converter):
         ```(?:(?P<lang>\S+)\n)?\s*(?P<src>.*)```
         (?:\n?(?P<stdin>(?:[^\n\r\f\v]\n?)+)+|)
         """,
-        re.X
+        re.X,
     )
 
     async def convert(self, ctx, argument):
@@ -106,7 +106,7 @@ class PistonPayload(commands.Converter):
             "version": version,
             "files": [{"content": src}],
             "args": [a for a in args.rstrip().split("\n") if a],
-            "stdin": stdin
+            "stdin": stdin,
         }
 
 
@@ -154,8 +154,10 @@ class DeveloperUtilities(
     commands.Cog,
     name="Developer Utilities",
     command_attrs={
-        "cooldown": commands.CooldownMapping.from_cooldown(2, 5, commands.BucketType.member),
-    }
+        "cooldown": commands.CooldownMapping.from_cooldown(
+            2, 5, commands.BucketType.member
+        ),
+    },
 ):
     """Commands that serve as utilities for developers."""
 
@@ -168,17 +170,10 @@ class DeveloperUtilities(
 
     @staticmethod
     async def send_formatted_nodes_embed(
-        ctx,
-        endpoint,
-        *,
-        embed_author_name,
-        colour=None,
-        **params
+        ctx, endpoint, *, embed_author_name, colour=None, **params
     ):
         resp = await ctx.get(
-            f"https://idevision.net/api/public/{endpoint}",
-            cache__=True,
-            **params
+            f"https://idevision.net/api/public/{endpoint}", cache__=True, **params
         )
 
         nodes = resp["nodes"]
@@ -190,11 +185,11 @@ class DeveloperUtilities(
         embed = Embed(
             title=f"Results for `{params['query']}`",
             description="\n".join(f"[`{k}`]({v})" for k, v, in nodes.items()),
-            colour=colour
+            colour=colour,
         )
         embed.set_footer(
             text=f"Took {float(resp['query_time']) * 1000:.2f} ms "
-                 "\N{BULLET} Powered by idevision.net"
+            "\N{BULLET} Powered by idevision.net"
         )
         embed.set_author(name=embed_author_name)
 
@@ -219,6 +214,7 @@ class DeveloperUtilities(
         <2> charinfo \N{POSTAL HORN}Honk
         ```
         """
+
         def format_char_info(c):
             code = format(ord(c), "x")
 
@@ -317,7 +313,9 @@ class DeveloperUtilities(
             if ctx.replied_reference is None:
                 message = ctx.message
             else:
-                message = ctx.channel.get_partial_message(ctx.replied_reference.message_id)
+                message = ctx.channel.get_partial_message(
+                    ctx.replied_reference.message_id
+                )
 
         try:
             raw = await ctx.bot.http.get_message(message.channel.id, message.id)
@@ -348,8 +346,7 @@ class DeveloperUtilities(
         is a fake token. Don't leak your own token using this.**
         """
         token_match = re.fullmatch(
-            r"([A-Za-z0-9_-]{23,28})\.([A-Za-z0-9_-]{6,7})\.([A-Za-z0-9_-]{27})",
-            token
+            r"([A-Za-z0-9_-]{23,28})\.([A-Za-z0-9_-]{6,7})\.([A-Za-z0-9_-]{27})", token
         )
 
         if token_match is None:
@@ -417,8 +414,7 @@ class DeveloperUtilities(
         """
         try:
             resp = await ctx.get(
-                f"https://pypi.org/pypi/{quote(package, safe='')}/json",
-                cache__=True
+                f"https://pypi.org/pypi/{quote(package, safe='')}/json", cache__=True
             )
         except HTTPRequestFailed as exc:
             if exc.status == 404:
@@ -433,9 +429,11 @@ class DeveloperUtilities(
             title=f"{data['name']} {data['version']}",
             description=data["summary"],
             url=data["release_url"],
-            colour=0x006DAD
+            colour=0x006DAD,
         )
-        embed.set_thumbnail(url="https://cdn-images-1.medium.com/max/1200/1*2FrV8q6rPdz6w2ShV6y7bw.png")
+        embed.set_thumbnail(
+            url="https://cdn-images-1.medium.com/max/1200/1*2FrV8q6rPdz6w2ShV6y7bw.png"
+        )
         embed.set_footer(text="Powered by pypi.org")
         embed.add_field(
             name="Information",
@@ -445,7 +443,7 @@ class DeveloperUtilities(
                 f"\n**License:** {data['license'] or 'None provided.'}"
                 f"\n**Python Requirements:** {data['requires_python'] or 'N/A'}"
                 f"\n**Keywords:** {data['keywords'] or 'N/A'}"
-            )
+            ),
         )
 
         urls = data["project_urls"]
@@ -460,7 +458,7 @@ class DeveloperUtilities(
 
     @commands.group(
         aliases=("readthefuckingmanual", "rtfd", "readthefuckingdocs"),
-        invoke_without_command=True
+        invoke_without_command=True,
     )
     @commands.bot_has_permissions(embed_links=True)
     async def rtfm(self, ctx, *, query):
@@ -480,7 +478,7 @@ class DeveloperUtilities(
             embed_author_name="RTFM: discord.py",
             colour=0x5865F2,
             location="https://discordpy.readthedocs.io/en/latest",
-            query=query
+            query=query,
         )
 
     @rtfm.command(name="master", aliases=("main", "latest"))
@@ -502,7 +500,7 @@ class DeveloperUtilities(
             embed_author_name="RTFM: discord.py (master branch)",
             colour=0x5865F2,
             location="https://discordpy.readthedocs.io/en/latest",
-            query=query
+            query=query,
         )
 
     @rtfm.command(name="python", aliases=("py",))
@@ -525,7 +523,7 @@ class DeveloperUtilities(
             embed_author_name="RTFM: Python",
             colour=0x5865F2,
             location="https://docs.python.org/3",
-            query=query
+            query=query,
         )
 
     @commands.command(aliases=("readthefuckingsource",))
@@ -547,7 +545,7 @@ class DeveloperUtilities(
             embed_author_name="RTFS: discord.py",
             colour=0x5865F2,
             library="discord.py",
-            query=query
+            query=query,
         )
 
 

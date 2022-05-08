@@ -38,7 +38,6 @@ CHANNEL_EMOJI = {
     (ChannelType.news, True): "<:ac:828419969133314098> ",
     (ChannelType.category, True): "",
     (ChannelType.public_thread, True): "<:thc:917442358377869373> ",
-
     (ChannelType.text, False): "<:ltc:828149291533074544> ",
     (ChannelType.voice, False): "<:lvc:828149291628625960> ",
     (ChannelType.stage_voice, False): "<:lsc:828149291590746112> ",
@@ -65,7 +64,6 @@ BADGES = {
 
 
 class HomePageSource(PageSource):
-
     def __init__(self, *, prefix):
         self.prefix = prefix
 
@@ -78,7 +76,7 @@ class HomePageSource(PageSource):
                 " <command|category>` to view more information about"
                 " a command or category."
             ),
-            colour=0x2F3136
+            colour=0x2F3136,
         )
         embed.set_footer(text="Check out our links using the buttons below!")
 
@@ -94,7 +92,7 @@ class HomePageSource(PageSource):
                 "```"
                 "\nWhatever you do, **do not include the brackets.**"
             ),
-            inline=False
+            inline=False,
         )
 
         return embed
@@ -109,7 +107,6 @@ class HomePageSource(PageSource):
 
 
 class GroupPageSource(ListPageSource):
-
     def __init__(self, group, cmds, *, per_page=6):
         super().__init__(cmds, per_page=per_page)
 
@@ -125,14 +122,13 @@ class GroupPageSource(ListPageSource):
             embed.add_field(
                 name=f"{cmd.qualified_name} {cmd.signature}",
                 value=cmd.short_doc or "No help given.",
-                inline=False
+                inline=False,
             )
 
         return embed
 
 
 class CategorySelect(Select):
-
     def __init__(self, bot, mapping):
         self.bot = bot
         self.mapping = mapping
@@ -141,9 +137,10 @@ class CategorySelect(Select):
             SelectOption(
                 label=cog.qualified_name,
                 description=cog.description.split("\n", 1)[0] or None,
-                emoji=getattr(cog, "ICON", "\N{GEAR}")
+                emoji=getattr(cog, "ICON", "\N{GEAR}"),
             )
-            for cog, cmds in mapping.items() if cmds
+            for cog, cmds in mapping.items()
+            if cmds
         ]
 
         super().__init__(placeholder="Select a category...", options=options)
@@ -153,20 +150,23 @@ class CategorySelect(Select):
 
         # The cog may have been unloaded while this was open.
         if cog is None:
-            await itn.response.send_message("That category somehow doesn't exist.", ephemeral=True)
+            await itn.response.send_message(
+                "That category somehow doesn't exist.", ephemeral=True
+            )
             return
 
         cmds = self.mapping[cog]
 
         if not cmds:
-            await itn.response.send_message("That category has no visible commands.", ephemeral=True)
+            await itn.response.send_message(
+                "That category has no visible commands.", ephemeral=True
+            )
             return
 
         await self.view.change_source(GroupPageSource(cog, cmds), itn)
 
 
 class BotHelpView(PaginationView):
-
     def __init__(self, ctx, mapping):
         self.bot = bot = ctx.bot
         self.mapping = mapping
@@ -177,7 +177,7 @@ class BotHelpView(PaginationView):
             bot,
             source,
             owner_ids={ctx.author.id, bot.owner_id, *bot.owner_ids},
-            delete_message_when_stopped=True
+            delete_message_when_stopped=True,
         )
 
     def _do_items_setup(self):
@@ -197,7 +197,6 @@ class BotHelpView(PaginationView):
 
 
 class SleepyHelpCommand(commands.HelpCommand):
-
     def _apply_formatting(self, embed_like, command):
         embed_like.title = self.get_command_signature(command)
 
@@ -313,7 +312,9 @@ class Meta(commands.Cog):
         self.old_help_command = bot.help_command
 
         command_attrs = {
-            "cooldown": commands.CooldownMapping.from_cooldown(1, 3, commands.BucketType.user),
+            "cooldown": commands.CooldownMapping.from_cooldown(
+                1, 3, commands.BucketType.user
+            ),
             "checks": (commands.bot_has_permissions(embed_links=True).predicate,),
             "help": "Shows help about me, a command, or a category.",
         }
@@ -386,11 +387,10 @@ class Meta(commands.Cog):
         embed = Embed(
             description=content,
             colour=0x2F3136,
-            timestamp=ctx.message.created_at or ctx.message.edited_at
+            timestamp=ctx.message.created_at or ctx.message.edited_at,
         )
         embed.set_author(
-            name=f"{ctx.author} (ID: {ctx.author.id})",
-            icon_url=ctx.author.display_avatar
+            name=f"{ctx.author} (ID: {ctx.author.id})", icon_url=ctx.author.display_avatar
         )
         embed.set_footer(text=f"Sent from: {ctx.channel} (ID: {ctx.channel.id})")
 
@@ -404,7 +404,9 @@ class Meta(commands.Cog):
     @commands.command(aliases=("hi",))
     async def hello(self, ctx):
         """Shows my brief introduction."""
-        await ctx.send("Hello! \N{WAVING HAND SIGN} I am a bot made by HitchedSyringe#0598.")
+        await ctx.send(
+            "Hello! \N{WAVING HAND SIGN} I am a bot made by HitchedSyringe#0598."
+        )
 
     @commands.command()
     async def invite(self, ctx):
@@ -459,7 +461,7 @@ class Meta(commands.Cog):
         self,
         ctx,
         user: Optional[discord.Member],
-        channel: discord.abc.GuildChannel = None
+        channel: discord.abc.GuildChannel = None,
     ):
         """Shows a user's permissions optionally in another channel.
 
@@ -487,8 +489,8 @@ class Meta(commands.Cog):
 
         embed = Embed(
             description=f"Showing permissions in {CHANNEL_EMOJI[(channel.type, True)]}"
-                        f"{channel.name} (ID: {channel.id})",
-            colour=0x2F3136
+            f"{channel.name} (ID: {channel.id})",
+            colour=0x2F3136,
         )
         embed.set_author(name=f"{user} (ID: {user.id})", icon_url=user.display_avatar)
 
@@ -508,12 +510,7 @@ class Meta(commands.Cog):
     @commands.command(aliases=("debugperms",), hidden=True)
     @commands.is_owner()
     @commands.bot_has_permissions(embed_links=True)
-    async def debugpermissions(
-        self,
-        ctx,
-        channel_id: int,
-        user: discord.User = None
-    ):
+    async def debugpermissions(self, ctx, channel_id: int, user: discord.User = None):
         """Shows a channel's resolved permissions as an optional user.
 
         If no user is given, then my permissions in the
@@ -604,7 +601,7 @@ class Meta(commands.Cog):
                 f"\n<:ar:862433028088135711> **Bitrate Limit:** {guild.bitrate_limit // 1e3} kbps"
                 f"\n<:ar:862433028088135711> **Shard ID:** {guild.shard_id or 'N/A'}"
             ),
-            inline=False
+            inline=False,
         )
 
         if guild.features:
@@ -613,7 +610,7 @@ class Meta(commands.Cog):
                 value="\n".join(
                     f"\N{SMALL BLUE DIAMOND} {f.replace('_', ' ').title()}"
                     for f in guild.features
-                )
+                ),
             )
 
         if guild.emojis:
@@ -626,7 +623,7 @@ class Meta(commands.Cog):
             embed.add_field(
                 name=f"Emojis \N{BULLET} {e_count} / {guild.emoji_limit * 2}",
                 value=e_shown,
-                inline=False
+                inline=False,
             )
 
         # Get roles in reverse order, excluding @everyone.
@@ -637,7 +634,9 @@ class Meta(commands.Cog):
             if r_count > 15:
                 r_shown += f" (+{r_count - 15} more)"
 
-            embed.add_field(name=f"Roles \N{BULLET} {r_count}", value=r_shown, inline=False)
+            embed.add_field(
+                name=f"Roles \N{BULLET} {r_count}", value=r_shown, inline=False
+            )
 
         tier = guild.premium_tier
         boosts = guild.premium_subscription_count
@@ -650,8 +649,8 @@ class Meta(commands.Cog):
         embed.add_field(
             name=f"Server Boosts \N{BULLET} Tier {tier}",
             value=f"**{plural(boosts, ',d'):boost}** \N{BULLET} {next_}"
-                  f"\n\n0 {progress_bar(progress=min(boosts, 14), maximum=14)} 14",
-            inline=False
+            f"\n\n0 {progress_bar(progress=min(boosts, 14), maximum=14)} 14",
+            inline=False,
         )
 
         await ctx.send(embed=embed)
@@ -729,7 +728,9 @@ class Meta(commands.Cog):
             for channel in channels:
                 total += 1
                 allow, deny = channel.overwrites_for(default).pair()
-                perms = discord.Permissions((default.permissions.value & ~deny.value) | allow.value)
+                perms = discord.Permissions(
+                    (default.permissions.value & ~deny.value) | allow.value
+                )
 
                 if ctx.guild.rules_channel == channel:
                     icon = "<:rc:828149291712774164> "
@@ -774,8 +775,10 @@ class Meta(commands.Cog):
         avatar_url = user.display_avatar.with_static_format("png")
 
         embed = Embed(
-            description=" ".join(v for k, v in BADGES.items() if getattr(user.public_flags, k)),
-            colour=0x2F3136
+            description=" ".join(
+                v for k, v in BADGES.items() if getattr(user.public_flags, k)
+            ),
+            colour=0x2F3136,
         )
         embed.set_author(name=user)
         embed.set_thumbnail(url=avatar_url)
@@ -783,12 +786,12 @@ class Meta(commands.Cog):
         embed.add_field(
             name="Information",
             value=f"{user.mention} \N{BULLET} **[Avatar]({avatar_url})**"
-                  f"\n<:ar:862433028088135711> **ID:** {user.id}"
-                  f"\n<:ar:862433028088135711> **Created:** {fmt_dt(user.created_at, 'R')}"
-                  f"\n<:ar:862433028088135711> **Bot:** {bool_to_emoji(user.bot)}"
-                  "\n<:ar:862433028088135711> **Shared Servers:** "
-                  + str(len(ctx.bot.guilds if user == ctx.me else user.mutual_guilds)),
-            inline=False
+            f"\n<:ar:862433028088135711> **ID:** {user.id}"
+            f"\n<:ar:862433028088135711> **Created:** {fmt_dt(user.created_at, 'R')}"
+            f"\n<:ar:862433028088135711> **Bot:** {bool_to_emoji(user.bot)}"
+            "\n<:ar:862433028088135711> **Shared Servers:** "
+            + str(len(ctx.bot.guilds if user == ctx.me else user.mutual_guilds)),
+            inline=False,
         )
 
         if isinstance(user, discord.User):
@@ -802,7 +805,9 @@ class Meta(commands.Cog):
             "\n<:ar:862433028088135711> **Joined:** "
             + ("N/A" if user.joined_at is None else fmt_dt(user.joined_at, 'R'))
             + "\n<:ar:862433028088135711> **Boosted:** "
-            + "N/A" if user.premium_since is None else fmt_dt(user.premium_since, 'R')
+            + "N/A"
+            if user.premium_since is None
+            else fmt_dt(user.premium_since, 'R')
         )
 
         if roles := user.roles[:0:-1]:
@@ -812,9 +817,9 @@ class Meta(commands.Cog):
             embed.add_field(
                 name=f"Roles \N{BULLET} {role_count}",
                 value=" ".join(r.mention for r in roles)
-                      if role_count < 42 else
-                      "Too many roles to show.",
-                inline=False
+                if role_count < 42
+                else "Too many roles to show.",
+                inline=False,
             )
 
         # status_type: emoji
@@ -828,13 +833,15 @@ class Meta(commands.Cog):
         embed.add_field(
             name="Status",
             value=f"{status_emojis[user.mobile_status]} | \N{MOBILE PHONE} Mobile"
-                  f"\n{status_emojis[user.desktop_status]} | \N{DESKTOP COMPUTER}\ufe0f Desktop"
-                  f"\n{status_emojis[user.web_status]} | \N{GLOBE WITH MERIDIANS} Web"
+            f"\n{status_emojis[user.desktop_status]} | \N{DESKTOP COMPUTER}\ufe0f Desktop"
+            f"\n{status_emojis[user.web_status]} | \N{GLOBE WITH MERIDIANS} Web",
         )
 
         if (activity := user.activity) is not None:
             if isinstance(activity, discord.CustomActivity):
-                embed.add_field(name="Activity", value=f"{activity.emoji or ''} {activity.name or ''}")
+                embed.add_field(
+                    name="Activity", value=f"{activity.emoji or ''} {activity.name or ''}"
+                )
             else:
                 # activity type: activity type name
                 activity_verbs = {
@@ -848,7 +855,7 @@ class Meta(commands.Cog):
 
                 embed.add_field(
                     name="Activity",
-                    value=f"{activity_verbs[activity.type]} {activity.name}"
+                    value=f"{activity_verbs[activity.type]} {activity.name}",
                 )
 
         await ctx.send(embed=embed)

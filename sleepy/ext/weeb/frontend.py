@@ -7,9 +7,11 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+# fmt: off
 __all__ = (
     "Weeb",
 )
+# fmt: on
 
 
 import io
@@ -68,8 +70,10 @@ NEKOBOT_IMAGE_COMMANDS = (
 class Weeb(
     commands.Cog,
     command_attrs={
-        "cooldown": commands.CooldownMapping.from_cooldown(2, 5, commands.BucketType.member),
-    }
+        "cooldown": commands.CooldownMapping.from_cooldown(
+            2, 5, commands.BucketType.member
+        ),
+    },
 ):
     """Commands having to do with weeaboo stuff.
 
@@ -94,7 +98,7 @@ class Weeb(
                 resp = await ctx.get(
                     "https://nekobot.xyz/api/image",
                     # Can't really get the type any other way...
-                    type=ctx.command.__original_kwargs__.get("type", ctx.command.name)
+                    type=ctx.command.__original_kwargs__.get("type", ctx.command.name),
                 )
 
                 embed = Embed(colour=Colour(resp["color"]))
@@ -112,10 +116,14 @@ class Weeb(
         error = getattr(error, "original", error)
 
         if isinstance(error, (ImageAssetConversionFailure, UnidentifiedImageError)):
-            await ctx.send("The user, custom emoji, image attachment, or image link was invalid.")
+            await ctx.send(
+                "The user, custom emoji, image attachment, or image link was invalid."
+            )
             error.handled__ = True
         elif isinstance(error, ImageAssetTooLarge):
-            await ctx.send(f"Image must not exceed {error.max_filesize / 1e6:.0f} MB in size.")
+            await ctx.send(
+                f"Image must not exceed {error.max_filesize / 1e6:.0f} MB in size."
+            )
             error.handled__ = True
         elif isinstance(error, DecompressionBombError):
             await ctx.send("Go be Ted Kaczynski somewhere else.")
@@ -163,9 +171,7 @@ class Weeb(
             id_ = item["mal_id"]
 
             embed = Embed(
-                title=f"`{id_}` - {item['title']}",
-                colour=0x2F3136,
-                url=item["url"]
+                title=f"`{id_}` - {item['title']}", colour=0x2F3136, url=item["url"]
             )
             embed.set_thumbnail(url=item["images"]["webp"]["large_image_url"])
             embed.set_footer(text="Powered by jikan.moe")
@@ -174,7 +180,6 @@ class Weeb(
                 embed.set_author(name="Currently Ongoing")
             else:
                 embed.set_author(name=f"{plural(item['episodes'] or 0, ',d'):Episode}")
-
 
             embed.description = (
                 f"\U0001F1EC\U0001F1E7 English: {item['title_english'] or 'N/A'}"
@@ -189,27 +194,27 @@ class Weeb(
             embed.add_field(name="Rating", value=item["rating"])
             embed.add_field(
                 name="Genres",
-                value="\n".join(g["name"] for g in item["genres"]) or "None"
+                value="\n".join(g["name"] for g in item["genres"]) or "None",
             )
             embed.add_field(
                 name="Studios",
-                value="\n".join(s["name"] for s in item["studios"]) or "None"
+                value="\n".join(s["name"] for s in item["studios"]) or "None",
             )
             embed.add_field(
                 name="Producers",
-                value="\n".join(p["name"] for p in item["producers"]) or "None"
+                value="\n".join(p["name"] for p in item["producers"]) or "None",
             )
             embed.add_field(
                 name="Licensors",
-                value="\n".join(i["name"] for i in item["licensors"]) or "None"
+                value="\n".join(i["name"] for i in item["licensors"]) or "None",
             )
             embed.add_field(
                 name=f"Score \N{BULLET} **Rank {item['rank'] or 'N/A'}**",
-                value=f"{item['score'] or 0}/10 ({item['scored_by'] or 0:,} scored)"
+                value=f"{item['score'] or 0}/10 ({item['scored_by'] or 0:,} scored)",
             )
             embed.add_field(
                 name=f"Members \N{BULLET} **Rank {item['popularity'] or 'N/A'}**",
-                value=f"{item['members']:,} ({item['favorites']:,} favourited)"
+                value=f"{item['members']:,} ({item['favorites']:,} favourited)",
             )
 
             embeds.append(embed)
@@ -244,7 +249,7 @@ class Weeb(
         await ctx.send(
             f"I detected **{count}** anime faces in this image."
             f"\nRequested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
-            file=File(buffer, "highlighted_anime_faces.png")
+            file=File(buffer, "highlighted_anime_faces.png"),
         )
 
     @commands.command()
@@ -270,7 +275,7 @@ class Weeb(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
-            file=File(buffer, "awooify.png")
+            file=File(buffer, "awooify.png"),
         )
 
     @commands.command(aliases=("france",))
@@ -296,7 +301,7 @@ class Weeb(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
-            file=File(buffer, "baguette.png")
+            file=File(buffer, "baguette.png"),
         )
 
     @commands.command(aliases=("bp",))
@@ -322,7 +327,7 @@ class Weeb(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
-            file=File(buffer, "bodypillow.png")
+            file=File(buffer, "bodypillow.png"),
         )
 
     # What a stupid command lmao.
@@ -361,10 +366,7 @@ class Weeb(
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def hifumifact(
-        self,
-        ctx,
-        *,
-        text: commands.clean_content(fix_channel_mentions=True)
+        self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)
     ):
         """Generates an image of Hifumi spitting straight facts.
 
@@ -375,17 +377,14 @@ class Weeb(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
-            file=File(buffer, "hifumi_fact.png")
+            file=File(buffer, "hifumi_fact.png"),
         )
 
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def kannafact(
-        self,
-        ctx,
-        *,
-        text: commands.clean_content(fix_channel_mentions=True)
+        self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)
     ):
         """Generates an image of Kanna spitting straight facts.
 
@@ -396,7 +395,7 @@ class Weeb(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
-            file=File(buffer, "kanna_fact.png")
+            file=File(buffer, "kanna_fact.png"),
         )
 
     @commands.command()
@@ -422,7 +421,7 @@ class Weeb(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
-            file=File(buffer, "lolice.png")
+            file=File(buffer, "lolice.png"),
         )
 
     @commands.command(aliases=("mangasearch",))
@@ -464,9 +463,7 @@ class Weeb(
             id_ = item["mal_id"]
 
             embed = Embed(
-                title=f"`{id_}` - {item['title']}",
-                colour=0x2F3136,
-                url=item["url"]
+                title=f"`{id_}` - {item['title']}", colour=0x2F3136, url=item["url"]
             )
             embed.set_thumbnail(url=item["images"]["webp"]["large_image_url"])
             embed.set_footer(text="Powered by jikan.moe")
@@ -476,7 +473,7 @@ class Weeb(
             else:
                 embed.set_author(
                     name=f"{plural(item['chapters'] or 0, ',d'):Chapter}"
-                        f" \N{BULLET} {plural(item['volumes'] or 0, ',d'):Volume}"
+                    f" \N{BULLET} {plural(item['volumes'] or 0, ',d'):Volume}"
                 )
 
             embed.description = (
@@ -490,23 +487,22 @@ class Weeb(
             embed.add_field(name="Published", value=item["published"]["string"])
             embed.add_field(
                 name="Genres",
-                value="\n".join(g["name"] for g in item["genres"]) or "None"
+                value="\n".join(g["name"] for g in item["genres"]) or "None",
             )
             embed.add_field(
-                name="Authors",
-                value="\n".join(a["name"] for a in item["authors"])
+                name="Authors", value="\n".join(a["name"] for a in item["authors"])
             )
             embed.add_field(
                 name="Serializations",
-                value="\n".join(s["name"] for s in item["serializations"]) or "None"
+                value="\n".join(s["name"] for s in item["serializations"]) or "None",
             )
             embed.add_field(
                 name=f"Score \N{BULLET} **Rank {item['rank'] or 'N/A'}**",
-                value=f"{item['scored'] or 0}/10 ({item['scored_by'] or 0:,} scored)"
+                value=f"{item['scored'] or 0}/10 ({item['scored_by'] or 0:,} scored)",
             )
             embed.add_field(
                 name=f"Members \N{BULLET} **Rank {item['popularity'] or 'N/A'}**",
-                value=f"{item['members']:,} ({item['favorites'] or 0:,} favourited)"
+                value=f"{item['members']:,} ({item['favorites'] or 0:,} favourited)",
             )
 
             embeds.append(embed)
@@ -517,12 +513,9 @@ class Weeb(
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 8, commands.BucketType.member)
     async def nichijou(
-        self,
-        ctx,
-        *,
-        text: commands.clean_content(fix_channel_mentions=True)
+        self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)
     ):
-        r""""YOU. ARE. A. ___\_\_\_."
+        r""" "YOU. ARE. A. ___\_\_\_."
 
         (Bot Needs: Attach Files)
         """
@@ -531,7 +524,7 @@ class Weeb(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
-            file=File(buffer, "nichijou.gif")
+            file=File(buffer, "nichijou.gif"),
         )
 
     @commands.command()
@@ -557,17 +550,14 @@ class Weeb(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
-            file=File(buffer, "ritsu_dirt.png")
+            file=File(buffer, "ritsu_dirt.png"),
         )
 
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def ritsufact(
-        self,
-        ctx,
-        *,
-        text: commands.clean_content(fix_channel_mentions=True)
+        self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)
     ):
         """Generates an image of Ritsu spitting straight facts.
 
@@ -578,7 +568,7 @@ class Weeb(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
-            file=File(buffer, "ritsu_fact.png")
+            file=File(buffer, "ritsu_fact.png"),
         )
 
     @commands.command()
@@ -604,5 +594,5 @@ class Weeb(
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
-            file=File(buffer, "trash_waifu.png")
+            file=File(buffer, "trash_waifu.png"),
         )

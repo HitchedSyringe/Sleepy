@@ -28,9 +28,10 @@ from sleepy.utils import _as_argparse_dict, human_join, tchart
 from .backend import TriviaQuestion, TriviaSession
 from .categories import CATEGORIES
 
+_LOG = logging.getLogger(__name__)
+
 
 class NoActiveSession(commands.CheckFailure):
-
     def __init__(self, channel):
         self.channel = channel
 
@@ -38,7 +39,6 @@ class NoActiveSession(commands.CheckFailure):
 
 
 def has_active_session():
-
     async def predicate(ctx):
         if ctx.channel.id not in ctx.cog.active_sessions:
             raise NoActiveSession(ctx.channel)
@@ -46,9 +46,6 @@ def has_active_session():
         return True
 
     return commands.check(predicate)
-
-
-_LOG = logging.getLogger(__name__)
 
 
 class TriviaFlags(commands.FlagConverter):
@@ -64,8 +61,10 @@ class TriviaMinigame(
     commands.Cog,
     name="Trivia Minigame",
     command_attrs={
-        "cooldown": commands.CooldownMapping.from_cooldown(1, 6, commands.BucketType.member),
-    }
+        "cooldown": commands.CooldownMapping.from_cooldown(
+            1, 6, commands.BucketType.member
+        ),
+    },
 ):
     """Commands having to do with the Trivia minigame."""
 
@@ -92,7 +91,7 @@ class TriviaMinigame(
             session.owner,
             session.owner.id,
             session.channel,
-            session.channel.id
+            session.channel.id,
         )
 
     @commands.Cog.listener()
@@ -102,7 +101,7 @@ class TriviaMinigame(
             session.owner,
             session.owner.id,
             session.channel,
-            session.channel.id
+            session.channel.id,
         )
 
         if session.scores and send_results:
@@ -110,8 +109,7 @@ class TriviaMinigame(
             highest = top_ten[0][1]
 
             winners = [
-                p.mention for p, s in session.scores.items()
-                if s == highest and not p.bot
+                p.mention for p, s in session.scores.items() if s == highest and not p.bot
             ]
 
             if winners:
@@ -137,7 +135,7 @@ class TriviaMinigame(
             owner.id,
             channel,
             channel.id,
-            exc_info=error
+            exc_info=error,
         )
 
         tb = traceback.format_exception(None, error, error.__traceback__, 4)
@@ -145,7 +143,7 @@ class TriviaMinigame(
         embed = Embed(
             title="Trivia Session Error",
             description=f"```py\n{''.join(tb)}```",
-            colour=0xFC284F
+            colour=0xFC284F,
         )
         embed.add_field(name="Owner", value=f"{owner} (ID: {owner.id})")
         embed.add_field(name="Channel", value=f"{channel} (ID: {channel.id})")
@@ -165,7 +163,9 @@ class TriviaMinigame(
         # session should be removed from the active sessions.
         session.stop(send_results=False)
 
-    @commands.group(invoke_without_command=True, usage="categories: <categories...> [options...]")
+    @commands.group(
+        invoke_without_command=True, usage="categories: <categories...> [options...]"
+    )
     @commands.bot_has_permissions(embed_links=True)
     async def trivia(self, ctx, *, options: TriviaFlags):
         """Starts a new trivia session.
@@ -254,12 +254,14 @@ class TriviaMinigame(
         embed.add_field(name="Categories", value=human_join(creds), inline=False)
         embed.add_field(
             name="Settings",
-            value=f"```py\n{tchart(kwargs, lambda s: s.replace('_', ' ').title())}```"
+            value=f"```py\n{tchart(kwargs, lambda s: s.replace('_', ' ').title())}```",
         )
 
         await ctx.send(embed=embed)
 
-        self.active_sessions[ctx.channel.id] = TriviaSession.start(ctx, questions, **kwargs)
+        self.active_sessions[ctx.channel.id] = TriviaSession.start(
+            ctx, questions, **kwargs
+        )
 
     @trivia.command(name="stop")
     @has_active_session()

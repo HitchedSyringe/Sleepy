@@ -61,7 +61,7 @@ class MissingAnyPermissions(commands.CheckFailure):
 
         super().__init__(
             f"You are missing either {human_join(missing, joiner='or')} to run this command.",
-            *args
+            *args,
         )
 
 
@@ -80,6 +80,7 @@ class BotMissingAnyPermissions(commands.CheckFailure):
         missing. These are the parameters passed
         to :func:`bot_has_any_permissions`.
     """
+
     def __init__(self, missing_permissions: List[str], *args: Any) -> None:
         self.missing_permissions: List[str] = missing_permissions
 
@@ -90,7 +91,7 @@ class BotMissingAnyPermissions(commands.CheckFailure):
 
         super().__init__(
             f"Bot requires either {human_join(missing, joiner='or')} to run this command.",
-            *args
+            *args,
         )
 
 
@@ -98,7 +99,9 @@ def _has_any_permissions(permissions: Permissions, to_check: Dict[str, bool], /)
     return any(getattr(permissions, n, None) == v for n, v in to_check.items())
 
 
-def has_permissions(*, check_any: bool = False, **permissions: bool) -> Callable[[_T], _T]:
+def has_permissions(
+    *, check_any: bool = False, **permissions: bool
+) -> Callable[[_T], _T]:
     """Similar to :func:`commands.has_permissions` except
     allows the option to check for either all or any given
     permissions.
@@ -161,7 +164,9 @@ def has_permissions(*, check_any: bool = False, **permissions: bool) -> Callable
     return commands.check(predicate)
 
 
-def has_guild_permissions(*, check_any: bool = False, **permissions: bool) -> Callable[[_T], _T]:
+def has_guild_permissions(
+    *, check_any: bool = False, **permissions: bool
+) -> Callable[[_T], _T]:
     """Similar to :func:`has_permissions`, but operates on
     guild-wide permissions instead of the current channel
     permissions.

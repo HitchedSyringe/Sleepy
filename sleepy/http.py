@@ -24,15 +24,15 @@ import aiohttp
 from discord.ext import commands
 from discord.utils import MISSING
 
-_LOG = logging.getLogger(__name__)
-
-
 if TYPE_CHECKING:
     from multidict import CIMultiDictProxy
     from yarl import URL
 
     HTTPResponseData = Union[str, bytes, Dict[str, Any]]
     RequestUrl = Union[str, URL]
+
+
+_LOG = logging.getLogger(__name__)
 
 
 class HTTPRequestFailed(commands.CommandError):
@@ -191,11 +191,7 @@ class HTTPRequester:
         _LOG.info("Closed HTTP requester session.")
 
     async def _perform_http_request(
-        self,
-        method: str,
-        url: RequestUrl,
-        /,
-        **options: Any
+        self, method: str, url: RequestUrl, /, **options: Any
     ) -> HTTPResponseData:
         if self.is_closed():
             raise RuntimeError("HTTP requester session is closed.")
@@ -219,20 +215,16 @@ class HTTPRequester:
             # it's probably safe to exclude these from the range of
             # successful status codes.
             if not 200 <= resp.status < 300:
-                _LOG.warning("%s %s failed with HTTP status %s.", method, url, resp.status)
+                _LOG.warning(
+                    "%s %s failed with HTTP status %s.", method, url, resp.status
+                )
                 raise HTTPRequestFailed(resp, data)
 
             _LOG.info("%s %s succeeded with HTTP status %s.", method, url, resp.status)
             return data
 
     async def request(
-        self,
-        method: str,
-        url: RequestUrl,
-        /,
-        *,
-        cache__: bool = False,
-        **options: Any
+        self, method: str, url: RequestUrl, /, *, cache__: bool = False, **options: Any
     ) -> HTTPResponseData:
         """|coro|
 

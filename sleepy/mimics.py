@@ -14,9 +14,11 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 # manual creation and should be considered read-only.
 
 
+# fmt: off
 __all__ = (
     "PartialAsset",
 )
+# fmt: on
 
 
 from typing import Any, Optional, Tuple

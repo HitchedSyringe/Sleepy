@@ -65,7 +65,7 @@ class Owner(
     PythonFeature,
     RootCommand,
     ShellFeature,
-    command_attrs={"hidden": True}
+    command_attrs={"hidden": True},
 ):
     """Commands that only my higher-ups can use.
 
@@ -90,15 +90,14 @@ class Owner(
         embed = Embed(
             description=content,
             colour=0x2F3136,
-            timestamp=ctx.message.created_at or ctx.message.edited_at
+            timestamp=ctx.message.created_at or ctx.message.edited_at,
         )
         embed.set_author(
-            name=f"{ctx.author} (ID: {ctx.author.id})",
-            icon_url=ctx.author.display_avatar
+            name=f"{ctx.author} (ID: {ctx.author.id})", icon_url=ctx.author.display_avatar
         )
         embed.set_footer(
             text="This message was sent because you either previously "
-                 "contacted me or found a bug. I do not monitor this DM."
+            "contacted me or found a bug. I do not monitor this DM."
         )
 
         try:
@@ -127,7 +126,9 @@ class Owner(
         for page in stats.pages:
             await ctx.send(page)
 
-    @Feature.Command(parent="jsk", name="load", aliases=("l",), require_var_positional=True)
+    @Feature.Command(
+        parent="jsk", name="load", aliases=("l",), require_var_positional=True
+    )
     async def jsk_load(self, ctx, *extensions: ExtensionConverter):
         """Loads one or more extensions."""
         stats = WrappedPaginator(None, None, 1980)
@@ -138,7 +139,9 @@ class Owner(
             except commands.ExtensionAlreadyLoaded:
                 pass
             except:
-                stats.add_line(f"<:x_:821284209792516096> `{ext}`\n```py\n{traceback.format_exc()}```")
+                stats.add_line(
+                    f"<:x_:821284209792516096> `{ext}`\n```py\n{traceback.format_exc()}```"
+                )
             else:
                 stats.add_line(f"<:check:821284209401921557> `{ext}`")
 
@@ -157,8 +160,7 @@ class Owner(
         will be reloaded.
         """
         extensions = (
-            itertools.chain(*extensions) if extensions
-            else tuple(ctx.bot.extensions)
+            itertools.chain(*extensions) if extensions else tuple(ctx.bot.extensions)
         )
 
         stats = WrappedPaginator(None, None, 1980)
@@ -169,7 +171,9 @@ class Owner(
             except commands.ExtensionNotLoaded:
                 pass
             except:
-                stats.add_line(f"<:x_:821284209792516096> `{ext}`\n```py\n{traceback.format_exc()}```")
+                stats.add_line(
+                    f"<:x_:821284209792516096> `{ext}`\n```py\n{traceback.format_exc()}```"
+                )
             else:
                 stats.add_line(f"<:check:821284209401921557> `{ext}`")
 
@@ -186,7 +190,9 @@ class Owner(
         await ctx.send("Just drank some anti-freeze. Now I am become dead.")
         await ctx.bot.close()
 
-    @Feature.Command(parent="jsk", name="unload", aliases=("u",), require_var_positional=True)
+    @Feature.Command(
+        parent="jsk", name="unload", aliases=("u",), require_var_positional=True
+    )
     async def jsk_unload(self, ctx, *extensions: ExtensionConverter):
         """Unloads one or more extensions."""
         stats = WrappedPaginator(None, None, 1980)
@@ -201,7 +207,9 @@ class Owner(
             except commands.ExtensionNotLoaded:
                 pass
             except:
-                stats.add_line(f"<:x_:821284209792516096> `{ext}`\n```py\n{traceback.format_exc()}```")
+                stats.add_line(
+                    f"<:x_:821284209792516096> `{ext}`\n```py\n{traceback.format_exc()}```"
+                )
             else:
                 stats.add_line(f"<:check:821284209401921557> `{ext}`")
 
