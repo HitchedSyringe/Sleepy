@@ -15,12 +15,9 @@ from urllib.parse import quote
 from discord import Embed, File
 from discord.ext import commands
 from matplotlib import pyplot as plt
-from matplotlib.dates import (
-    AutoDateLocator,
-    DateFormatter,
-    datestr2num,
-)
+from matplotlib.dates import AutoDateLocator, DateFormatter, datestr2num
 from matplotlib.figure import Figure
+
 from sleepy.converters import _pseudo_bool_flag
 from sleepy.http import HTTPRequestFailed
 from sleepy.utils import awaitable, human_number, measure_performance

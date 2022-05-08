@@ -21,11 +21,12 @@ from discord import Embed, File
 from discord.ext import commands
 from PIL import UnidentifiedImageError
 from PIL.Image import DecompressionBombError
+
 from sleepy.converters import (
-    _pseudo_bool_flag,
-    ImageAssetConverter,
     ImageAssetConversionFailure,
+    ImageAssetConverter,
     ImageAssetTooLarge,
+    _pseudo_bool_flag,
 )
 from sleepy.http import HTTPRequestFailed
 from sleepy.menus import EmbedSource

@@ -14,14 +14,15 @@ __all__ = (
 )
 
 
+import logging
+import traceback
 from typing import Tuple
 
 import aiofiles
-import logging
-import traceback
 import yaml
 from discord import AllowedMentions, Embed, HTTPException
 from discord.ext import commands
+
 from sleepy.utils import _as_argparse_dict, human_join, tchart
 
 from .backend import TriviaQuestion, TriviaSession

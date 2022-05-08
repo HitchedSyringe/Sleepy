@@ -11,10 +11,10 @@ from datetime import datetime, timezone
 
 from discord import Colour, Embed
 from discord.ext import commands
+
 from sleepy.converters import ImageAssetConverter
 from sleepy.http import HTTPRequestFailed
 from sleepy.menus import EmbedSource
-
 
 NEKOBOT_IMAGE_COMMANDS = (
     {

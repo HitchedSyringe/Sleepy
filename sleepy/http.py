@@ -9,7 +9,6 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
-
 __all__ = (
     "HTTPRequester",
     "HTTPRequestFailed",
@@ -24,7 +23,6 @@ from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple, Union
 import aiohttp
 from discord.ext import commands
 from discord.utils import MISSING
-
 
 _LOG = logging.getLogger(__name__)
 

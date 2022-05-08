@@ -40,22 +40,15 @@ from datetime import datetime, timezone
 
 import cv2
 import numpy as np
-from PIL import (
-    Image,
-    ImageDraw,
-    ImageEnhance,
-    ImageFont,
-    ImageOps,
-    ImageSequence,
-)
 from cv2.data import haarcascades as cv2_haarcascades
+from PIL import Image, ImageDraw, ImageEnhance, ImageFont, ImageOps, ImageSequence
 from skimage import transform
+
 from sleepy.utils import awaitable, measure_performance, randint
 
 from .fonts import FONTS
 from .helpers import get_accurate_text_size, wrap_text
 from .templates import TEMPLATES
-
 
 HAAR_EYES = cv2.CascadeClassifier(cv2_haarcascades + "haarcascade_eye.xml")
 

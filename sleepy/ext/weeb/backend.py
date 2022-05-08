@@ -22,9 +22,13 @@ __all__ = (
 )
 
 
+# isort: off
+
 # This interfaces with some aspects of the image extension.
 from ..images import FONTS
 from ..images.helpers import get_accurate_text_size, wrap_text
+
+# isort: on
 
 
 import io
@@ -32,11 +36,11 @@ import io
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageSequence
+
 from sleepy.utils import awaitable, measure_performance
 
 from .cascades import CASCADES
 from .templates import TEMPLATES
-
 
 LBP_ANIMEFACE = cv2.CascadeClassifier(str(CASCADES / "lbpcascade_animeface.xml"))
 

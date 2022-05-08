@@ -14,27 +14,21 @@ from os import path
 from typing import Optional, Union
 
 import discord
-from discord import (
-    ActivityType,
-    ChannelType,
-    Embed,
-    SelectOption,
-    Status,
-)
+from discord import ActivityType, ChannelType, Embed, SelectOption, Status
 from discord.ext import commands
 from discord.ext.menus import ListPageSource, PageSource
 from discord.ui import Select
-from discord.utils import oauth_url, format_dt as fmt_dt, utcnow
+from discord.utils import format_dt as fmt_dt, oauth_url, utcnow
+
 from sleepy.menus import BotLinksView, PaginationView
 from sleepy.paginators import WrappedPaginator
 from sleepy.utils import (
-    PERMISSIONS_VALUE,
     GITHUB_URL,
+    PERMISSIONS_VALUE,
     bool_to_emoji,
     plural,
     progress_bar,
 )
-
 
 # (channel_type, is_locked): emoji
 CHANNEL_EMOJI = {

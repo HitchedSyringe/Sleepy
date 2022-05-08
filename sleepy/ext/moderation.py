@@ -14,11 +14,11 @@ from typing import Optional, Tuple
 import discord
 from discord.ext import commands
 from discord.utils import find
+
 from sleepy import checks
 from sleepy.menus import PaginatorSource
 from sleepy.paginators import WrappedPaginator
 from sleepy.utils import plural
-
 
 CUSTOM_EMOJI_REGEX = re.compile(r"<a?:[A-Za-z0-9_]+:[0-9]{15,20}>")
 

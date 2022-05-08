@@ -22,7 +22,6 @@ from collections import Counter, namedtuple
 import discord
 from discord import Embed
 
-
 TIMEOUT_MSGS_REVEAL = (
     "Time's up! The answer is ||{0}||.",
     "I know this one! It's ||{0}||.",

@@ -9,7 +9,6 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
-
 __all__ = (
     "DISCORD_SERVER_URL",
     "GITHUB_URL",
@@ -53,14 +52,12 @@ from typing import (
 
 from dateutil.relativedelta import relativedelta
 
-
 _RT = TypeVar("_RT")
 
 
 if TYPE_CHECKING:
-    from typing_extensions import ParamSpec
-
     from discord.ext.commands import FlagConverter
+    from typing_extensions import ParamSpec
 
     _P = ParamSpec("_P")
 

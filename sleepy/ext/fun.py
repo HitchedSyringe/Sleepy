@@ -23,6 +23,7 @@ from discord import Embed, File
 from discord.ext import commands
 from discord.ui import View, select
 from PIL import Image, ImageDraw
+
 from sleepy.utils import (
     awaitable,
     measure_performance,
@@ -30,7 +31,6 @@ from sleepy.utils import (
     randint as s_randint,
     tchart,
 )
-
 
 # + is positive, - is negative, no sign is neutral.
 BALL_RESPONSES = (

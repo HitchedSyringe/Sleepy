@@ -20,9 +20,10 @@ from discord import Colour, Embed, File
 from discord.ext import commands
 from PIL import UnidentifiedImageError
 from PIL.Image import DecompressionBombError
+
 from sleepy.converters import (
-    ImageAssetConverter,
     ImageAssetConversionFailure,
+    ImageAssetConverter,
     ImageAssetTooLarge,
 )
 from sleepy.menus import EmbedSource
@@ -30,7 +31,6 @@ from sleepy.utils import plural
 
 from . import backend
 from .templates import TEMPLATES
-
 
 NEKOBOT_IMAGE_COMMANDS = (
     {

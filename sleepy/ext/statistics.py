@@ -21,10 +21,10 @@ import psutil
 from discord import Colour, Embed
 from discord.ext import commands, tasks
 from discord.utils import format_dt as fmt_dt
+
 from sleepy import __version__
 from sleepy.menus import BotLinksView, PaginatorSource
 from sleepy.utils import human_delta, plural, tchart
-
 
 _LOG = logging.getLogger(__name__)
 

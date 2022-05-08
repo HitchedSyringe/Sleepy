@@ -9,7 +9,6 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
-
 __all__ = (
     "Context",
 )
@@ -25,7 +24,6 @@ from discord.utils import cached_property
 
 from .menus import ConfirmationView, PaginationView
 from .utils import plural
-
 
 if TYPE_CHECKING:
     from aiohttp import ClientSession

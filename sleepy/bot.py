@@ -9,7 +9,6 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
-
 __all__ = (
     "Sleepy",
 )
@@ -19,14 +18,7 @@ import logging
 import re
 import traceback
 from pathlib import Path
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    List,
-    Generator,
-    Mapping,
-    Optional
-)
+from typing import TYPE_CHECKING, Any, Generator, List, Mapping, Optional
 
 import discord
 from discord import Colour, Embed
@@ -37,7 +29,6 @@ from . import __version__
 from .context import Context
 from .http import HTTPRequester, HTTPRequestFailed
 from .utils import GITHUB_URL, find_extensions_in, human_join
-
 
 if TYPE_CHECKING:
     from datetime import datetime

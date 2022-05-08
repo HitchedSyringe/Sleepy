@@ -9,7 +9,6 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
-
 __all__ = (
     "ImageAssetConversionFailure",
     "ImageAssetConverter",
@@ -26,7 +25,6 @@ from discord import Message
 from discord.ext import commands
 
 from .mimics import PartialAsset
-
 
 if TYPE_CHECKING:
     from discord import Attachment

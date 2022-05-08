@@ -24,9 +24,9 @@ from jishaku.features.management import ManagementFeature
 from jishaku.features.python import PythonFeature
 from jishaku.features.root_command import RootCommand
 from jishaku.features.shell import ShellFeature
+
 from sleepy.paginators import WrappedPaginator
 from sleepy.utils import bool_to_emoji, find_extensions_in
-
 
 ExtensionConverter = modules.ExtensionConverter
 _original_resolve_extensions = modules.resolve_extensions

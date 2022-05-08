@@ -20,19 +20,13 @@ import yarl
 from discord import Embed, File
 from discord.ext import commands
 from discord.utils import format_dt
-from googletrans import Translator, LANGUAGES
+from googletrans import LANGUAGES, Translator
+
 from sleepy.converters import real_float
 from sleepy.http import HTTPRequestFailed
 from sleepy.menus import EmbedSource
 from sleepy.paginators import WrappedPaginator
-from sleepy.utils import (
-    awaitable,
-    bool_to_emoji,
-    human_number,
-    plural,
-    tchart,
-    truncate,
-)
+from sleepy.utils import awaitable, bool_to_emoji, human_number, plural, tchart, truncate
 
 
 def clean_subreddit(value):

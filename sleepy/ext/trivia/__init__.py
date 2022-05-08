@@ -17,11 +17,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 from . import backend
 from .categories import CATEGORIES
-from .frontend import (
-    NoActiveSession,
-    TriviaMinigame,
-    has_active_session,
-)
+from .frontend import NoActiveSession, TriviaMinigame, has_active_session
 
 
 async def setup(bot):

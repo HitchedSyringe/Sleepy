@@ -20,6 +20,7 @@ from discord import Embed
 from discord.ext import commands
 from discord.ui import button
 from discord.utils import escape_mentions, snowflake_time
+
 from sleepy.http import HTTPRequestFailed
 from sleepy.menus import BaseView, PaginatorSource
 from sleepy.paginators import WrappedPaginator

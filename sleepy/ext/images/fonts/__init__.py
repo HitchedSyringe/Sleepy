@@ -9,6 +9,5 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 from pathlib import Path as _Path
 
-
 # Provided for ease of interacting with this folder.
 FONTS = _Path(__file__).parent

@@ -9,7 +9,6 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
-
 __all__ = (
     "BaseView",
     "BotLinksView",
@@ -41,7 +40,6 @@ from discord.ui import Button, View, button
 from discord.utils import MISSING, oauth_url
 
 from .utils import DISCORD_SERVER_URL, GITHUB_URL, PERMISSIONS_VALUE
-
 
 if TYPE_CHECKING:
     from discord.ext.commands import Bot, Paginator
