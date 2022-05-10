@@ -310,12 +310,7 @@ class DeveloperUtilities(
         ```
         """
         if message is None:
-            if ctx.replied_reference is None:
-                message = ctx.message
-            else:
-                message = ctx.channel.get_partial_message(
-                    ctx.replied_reference.message_id
-                )
+            message = ctx.replied_message or ctx.message
 
         try:
             raw = await ctx.bot.http.get_message(message.channel.id, message.id)

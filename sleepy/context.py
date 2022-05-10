@@ -58,15 +58,15 @@ class Context(commands.Context["Sleepy"]):
         return self.bot.http_requester.session
 
     @cached_property
-    def replied_reference(self) -> Optional[discord.MessageReference]:
-        """Optional[:class:`discord.MessageReference`]: The replied message reference.
+    def replied_message(self) -> Optional[discord.Message]:
+        """Optional[:class:`discord.Message`]: The message that is being replied to.
 
-        .. versionadded:: 3.0
+        .. versionadded:: 3.3
         """
         reference = self.message.reference
 
         if reference is not None and isinstance(reference.resolved, discord.Message):
-            return reference.resolved.to_reference()
+            return reference.resolved
 
         return None
 
