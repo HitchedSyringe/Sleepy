@@ -170,6 +170,10 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
 
         self.max_filesize: Optional[int] = max_filesize
 
+    # Trick to allow instances of this inside Optional and Union.
+    def __call__(self) -> None:
+        pass
+
     def _convert_attachment(
         self,
         state: ConnectionState,
