@@ -18,16 +18,16 @@ __all__ = (
 
 
 import math
-from inspect import Parameter, isclass
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from inspect import isclass
+from typing import TYPE_CHECKING, Any, Callable, Optional, cast
 
-from discord import Message
+from discord import Attachment
 from discord.ext import commands
+from discord.ext.commands.core import _AttachmentIterator
 
 from .mimics import PartialAsset
 
 if TYPE_CHECKING:
-    from discord import Attachment
     from discord.state import ConnectionState
 
     from .context import Context as SleepyContext
@@ -86,23 +86,31 @@ class ImageAssetTooLarge(commands.BadArgument):
 
 
 class ImageAssetConverter(commands.Converter[PartialAsset]):
-    """Converts a user, custom emoji, image attachment,
-    image URL, or message to a :class:`PartialAsset`.
+    """Converts a user, custom emoji, image attachment, or image
+    URL to a :class:`PartialAsset`.
 
-    .. note::
-
-        Due to an implementation detail, command arguments take
-        precedence over attachments and replied messages, and
-        will always be converted first. This also means that only
-        command arguments are supported with :class:`typing.Union`.
-
+    This also allows for converting replied messages containing
+    image attachments.
 
     .. warning::
 
-        Due to a limitation with the argument parser, only the
-        first attachment in the message will be converted. This
-        means that the attachment conversion behaviour is not
-        not supported with :class:`commands.Greedy` or `*args`.
+        Due to an implementation detail, image attachments take
+        precedence over command arguments and replied messages
+        during conversion. In this case, the conversion order
+        is as follows:
+
+        1) Image Attachments
+        2) Replied Messages
+        3) Command Arguments
+
+        In the case of using :class:`commands.Greedy`, only the
+        argument type with the highest precedence is converted.
+        For example, if both image attachments and image URLs are
+        passed, then only the former will be converted, while the
+        latter is completely ignored and discarded.
+
+        Furthermore, conversion of image attachments and replied
+        messages are **not** supported with :class:`typing.Union`.
 
     .. warning::
 
@@ -135,6 +143,8 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
 
         * Removed support for resolving a message with image
           attachments via ID or URL.
+        * Refactored to use discord.py's attachment conversion.
+        * Added support for :class:`commands.Greedy`.
 
     Parameters
     ----------
@@ -189,10 +199,11 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
         if mime is None or "image/" not in mime:
             raise ImageAssetConversionFailure(attachment.url)
 
-        max_fs = self.max_filesize
+        size = attachment.size
+        max_size = self.max_filesize
 
-        if max_fs is not None and attachment.size > max_fs:
-            raise ImageAssetTooLarge(attachment.url, attachment.size, max_fs)
+        if max_size is not None and size > max_size:
+            raise ImageAssetTooLarge(attachment.url, size, max_size)
 
         return PartialAsset(state, url=attachment.url)
 
@@ -224,13 +235,15 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
         except:
             raise ImageAssetConversionFailure(argument) from None
 
-        if "image/" not in resp.content_type:
+        size = resp.content_length
+
+        if size is None or "image/" not in resp.content_type:
             raise ImageAssetConversionFailure(argument)
 
-        filesize = int(resp.headers["Content-Length"])
+        max_size = self.max_filesize
 
-        if self.max_filesize is not None and filesize > self.max_filesize:
-            raise ImageAssetTooLarge(url, filesize, self.max_filesize)
+        if max_size is not None and size > max_size:
+            raise ImageAssetTooLarge(url, size, max_size)
 
         return PartialAsset(ctx.bot._connection, url=url)
 
@@ -306,54 +319,86 @@ def _pseudo_bool_flag(*names: str) -> Callable[[str], bool]:
     return convert
 
 
-_old_command_transform = commands.Command.transform
+_original_command_transform = commands.Command.transform
 
 
-# If there's nothing to actually process (i.e all
-# checks for the existence of attachments fail),
-# we return the passed param and just let original
-# transfer method handle it like it normally would
-# and, ideally, raise MissingRequiredArgument.
-def _process_attachments(
-    command: commands.Command,
+async def _iac_transform(
     converter: ImageAssetConverter,
+    command: commands.Command,
     ctx: AnyContext,
-    param: Parameter,
-) -> Parameter:
-    ref = ctx.message.reference
+    param: commands.Parameter,
+    attachments: _AttachmentIterator,
+) -> Any:
+    value = await _original_command_transform(command, ctx, param, attachments)
 
-    if ref is None:
-        attachments = ctx.message.attachments
-    elif isinstance(ref.resolved, Message):
-        attachments = ref.resolved.attachments
+    if isinstance(value, Attachment):
+        return converter._convert_attachment(ctx.bot._connection, value)
+
+    if isinstance(value, list):
+        state = ctx.bot._connection
+        return [converter._convert_attachment(state, a) for a in value]
+
+    return value
+
+
+async def _new_command_transform(
+    self: commands.Command,
+    ctx: AnyContext,
+    param: commands.Parameter,
+    attachments: _AttachmentIterator,
+) -> Any:
+    # Keeps Pyright quiet while also avoiding a type ignore.
+    ctx = cast("SleepyContext", ctx)
+    replied = ctx.replied_message
+
+    # In this case, we ideally want to make sure that the
+    # original message had no attachments before checking
+    # to see if the replied message has attachments. The
+    # reason we don't overwrite the passed attachments is
+    # to preserve the original :class:`discord.Attachment`
+    # conversion behaviour.
+    if not attachments.data and replied is not None:
+        to_handle = _AttachmentIterator(replied.attachments)
     else:
-        return param
+        to_handle = attachments
 
-    if not attachments:
-        return param
+    # Allows passing a command argument or using a replied message
+    # alongside an image attachment. Note that there is precedence
+    # involved here due to an implementation detail. For reference,
+    # the following conversion order is as follows:
+    #
+    # 1) Image Attachments
+    # 2) Replied Messages
+    # 3) Command Arguments
+    #
+    # Unfortunately, this also makes working with commands.Greedy
+    # really hairy. In that case, only the argument type with the
+    # highest precedence is converted. Everything below is quietly
+    # ignored and (eventually) discarded.
+    if to_handle.index < len(to_handle.data):
+        converter = param.converter
 
-    # Figured I should include this here for completeness.
-    if not command.ignore_extra and len(attachments) > 1:
-        raise commands.TooManyArguments("You can only upload one attachment.")
+        # Attempt to resolve the converter itself and spoof the
+        # param accordingly to work with the attachment handling.
+        # We don't overwrite the original parameter for the same
+        # reason as outlined above.
+        if isinstance(converter, commands.Greedy):
+            converter = converter.converter
+            new_param = param.replace(annotation=commands.Greedy[Attachment])
+        elif self._is_typing_optional(param.annotation):
+            converter = param.annotation.__args__[0]
+            new_param = param.replace(annotation=Optional[Attachment])
+        else:
+            new_param = param.replace(annotation=Attachment)
 
-    asset = converter._convert_attachment(ctx.bot._connection, attachments[0])
-    converter_cls = type(converter)
+        if isclass(converter) and issubclass(converter, ImageAssetConverter):
+            converter = converter()
+            return await _iac_transform(converter, self, ctx, new_param, to_handle)
 
-    return param.replace(default=asset, annotation=Optional[converter_cls])
+        if isinstance(converter, ImageAssetConverter):
+            return await _iac_transform(converter, self, ctx, new_param, to_handle)
 
-
-async def _new_command_transform(self, ctx: AnyContext, param: Parameter) -> Any:
-    conv = param.annotation
-
-    if self._is_typing_optional(conv):
-        conv = conv.__args__[0]
-
-    if isclass(conv) and issubclass(conv, ImageAssetConverter):
-        param = _process_attachments(self, conv(), ctx, param)
-    elif isinstance(conv, ImageAssetConverter):
-        param = _process_attachments(self, conv, ctx, param)
-
-    return await _old_command_transform(self, ctx, param)
+    return await _original_command_transform(self, ctx, param, attachments)
 
 
 commands.Command.transform = _new_command_transform

@@ -445,7 +445,9 @@ class Sleepy(commands.Bot):
             ctx._refund_cooldown_token()
             return
 
-        if isinstance(error, commands.MissingRequiredArgument):
+        if isinstance(
+            error, (commands.MissingRequiredArgument, commands.MissingRequiredAttachment)
+        ):
             ctx._refund_cooldown_token()
 
             msg = f"Missing required argument: `{error.param.name}`."
