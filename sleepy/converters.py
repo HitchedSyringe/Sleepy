@@ -95,15 +95,16 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
 
         Due to an implementation detail, command arguments take
         precedence over attachments and replied messages, and
-        will always be converted first.
+        will always be converted first. This also means that only
+        command arguments are supported with :class:`typing.Union`.
+
 
     .. warning::
 
         Due to a limitation with the argument parser, only the
         first attachment in the message will be converted. This
-        means that the attachment conversion behaviour will not
-        work with the :class:`commands.Greedy` converter or the
-        positional vars handling (i.e. *args).
+        means that the attachment conversion behaviour is not
+        not supported with :class:`commands.Greedy` or `*args`.
 
     .. warning::
 
