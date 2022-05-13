@@ -29,7 +29,12 @@ from .mimics import PartialAsset
 
 
 if TYPE_CHECKING:
+    from discord import Attachment
+    from discord.state import ConnectionState
+
     from .context import Context as SleepyContext
+
+    AnyContext = commands.Context[Any]
 
 
 class ImageAssetConversionFailure(commands.BadArgument):
@@ -165,6 +170,23 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
 
         self.max_filesize: Optional[int] = max_filesize
 
+    def _convert_attachment(
+        self,
+        state: ConnectionState,
+        attachment: Attachment
+    ) -> PartialAsset:
+        mime = attachment.content_type
+
+        if mime is None or "image/" not in mime:
+            raise ImageAssetConversionFailure(attachment.url)
+
+        max_fs = self.max_filesize
+
+        if max_fs is not None and attachment.size > max_fs:
+            raise ImageAssetTooLarge(attachment.url, attachment.size, max_fs)
+
+        return PartialAsset(state, url=attachment.url)
+
     async def convert(self, ctx: SleepyContext, argument: str) -> PartialAsset:
         try:
             user = await commands.UserConverter().convert(ctx, argument)
@@ -190,7 +212,8 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
 
         try:
             message = await commands.MessageConverter().convert(ctx, url)
-            url = message.attachments[0].url
+
+            return self._convert_attachment(message._state, message.attachments[0])
         except commands.MessageNotFound:
             # Ideally, we would want this to fail completely if
             # the message couldn't be resolved, however, this can
@@ -299,7 +322,7 @@ _old_command_transform = commands.Command.transform
 def _process_attachments(
     command: commands.Command,
     converter: ImageAssetConverter,
-    ctx: SleepyContext,
+    ctx: AnyContext,
     param: Parameter
 ) -> Parameter:
     ref = ctx.message.reference
@@ -318,26 +341,13 @@ def _process_attachments(
     if not command.ignore_extra and len(attachments) > 1:
         raise commands.TooManyArguments("You can only upload one attachment.")
 
-    attach = attachments[0]
-    mime = attach.content_type
+    asset = converter._convert_attachment(ctx.bot._connection, attachments[0])
+    converter_cls = type(converter)
 
-    if mime is None or "image/" not in mime:
-        raise ImageAssetConversionFailure(attach.url)
-
-    max_fs = converter.max_filesize
-
-    if max_fs is not None and attach.size > max_fs:
-        raise ImageAssetTooLarge(attach.url, attach.size, max_fs)
-
-    return Parameter(
-        name=param.name,
-        kind=param.kind,
-        default=PartialAsset(ctx.bot._connection, url=attach.url),
-        annotation=Optional[type(converter)]  # type: ignore
-    )
+    return param.replace(default=asset, annotation=Optional[converter_cls])
 
 
-async def _new_command_transform(self, ctx: SleepyContext, param: Parameter) -> Any:
+async def _new_command_transform(self, ctx: AnyContext, param: Parameter) -> Any:
     conv = param.annotation
 
     if isclass(conv) and issubclass(conv, ImageAssetConverter):
@@ -348,4 +358,4 @@ async def _new_command_transform(self, ctx: SleepyContext, param: Parameter) -> 
     return await _old_command_transform(self, ctx, param)
 
 
-commands.Command.transform = _new_command_transform  # type: ignore
+commands.Command.transform = _new_command_transform
