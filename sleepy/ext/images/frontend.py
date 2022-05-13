@@ -1032,40 +1032,29 @@ class Images(
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def whowouldwin(
-        self, ctx, first_user: discord.Member, second_user: discord.Member = None
+        self,
+        ctx,
+        left_image: ImageAssetConverter,
+        right_image: ImageAssetConverter,
     ):
         """Generates a "who would win" meme.
 
-        User can either be a name, ID, or mention.
-
-        If no second user is specified, then the second
-        user will default to you.
+        Images can either be a user, custom emoji, link, or
+        attachment. Links and attachments must be under 40
+        MB.
 
         (Bot Needs: Attach Files)
-
-        **EXAMPLES:**
-        ```bnf
-        <1> whowouldwin HitchedSyringe#0598
-        <2> whowouldwin HitchedSyringe#0598 someotherperson#0194
-        ```
         """
-        if second_user is None:
-            second_user = ctx.author
-
-        if first_user == second_user:
-            await ctx.send("You cannot compare the same user.")
-            return
-
         async with ctx.typing():
             try:
-                avatar1_bytes = await first_user.display_avatar.with_format("png").read()
-                avatar2_bytes = await second_user.display_avatar.with_format("png").read()
+                left_bytes = await left_image.read()
+                right_bytes = await right_image.read()
             except discord.HTTPException:
-                await ctx.send("Downloading the avatars failed. Try again later?")
+                await ctx.send("Downloading the images failed. Try again later?")
                 return
 
             buffer, delta = await backend.make_who_would_win_meme(
-                io.BytesIO(avatar1_bytes), io.BytesIO(avatar2_bytes)
+                io.BytesIO(left_bytes), io.BytesIO(right_bytes)
             )
 
         await ctx.send(
