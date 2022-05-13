@@ -350,6 +350,9 @@ def _process_attachments(
 async def _new_command_transform(self, ctx: AnyContext, param: Parameter) -> Any:
     conv = param.annotation
 
+    if self._is_typing_optional(conv):
+        conv = conv.__args__[0]
+
     if isclass(conv) and issubclass(conv, ImageAssetConverter):
         param = _process_attachments(self, conv(), ctx, param)
     elif isinstance(conv, ImageAssetConverter):
