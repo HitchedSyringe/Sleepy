@@ -8,7 +8,7 @@ git+https://github.com/Rapptz/discord-ext-menus
 emoji>=1.1.0
 # See https://github.com/ssut/py-googletrans/issues/280
 googletrans>=4.0.0rc1
-jishaku>=2.2.0
+jishaku>=2.2.0,<2.4.0
 matplotlib
 opencv-python-headless
 Pillow>=8.0.0
