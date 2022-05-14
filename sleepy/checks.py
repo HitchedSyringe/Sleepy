@@ -150,7 +150,7 @@ def has_permissions(*, check_any: bool = False, **permissions: bool) -> Callable
             return True
 
         if not check_any:
-            return commands.has_permissions(**permissions).predicate
+            return await commands.has_permissions(**permissions).predicate(ctx)
 
         channel_permissions = ctx.channel.permissions_for(ctx.author)  # type: ignore
 
@@ -212,7 +212,7 @@ def has_guild_permissions(*, check_any: bool = False, **permissions: bool) -> Ca
             return True
 
         if not check_any:
-            return commands.has_guild_permissions(**permissions).predicate
+            return await commands.has_guild_permissions(**permissions).predicate(ctx)
 
         guild_permissions = ctx.author.guild_permissions  # type: ignore
 
