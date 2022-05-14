@@ -139,7 +139,7 @@ def has_permissions(*, check_any=False, **permissions):
             return True
 
         if not check_any:
-            return commands.has_permissions(**permissions).predicate
+            return await commands.has_permissions(**permissions).predicate(ctx)
 
         if not _has_any_permissions(ctx.channel.permissions_for(ctx.author), permissions):
             raise MissingAnyPermissions(list(permissions))
@@ -192,7 +192,7 @@ def has_guild_permissions(*, check_any=False, **permissions):
             return True
 
         if not check_any:
-            return commands.has_guild_permissions(**permissions).predicate
+            return await commands.has_guild_permissions(**permissions).predicate(ctx)
 
         if not _has_any_permissions(ctx.author.guild_permissions, permissions):
             raise MissingAnyPermissions(list(permissions))
