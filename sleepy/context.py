@@ -119,8 +119,8 @@ class Context(commands.Context["Sleepy"]):
         source: PageSource,
         *,
         delete_message_when_stopped: bool = True,
-        remove_view_after: bool = False,
-        disable_view_after: bool = True,
+        remove_view_on_timeout: bool = False,
+        disable_view_on_timeout: bool = True,
         wait: bool = False,
         **kwargs: Any,
     ) -> discord.Message:
@@ -141,6 +141,11 @@ class Context(commands.Context["Sleepy"]):
 
             * This now returns a :class:`discord.Message`.
 
+        .. versionchanged:: 3.3
+
+            * Renamed ``remove_view_after`` to ``remove_view_on_timeout``.
+            * Renamed ``disable_view_after`` to ``disable_view_on_timeout``.
+
         Parameters
         ----------
         source: :class:`menus.PageSource`
@@ -152,12 +157,11 @@ class Context(commands.Context["Sleepy"]):
             .. versionchanged:: 3.3
                 This is no longer a positional-only argument.
         delete_message_when_stopped: :class:`bool`
-            Whether or not to delete the message when the user
-            presses the stop button.
+            Whether or not to delete the message once the stop button is
+            pressed.
             Defaults to ``True``.
-        remove_view_after: :class:`bool`
-            Whether to remove the view after after it has finished
-            interacting.
+        remove_view_on_timeout: :class:`bool`
+            Whether or not to remove the view after it has timed out.
             Defaults to ``False``.
 
             .. note::
@@ -165,16 +169,13 @@ class Context(commands.Context["Sleepy"]):
                 ``delete_message_when_stopped`` takes priority over
                 this setting in terms of cleanup behaviour.
 
-        disable_view_after: :class:`bool`
-            Whether or not to disable the view after it has finished
-            interacting.
+        disable_view_on_timeout: :class:`bool`
+            Whether or not to disable the view after it has timed out.
             Defaults to ``True``.
 
             .. note::
 
-                ``remove_view_after`` and ``delete_message_when_stopped``
-                takes priority over this setting in terms of cleanup
-                behaviour.
+                ``remove_view_on_timeout`` takes priority over this setting.
 
             .. versionadded:: 3.2
         wait: :class:`bool`
@@ -196,8 +197,8 @@ class Context(commands.Context["Sleepy"]):
             self.bot,
             source,
             delete_message_when_stopped=delete_message_when_stopped,
-            remove_view_after=remove_view_after,
-            disable_view_after=disable_view_after,
+            remove_view_on_timeout=remove_view_on_timeout,
+            disable_view_on_timeout=disable_view_on_timeout,
             owner_ids={self.author.id, self.bot.owner_id, *self.bot.owner_ids},  # type: ignore
             **kwargs,
         )
@@ -209,8 +210,8 @@ class Context(commands.Context["Sleepy"]):
         message: Union[str, discord.Message],
         *,
         delete_message_on_interact: bool = True,
-        remove_view_after: bool = False,
-        disable_view_after: bool = True,
+        remove_view_on_timeout: bool = False,
+        disable_view_on_timeout: bool = True,
         timeout: Optional[float] = 30,
     ) -> Optional[bool]:
         """|coro|
@@ -230,6 +231,11 @@ class Context(commands.Context["Sleepy"]):
                 * ``remove_reactions_after`` -> ``remove_view_after``
                 * ``delete_message_after -> ``delete_message_on_interact``
 
+        .. versionchanged:: 3.3
+
+            * Renamed ``remove_view_after`` to ``remove_view_on_timeout``.
+            * Renamed ``disable_view_after`` to ``disable_view_on_timeout``.
+
         Parameters
         ----------
         message: Union[:class:`str`, :class:`discord.Message`]
@@ -246,9 +252,8 @@ class Context(commands.Context["Sleepy"]):
             Whether or not to delete the message when the user
             interacts with the view.
             Defaults to ``True``.
-        remove_view_after: :class:`bool`
-            Whether or not to remove the view after after it has
-            finished interacting.
+        remove_view_on_timeout: :class:`bool`
+            Whether or not to remove the view after it has timed out.
             Defaults to ``False``.
 
             .. note::
@@ -256,9 +261,8 @@ class Context(commands.Context["Sleepy"]):
                 ``delete_message_on_interact`` takes priority over
                 this setting in terms of cleanup behaviour.
 
-        disable_view_after: :class:`bool`
-            Whether or not to disable the view after it has finished
-            interacting.
+        disable_view_on_timeout: :class:`bool`
+            Whether or not to disable the view after it has timed out.
             Defaults to ``True``.
 
             .. note::
@@ -299,9 +303,9 @@ class Context(commands.Context["Sleepy"]):
         try:
             if not timed_out and delete_message_on_interact:
                 await message.delete()
-            elif remove_view_after:
+            elif remove_view_on_timeout:
                 await message.edit(view=None)
-            elif disable_view_after and view.children:
+            elif disable_view_on_timeout and view.children:
                 for child in view.children:
                     child.disabled = True  # type: ignore
 

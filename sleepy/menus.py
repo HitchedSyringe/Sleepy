@@ -305,6 +305,13 @@ class PaginationView(BaseView):
 
     .. versionadded:: 3.2
 
+    .. versionchanged:: 3.3
+
+        * Renamed ``remove_view_after`` parameter to
+          ``remove_view_on_timeout``.
+        * Renamed ``disable_view_after`` parameter to
+          ``disable_view_on_timeout``.
+
     Parameters
     ----------
     bot: :class:`commands.Bot`
@@ -312,29 +319,20 @@ class PaginationView(BaseView):
     source: :class:`menus.PageSource`
         The page source to paginate.
     delete_message_when_stopped: :class:`bool`
-        Whether or not to delete the message when the user
-        presses the stop button.
+        Whether to delete the message when the stop button is
+        pressed.
         Defaults to ``True``.
-    remove_view_after: :class:`bool`
-        Whether to remove the view after after it has finished
-        interacting.
+    remove_view_on_timeout: :class:`bool`
+        Whether to remove the view after it has timed out.
         Defaults to ``False``.
-
-        .. note::
-
-            ``delete_message_when_stopped`` takes priority over
-            this setting in terms of cleanup behaviour.
-
-    disable_view_after: :class:`bool`
-        Whether or not to disable the view after it has finished
-        interacting.
+    disable_view_on_timeout: :class:`bool`
+        Whether to disable the view after it has timed out.
         Defaults to ``True``.
 
         .. note::
 
-            ``remove_view_after`` and ``delete_message_when_stopped``
-            takes priority over this setting in terms of cleanup
-            behaviour.
+            ``remove_view_on_timeout`` takes priority over this
+            setting.
 
     Attributes
     ----------
@@ -356,15 +354,15 @@ class PaginationView(BaseView):
         source: PageSource,
         *,
         delete_message_when_stopped: bool = False,
-        remove_view_after: bool = False,
-        disable_view_after: bool = True,
+        remove_view_on_timeout: bool = False,
+        disable_view_on_timeout: bool = True,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
 
         self._delete_message_when_stopped: bool = delete_message_when_stopped
-        self._remove_view_after: bool = remove_view_after
-        self._disable_view_after: bool = disable_view_after
+        self._remove_view_on_timeout: bool = remove_view_on_timeout
+        self._disable_view_on_timeout: bool = disable_view_on_timeout
 
         self._lock: asyncio.Lock = asyncio.Lock()
         self._source: PageSource = source
@@ -396,11 +394,9 @@ class PaginationView(BaseView):
         return {}
 
     async def _do_items_cleanup(self) -> None:
-        if self._remove_view_after:
+        if self._remove_view_on_timeout:
             await self.message.edit(view=None)  # type: ignore
-            return
-
-        if self._disable_view_after:
+        elif self._disable_view_on_timeout:
             for child in self.children:
                 child.disabled = True  # type: ignore
 
@@ -793,5 +789,5 @@ class PaginationView(BaseView):
         if self._delete_message_when_stopped:
             await self.message.delete()  # type: ignore
         else:
-            self._remove_view_after = True
+            self._remove_view_on_timeout = True
             await self._do_items_cleanup()
