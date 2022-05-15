@@ -313,14 +313,22 @@ class PaginationView(BaseView):
         The bot instance.
     source: :class:`menus.PageSource`
         The page source to paginate.
+    enable_stop_button: :class:`bool`
+        Whether or not to enable the stop button.
+        Defaults to ``True``.
+
+        .. versionadded:: 3.3
     delete_message_when_stopped: :class:`bool`
         Whether or not to delete the message once the stop button is pressed.
+        This has no effect if ``enable_stop_button`` is ``False``.
         Defaults to ``True``.
     remove_view_on_timeout: :class:`bool`
         Whether or not to remove the view after it has timed out.
+        This has no effect if ``enable_stop_button`` is ``False``.
         Defaults to ``False``.
     disable_view_on_timeout: :class:`bool`
         Whether or not to disable the view after it has timed out.
+        This has no effect if ``enable_stop_button`` is ``False``.
         Defaults to ``True``.
 
         .. note::
@@ -345,6 +353,7 @@ class PaginationView(BaseView):
         bot: Bot,
         source: PageSource,
         *,
+        enable_stop_button: bool = True,
         delete_message_when_stopped: bool = False,
         remove_view_on_timeout: bool = False,
         disable_view_on_timeout: bool = True,
@@ -352,6 +361,7 @@ class PaginationView(BaseView):
     ) -> None:
         super().__init__(**kwargs)
 
+        self._enable_stop_button: bool = enable_stop_button
         self._delete_message_when_stopped: bool = delete_message_when_stopped
         self._remove_view_on_timeout: bool = remove_view_on_timeout
         self._disable_view_on_timeout: bool = disable_view_on_timeout
@@ -414,7 +424,8 @@ class PaginationView(BaseView):
         if more_than_two:
             self.add_item(self.last_page)
 
-        self.add_item(self.stop_menu)
+        if self._enable_stop_button:
+            self.add_item(self.stop_menu)
 
         self._update_items(0)
 

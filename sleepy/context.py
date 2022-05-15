@@ -118,6 +118,7 @@ class Context(commands.Context["Sleepy"]):
         self,
         source: PageSource,
         *,
+        enable_stop_button: bool = True,
         delete_message_when_stopped: bool = True,
         remove_view_on_timeout: bool = False,
         disable_view_on_timeout: bool = True,
@@ -156,12 +157,19 @@ class Context(commands.Context["Sleepy"]):
 
             .. versionchanged:: 3.3
                 This is no longer a positional-only argument.
+        enable_stop_button: :class:`bool`
+            Whether or not to enable the stop button.
+            Defaults to ``True``.
+
+            .. versionadded:: 3.3
         delete_message_when_stopped: :class:`bool`
             Whether or not to delete the message once the stop button is
             pressed.
+            This has no effect if ``enable_stop_button`` is ``False``.
             Defaults to ``True``.
         remove_view_on_timeout: :class:`bool`
             Whether or not to remove the view after it has timed out.
+            This has no effect if ``enable_stop_button`` is ``False``.
             Defaults to ``False``.
 
             .. note::
@@ -171,6 +179,7 @@ class Context(commands.Context["Sleepy"]):
 
         disable_view_on_timeout: :class:`bool`
             Whether or not to disable the view after it has timed out.
+            This has no effect if ``enable_stop_button`` is ``False``.
             Defaults to ``True``.
 
             .. note::
@@ -196,6 +205,7 @@ class Context(commands.Context["Sleepy"]):
         view = PaginationView(
             self.bot,
             source,
+            enable_stop_button=enable_stop_button,
             delete_message_when_stopped=delete_message_when_stopped,
             remove_view_on_timeout=remove_view_on_timeout,
             disable_view_on_timeout=disable_view_on_timeout,
