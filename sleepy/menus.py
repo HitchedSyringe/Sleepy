@@ -789,8 +789,12 @@ class PaginationView(BaseView):
     async def stop_menu(self, itn: discord.Interaction, button: Button) -> None:
         self.stop()
 
-        if self._delete_message_when_stopped:
-            await self.message.delete()  # type: ignore
-        else:
-            self._remove_view_on_timeout = True
-            await self._do_items_cleanup()
+        # Ensure nothing goes awry during cleanup.
+        try:
+            if self._delete_message_when_stopped:
+                await self.message.delete()  # type: ignore
+            else:
+                self._remove_view_on_timeout = True
+                await self._do_items_cleanup()
+        except discord.HTTPException:
+            pass
