@@ -343,7 +343,7 @@ class PaginationView(BaseView):
         The current page that we are on.
         Zero-indexed between [0, :attr:`PageSource.max_pages`).
     message: Optional[:class:`discord.Message`]
-        This view's message.
+        This view's cached message. May not necessarily be up to date.
         ``None`` if this wasn't initially set through either :meth:`send_to`,
         :meth:`attach_to`, :meth:`reply_to`, or otherwise.
     """
