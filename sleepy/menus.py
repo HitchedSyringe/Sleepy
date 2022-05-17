@@ -686,13 +686,11 @@ class PaginationView(BaseView):
         """
         max_pages = self._source.get_max_pages()
 
-        if max_pages is not None and not 0 <= page_number < max_pages:
-            return
-
-        try:
-            await self.show_page(page_number, interaction)
-        except IndexError:
-            pass
+        if max_pages is None or 0 <= page_number < max_pages:
+            try:
+                await self.show_page(page_number, interaction)
+            except IndexError:
+                pass
 
     async def on_timeout(self) -> None:
         try:
