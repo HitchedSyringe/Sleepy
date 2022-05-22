@@ -174,7 +174,6 @@ class BotHelpView(PaginationView):
         source = HomePageSource(prefix=ctx.clean_prefix)
 
         super().__init__(
-            bot,
             source,
             owner_ids={ctx.author.id, bot.owner_id, *bot.owner_ids},
             delete_message_when_stopped=True,

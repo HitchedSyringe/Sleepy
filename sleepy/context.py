@@ -203,7 +203,6 @@ class Context(commands.Context["Sleepy"]):
             The message that was sent.
         """
         view = PaginationView(
-            self.bot,
             source,
             enable_stop_button=enable_stop_button,
             delete_message_when_stopped=delete_message_when_stopped,

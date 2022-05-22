@@ -19,7 +19,6 @@ __all__ = (
 )
 
 
-import asyncio
 from collections.abc import Collection
 from typing import (
     TYPE_CHECKING,
@@ -36,13 +35,13 @@ from typing import (
 
 import discord
 from discord.ext.menus import ListPageSource, PageSource
-from discord.ui import Button, View, button
+from discord.ui import Button, View, Modal, TextInput, button
 from discord.utils import MISSING, oauth_url
 
 from .utils import DISCORD_SERVER_URL, GITHUB_URL, PERMISSIONS_VALUE
 
 if TYPE_CHECKING:
-    from discord.ext.commands import Bot, Paginator
+    from discord.ext.commands import Paginator
     from discord.ext.menus import MenuPages
     from discord.ui import Item
 
@@ -284,6 +283,58 @@ class ConfirmationView(BaseView):
         self.stop()
 
 
+class _PageSelectModal(Modal, title="Jump to page"):
+
+    page_number_input = TextInput(
+        label="What page do you want to go to?",
+        placeholder="Type the page number here.",
+        min_length=1,
+    )
+
+    def __init__(self, view: PaginationView) -> None:
+        self.view: PaginationView = view
+
+        max_pages = view.source.get_max_pages()
+
+        # Should be fine doing this without a check since this modal
+        # can never be initialized if the page source doesn't have a
+        # max page count.
+        self.page_number_input.max_length = len(str(max_pages))
+
+        # Doing this will fail if the view source changes while this
+        # modal is active. I doubt this will happen, however.
+        self._source_max_pages: int = max_pages
+
+        super().__init__()
+
+    # Mainly here just in case. There's not really a need for it otherwise.
+    async def interaction_check(self, itn: discord.Interaction) -> bool:
+        return await self.view.interaction_check(itn)
+
+    async def on_submit(self, itn: discord.Interaction) -> None:
+        page_number_input = str(self.page_number_input)
+
+        if not page_number_input.isdecimal():
+            await itn.response.send_message("Invalid page number.", ephemeral=True)
+            return
+
+        page_number = int(page_number_input) - 1
+
+        # This could've all been replaced with show_checked_page,
+        # but silently ignoring exceptions in this case would be
+        # bad UX.
+
+        if 0 <= page_number < self._source_max_pages:
+            try:
+                await self.view.show_page(page_number, itn)
+            except IndexError:
+                pass
+            else:
+                return
+
+        await itn.response.send_message("That page is out of bounds.", ephemeral=True)
+
+
 class PaginationView(BaseView):
     """A view which allows for pagination of items.
 
@@ -306,11 +357,10 @@ class PaginationView(BaseView):
 
         * Renamed ``remove_view_after`` parameter to ``remove_view_on_timeout``.
         * Renamed ``disable_view_after`` parameter to ``disable_view_on_timeout``.
+        * Removed the ``bot`` parameter & attribute.
 
     Parameters
     ----------
-    bot: :class:`commands.Bot`
-        The bot instance.
     source: :class:`menus.PageSource`
         The page source to paginate.
     enable_stop_button: :class:`bool`
@@ -337,8 +387,6 @@ class PaginationView(BaseView):
 
     Attributes
     ----------
-    bot: :class:`commands.Bot`
-        The passed bot instance.
     current_page: :class:`int`
         The current page that we are on.
         Zero-indexed between [0, :attr:`PageSource.max_pages`).
@@ -350,7 +398,6 @@ class PaginationView(BaseView):
 
     def __init__(
         self,
-        bot: Bot,
         source: PageSource,
         *,
         enable_stop_button: bool = True,
@@ -366,12 +413,11 @@ class PaginationView(BaseView):
         self._remove_view_on_timeout: bool = remove_view_on_timeout
         self._disable_view_on_timeout: bool = disable_view_on_timeout
 
-        self._lock: asyncio.Lock = asyncio.Lock()
-        self._source: PageSource = source
+        self._page_select_modal: Optional[_PageSelectModal] = None
 
-        self.bot: Bot = bot
         self.current_page: int = 0
         self.message: Optional[discord.Message] = None
+        self._source: PageSource = source
 
         self.clear_items()
         self._do_items_setup()
@@ -416,6 +462,9 @@ class PaginationView(BaseView):
 
             self.page_number.emoji = "\N{INPUT SYMBOL FOR NUMBERS}"
             self.page_number.disabled = False
+        else:
+            self.page_number.emoji = None
+            self.page_number.disabled = True
 
         self.add_item(self.previous_page)
         self.add_item(self.page_number)
@@ -693,6 +742,10 @@ class PaginationView(BaseView):
                 pass
 
     async def on_timeout(self) -> None:
+        if self._page_select_modal is not None:
+            self._page_select_modal.stop()
+            self._page_select_modal = None
+
         try:
             await self._do_items_cleanup()
         except discord.HTTPException:
@@ -716,62 +769,12 @@ class PaginationView(BaseView):
     async def previous_page(self, itn: discord.Interaction, button: Button) -> None:
         await self.show_checked_page(self.current_page - 1, itn)
 
-    @button(style=discord.ButtonStyle.primary, disabled=True)
+    @button(style=discord.ButtonStyle.primary)
     async def page_number(self, itn: discord.Interaction, button: Button) -> None:
-        if self._lock.locked():
-            await itn.response.send_message(
-                "I'm already awaiting your response.", ephemeral=True
-            )
-            return
+        if self._page_select_modal is None:
+            self._page_select_modal = _PageSelectModal(self)
 
-        async with self._lock:
-            old_timeout = self.timeout
-
-            if old_timeout is not None:
-                self.timeout = old_timeout + 35
-
-            await itn.response.send_message(
-                "Type the page number to jump to.", ephemeral=True
-            )
-
-            def page_check(m: discord.Message) -> bool:
-                return (
-                    m.channel == self.message.channel  # type: ignore
-                    and self.can_use_menu(m.author)
-                    and m.content.isdigit()
-                    and m.content != "0"
-                )
-
-            # Since we wait for quite a while, we'll want to make
-            # sure the menu hasn't been killed yet within the 30s
-            # of waiting when either an answer is received or the
-            # waiter times out.
-
-            try:
-                message = await self.bot.wait_for("message", check=page_check, timeout=30)
-            except asyncio.TimeoutError:
-                if not self.is_finished():
-                    await itn.followup.send(
-                        "You took too long to respond.", ephemeral=True
-                    )
-                    await asyncio.sleep(5)
-
-                return
-
-            if self.is_finished():
-                return
-
-            if old_timeout is not None:
-                self.timeout = old_timeout
-
-            # The interaction has already responded by this point,
-            # so passing the interaction here is pointless.
-            await self.show_checked_page(int(message.content) - 1)
-
-            try:
-                await message.delete()
-            except discord.HTTPException:
-                pass
+        await itn.response.send_modal(self._page_select_modal)
 
     @button(emoji="<:fwd:862407042114125845>")
     async def next_page(self, itn: discord.Interaction, button: Button) -> None:
@@ -786,6 +789,10 @@ class PaginationView(BaseView):
     @button(emoji="\N{OCTAGONAL SIGN}", label="Stop", style=discord.ButtonStyle.danger)
     async def stop_menu(self, itn: discord.Interaction, button: Button) -> None:
         self.stop()
+
+        if self._page_select_modal is not None:
+            self._page_select_modal.stop()
+            self._page_select_modal = None
 
         # Ensure nothing goes awry during cleanup.
         try:
