@@ -441,10 +441,7 @@ class Covid(
         ```
         """
         try:
-            latest = await ctx.get(
-                f"https://disease.sh/v3/covid-19/states/{quote(state)}",
-                cache__=True
-            )
+            latest = await ctx.get(f"{self.BASE}/states/{quote(state)}", cache__=True)
         except HTTPRequestFailed as exc:
             if exc.status == 404:
                 await ctx.send(exc.data["message"])
