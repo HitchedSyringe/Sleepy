@@ -1,0 +1,45 @@
+name: Lint
+
+on:
+  push:
+  pull_request:
+    types: [ opened, reopened, synchronize ]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ "3.8", "3.x" ]
+
+    name: Check ${{ matrix.python-version }}
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up CPython ${{ matrix.python-version }}.
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies.
+        id: install-dependencies
+        run: |
+          python -m pip install --upgrade pip black
+          pip install -U -r requirements.txt
+
+      - name: Run Pyright.
+        uses: jakebailey/pyright-action@v1
+        with:
+          version: "1.1.242"
+          warnings: false
+          no-comments: ${{ matrix.python-version != '3.x' }}
+
+      - name: Run black.
+        if: ${{ always() && steps.install-dependencies.outcome == 'success' }}
+        run: |
+          black --check sleepy
