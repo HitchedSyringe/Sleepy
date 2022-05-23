@@ -263,7 +263,7 @@ class Statistics(
         (Bot Needs: Embed Links)
         """
         embed = Embed(
-            description=ctx.bot.description or ctx.bot.app_info.description,
+            description=ctx.bot.description or ctx.bot.application.description,
             colour=0x2F3136,
         )
         embed.set_author(name=ctx.me)

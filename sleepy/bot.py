@@ -35,6 +35,8 @@ from .utils import GITHUB_URL, find_extensions_in, human_join
 if TYPE_CHECKING:
     from datetime import datetime
 
+    from discord import AppInfo
+
 _LOG = logging.getLogger(__name__)
 
 
@@ -78,15 +80,6 @@ class Sleepy(commands.Bot):
 
     Attributes
     ----------
-    app_info: Optional[:class:`discord.AppInfo`]
-        The bot's cached application information upon
-        logging in.
-        ``None`` if not logged in.
-
-        .. versionadded:: 1.12
-
-        .. versionchanged:: 2.0
-            This is now set upon logging in.
     config: Mapping[:class:`str`, Any]
         The bot's configuration values.
 
@@ -127,7 +120,6 @@ class Sleepy(commands.Bot):
         self.extensions_directory: Path = Path(config["extensions_directory"] or ".")
         self.http_requester: HTTPRequester = HTTPRequester(cache=kwargs.get("http_cache"))
 
-        self.app_info: Optional[discord.AppInfo] = None
         self.started_at: Optional[datetime] = None
 
         # Cooldown mapping for people who excessively spam commands.
@@ -167,7 +159,7 @@ class Sleepy(commands.Bot):
         .. versionadded:: 1.12
 
         .. versionchanged:: 3.0
-            :attr:`app_info` is now used as a fallback.
+            The bot's application info is now used as a fallback.
         """
         # We assume that one or the other is set, as enforced in __init__.
         if self.owner_id is not None:
@@ -178,7 +170,7 @@ class Sleepy(commands.Bot):
             owner = None
 
         if owner is None:
-            app_info = self.app_info
+            app_info = self.application
 
             if app_info is not None:
                 if app_info.team is None:
@@ -212,7 +204,7 @@ class Sleepy(commands.Bot):
         elif self.owner_id is not None:
             ids = {self.owner_id}
         else:
-            app_info = self.app_info
+            app_info = self.application
 
             if app_info is None:
                 return []
@@ -228,9 +220,10 @@ class Sleepy(commands.Bot):
         # --- Populate general stuff. ---
 
         config = self.config
+        # Should be fetched by the time we're here.
+        app_info: AppInfo = self.application  # type: ignore
 
         self.started_at = utcnow()
-        self.app_info = app_info = await self.application_info()
 
         # --- Set up HTTP requester session. ---
 
