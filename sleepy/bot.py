@@ -389,7 +389,7 @@ class Sleepy(commands.Bot):
             "\nKeyword Arguments: --\n%s"
         )
 
-        _LOG.error(fmt, event_method, p_args, k_args, exc_info=True)
+        _LOG.exception(fmt, event_method, p_args, k_args)
 
         embed = Embed(
             title="Event Handler Error",

@@ -186,15 +186,16 @@ class Statistics(
         if hasattr(error, "handled__"):
             return
 
-        error_fmt = (
-            "Something went wrong whilst executing a command."
+        fmt = (
+            'Unhandled exception in command "%s":'
             "\nInvoker: %s (ID: %s)"
             "\nChannel: %s (ID: %s)"
             "\nContent: %s"
         )
 
-        _LOG.error(
-            error_fmt,
+        _LOG.exception(
+            fmt,
+            ctx.command.qualified_name,
             ctx.author,
             ctx.author.id,
             ctx.channel,
