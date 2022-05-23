@@ -434,7 +434,7 @@ class DeveloperUtilities(
             query=query
         )
 
-    @rtfm.command(name="master", aliases=("main",))
+    @rtfm.command(name="master", aliases=("main", "latest"))
     @commands.bot_has_permissions(embed_links=True)
     async def rtfm_master(self, ctx, *, query):
         """Gives a documentation link for a discord.py entity (master branch).
@@ -452,7 +452,7 @@ class DeveloperUtilities(
             "rtfm.sphinx",
             embed_author_name="RTFM: discord.py (master branch)",
             colour=0x5865F2,
-            location="https://discordpy.readthedocs.io/en/master",
+            location="https://discordpy.readthedocs.io/en/latest",
             query=query
         )
 
