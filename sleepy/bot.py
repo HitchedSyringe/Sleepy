@@ -271,7 +271,7 @@ class Sleepy(commands.Bot):
         await self.wait_until_ready()
 
         _LOG.info("Boot Successful! Running Sleepy %s", __version__)
-        _LOG.info("| User: %s (ID: %s)", self.user, self.user.id)
+        _LOG.info("| User: %s (ID: %s)", self.user, self.user.id)  # type: ignore
 
         if self.owner_id is not None:
             _LOG.info("| Owner ID: %s", self.owner_id)
@@ -326,7 +326,7 @@ class Sleepy(commands.Bot):
 
         if await self.is_owner(author):  # type: ignore
             await self.invoke(ctx)
-            ctx.command.reset_cooldown(ctx)
+            ctx.command.reset_cooldown(ctx)  # type: ignore
             return
 
         current = message.edited_at or message.created_at
@@ -366,7 +366,7 @@ class Sleepy(commands.Bot):
             msg = f"Missing required argument: `{error.param.name}`."
             param_match = re.search(
                 fr"<{error.param.name}(?:\.{{3}})?>",
-                f"{ctx.command.qualified_name} {ctx.command.signature}"
+                f"{ctx.command.qualified_name} {ctx.command.signature}"  # type: ignore
             )
 
             # Command signature may not be in a format we expect.

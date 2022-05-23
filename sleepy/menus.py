@@ -392,14 +392,14 @@ class PaginationView(BaseView):
 
     async def _do_items_cleanup(self) -> None:
         if self._remove_view_after:
-            await self.message.edit(view=None)
+            await self.message.edit(view=None)  # type: ignore
             return
 
         if self._disable_view_after:
             for child in self.children:
                 child.disabled = True  # type: ignore
 
-            await self.message.edit(view=self)
+            await self.message.edit(view=self)  # type: ignore
 
     def _do_items_setup(self) -> None:
         if not self._source.is_paginating():
@@ -455,7 +455,7 @@ class PaginationView(BaseView):
         self.previous_page.disabled = on_first
 
         if (max_pages := self._source.get_max_pages()) is None:
-            self.page_number.label = self.current_page + 1  # type: ignore
+            self.page_number.label = self.current_page + 1
             return
 
         self.page_number.label = f"{self.current_page + 1} / {max_pages}"
@@ -608,7 +608,7 @@ class PaginationView(BaseView):
         kwargs = await self._get_kwargs_from_page(page)
 
         self._update_items(page_number)
-        self.message = await self.message.edit(**kwargs, view=self)
+        self.message = await self.message.edit(**kwargs, view=self)  # type: ignore
 
     async def show_checked_page(self, page_number: int) -> None:
         """|coro|
@@ -665,14 +665,14 @@ class PaginationView(BaseView):
     async def last_page(self, button: Button, itn: discord.Interaction) -> None:
         # This call is safe since the button itself is already
         # handled initially when the view starts.
-        await self.show_page(self._source.get_max_pages() - 1)  # type: ignore
+        await self.show_page(self._source.get_max_pages() - 1)
 
     @button(emoji="\N{OCTAGONAL SIGN}", label="Stop", style=discord.ButtonStyle.danger)
     async def stop_menu(self, button: Button, itn: discord.Interaction) -> None:
         self.stop()
 
         if self._delete_message_when_stopped:
-            await self.message.delete()
+            await self.message.delete()  # type: ignore
         else:
             self._remove_view_after = True
             await self._do_items_cleanup()
@@ -693,7 +693,7 @@ class PaginationView(BaseView):
 
             def page_check(m: discord.Message) -> bool:
                 return (
-                    m.channel == self.message.channel
+                    m.channel == self.message.channel  # type: ignore
                     and m.author.id in self.owner_ids
                     and m.content.isdigit()
                     and m.content != "0"
