@@ -158,45 +158,39 @@ class Sleepy(commands.Bot):
     def owner(self) -> Optional[discord.User]:
         """Optional[:class:`discord.User`]: The bot's owner.
 
-        This first attempts to resolve a user from the configured
-        owner IDs. If no user could be resolved, then this falls
-        back to getting the application owner using the bot's
-        cached application information. If both above attempts
-        fail, then ``None`` will be returned instead.
+        This first attempts to resolve the user using the owner IDs.
+        If either the resolution attempt fails or no owner IDs were
+        set, then the application information is used as a fallback.
+
+        ``None`` is returned if both resolution attempts fail.
 
         .. versionadded:: 1.12
 
         .. versionchanged:: 3.0
             :attr:`app_info` is now used as a fallback.
         """
+        # We assume that one or the other is set, as enforced in __init__.
         if self.owner_id is not None:
             owner = self.get_user(self.owner_id)
-        elif self.owner_ids is not None and len(self.owner_ids) == 1:
+        elif self.owner_ids and len(self.owner_ids) == 1:
             owner = self.get_user(next(iter(self.owner_ids)))
         else:
             owner = None
 
-        app_info = self.app_info
+        if owner is None:
+            app_info = self.app_info
 
-        # NOTE: Doing a fallback like this could pose a potential
-        # security issue if the app owners are different from the
-        # configured owners. Essentially, this potentially impacts
-        # any users who decide to use this in a check. This likely
-        # isn't that big of a concern since I figure most people
-        # would actually set their local owner configurations in
-        # line with their app owner settings since there's no real
-        # reason not to. Nonetheless, this is still worth mentioning.
-        if owner is None and self.app_info is not None:
-            if self.app_info.team is None:
-                owner = self.app_info.owner
-            else:
-                # :attr:`AppInfo.owner` is the team itself, so this
-                # is the only way of getting the application owner.
-                # We use :meth:`Bot.get_user` here for two reasons:
-                # * Consistency (i.e. returning :class:`discord.User`
-                #   instead of :class:`discord.TeamMember`)
-                # * :attr:`Team.owner` is O(n); this is O(1).
-                owner = self.get_user(self.app_info.team.owner_id)  # type: ignore
+            if app_info is not None:
+                if app_info.team is None:
+                    owner = app_info.owner
+                else:
+                    # :attr:`AppInfo.owner` is the team itself, so this
+                    # is the only way of getting the application owner.
+                    # We use :meth:`Bot.get_user` here for two reasons:
+                    # * Consistency (i.e. returning :class:`discord.User`
+                    #   instead of :class:`discord.TeamMember`)
+                    # * :attr:`Team.owner` is O(n); this is O(1).
+                    owner = self.get_user(app_info.team.owner_id)  # type: ignore
 
         return owner
 
