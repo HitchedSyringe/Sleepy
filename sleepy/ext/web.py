@@ -1137,11 +1137,10 @@ class Web(
 
         await ctx.send(embed=embed)
 
+    # Cooldown is in place to curb possibility of being blocked.
     @commands.command(aliases=("tr",))
     @commands.bot_has_permissions(embed_links=True)
-    @commands.cooldown(
-        1, 5, commands.BucketType.member
-    )  # Curb possibility of being blocked.
+    @commands.cooldown(1, 5, commands.BucketType.member)
     async def translate(
         self,
         ctx,
@@ -1175,17 +1174,14 @@ class Web(
         ```
         """
         if text is None:
-            ref = ctx.message.reference
+            replied = ctx.replied_message
 
-            if ref is None or not isinstance(ref.resolved, discord.Message):
+            if replied is None:
                 await ctx.send("You must provide some text to translate.")
                 return
 
-            text = ref.resolved.content
+            text = replied.content
 
-            # It's unfortunate that we have to do this check twice, but
-            # messages can have no text content and the translator will
-            # throw a TypeError if an empty string is passed.
             if not text:
                 await ctx.send("That message doesn't have any text content.")
                 return
