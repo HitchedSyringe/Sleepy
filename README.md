@@ -63,6 +63,7 @@ When adding commands, look at the other commands in the category and pick which 
 * [pyfiglet](https://github.com/pwaller/pyfiglet)
 * [pyyaml](https://github.com/yaml/pyyaml)
 * [scikit-image](https://github.com/scikit-image/scikit-image)
+* [typing_extensions 4.x](https://github.com/python/typing_extensions)
 
 ## Installation
 

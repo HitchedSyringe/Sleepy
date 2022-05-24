@@ -13,3 +13,4 @@ psutil
 pyfiglet
 pyyaml
 scikit-image
+typing_extensions>=4,<5

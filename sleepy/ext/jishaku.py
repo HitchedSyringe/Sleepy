@@ -7,9 +7,13 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+from __future__ import annotations
+
 import itertools
 import os
 import traceback
+from typing import TYPE_CHECKING, List
+from typing_extensions import Annotated
 
 import discord
 from braceexpand import braceexpand
@@ -28,11 +32,16 @@ from jishaku.paginators import WrappedPaginator
 
 from sleepy.utils import bool_to_emoji, find_extensions_in
 
+if TYPE_CHECKING:
+    from sleepy.bot import Sleepy
+    from sleepy.context import Context as SleepyContext
+
+
 ExtensionConverter = modules.ExtensionConverter
 _original_resolve_extensions = modules.resolve_extensions
 
 
-def resolve_extensions(bot, name):
+def resolve_extensions(bot: Sleepy, name: str) -> List[str]:
     exts = []
     exts_dir = ".".join(bot.extensions_directory.parts)
 
@@ -72,14 +81,14 @@ class Owner(
     ||Ｃｏｎｓｏｏｍ　ｍａｇｎｅｔ　ｃｏｇ；　ｃｏｎｆｏｒｍ　ｔｏ　ｍａｇｎｅｔ　ｃｏｇ．||
     """
 
-    ICON = "\N{MAGNET}"
+    ICON: str = "\N{MAGNET}"
 
-    def cog_unload(self):
+    def cog_unload(self) -> None:
         # Restore the original functionality.
         modules.resolve_extensions = _original_resolve_extensions
 
     @Feature.Command(aliases=("pm",))
-    async def dm(self, ctx, user: discord.User, *, content):
+    async def dm(self, ctx: SleepyContext, user: discord.User, *, content: str) -> None:
         """Directly messages a user.
 
         User can either be a name, ID, or mention.
@@ -108,12 +117,12 @@ class Owner(
             await ctx.send("Your message was sent successfully.")
 
     @Feature.Command(rest_is_raw=True)
-    async def echo(self, ctx, *, message):
+    async def echo(self, ctx: SleepyContext, *, message: str) -> None:
         """Sends a message in the current channel as myself."""
         await ctx.send(message)
 
     @Feature.Command(parent="jsk", name="extensions", aliases=("exts",))
-    async def jsk_extensions(self, ctx):
+    async def jsk_extensions(self, ctx: SleepyContext) -> None:
         """Shows the loaded and unloaded extensions.
 
         This doesn't include extensions in any subsequent folders.
@@ -129,19 +138,20 @@ class Owner(
     @Feature.Command(
         parent="jsk", name="load", aliases=("l",), require_var_positional=True
     )
-    async def jsk_load(self, ctx, *extensions: ExtensionConverter):
+    async def jsk_load(
+        self, ctx: SleepyContext, *extensions: Annotated[List[str], ExtensionConverter]
+    ) -> None:
         """Loads one or more extensions."""
-        stats = WrappedPaginator(None, None, 1980)
+        stats = WrappedPaginator(prefix="", suffix="", max_size=1980)
 
         for ext in itertools.chain(*extensions):
             try:
                 await ctx.bot.load_extension(ext)
             except commands.ExtensionAlreadyLoaded:
                 pass
-            except:
-                stats.add_line(
-                    f"<:x_:821284209792516096> `{ext}`\n```py\n{traceback.format_exc()}```"
-                )
+            except Exception:
+                tb = traceback.format_exc()
+                stats.add_line(f"<:x_:821284209792516096> `{ext}`\n```py\n{tb}```")
             else:
                 stats.add_line(f"<:check:821284209401921557> `{ext}`")
 
@@ -153,27 +163,28 @@ class Owner(
             await ctx.send(page)
 
     @Feature.Command(parent="jsk", name="reload", aliases=("r",))
-    async def jsk_reload(self, ctx, *extensions: ExtensionConverter):
+    async def jsk_reload(
+        self, ctx: SleepyContext, *extensions: Annotated[List[str], ExtensionConverter]
+    ) -> None:
         """Reloads one or more extensions.
 
         If no extensions are passed, then all loaded extensions
         will be reloaded.
         """
-        extensions = (
+        to_reload = (
             itertools.chain(*extensions) if extensions else tuple(ctx.bot.extensions)
         )
 
-        stats = WrappedPaginator(None, None, 1980)
+        stats = WrappedPaginator(prefix="", suffix="", max_size=1980)
 
-        for ext in extensions:
+        for ext in to_reload:
             try:
                 await ctx.bot.reload_extension(ext)
             except commands.ExtensionNotLoaded:
                 pass
-            except:
-                stats.add_line(
-                    f"<:x_:821284209792516096> `{ext}`\n```py\n{traceback.format_exc()}```"
-                )
+            except Exception:
+                tb = traceback.format_exc()
+                stats.add_line(f"<:x_:821284209792516096> `{ext}`\n```py\n{tb}```")
             else:
                 stats.add_line(f"<:check:821284209401921557> `{ext}`")
 
@@ -185,7 +196,7 @@ class Owner(
             await ctx.send(page)
 
     @Feature.Command(parent="jsk", name="shutdown", aliases=("die", "kys"))
-    async def jsk_shutdown(self, ctx):
+    async def jsk_shutdown(self, ctx: SleepyContext) -> None:
         """Shuts me down."""
         await ctx.send("Just drank some anti-freeze. Now I am become dead.")
         await ctx.bot.close()
@@ -193,9 +204,11 @@ class Owner(
     @Feature.Command(
         parent="jsk", name="unload", aliases=("u",), require_var_positional=True
     )
-    async def jsk_unload(self, ctx, *extensions: ExtensionConverter):
+    async def jsk_unload(
+        self, ctx: SleepyContext, *extensions: Annotated[List[str], ExtensionConverter]
+    ) -> None:
         """Unloads one or more extensions."""
-        stats = WrappedPaginator(None, None, 1980)
+        stats = WrappedPaginator(prefix="", suffix="", max_size=1980)
 
         for ext in itertools.chain(*extensions):
             if ext == __name__:
@@ -206,10 +219,9 @@ class Owner(
                 await ctx.bot.unload_extension(ext)
             except commands.ExtensionNotLoaded:
                 pass
-            except:
-                stats.add_line(
-                    f"<:x_:821284209792516096> `{ext}`\n```py\n{traceback.format_exc()}```"
-                )
+            except Exception:
+                tb = traceback.format_exc()
+                stats.add_line(f"<:x_:821284209792516096> `{ext}`\n```py\n{tb}```")
             else:
                 stats.add_line(f"<:check:821284209401921557> `{ext}`")
 
@@ -221,15 +233,14 @@ class Owner(
             await ctx.send(page)
 
     @Feature.Command(aliases=("leaveguild",))
-    async def leaveserver(self, ctx, *, guild: discord.Guild = None):
+    async def leaveserver(
+        self, ctx: SleepyContext, *, guild: discord.Guild = commands.CurrentGuild
+    ) -> None:
         """Forces me to leave a server.
 
         If no server is given, then I will leave the
         current server instead.
         """
-        if guild is None:
-            guild = ctx.guild
-
         confirmed = await ctx.prompt(f"Leave {guild} (ID: {guild.id})?")
 
         if confirmed:
@@ -239,7 +250,7 @@ class Owner(
             await ctx.send("Aborted.")
 
 
-async def setup(bot):
+async def setup(bot: Sleepy) -> None:
     os.environ["JISHAKU_RETAIN"] = "True"
     os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 
