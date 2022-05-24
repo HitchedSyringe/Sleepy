@@ -526,18 +526,16 @@ class Web(
         <2> countryinfo China
         <3> countryinfo UK
         """
-        resp = await ctx.get(
-            f"https://restcountries.com/v2/name/{quote(country)}", cache__=True
-        )
+        try:
+            resp = await ctx.get(
+                f"https://restcountries.com/v2/name/{quote(country)}", cache__=True
+            )
+        except HTTPRequestFailed as exc:
+            if exc.status == 404:
+                await ctx.send("Could not find a country with that name.")
+                return
 
-        if "message" in resp:
-            # This doesn't return HTTP 404 when a country isn't
-            # found, but rather, a dictionary response with the
-            # "status" and "message" keys. If we're here, then
-            # either the input country wasn't found or we got
-            # some other "HTTP" error response.
-            await ctx.send("Could not find a country with that name.")
-            return
+            raise
 
         try:
             data = await ctx.disambiguate(resp, lambda x: x["name"])
