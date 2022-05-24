@@ -21,11 +21,11 @@ from discord import Embed, File
 from discord.ext import commands
 from discord.utils import format_dt
 from googletrans import LANGUAGES, Translator
+from jishaku.paginators import WrappedPaginator
 
 from sleepy.converters import real_float
 from sleepy.http import HTTPRequestFailed
 from sleepy.menus import EmbedSource
-from sleepy.paginators import WrappedPaginator
 from sleepy.utils import awaitable, bool_to_emoji, human_number, plural, tchart, truncate
 
 
@@ -806,7 +806,7 @@ class Web(
             await ctx.send("Couldn't find that song's lyrics.")
             return
 
-        paginator = WrappedPaginator(None, None, 720)
+        paginator = WrappedPaginator(prefix="", suffix="", max_size=720)
 
         for line in resp["lyrics"].split("\n"):
             paginator.add_line(line)

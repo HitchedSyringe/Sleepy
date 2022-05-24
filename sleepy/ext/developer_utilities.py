@@ -20,10 +20,10 @@ from discord import Embed
 from discord.ext import commands
 from discord.ui import button
 from discord.utils import escape_mentions, snowflake_time
+from jishaku.paginators import WrappedPaginator
 
 from sleepy.http import HTTPRequestFailed
 from sleepy.menus import BaseView, PaginatorSource
-from sleepy.paginators import WrappedPaginator
 
 
 class PistonView(BaseView):
@@ -326,7 +326,7 @@ class DeveloperUtilities(
             await ctx.send("I do not have permission to access that message.")
             return
 
-        data = WrappedPaginator("```json", max_size=1980)
+        data = WrappedPaginator(prefix="```json", max_size=1980)
 
         for line in json.dumps(raw, indent=4).split("\n"):
             data.add_line(line.replace("`", "\u200b`"))

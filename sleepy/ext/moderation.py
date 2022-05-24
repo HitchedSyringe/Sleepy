@@ -14,10 +14,10 @@ from typing import Optional, Tuple
 import discord
 from discord.ext import commands
 from discord.utils import find
+from jishaku.paginators import WrappedPaginator
 
 from sleepy import checks
 from sleepy.menus import PaginatorSource
-from sleepy.paginators import WrappedPaginator
 from sleepy.utils import plural
 
 CUSTOM_EMOJI_REGEX = re.compile(r"<a?:[A-Za-z0-9_]+:[0-9]{15,20}>")
@@ -460,7 +460,7 @@ class Moderation(commands.Cog):
             return
 
         if options.show_users:
-            paginator = WrappedPaginator("```yaml", max_size=1000)
+            paginator = WrappedPaginator(prefix="```yaml", max_size=1000)
             members.sort(key=lambda m: m.joined_at or now)
 
             for member in members:

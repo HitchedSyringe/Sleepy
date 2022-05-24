@@ -23,4 +23,3 @@ from .context import *
 from .converters import *
 from .http import *
 from .menus import *
-from .paginators import *

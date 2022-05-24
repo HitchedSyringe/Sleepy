@@ -19,9 +19,9 @@ from discord.ext import commands
 from discord.ext.menus import ListPageSource, PageSource
 from discord.ui import Select
 from discord.utils import format_dt as fmt_dt, oauth_url, utcnow
+from jishaku.paginators import WrappedPaginator
 
 from sleepy.menus import BotLinksView, PaginationView
-from sleepy.paginators import WrappedPaginator
 from sleepy.utils import (
     GITHUB_URL,
     PERMISSIONS_VALUE,
@@ -718,7 +718,7 @@ class Meta(commands.Cog):
         """
         total = 0
         default = ctx.guild.default_role
-        tree = WrappedPaginator(None, None)
+        tree = WrappedPaginator(prefix="", suffix="")
 
         for category, channels in ctx.guild.by_category():
             if category is not None:
