@@ -22,10 +22,14 @@ from typing import TYPE_CHECKING, Any, Callable, Optional, Sequence, Union
 
 import discord
 from discord.ext import commands
-from discord.utils import cached_property
+from discord.utils import MISSING, cached_property
 
-from .menus import ConfirmationView, PaginationView
-from .utils import plural
+from .menus import (
+    ConfirmationView,
+    PaginationView,
+    _DisambiguationSource,
+    _DisambiguationView,
+)
 
 if TYPE_CHECKING:
     from aiohttp import ClientSession
@@ -331,20 +335,24 @@ class Context(commands.Context["Sleepy"]):
         formatter: Optional[Callable[[Any], str]] = None,
         *,
         timeout: Optional[float] = 30,
+        sort: bool = True,
     ) -> Any:
         """|coro|
 
         Starts a new disambiguation session.
 
-        This allows a user to type a number corresponding to
-        their desired option in a given sequence of matching
-        items, returning either the item the user picks, or,
-        in some cases, the only item in the sequence.
+        This allows a user to select their desired option in a
+        given sequence of matching items, returning either the
+        item the user picks, or, if applicable, the only item
+        in the sequence.
 
         .. versionadded:: 1.7
 
         .. versionchanged:: 2.0
             Renamed ``entry`` parameter to ``formatter``.
+
+        .. versionchanged:: 3.3
+            Rewrote to use Discord's select menus.
 
         Parameters
         ----------
@@ -362,6 +370,11 @@ class Context(commands.Context["Sleepy"]):
             Defaults to ``30``.
 
             .. versionadded:: 3.0
+        sort: :class:`bool`
+            Whether or not the displayed matches should be sorted.
+            Defaults to ``True``.
+
+            .. versionadded:: 3.3
 
         Returns
         -------
@@ -371,8 +384,7 @@ class Context(commands.Context["Sleepy"]):
         Raises
         ------
         ValueError
-            No results were found, the user took too long to
-            respond, or there were too many invalid attempts.
+            Either no results were found, or the session timed out.
         """
         if not matches:
             raise ValueError("No results found.")
@@ -380,46 +392,15 @@ class Context(commands.Context["Sleepy"]):
         if len(matches) == 1:
             return matches[0]
 
-        if formatter is None:
-            # This is here to provide a slight speedup so we're not
-            # unnecessarily calling a function every iteration.
-            choices = "\n".join(f"{i}. {m}" for i, m in enumerate(matches, 1))
-        else:
-            choices = "\n".join(f"{i}. {formatter(m)}" for i, m in enumerate(matches, 1))
+        source = _DisambiguationSource(matches, formatter, sort=sort)
+        view = _DisambiguationView(source, timeout=timeout)
 
-        await self.send(
-            f"Too many matches. Type the number of the one you meant.\n>>> {choices}"
-        )
+        await view.send_to(self, wait=True)
 
-        def check(m: discord.Message) -> bool:
-            return (
-                m.channel == self.channel
-                and m.author == self.author
-                and m.content.isdigit()
-                # Filter out zero even though it's technically
-                # valid (it returns the last item in matches)
-                # in order to prevent confusion from end users.
-                and m.content != "0"
-            )
+        if view.selection is MISSING:
+            raise ValueError("You took too long to respond.")
 
-        # Essentially, the user will have 3 tries to enter a
-        # correct input. After 3 tries, the disambiguation
-        # will quit. A timeout will bypass this system and
-        # quit the disambiguation anyway.
-        for attempt in range(3):
-            try:
-                message = await self.bot.wait_for("message", check=check, timeout=timeout)
-            except asyncio.TimeoutError:
-                raise ValueError("You took too long to respond.") from None
-
-            try:
-                return matches[int(message.content) - 1]
-            except IndexError:
-                await self.send(
-                    f"Invalid option. {plural(2 - attempt):try|tries} remaining."
-                )
-
-        raise ValueError("Too many invalid attempts. Aborting...")
+        return view.selection
 
     async def copy_with(
         self,

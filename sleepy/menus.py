@@ -35,7 +35,7 @@ from typing import (
 
 import discord
 from discord.ext.menus import ListPageSource, PageSource
-from discord.ui import Button, Modal, TextInput, View, button
+from discord.ui import Button, Modal, Select, TextInput, View, button, select
 from discord.utils import MISSING, oauth_url
 
 from .utils import DISCORD_SERVER_URL, GITHUB_URL, PERMISSIONS_VALUE
@@ -122,6 +122,36 @@ class PaginatorSource(ListPageSource):
 
     async def format_page(self, menu: Union[PaginationView, MenuPages], page: str) -> str:
         return page
+
+
+class _DisambiguationSource(ListPageSource):
+    def __init__(
+        self,
+        matches: Sequence[Any],
+        formatter: Optional[Callable[[Any], str]] = None,
+        *,
+        sort: bool = False,
+    ) -> None:
+        self._formatter: Optional[Callable[[Any], str]] = formatter
+
+        if sort:
+            matches = sorted(matches, key=formatter)
+
+        super().__init__(matches, per_page=6)
+
+    async def format_page(self, menu: _DisambiguationView, page: Sequence[Any]) -> str:
+        page_content = ""
+        menu.dropdown.options.clear()
+
+        for index, match in enumerate(page, menu.current_page * self.per_page):
+            if self._formatter is not None:
+                match = self._formatter(match)
+
+            page_content += f"\n\N{BULLET} {match}"
+
+            menu.dropdown.add_option(label=match, value=str(index))
+
+        return f"**Too many matches. Which one did you mean?**{page_content}"
 
 
 class BaseView(View):
@@ -802,5 +832,26 @@ class PaginationView(BaseView):
             else:
                 self._remove_view_on_timeout = True
                 await self._do_items_cleanup()
+        except discord.HTTPException:
+            pass
+
+
+class _DisambiguationView(PaginationView):
+    def __init__(
+        self, source: _DisambiguationSource, *, timeout: Optional[float] = None
+    ) -> None:
+        self.selection: Any = MISSING
+
+        super().__init__(source, enable_stop_button=False, timeout=timeout)
+        self.add_item(self.dropdown)
+
+    @select(placeholder="Select which option you meant.")
+    async def dropdown(self, itn: discord.Interaction, select: Select) -> None:
+        self.selection = self._source.entries[int(select.values[0])]
+
+        self.stop()
+
+        try:
+            await self.message.delete()  # type: ignore
         except discord.HTTPException:
             pass
