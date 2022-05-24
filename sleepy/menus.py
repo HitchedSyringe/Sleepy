@@ -35,7 +35,7 @@ from typing import (
 
 import discord
 from discord.ext.menus import ListPageSource, PageSource
-from discord.ui import Button, View, Modal, TextInput, button
+from discord.ui import Button, Modal, TextInput, View, button
 from discord.utils import MISSING, oauth_url
 
 from .utils import DISCORD_SERVER_URL, GITHUB_URL, PERMISSIONS_VALUE

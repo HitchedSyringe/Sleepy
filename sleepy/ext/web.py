@@ -15,7 +15,6 @@ from datetime import datetime as dt, timezone as tz
 from typing import Optional
 from urllib.parse import quote
 
-import discord
 import yarl
 from discord import Embed, File
 from discord.ext import commands

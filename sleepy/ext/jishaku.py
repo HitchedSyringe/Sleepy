@@ -13,7 +13,6 @@ import itertools
 import os
 import traceback
 from typing import TYPE_CHECKING, List
-from typing_extensions import Annotated
 
 import discord
 from braceexpand import braceexpand
@@ -29,6 +28,7 @@ from jishaku.features.python import PythonFeature
 from jishaku.features.root_command import RootCommand
 from jishaku.features.shell import ShellFeature
 from jishaku.paginators import WrappedPaginator
+from typing_extensions import Annotated
 
 from sleepy.utils import bool_to_emoji, find_extensions_in
 
