@@ -610,7 +610,7 @@ class Images(
     async def pornhubcomment(
         self,
         ctx,
-        user: Optional[discord.Member],
+        user: Optional[discord.Member] = commands.Author,
         *,
         text: commands.clean_content(fix_channel_mentions=True),
     ):
@@ -625,9 +625,6 @@ class Images(
         pornhubcomment @HitchedSyringe#0598 This isn't free Discord Nitro.
         ```
         """
-        if user is None:
-            user = ctx.author
-
         async with ctx.typing():
             try:
                 avatar_bytes = await user.display_avatar.with_format("png").read()
@@ -686,7 +683,10 @@ class Images(
     @commands.bot_has_permissions(embed_links=True, attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def ship(
-        self, ctx, first_user: discord.Member, second_user: discord.Member = None
+        self,
+        ctx,
+        first_user: discord.Member,
+        second_user: discord.Member = commands.Author,
     ):
         """Ships two users.
 
@@ -703,9 +703,6 @@ class Images(
         <2> ship HitchedSyringe#0598 @Sleepy#5396
         ```
         """
-        if second_user is None:
-            second_user = ctx.author
-
         if first_user == second_user:
             await ctx.send("You cannot ship the same user.")
             return
@@ -993,7 +990,7 @@ class Images(
     async def tweet(
         self,
         ctx,
-        user: Optional[discord.Member],
+        user: Optional[discord.Member] = commands.Author,
         *,
         text: commands.clean_content(fix_channel_mentions=True),
     ):
@@ -1008,9 +1005,6 @@ class Images(
         tweet @HitchedSyringe#0598 Twitter for Sleepy
         ```
         """
-        if user is None:
-            user = ctx.author
-
         async with ctx.typing():
             try:
                 avatar_bytes = await user.display_avatar.with_format("png").read()
@@ -1069,7 +1063,7 @@ class Images(
     async def youtubecomment(
         self,
         ctx,
-        user: Optional[discord.Member],
+        user: Optional[discord.Member] = commands.Author,
         *,
         text: commands.clean_content(fix_channel_mentions=True),
     ):
@@ -1084,9 +1078,6 @@ class Images(
         youtubecomment @HitchedSyringe#0598 Epic video.
         ```
         """
-        if user is None:
-            user = ctx.author
-
         async with ctx.typing():
             try:
                 avatar_bytes = await user.display_avatar.with_format("png").read()

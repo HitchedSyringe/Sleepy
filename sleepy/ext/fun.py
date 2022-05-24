@@ -625,7 +625,7 @@ class Fun(
 
     @commands.command()
     @commands.guild_only()
-    async def iq(self, ctx, *, user: discord.Member = None):
+    async def iq(self, ctx, *, user: discord.Member = commands.Author):
         """Calculates a user's IQ.
         100% accurate or your money back.
 
@@ -641,9 +641,6 @@ class Fun(
         <3> rate 140540589329481728
         ```
         """
-        if user is None:
-            user = ctx.author
-
         if await ctx.bot.is_owner(user) or user == ctx.me:
             iq = 1000
         else:
@@ -675,7 +672,7 @@ class Fun(
     # At least you won't have to try to be featured on LWIAY.
     @commands.command(aliases=("dongsize", "dicksize", "peensize", "ppsize"))
     @commands.guild_only()
-    async def penissize(self, ctx, *, user: discord.Member = None):
+    async def penissize(self, ctx, *, user: discord.Member = commands.Author):
         """Calculates a user's pp length.
         100% accurate or your money back.
 
@@ -691,9 +688,6 @@ class Fun(
         <3> penissize 140540589329481728
         ```
         """
-        if user is None:
-            user = ctx.author
-
         if await ctx.bot.is_owner(user) or user == ctx.me:
             # haha guys i'm so funny and original i should really be a comedian.
             await ctx.send("The result is too long to post.")
@@ -781,7 +775,7 @@ class Fun(
 
     @commands.command()
     @commands.guild_only()
-    async def rate(self, ctx, *, user: discord.Member = None):
+    async def rate(self, ctx, *, user: discord.Member = commands.Author):
         """Rates a user out of 10.
         100% accurate or your money back.
 
@@ -797,9 +791,6 @@ class Fun(
         <3> rate 140540589329481728
         ```
         """
-        if user is None:
-            user = ctx.author
-
         if await ctx.bot.is_owner(user) or user == ctx.me:
             rate = 10
         else:

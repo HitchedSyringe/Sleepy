@@ -331,7 +331,7 @@ class Meta(commands.Cog):
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
-    async def avatar(self, ctx, *, user: discord.User = None):
+    async def avatar(self, ctx, *, user: discord.User = commands.Author):
         """Shows an enlarged version of a user's avatar.
 
         User can either be a name, ID, or mention.
@@ -348,9 +348,6 @@ class Meta(commands.Cog):
         <3> avatar HitchedSyringe
         ```
         """
-        if user is None:
-            user = ctx.author
-
         url = user.display_avatar.with_static_format("png")
 
         embed = Embed(colour=0x2F3136, description=f"**[Avatar Link]({url})**")
@@ -459,8 +456,8 @@ class Meta(commands.Cog):
     async def permissions(
         self,
         ctx,
-        user: Optional[discord.Member],
-        channel: discord.abc.GuildChannel = None,
+        user: Optional[discord.Member] = commands.Author,
+        channel: discord.abc.GuildChannel = commands.CurrentChannel,
     ):
         """Shows a user's permissions optionally in another channel.
 
@@ -480,12 +477,6 @@ class Meta(commands.Cog):
         <3> permissions 140540589329481728 #general
         ```
         """
-        if user is None:
-            user = ctx.author
-
-        if channel is None:
-            channel = ctx.channel
-
         embed = Embed(
             description=f"Showing permissions in {CHANNEL_EMOJI[(channel.type, True)]}"
             f"{channel.name} (ID: {channel.id})",
@@ -753,7 +744,9 @@ class Meta(commands.Cog):
 
     @commands.command(aliases=("memberinfo", "ui", "mi"))
     @commands.bot_has_permissions(embed_links=True)
-    async def userinfo(self, ctx, *, user: Union[discord.Member, discord.User] = None):
+    async def userinfo(
+        self, ctx, *, user: Union[discord.Member, discord.User] = commands.Author
+    ):
         """Shows information about a user.
 
         If no user is given, then your own info will be
@@ -768,9 +761,6 @@ class Meta(commands.Cog):
         <3> userinfo HitchedSyringe
         ```
         """
-        if user is None:
-            user = ctx.author
-
         avatar_url = user.display_avatar.with_static_format("png")
 
         embed = Embed(
