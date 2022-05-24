@@ -14,13 +14,14 @@ from urllib.parse import quote
 
 from discord import Embed, File
 from discord.ext import commands
+from jishaku.functools import executor_function
 from matplotlib import pyplot as plt
 from matplotlib.dates import AutoDateLocator, DateFormatter, datestr2num
 from matplotlib.figure import Figure
 
 from sleepy.converters import _pseudo_bool_flag
 from sleepy.http import HTTPRequestFailed
-from sleepy.utils import awaitable, human_number, measure_performance
+from sleepy.utils import human_number, measure_performance
 
 
 # disease.sh API takes comma-separated arguments to denote
@@ -61,7 +62,7 @@ class Covid(
             error.handled__ = True
 
     @staticmethod
-    @awaitable
+    @executor_function
     @measure_performance
     def plot_historical_data(
         cases, deaths, recovered, vaccines=None, *, logarithmic=False

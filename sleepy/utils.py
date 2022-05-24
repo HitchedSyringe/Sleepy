@@ -14,7 +14,6 @@ __all__ = (
     "GITHUB_URL",
     "PERMISSIONS_VALUE",
     "plural",
-    "awaitable",
     "bool_to_emoji",
     "find_extensions_in",
     "human_delta",
@@ -32,7 +31,7 @@ import math
 import random
 import time
 from datetime import datetime, timezone
-from functools import partial, wraps
+from functools import wraps
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -135,37 +134,6 @@ class plural:
 def _as_argparse_dict(flag_converter: FlagConverter) -> Dict[str, Any]:
     flags = flag_converter.get_flags().values()
     return {f.attribute: getattr(flag_converter, f.attribute) for f in flags}
-
-
-def awaitable(func: Callable[_P, _RT]) -> Callable[_P, Awaitable[_RT]]:
-    """A decorator that transforms a sync function into
-    an awaitable function.
-
-    .. versionadded:: 3.0
-
-    .. versionchanged:: 3.1
-        This now returns a coroutine instead of a
-        :class:`asyncio.Future`.
-
-    Example
-    -------
-    .. code-block::
-
-        @awaitable
-        def blocking_sync_func():
-            ...
-
-        # later...
-
-        await blocking_sync_func()
-    """
-
-    @wraps(func)
-    async def decorator(*args: _P.args, **kwargs: _P.kwargs) -> _RT:
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, partial(func, *args, **kwargs))
-
-    return decorator
 
 
 def bool_to_emoji(value: Optional[Any]) -> str:

@@ -20,12 +20,13 @@ from discord import Embed, File
 from discord.ext import commands
 from discord.utils import format_dt
 from googletrans import LANGUAGES, Translator
+from jishaku.functools import executor_function
 from jishaku.paginators import WrappedPaginator
 
 from sleepy.converters import real_float
 from sleepy.http import HTTPRequestFailed
 from sleepy.menus import EmbedSource
-from sleepy.utils import awaitable, bool_to_emoji, human_number, plural, tchart, truncate
+from sleepy.utils import bool_to_emoji, human_number, plural, tchart, truncate
 
 
 def clean_subreddit(value):
@@ -237,7 +238,7 @@ class Web(
         self.google_search_engine_id = config["google_search_engine_id"]
 
         self.translator = translator = Translator()
-        translator.translate = awaitable(translator.translate)
+        translator.translate = executor_function(translator.translate)
 
     @staticmethod
     async def do_calculation(ctx, route, expr):

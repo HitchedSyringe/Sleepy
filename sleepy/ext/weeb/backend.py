@@ -35,9 +35,10 @@ import io
 
 import cv2
 import numpy as np
+from jishaku.functools import executor_function
 from PIL import Image, ImageDraw, ImageFont, ImageSequence
 
-from sleepy.utils import awaitable, measure_performance
+from sleepy.utils import measure_performance
 
 from .cascades import CASCADES
 from .templates import TEMPLATES
@@ -45,7 +46,7 @@ from .templates import TEMPLATES
 LBP_ANIMEFACE = cv2.CascadeClassifier(str(CASCADES / "lbpcascade_animeface.xml"))
 
 
-@awaitable
+@executor_function
 @measure_performance
 def detect_anime_faces(image_buffer):
     # We're using PIL here since it has built-in decompression
@@ -78,7 +79,7 @@ def detect_anime_faces(image_buffer):
     return count, io.BytesIO(cv2.imencode(".png", image)[1])
 
 
-@awaitable
+@executor_function
 @measure_performance
 def do_awooify(image_buffer):
     with Image.open(TEMPLATES / "awooify.png") as template:
@@ -97,7 +98,7 @@ def do_awooify(image_buffer):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_baguette_meme(image_buffer):
     with Image.open(TEMPLATES / "baguette.png") as template:
@@ -116,7 +117,7 @@ def make_baguette_meme(image_buffer):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_bodypillow_meme(image_buffer):
     with Image.open(TEMPLATES / "bodypillow.png") as template:
@@ -135,7 +136,7 @@ def make_bodypillow_meme(image_buffer):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_hifumi_fact_meme(text):
     with Image.open(TEMPLATES / "hifumi_fact.png") as template:
@@ -161,7 +162,7 @@ def make_hifumi_fact_meme(text):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_kanna_fact_meme(text):
     with Image.open(TEMPLATES / "kanna_fact.png") as template:
@@ -191,7 +192,7 @@ def make_kanna_fact_meme(text):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_lolice_meme(image_buffer):
     with Image.open(TEMPLATES / "lolice.png") as template:
@@ -210,7 +211,7 @@ def make_lolice_meme(image_buffer):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_nichijou_gif_meme(text):
     with Image.open(TEMPLATES / "nichijou.gif") as template:
@@ -243,7 +244,7 @@ def make_nichijou_gif_meme(text):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_ritsu_dirt_meme(image_buffer):
     with Image.open(TEMPLATES / "ritsu_dirt.png") as template:
@@ -262,7 +263,7 @@ def make_ritsu_dirt_meme(image_buffer):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_ritsu_fact_meme(text):
     with Image.open(TEMPLATES / "ritsu_fact.png") as template:
@@ -291,7 +292,7 @@ def make_ritsu_fact_meme(text):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_trash_waifu_meme(image_buffer):
     with Image.open(TEMPLATES / "trash_waifu.png") as template:

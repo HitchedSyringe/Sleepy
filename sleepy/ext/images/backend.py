@@ -41,10 +41,11 @@ from datetime import datetime, timezone
 import cv2
 import numpy as np
 from cv2.data import haarcascades as cv2_haarcascades
+from jishaku.functools import executor_function
 from PIL import Image, ImageDraw, ImageEnhance, ImageFont, ImageOps, ImageSequence
 from skimage import transform
 
-from sleepy.utils import awaitable, measure_performance, randint
+from sleepy.utils import measure_performance, randint
 
 from .fonts import FONTS
 from .helpers import get_accurate_text_size, wrap_text
@@ -53,7 +54,7 @@ from .templates import TEMPLATES
 HAAR_EYES = cv2.CascadeClassifier(cv2_haarcascades + "haarcascade_eye.xml")
 
 
-@awaitable
+@executor_function
 @measure_performance
 def do_asciify(image_buffer, *, inverted=False):
     # Chars are ordered from dark -> light.
@@ -68,7 +69,7 @@ def do_asciify(image_buffer, *, inverted=False):
     return "\n".join("".join(chars[c // 8] for c in r) for r in data[::2])
 
 
-@awaitable
+@executor_function
 @measure_performance
 def do_blurpify(image_buffer, *, use_rebrand=False):
     with Image.open(image_buffer) as image:
@@ -97,7 +98,7 @@ def do_blurpify(image_buffer, *, use_rebrand=False):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def do_deepfry(image_buffer):
     with Image.open(image_buffer) as image:
@@ -130,7 +131,7 @@ def do_deepfry(image_buffer):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def do_invert(image_buffer):
     with Image.open(image_buffer) as image:
@@ -147,7 +148,7 @@ def do_invert(image_buffer):
     return io.BytesIO(cv2.imencode(".png", img)[1])
 
 
-@awaitable
+@executor_function
 @measure_performance
 def do_jpegify(image_buffer, *, quality=1):
     with Image.open(image_buffer) as image:
@@ -160,7 +161,7 @@ def do_jpegify(image_buffer, *, quality=1):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def do_lensflare_eyes(image_buffer, *, colour=None):
     with Image.open(image_buffer) as image:
@@ -198,7 +199,7 @@ def do_lensflare_eyes(image_buffer, *, colour=None):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def do_swirl(image_buffer, *, intensity=1):
     with Image.open(image_buffer) as image:
@@ -214,7 +215,7 @@ def do_swirl(image_buffer, *, intensity=1):
     return io.BytesIO(cv2.imencode(".png", image)[1])
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_axios_interview_meme(text):
     with Image.open(TEMPLATES / "axios_interview.jpg") as template:
@@ -244,7 +245,7 @@ def make_axios_interview_meme(text):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_captcha(image_buffer, text):
     with Image.open(TEMPLATES / "captcha.png") as template:
@@ -267,7 +268,7 @@ def make_captcha(image_buffer, text):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_change_my_mind_meme(text):
     with Image.open(TEMPLATES / "change_my_mind.png") as template:
@@ -329,7 +330,7 @@ def make_change_my_mind_meme(text):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_clyde_message(text, *, use_rebrand=False):
     clyde = "rebrand_clyde.png" if use_rebrand else "classic_clyde.png"
@@ -355,7 +356,7 @@ def make_clyde_message(text, *, use_rebrand=False):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_dalgona(image_buffer):
     with Image.open(image_buffer) as image:
@@ -405,7 +406,7 @@ def make_dalgona(image_buffer):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_iphone_x(image_buffer):
     with Image.open(TEMPLATES / "iphonex.png") as template:
@@ -424,7 +425,7 @@ def make_iphone_x(image_buffer):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_live_tucker_reaction_meme(image_buffer):
     with Image.open(TEMPLATES / "live_tucker_reaction.png") as template:
@@ -457,7 +458,7 @@ def make_live_tucker_reaction_meme(image_buffer):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_palette(image_buffer):
     with Image.open(image_buffer) as image:
@@ -526,7 +527,7 @@ def make_palette(image_buffer):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_pointing_soyjaks_meme(image_buffer):
     with Image.open(TEMPLATES / "pointing_soyjaks.png") as template:
@@ -549,7 +550,7 @@ def make_pointing_soyjaks_meme(image_buffer):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_pornhub_comment(username, avatar, comment):
     with Image.open(TEMPLATES / "pornhub_comment.png") as template:
@@ -571,7 +572,7 @@ def make_pornhub_comment(username, avatar, comment):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_roblox_cancel_meme(avatar, username, discriminator):
     with Image.open(TEMPLATES / "roblox_cancel.jpg") as template:
@@ -620,7 +621,7 @@ def make_roblox_cancel_meme(avatar, username, discriminator):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_ship(name1, avatar1_buffer, name2, avatar2_buffer, seed=None):
     with Image.open(TEMPLATES / "ship.png") as template:
@@ -678,7 +679,7 @@ def make_ship(name1, avatar1_buffer, name2, avatar2_buffer, seed=None):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_text_image(text, font_path, *, size, text_colour=None, bg_colour=None):
     font = ImageFont.truetype(str(font_path), size)
@@ -698,7 +699,7 @@ def make_text_image(text, font_path, *, size, text_colour=None, bg_colour=None):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_threats_meme(image_buffer):
     with Image.open(TEMPLATES / "threats.png") as template:
@@ -714,7 +715,7 @@ def make_threats_meme(image_buffer):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_trapcard(title, flavour_text, image_buffer):
     with Image.open(TEMPLATES / "trapcard.png") as template:
@@ -742,7 +743,7 @@ def make_trapcard(title, flavour_text, image_buffer):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_tweet(handle, display_name, avatar, text):
     with Image.open(TEMPLATES / "tweet.png") as template:
@@ -787,7 +788,7 @@ def make_tweet(handle, display_name, avatar, text):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_who_would_win_meme(left_image, right_image):
     with Image.open(TEMPLATES / "who_would_win.png") as template:
@@ -806,7 +807,7 @@ def make_who_would_win_meme(left_image, right_image):
     return buffer
 
 
-@awaitable
+@executor_function
 @measure_performance
 def make_youtube_comment(username, avatar, comment):
     with Image.open(TEMPLATES / "youtube_comment.png") as template:

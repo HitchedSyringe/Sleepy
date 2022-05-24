@@ -22,15 +22,10 @@ import pyfiglet
 from discord import Embed, File
 from discord.ext import commands
 from discord.ui import View, select
+from jishaku.functools import executor_function
 from PIL import Image, ImageDraw
 
-from sleepy.utils import (
-    awaitable,
-    measure_performance,
-    plural,
-    randint as s_randint,
-    tchart,
-)
+from sleepy.utils import measure_performance, plural, randint as s_randint, tchart
 
 # + is positive, - is negative, no sign is neutral.
 BALL_RESPONSES = (
@@ -219,13 +214,12 @@ class Fun(
     ICON = "\N{CIRCUS TENT}"
 
     def __init__(self):
-        # This is here to create our own asynchronous and
-        # performance-measured instance of figlet_format
-        # without actually modifying the normal global one.
-        self.figlet_format = awaitable(measure_performance(pyfiglet.figlet_format))
+        # Create our own asynchronous and performance-measured figlet
+        # formatter without actually modifying the normal global one.
+        self.fig_fmt = executor_function(measure_performance(pyfiglet.figlet_format))
 
     @staticmethod
-    @awaitable
+    @executor_function
     def create_colour_preview(colour):
         buffer = io.BytesIO()
 
@@ -293,7 +287,7 @@ class Fun(
             options.font = random.choice(pyfiglet.FigletFont.getFonts())
 
         try:
-            output, delta = await self.figlet_format(options.text, options.font)
+            output, delta = await self.fig_fmt(options.text, options.font)
         except pyfiglet.FontNotFound:
             await ctx.send("That font wasn't found.")
             return
