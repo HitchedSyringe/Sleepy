@@ -687,10 +687,11 @@ class PaginationView(BaseView):
             that is, no interaction was passed and :attr:`message`
             was left as ``None``.
         """
+        self.current_page = page_number
+
         page = await self._source.get_page(page_number)
         kwargs = await self._get_kwargs_from_page(page)
 
-        self.current_page = page_number
         self._update_items(page_number)
 
         if interaction is None:
