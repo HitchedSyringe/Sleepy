@@ -431,7 +431,7 @@ class PaginationView(BaseView):
         source: PageSource,
         *,
         enable_stop_button: bool = True,
-        delete_message_when_stopped: bool = False,
+        delete_message_when_stopped: bool = True,
         remove_view_on_timeout: bool = False,
         disable_view_on_timeout: bool = True,
         **kwargs: Any,
