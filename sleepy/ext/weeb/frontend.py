@@ -490,7 +490,8 @@ class Weeb(
                 value="\n".join(g["name"] for g in item["genres"]) or "None",
             )
             embed.add_field(
-                name="Authors", value="\n".join(a["name"] for a in item["authors"])
+                name="Authors",
+                value="\n".join(a["name"] for a in item["authors"]) or "None",
             )
             embed.add_field(
                 name="Serializations",
