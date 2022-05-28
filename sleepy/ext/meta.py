@@ -188,7 +188,7 @@ class BotHelpView(PaginationView):
         if hasattr(self._source, "prefix"):
             bot_links = BotLinksView(self.bot.application_id)
 
-            for button in bot_links.buttons:
+            for button in bot_links.children:
                 self.add_item(button)
 
         if not self._source.is_paginating():

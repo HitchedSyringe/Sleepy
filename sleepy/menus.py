@@ -28,7 +28,6 @@ from typing import (
     Dict,
     Optional,
     Sequence,
-    Tuple,
     Union,
     overload,
 )
@@ -263,14 +262,12 @@ class BotLinksView(View):
         The client's user ID.
     """
 
-    buttons: Tuple[Button, ...]
-
     def __init__(self, client_id: int) -> None:
         super().__init__(timeout=None)
 
         invite = oauth_url(client_id, permissions=discord.Permissions(PERMISSIONS_VALUE))
 
-        self.buttons = buttons = (
+        buttons = (
             Button(label="Invite me!", emoji="\N{INBOX TRAY}", url=invite),
             Button(
                 label="Server", emoji="<:dc:871952362175086624>", url=DISCORD_SERVER_URL
