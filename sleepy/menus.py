@@ -303,19 +303,23 @@ class ConfirmationView(BaseView):
         self.result: Optional[bool] = None
 
     @button(emoji="<:check:821284209401921557>", style=discord.ButtonStyle.green)
-    async def confirm(self, itn: discord.Interaction, button: Button) -> None:
+    async def confirm(
+        self, itn: discord.Interaction, button: Button["ConfirmationView"]
+    ) -> None:
         self.result = True
         self.stop()
 
     @button(emoji="<:x_:821284209792516096>", style=discord.ButtonStyle.red)
-    async def deny(self, itn: discord.Interaction, button: Button) -> None:
+    async def deny(
+        self, itn: discord.Interaction, button: Button["ConfirmationView"]
+    ) -> None:
         self.result = False
         self.stop()
 
 
 class _PageSelectModal(Modal, title="Jump to page"):
 
-    page_number_input = TextInput(
+    page_number_input: TextInput["_PageSelectModal"] = TextInput(
         label="What page do you want to go to?",
         placeholder="Type the page number here.",
         min_length=1,
@@ -793,32 +797,44 @@ class PaginationView(BaseView):
             )
 
     @button(emoji="<:rrwnd:862379040802865182>")
-    async def first_page(self, itn: discord.Interaction, button: Button) -> None:
+    async def first_page(
+        self, itn: discord.Interaction, button: Button["PaginationView"]
+    ) -> None:
         await self.show_page(0, itn)
 
     @button(emoji="<:back:862407042172715038>")
-    async def previous_page(self, itn: discord.Interaction, button: Button) -> None:
+    async def previous_page(
+        self, itn: discord.Interaction, button: Button["PaginationView"]
+    ) -> None:
         await self.show_checked_page(self.current_page - 1, itn)
 
     @button(style=discord.ButtonStyle.primary)
-    async def page_number(self, itn: discord.Interaction, button: Button) -> None:
+    async def page_number(
+        self, itn: discord.Interaction, button: Button["PaginationView"]
+    ) -> None:
         if self._page_select_modal is None:
             self._page_select_modal = _PageSelectModal(self)
 
         await itn.response.send_modal(self._page_select_modal)
 
     @button(emoji="<:fwd:862407042114125845>")
-    async def next_page(self, itn: discord.Interaction, button: Button) -> None:
+    async def next_page(
+        self, itn: discord.Interaction, button: Button["PaginationView"]
+    ) -> None:
         await self.show_checked_page(self.current_page + 1, itn)
 
     @button(emoji="<:ffwd:862378579794460723>")
-    async def last_page(self, itn: discord.Interaction, button: Button) -> None:
+    async def last_page(
+        self, itn: discord.Interaction, button: Button["PaginationView"]
+    ) -> None:
         # This call is safe since the button itself is already
         # handled initially when the view starts.
         await self.show_page(self._source.get_max_pages() - 1, itn)
 
     @button(emoji="\N{OCTAGONAL SIGN}", label="Stop", style=discord.ButtonStyle.danger)
-    async def stop_menu(self, itn: discord.Interaction, button: Button) -> None:
+    async def stop_menu(
+        self, itn: discord.Interaction, button: Button["PaginationView"]
+    ) -> None:
         self.stop()
 
         if self._page_select_modal is not None:
@@ -846,7 +862,9 @@ class _DisambiguationView(PaginationView):
         self.add_item(self.dropdown)
 
     @select(placeholder="Select which option you meant.")
-    async def dropdown(self, itn: discord.Interaction, select: Select) -> None:
+    async def dropdown(
+        self, itn: discord.Interaction, select: Select["_DisambiguationView"]
+    ) -> None:
         self.selection = self._source.entries[int(select.values[0])]
 
         self.stop()
