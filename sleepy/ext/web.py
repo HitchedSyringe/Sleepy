@@ -265,7 +265,7 @@ class Web(
 
         url = "https://www.googleapis.com/customsearch/v1?searchInformation,items(title,link,snippet)"
 
-        if not ctx.channel.is_nsfw():
+        if ctx.guild is not None and not ctx.channel.is_nsfw():
             url += "&safe=active"
 
         if search_images:
@@ -1042,7 +1042,7 @@ class Web(
         for child in resp["data"]["children"]:
             post = child["data"]
 
-            if not ctx.channel.is_nsfw() and post["over_18"]:
+            if ctx.guild is not None and not ctx.channel.is_nsfw() and post["over_18"]:
                 continue
 
             embed = Embed(
