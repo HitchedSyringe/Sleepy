@@ -7,16 +7,18 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
-# Will also provide this as a semi-library, but
-# I'm still not going to document this hot mess
-# I've made for myself (and potentially others).
+from __future__ import annotations as _annotations
+
+from typing import TYPE_CHECKING as _TYPE_CHECKING
+
+from . import backend as backend
+from .cascades import *
+from .frontend import *
+from .templates import *
+
+if _TYPE_CHECKING:
+    from discord.ext.commands import Bot
 
 
-from . import backend
-from .cascades import CASCADES
-from .frontend import Weeb
-from .templates import TEMPLATES
-
-
-async def setup(bot):
+async def setup(bot: Bot) -> None:
     await bot.add_cog(Weeb())

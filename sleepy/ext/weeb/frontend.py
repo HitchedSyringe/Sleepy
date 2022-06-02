@@ -7,6 +7,8 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+from __future__ import annotations
+
 # fmt: off
 __all__ = (
     "Weeb",
@@ -16,12 +18,14 @@ __all__ = (
 
 import io
 import textwrap
+from typing import TYPE_CHECKING, Any, Dict, Tuple
 
 import discord
 from discord import Colour, Embed, File
 from discord.ext import commands
 from PIL import UnidentifiedImageError
 from PIL.Image import DecompressionBombError
+from typing_extensions import Annotated
 
 from sleepy.converters import (
     ImageAssetConversionFailure,
@@ -34,7 +38,12 @@ from sleepy.utils import plural
 from . import backend
 from .templates import TEMPLATES
 
-NEKOBOT_IMAGE_COMMANDS = (
+if TYPE_CHECKING:
+    from sleepy.context import Context as SleepyContext
+    from sleepy.mimics import PartialAsset
+
+
+NEKOBOT_IMAGE_COMMANDS: Tuple[Dict[str, Any], ...] = (
     {
         "name": "animecoffee",
         "help": "Sends a random image of an anime girl drinking coffee.",
@@ -80,9 +89,9 @@ class Weeb(
     Pretty sure the name was implicit.
     """
 
-    ICON = "\N{SUSHI}"
+    ICON: str = "\N{SUSHI}"
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Nekobot commands are handled this way in order to
         # allow for ease in supporting any new image endpoints.
         # (and it also keeps us from having several methods that
@@ -94,12 +103,15 @@ class Weeb(
             # this way due to how injection works for this.
             @commands.command(**attrs)
             @commands.bot_has_permissions(embed_links=True)
-            async def nekobot_image_command(cog, ctx):
-                resp = await ctx.get(
-                    "https://nekobot.xyz/api/image",
-                    # Can't really get the type any other way...
-                    type=ctx.command.__original_kwargs__.get("type", ctx.command.name),
-                )
+            async def nekobot_image_command(
+                cog: commands.Cog, ctx: SleepyContext
+            ) -> None:
+                # Can't really get the type any other way...
+                img_type = ctx.command.__original_kwargs__.get("type", ctx.command.name)  # type: ignore
+
+                resp: Dict[str, Any] = await ctx.get(
+                    "https://nekobot.xyz/api/image", type=img_type
+                )  # type: ignore
 
                 embed = Embed(colour=Colour(resp["color"]))
                 embed.set_image(url=resp["message"])
@@ -112,7 +124,7 @@ class Weeb(
             # Make the command will appear in the cog help menu.
             self.__cog_commands__ += (nekobot_image_command,)
 
-    async def cog_command_error(self, ctx, error):
+    async def cog_command_error(self, ctx: SleepyContext, error: Exception) -> None:
         error = getattr(error, "original", error)
 
         if isinstance(error, (ImageAssetConversionFailure, UnidentifiedImageError)):
@@ -129,13 +141,15 @@ class Weeb(
             await ctx.send("Go be Ted Kaczynski somewhere else.")
             ctx._already_handled_error = True
         elif isinstance(error, (commands.BadArgument, commands.MaxConcurrencyReached)):
-            await ctx.send(error)
+            await ctx.send(error)  # type: ignore
             ctx._already_handled_error = True
 
     @commands.command(aliases=("animesearch",))
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def anime(self, ctx, *, query: str.lower):
+    async def anime(
+        self, ctx: SleepyContext, *, query: Annotated[str, str.lower]
+    ) -> None:
         """Searches for an anime on MyAnimeList.
 
         This command shows the top 10 results on MAL.
@@ -153,12 +167,13 @@ class Weeb(
 
         search_url = "https://api.jikan.moe/v4/anime?limit=10"
 
-        if ctx.guild is not None and not ctx.channel.is_nsfw():
+        if ctx.guild is not None and not ctx.channel.is_nsfw():  # type: ignore
             search_url += "&genre=9,12,49&genre_exclude=1"
 
         await ctx.typing()
 
-        search = await ctx.get(search_url, cache__=True, q=query)
+        search: Dict[str, Any] = await ctx.get(search_url, cache__=True, q=query)  # type: ignore
+
         results = search["data"]
 
         if not results:
@@ -223,7 +238,12 @@ class Weeb(
 
     @commands.command()
     @commands.cooldown(1, 8, commands.BucketType.member)
-    async def animeface(self, ctx, *, image: ImageAssetConverter):
+    async def animeface(
+        self,
+        ctx: SleepyContext,
+        *,
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """Detects and highlights anime faces in an image.
 
         Image can either be a user, custom emoji, link, or
@@ -255,7 +275,12 @@ class Weeb(
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def awooify(self, ctx, *, image: ImageAssetConverter):
+    async def awooify(
+        self,
+        ctx: SleepyContext,
+        *,
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """Awooifies an image.
 
         Image can either be a user, custom emoji, link, or
@@ -281,7 +306,12 @@ class Weeb(
     @commands.command(aliases=("france",))
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def baguette(self, ctx, *, image: ImageAssetConverter):
+    async def baguette(
+        self,
+        ctx: SleepyContext,
+        *,
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """Turns an image into an anime girl eating a baguette.
 
         Image can either be a user, custom emoji, link, or
@@ -307,7 +337,12 @@ class Weeb(
     @commands.command(aliases=("bp",))
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def bodypillow(self, ctx, *, image: ImageAssetConverter):
+    async def bodypillow(
+        self,
+        ctx: SleepyContext,
+        *,
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """Turns an image into an anime body pillow.
 
         Image can either be a user, custom emoji, link, or
@@ -333,7 +368,7 @@ class Weeb(
     # What a stupid command lmao.
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
-    async def gah(self, ctx):
+    async def gah(self, ctx: SleepyContext) -> None:
         """GAH!
 
         (Bot Needs: Attach Files)
@@ -349,7 +384,7 @@ class Weeb(
     # provides in the resulting embed.
     # @commands.command(aliases=("hatsunemiku",))
     # @commands.bot_has_permissions(embed_links=True)
-    # async def miku(self, ctx):
+    # async def miku(self, ctx: SleepyContext) -> None:
     #     """Shows a random image of Hatsune Miku.
 
     #     (Bot Needs: Embed Links)
@@ -366,8 +401,11 @@ class Weeb(
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def hifumifact(
-        self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)
-    ):
+        self,
+        ctx: SleepyContext,
+        *,
+        text: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
+    ) -> None:
         """Generates an image of Hifumi spitting straight facts.
 
         (Bot Needs: Attach Files)
@@ -384,8 +422,11 @@ class Weeb(
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def kannafact(
-        self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)
-    ):
+        self,
+        ctx: SleepyContext,
+        *,
+        text: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
+    ) -> None:
         """Generates an image of Kanna spitting straight facts.
 
         (Bot Needs: Attach Files)
@@ -401,7 +442,12 @@ class Weeb(
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def lolice(self, ctx, *, image: ImageAssetConverter):
+    async def lolice(
+        self,
+        ctx: SleepyContext,
+        *,
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """Submits an image to the lolice.
 
         Image can either be a user, custom emoji, link, or
@@ -427,7 +473,9 @@ class Weeb(
     @commands.command(aliases=("mangasearch",))
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def manga(self, ctx, *, query: str.lower):
+    async def manga(
+        self, ctx: SleepyContext, *, query: Annotated[str, str.lower]
+    ) -> None:
         """Searches for a manga on MyAnimeList.
 
         This command shows the top 10 results on MAL.
@@ -445,12 +493,12 @@ class Weeb(
 
         search_url = "https://api.jikan.moe/v4/manga?limit=10"
 
-        if ctx.guild is not None and not ctx.channel.is_nsfw():
+        if ctx.guild is not None and not ctx.channel.is_nsfw():  # type: ignore
             search_url += "&genre=9,12,49&genre_exclude=1"
 
         await ctx.typing()
 
-        search = await ctx.get(search_url, cache__=True, q=query)
+        search: Dict[str, Any] = await ctx.get(search_url, cache__=True, q=query)  # type: ignore
         results = search["data"]
 
         if not results:
@@ -514,7 +562,10 @@ class Weeb(
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 8, commands.BucketType.member)
     async def nichijou(
-        self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)
+        self,
+        ctx: SleepyContext,
+        *,
+        text: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
     ):
         r""" "YOU. ARE. A. ___\_\_\_."
 
@@ -531,7 +582,12 @@ class Weeb(
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def ritsudirt(self, ctx, *, image: ImageAssetConverter):
+    async def ritsudirt(
+        self,
+        ctx: SleepyContext,
+        *,
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """Generates a Ritsu dirt meme.
 
         Image can either be a user, custom emoji, link, or
@@ -558,8 +614,11 @@ class Weeb(
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def ritsufact(
-        self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)
-    ):
+        self,
+        ctx: SleepyContext,
+        *,
+        text: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
+    ) -> None:
         """Generates an image of Ritsu spitting straight facts.
 
         (Bot Needs: Attach Files)
@@ -575,7 +634,12 @@ class Weeb(
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def trash(self, ctx, *, image: ImageAssetConverter):
+    async def trash(
+        self,
+        ctx: SleepyContext,
+        *,
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """Generates a trash waifu meme.
 
         Image can either be a user, custom emoji, link, or

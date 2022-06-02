@@ -32,6 +32,7 @@ from ..images.helpers import get_accurate_text_size, wrap_text
 
 
 import io
+from typing import Tuple
 
 import cv2
 import numpy as np
@@ -43,12 +44,14 @@ from sleepy.utils import measure_performance
 from .cascades import CASCADES
 from .templates import TEMPLATES
 
-LBP_ANIMEFACE = cv2.CascadeClassifier(str(CASCADES / "lbpcascade_animeface.xml"))
+LBP_ANIMEFACE: cv2.CascadeClassifier = cv2.CascadeClassifier(
+    str(CASCADES / "lbpcascade_animeface.xml")
+)
 
 
 @executor_function
 @measure_performance
-def detect_anime_faces(image_buffer):
+def detect_anime_faces(image_buffer: io.BytesIO) -> Tuple[int, io.BytesIO]:
     # We're using PIL here since it has built-in decompression
     # bomb protection. This is just a temporary workaround until
     # OpenCV decides to implement its own protection sometime
@@ -81,13 +84,13 @@ def detect_anime_faces(image_buffer):
 
 @executor_function
 @measure_performance
-def do_awooify(image_buffer):
+def do_awooify(image_buffer: io.BytesIO) -> io.BytesIO:
     with Image.open(TEMPLATES / "awooify.png") as template:
         with Image.open(image_buffer) as image:
             binder = Image.new("RGB", template.size)
             binder.paste(image.convert("RGB").resize((302, 308)), (121, 159))
 
-        binder.paste(template, template)
+        binder.paste(template, None, template)
 
     buffer = io.BytesIO()
 
@@ -100,7 +103,7 @@ def do_awooify(image_buffer):
 
 @executor_function
 @measure_performance
-def make_baguette_meme(image_buffer):
+def make_baguette_meme(image_buffer: io.BytesIO) -> io.BytesIO:
     with Image.open(TEMPLATES / "baguette.png") as template:
         with Image.open(image_buffer) as image:
             mask = Image.new("1", (250, 250))
@@ -119,7 +122,7 @@ def make_baguette_meme(image_buffer):
 
 @executor_function
 @measure_performance
-def make_bodypillow_meme(image_buffer):
+def make_bodypillow_meme(image_buffer: io.BytesIO) -> io.BytesIO:
     with Image.open(TEMPLATES / "bodypillow.png") as template:
         with Image.open(image_buffer) as image:
             mask = Image.new("1", (140, 140))
@@ -138,7 +141,7 @@ def make_bodypillow_meme(image_buffer):
 
 @executor_function
 @measure_performance
-def make_hifumi_fact_meme(text):
+def make_hifumi_fact_meme(text: str) -> io.BytesIO:
     with Image.open(TEMPLATES / "hifumi_fact.png") as template:
         font = ImageFont.truetype(str(FONTS / "Arimo-Regular.ttf"), 28)
         text = wrap_text(text, font, width=290)
@@ -164,7 +167,7 @@ def make_hifumi_fact_meme(text):
 
 @executor_function
 @measure_performance
-def make_kanna_fact_meme(text):
+def make_kanna_fact_meme(text: str) -> io.BytesIO:
     with Image.open(TEMPLATES / "kanna_fact.png") as template:
         font = ImageFont.truetype(str(FONTS / "Arimo-Regular.ttf"), 18)
 
@@ -194,13 +197,13 @@ def make_kanna_fact_meme(text):
 
 @executor_function
 @measure_performance
-def make_lolice_meme(image_buffer):
+def make_lolice_meme(image_buffer: io.BytesIO) -> io.BytesIO:
     with Image.open(TEMPLATES / "lolice.png") as template:
         with Image.open(image_buffer) as image:
             binder = Image.new("RGB", template.size)
             binder.paste(image.convert("RGB").resize((128, 156)), (329, 133))
 
-        binder.paste(template, template)
+        binder.paste(template, None, template)
 
     buffer = io.BytesIO()
 
@@ -213,7 +216,7 @@ def make_lolice_meme(image_buffer):
 
 @executor_function
 @measure_performance
-def make_nichijou_gif_meme(text):
+def make_nichijou_gif_meme(text: str) -> io.BytesIO:
     with Image.open(TEMPLATES / "nichijou.gif") as template:
         font = ImageFont.truetype(str(FONTS / "Arimo-Bold.ttf"), 36)
 
@@ -246,13 +249,13 @@ def make_nichijou_gif_meme(text):
 
 @executor_function
 @measure_performance
-def make_ritsu_dirt_meme(image_buffer):
+def make_ritsu_dirt_meme(image_buffer: io.BytesIO) -> io.BytesIO:
     with Image.open(TEMPLATES / "ritsu_dirt.png") as template:
         with Image.open(image_buffer) as image:
             binder = Image.new("RGB", template.size)
             binder.paste(image.convert("RGB").resize((440, 576)), (415, 47))
 
-        binder.paste(template, template)
+        binder.paste(template, None, template)
 
     buffer = io.BytesIO()
 
@@ -265,7 +268,7 @@ def make_ritsu_dirt_meme(image_buffer):
 
 @executor_function
 @measure_performance
-def make_ritsu_fact_meme(text):
+def make_ritsu_fact_meme(text: str) -> io.BytesIO:
     with Image.open(TEMPLATES / "ritsu_fact.png") as template:
         font = ImageFont.truetype(str(FONTS / "Arimo-Regular.ttf"), 50)
 
@@ -294,7 +297,7 @@ def make_ritsu_fact_meme(text):
 
 @executor_function
 @measure_performance
-def make_trash_waifu_meme(image_buffer):
+def make_trash_waifu_meme(image_buffer: io.BytesIO) -> io.BytesIO:
     with Image.open(TEMPLATES / "trash_waifu.png") as template:
         with Image.open(image_buffer) as image:
             template.paste(image.convert("RGB").resize((384, 255)), (383, 704))
