@@ -48,6 +48,14 @@ class Context(commands.Context["Sleepy"]):
     .. versionadded:: 1.7
     """
 
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+
+        # Exists to allow for granular control over what errors
+        # should and shouldn't be handled by the global command
+        # error handler. This must be manually set by the user.
+        self._already_handled_error: bool = False
+
     @property
     def loop(self) -> asyncio.AbstractEventLoop:
         """:class:`asyncio.AbstractEventLoop`: The bot's event loop.

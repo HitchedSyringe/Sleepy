@@ -119,18 +119,18 @@ class Weeb(
             await ctx.send(
                 "The user, custom emoji, image attachment, or image link was invalid."
             )
-            error.handled__ = True
+            ctx._already_handled_error = True
         elif isinstance(error, ImageAssetTooLarge):
             await ctx.send(
                 f"Image must not exceed {error.max_filesize / 1e6:.0f} MB in size."
             )
-            error.handled__ = True
+            ctx._already_handled_error = True
         elif isinstance(error, DecompressionBombError):
             await ctx.send("Go be Ted Kaczynski somewhere else.")
-            error.handled__ = True
+            ctx._already_handled_error = True
         elif isinstance(error, (commands.BadArgument, commands.MaxConcurrencyReached)):
             await ctx.send(error)
-            error.handled__ = True
+            ctx._already_handled_error = True
 
     @commands.command(aliases=("animesearch",))
     @commands.bot_has_permissions(embed_links=True)

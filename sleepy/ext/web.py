@@ -1212,7 +1212,7 @@ class Web(
     async def on_translate_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):
             await ctx.send("Destination language must begin with `>`.")
-            error.handled__ = True
+            ctx._already_handled_error = True
 
     @commands.command(aliases=("urban", "urbanup"))
     @commands.bot_has_permissions(embed_links=True)
@@ -1310,7 +1310,7 @@ class Web(
     async def on_entity_command_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):
             await ctx.send(error)
-            error.handled__ = True
+            ctx._already_handled_error = True
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)

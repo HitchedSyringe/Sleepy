@@ -228,10 +228,10 @@ class NSFW(
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.NSFWChannelRequired):
             await ctx.send("This command can only be used in an NSFW channel.")
-            error.handled__ = True
+            ctx._already_handled_error = True
         elif isinstance(error, commands.BadArgument):
             await ctx.send(error)
-            error.handled__ = True
+            ctx._already_handled_error = True
 
     @staticmethod
     def safe_query(tags, sep, *, exclude_prefix):

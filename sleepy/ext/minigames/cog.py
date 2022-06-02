@@ -110,9 +110,9 @@ class Minigames(commands.Cog):
 
         self.sessions.clear()
 
-    async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
+    async def cog_command_error(self, ctx: SleepyContext, error: Exception) -> None:
         if isinstance(error, HasActiveMinigameSession):
-            error.handled__ = True  # type: ignore
+            ctx._already_handled_error = True
             await ctx.send(error)  # type: ignore
 
     @commands.Cog.listener()

@@ -59,7 +59,7 @@ class Covid(
     async def cog_command_error(self, ctx, error):
         if isinstance(error, (commands.BadArgument, commands.MaxConcurrencyReached)):
             await ctx.send(error)
-            error.handled__ = True
+            ctx._already_handled_error = True
 
     @staticmethod
     @executor_function

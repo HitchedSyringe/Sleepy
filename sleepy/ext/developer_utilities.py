@@ -283,7 +283,7 @@ class DeveloperUtilities(
     async def on_piston_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):
             await ctx.send(error)
-            error.handled__ = True
+            ctx._already_handled_error = True
 
     @commands.command(aliases=("msgraw",))
     @commands.cooldown(1, 5, commands.BucketType.member)

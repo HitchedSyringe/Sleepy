@@ -177,16 +177,16 @@ class Moderation(commands.Cog):
     async def cog_command_error(self, ctx, error):
         if isinstance(error, (commands.UserNotFound, commands.MemberNotFound)):
             await ctx.send("That user wasn't found.")
-            error.handled__ = True
+            ctx._already_handled_error = True
         elif isinstance(error, BanEntryNotFound):
             await ctx.send("That user isn't banned.")
-            error.handled__ = True
+            ctx._already_handled_error = True
         elif isinstance(error, (commands.ChannelNotFound, commands.MessageNotFound)):
             await ctx.send("That message ID, link, or URL was invalid.")
-            error.handled__ = True
+            ctx._already_handled_error = True
         elif isinstance(error, (CannotPerformAction, ReasonTooLong)):
             await ctx.send(error)
-            error.handled__ = True
+            ctx._already_handled_error = True
 
     @staticmethod
     async def do_purge_strategy(ctx, *, limit, check, before=None, after=None):

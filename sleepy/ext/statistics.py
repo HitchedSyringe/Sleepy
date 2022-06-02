@@ -178,13 +178,13 @@ class Statistics(
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-        if not isinstance(error, (commands.CommandInvokeError, commands.ConversionError)):
+        if (
+            not isinstance(error, (commands.CommandInvokeError, commands.ConversionError))
+            or ctx._already_handled_error
+        ):
             return
 
         error = error.original
-
-        if hasattr(error, "handled__"):
-            return
 
         fmt = (
             'Unhandled exception in command "%s":'

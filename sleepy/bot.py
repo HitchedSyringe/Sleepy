@@ -406,7 +406,7 @@ class Sleepy(commands.Bot):
             commands.PrivateMessageOnly,
         )
 
-        if isinstance(error, ignored) or hasattr(error, "handled__"):
+        if isinstance(error, ignored) or ctx._already_handled_error:
             return
 
         if isinstance(error, (commands.CommandInvokeError, commands.ConversionError)):
