@@ -22,6 +22,7 @@ import pyfiglet
 from discord import Embed, File
 from discord.ext import commands
 from discord.ui import View, select
+from discord.utils import MISSING
 from jishaku.functools import executor_function
 from PIL import Image, ImageDraw
 
@@ -144,12 +145,10 @@ class PollView(View):
         await self.wait()
 
     async def interaction_check(self, itn):
-        user_id = itn.user and itn.user.id
-
-        if user_id is None:
+        if itn.user is MISSING:
             return False
 
-        if user_id in self.__voted:
+        if itn.user.id in self.__voted:
             await itn.response.send_message("You've already voted!", ephemeral=True)
             return False
 
