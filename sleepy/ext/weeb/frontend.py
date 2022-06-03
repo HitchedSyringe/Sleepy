@@ -18,7 +18,7 @@ __all__ = (
 
 import io
 import textwrap
-from typing import TYPE_CHECKING, Any, Dict, Tuple
+from typing import TYPE_CHECKING, Any, Dict
 
 import discord
 from discord import Colour, Embed, File
@@ -43,38 +43,6 @@ if TYPE_CHECKING:
     from sleepy.mimics import PartialAsset
 
 
-NEKOBOT_IMAGE_COMMANDS: Tuple[Dict[str, Any], ...] = (
-    {
-        "name": "animecoffee",
-        "help": "Sends a random image of an anime girl drinking coffee.",
-        "type": "coffee",
-    },
-    {
-        "name": "animefood",
-        "help": "Sends a random image of anime food.",
-        "type": "food",
-    },
-    {
-        "name": "holo",
-        "help": "Sends a random image of Holo from *Spice and Wolf*.",
-    },
-    {
-        "name": "kemonomimi",
-        "aliases": ("kemo",),
-        "help": "Sends a random image of a kemonomimi character.",
-    },
-    {
-        "name": "neko",
-        "aliases": ("catgirl", "nekomimi"),
-        "help": "Sends a random image of a catgirl.",
-    },
-    {
-        "name": "kanna",
-        "help": "Sends a random image of Kanna from *Miss Kobayashi's Dragon Maid*.",
-    },
-)
-
-
 # ネックビアードコグ
 class Weeb(
     commands.Cog,
@@ -90,39 +58,6 @@ class Weeb(
     """
 
     ICON: str = "\N{SUSHI}"
-
-    def __init__(self) -> None:
-        # Nekobot commands are handled this way in order to
-        # allow for ease in supporting any new image endpoints.
-        # (and it also keeps us from having several methods that
-        # essentially all run the same code with little variance)
-        for attrs in NEKOBOT_IMAGE_COMMANDS:
-            attrs["help"] += "\n\n(Bot Needs: Embed Links)"
-
-            # Unfortunately, we have to construct the command
-            # this way due to how injection works for this.
-            @commands.command(**attrs)
-            @commands.bot_has_permissions(embed_links=True)
-            async def nekobot_image_command(
-                cog: commands.Cog, ctx: SleepyContext
-            ) -> None:
-                # Can't really get the type any other way...
-                img_type = ctx.command.__original_kwargs__.get("type", ctx.command.name)  # type: ignore
-
-                resp: Dict[str, Any] = await ctx.get(
-                    "https://nekobot.xyz/api/image", type=img_type
-                )  # type: ignore
-
-                embed = Embed(colour=Colour(resp["color"]))
-                embed.set_image(url=resp["message"])
-                embed.set_footer(text="Powered by nekobot.xyz")
-
-                await ctx.send(embed=embed)
-
-            nekobot_image_command.cog = self
-
-            # Make the command will appear in the cog help menu.
-            self.__cog_commands__ += (nekobot_image_command,)
 
     async def cog_command_error(self, ctx: SleepyContext, error: Exception) -> None:
         error = getattr(error, "original", error)
@@ -143,6 +78,18 @@ class Weeb(
         elif isinstance(error, (commands.BadArgument, commands.MaxConcurrencyReached)):
             await ctx.send(error)  # type: ignore
             ctx._already_handled_error = True
+
+    @staticmethod
+    async def send_nekobot_image_embed(ctx: SleepyContext, *, image_type: str) -> None:
+        resp: Dict[str, Any] = await ctx.get(
+            "https://nekobot.xyz/api/image", type=image_type
+        )  # type: ignore
+
+        embed = Embed(colour=Colour(resp["color"]))
+        embed.set_image(url=resp["message"])
+        embed.set_footer(text="Powered by nekobot.xyz")
+
+        await ctx.send(embed=embed)
 
     @commands.command(aliases=("animesearch",))
     @commands.bot_has_permissions(embed_links=True)
@@ -237,6 +184,15 @@ class Weeb(
         await ctx.paginate(EmbedSource(embeds))
 
     @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
+    async def animecoffee(self, ctx: SleepyContext) -> None:
+        """Sends a random image of an anime girl drinking coffee.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="coffee")
+
+    @commands.command()
     @commands.cooldown(1, 8, commands.BucketType.member)
     async def animeface(
         self,
@@ -271,6 +227,15 @@ class Weeb(
             f"\nRequested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
             file=File(buffer, "highlighted_anime_faces.png"),
         )
+
+    @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
+    async def animefood(self, ctx: SleepyContext) -> None:
+        """Sends a random image of anime food.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="food")
 
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
@@ -419,6 +384,24 @@ class Weeb(
         )
 
     @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
+    async def holo(self, ctx: SleepyContext) -> None:
+        """Sends a random image of Holo from *Spice and Wolf*.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="holo")
+
+    @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
+    async def kanna(self, ctx: SleepyContext) -> None:
+        """Sends a random image of Kanna from *Miss Kobayashi's Dragon Maid*.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="kanna")
+
+    @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def kannafact(
@@ -438,6 +421,15 @@ class Weeb(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
             file=File(buffer, "kanna_fact.png"),
         )
+
+    @commands.command(aliases=("kemo",))
+    @commands.bot_has_permissions(embed_links=True)
+    async def kemonomimi(self, ctx: SleepyContext) -> None:
+        """Sends a random image of a kemonomimi character.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="kemonomimi")
 
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
@@ -557,6 +549,15 @@ class Weeb(
             embeds.append(embed)
 
         await ctx.paginate(EmbedSource(embeds))
+
+    @commands.command(aliases=("catgirl", "nekomimi"))
+    @commands.bot_has_permissions(embed_links=True)
+    async def neko(self, ctx: SleepyContext) -> None:
+        """Sends a random image of a catgirl.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="neko")
 
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
