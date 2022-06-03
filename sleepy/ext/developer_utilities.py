@@ -341,7 +341,7 @@ class DeveloperUtilities(
         is a fake token. Don't leak your own token using this.**
         """
         token_match = re.fullmatch(
-            r"([A-Za-z0-9_-]{23,28})\.([A-Za-z0-9_-]{6,7})\.([A-Za-z0-9_-]{27})", token
+            r"([A-Za-z0-9_-]{23,28})\.([A-Za-z0-9_-]{6,7})\.([A-Za-z0-9_-]{27,})", token
         )
 
         if token_match is None:
