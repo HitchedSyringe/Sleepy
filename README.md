@@ -45,12 +45,14 @@ The version number has a 3-digit format: `main.major.micro`
 
 Contributions are 100% welcome! Feel free to open an issue or submit a pull request.
 
-When adding commands, look at the other commands in the category and pick which category the command fits best. Be sure to keep the commands alphabetised. To test your changes, please refer to the [setup instructions](#installation).
+When adding commands, look at the other commands in the category and pick which category the command fits best. Be sure to keep the commands alphabetised.
+
+To test your changes, please refer to the [setup instructions](#installation).
 
 ## Dependencies
 
 * [aiofiles](https://github.com/Tinche/aiofiles)
-* [cachetools](https://github.com/tkem/cachetools) (optional but recommended)
+* [cachetools](https://github.com/tkem/cachetools) (optional, but recommended)
 * [discord.py 2.0.0a](https://github.com/Rapptz/discord.py)
 * [discord-ext-menus](https://github.com/Rapptz/discord-ext-menus)
 * [emoji 1.1.0+](https://github.com/carpedm20/emoji)
@@ -82,17 +84,17 @@ When adding commands, look at the other commands in the category and pick which 
         * In order to run the bot, `discord_auth_token` must have a valid bot token. You can acquire one from Discord's [developer portal](https://discord.com/developers).
         * `id` and `token` under `discord_webhook` must also have a valid webhook ID and token, respectively. Read Discord's [support article](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) on webhooks for more information.
     * When finished, rename `config_template.yaml` to `config.yaml`.
-        * You may also rename this file to whatever you like, however, you must follow the special running instructions specified below.
+        * You may also rename this file to whatever you like, however, you must follow the special running instructions specified below in the next step.
 
 4. **Run the bot.**
 
     When all of the above steps are complete, run the bot using `python -m sleepy`.
+
     > **NOTE**
     >
-    > The above will attempt to load `config.yaml` by default.
-    > For custom named configuration files, an optional third argument can be passed to the above in order to specify a configuration file to load. The file name must be surrounded in quotation marks if it contains any spaces.
+    > The above command, as is, will attempt to load `config.yaml` by default. For custom named configuration files, an optional third argument can be passed in order to specify a configuration file to load.
     >
-    > Example: `python -m sleepy myrenamedconfig.yaml` attempts to load the configuration file named `myrenamedconfig.yaml` instead of the default `config.yaml`.
+    > The file name must be surrounded by quotation marks if it contains any spaces. For example, `python -m sleepy myrenamedconfig.yaml` will attempt to load the configuration file named `myrenamedconfig.yaml` instead of the default `config.yaml`.
 
 ## Important Notes
 
