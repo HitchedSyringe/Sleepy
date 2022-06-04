@@ -7,9 +7,11 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+from __future__ import annotations
+
 import io
 from datetime import datetime, timezone
-from typing import Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 from urllib.parse import quote
 
 from discord import Embed, File
@@ -18,10 +20,15 @@ from jishaku.functools import executor_function
 from matplotlib import pyplot as plt
 from matplotlib.dates import AutoDateLocator, DateFormatter, datestr2num
 from matplotlib.figure import Figure
+from typing_extensions import Annotated
 
 from sleepy.converters import _pseudo_bool_flag
 from sleepy.http import HTTPRequestFailed
 from sleepy.utils import human_number, measure_performance
+
+if TYPE_CHECKING:
+    from sleepy.bot import Sleepy
+    from sleepy.context import Context as SleepyContext
 
 
 # disease.sh API takes comma-separated arguments to denote
@@ -29,7 +36,7 @@ from sleepy.utils import human_number, measure_performance
 # are not designed to handle this functionality, therefore,
 # this pseudo-converter scrubs end-user input to prevent
 # the API from returning data for multiple sources.
-def clean_input(value):
+def clean_input(value: str) -> str:
     if "," in value:
         raise commands.BadArgument(
             "Due to the way my data source processes arguments, "
@@ -50,31 +57,37 @@ class Covid(
 ):
     """Commands related to the COVID-19 pandemic."""
 
-    ICON = "\N{MICROBE}"
+    ICON: str = "\N{MICROBE}"
 
     # Defined up here in case I ever need to change
     # the API base for whatever reason.
-    BASE = "https://disease.sh/v3/covid-19"
+    BASE: str = "https://disease.sh/v3/covid-19"
 
-    async def cog_command_error(self, ctx, error):
+    async def cog_command_error(self, ctx: SleepyContext, error: Exception) -> None:
         if isinstance(error, (commands.BadArgument, commands.MaxConcurrencyReached)):
-            await ctx.send(error)
+            await ctx.send(error)  # type: ignore
             ctx._already_handled_error = True
 
     @staticmethod
     @executor_function
     @measure_performance
     def plot_historical_data(
-        cases, deaths, recovered, vaccines=None, *, logarithmic=False
-    ):
+        cases: Dict[str, Any],
+        deaths: Dict[str, Any],
+        recovered: Dict[str, Any],
+        vaccines: Optional[Dict[str, Any]] = None,
+        *,
+        logarithmic: bool = False,
+    ) -> io.BytesIO:
         timeline = datestr2num(tuple(cases))
-        cases = cases.values()
-        deaths = deaths.values()
-        recovered = recovered.values()
+
+        c_counts = cases.values()
+        d_counts = deaths.values()
+        r_counts = recovered.values()
         # For reference, the equation to estimate
         # the number of active cases:
         # active = cases - deaths - recoveries
-        active = [c - d - r for c, d, r in zip(cases, deaths, recovered)]
+        a_counts = [c - d - r for c, d, r in zip(c_counts, d_counts, r_counts)]
 
         # Have to use to figure object directly since pyplot
         # uses tkinter internally, which doesn't play nice
@@ -113,19 +126,19 @@ class Covid(
         axes.set_ylabel("Amount", color="white")
         axes.tick_params(colors="white", labelsize="small")
 
-        axes.plot(timeline, active, ":", color="aqua", label="Active*")
-        axes.plot(timeline, recovered, "-.", color="#65B558", label="Recovered")
-        axes.plot(timeline, deaths, "--", color="#ED7734", label="Deaths")
-        axes.plot(timeline, cases, "-", color="#1F94E2", label="Cases")
+        axes.plot(timeline, a_counts, ":", color="aqua", label="Active*")
+        axes.plot(timeline, r_counts, "-.", color="#65B558", label="Recovered")
+        axes.plot(timeline, d_counts, "--", color="#ED7734", label="Deaths")
+        axes.plot(timeline, c_counts, "-", color="#1F94E2", label="Cases")
 
-        axes.fill_between(timeline, cases, recovered, color="#0D87D8", alpha=0.5)
-        axes.fill_between(timeline, recovered, deaths, color="#52A046", alpha=0.5)
-        axes.fill_between(timeline, deaths, color="#FF5E00", alpha=0.5)
+        axes.fill_between(timeline, c_counts, r_counts, color="#0D87D8", alpha=0.5)
+        axes.fill_between(timeline, r_counts, d_counts, color="#52A046", alpha=0.5)
+        axes.fill_between(timeline, d_counts, color="#FF5E00", alpha=0.5)
 
         axes.xaxis.set_major_locator(AutoDateLocator(maxticks=8))
         axes.xaxis.set_major_formatter(DateFormatter("%b %Y"))
 
-        def human_number_formatter(x, _):
+        def human_number_formatter(x: float, _) -> str:
             return human_number(x)
 
         handles = None
@@ -202,6 +215,9 @@ class Covid(
 
         return buffer
 
+    # The alternative to type ignoring the logarithmic parameter is
+    # to wrap it twice in Annotated, which is much more convoluted.
+    # Same reasoning goes for `covid19 country`.
     @commands.group(
         invoke_without_command=True,
         aliases=("covid", "coronavirus", "corona"),
@@ -211,9 +227,11 @@ class Covid(
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def covid19(
         self,
-        ctx,
-        logarithmic: Optional[_pseudo_bool_flag("--log", "--logarithmic")] = False,
-    ):
+        ctx: SleepyContext,
+        logarithmic: Annotated[
+            bool, Optional[_pseudo_bool_flag("--log", "--logarithmic")]  # type: ignore
+        ] = False,
+    ) -> None:
         """Shows detailed global COVID-19 statistics.
 
         By default, this graphs the historical data
@@ -223,9 +241,11 @@ class Covid(
         (Bot Needs: Embed Links and Attach Files)
         """
         async with ctx.typing():
-            latest = await ctx.get(f"{self.BASE}/all", cache__=True)
+            latest: Dict[str, Any] = await ctx.get(f"{self.BASE}/all", cache__=True)  # type: ignore
 
-            hist = await ctx.get(f"{self.BASE}/historical/all?lastdays=all", cache__=True)
+            hist: Dict[str, Any] = await ctx.get(
+                f"{self.BASE}/historical/all?lastdays=all", cache__=True
+            )  # type: ignore
 
             hist["vaccines"] = await ctx.get(
                 f"{self.BASE}/vaccine/coverage?lastdays=all", cache__=True
@@ -290,11 +310,13 @@ class Covid(
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def covid19_country(
         self,
-        ctx,
-        logarithmic: Optional[_pseudo_bool_flag("--log", "--logarithmic")] = False,
+        ctx: SleepyContext,
+        logarithmic: Annotated[
+            bool, Optional[_pseudo_bool_flag("--log", "--logarithmic")]  # type: ignore
+        ] = False,
         *,
-        country: clean_input,
-    ):
+        country: Annotated[str, clean_input],
+    ) -> None:
         """Shows detailed COVID-19 statistics for a country.
 
         By default, this graphs the historical data linearly.
@@ -311,12 +333,13 @@ class Covid(
         """
         async with ctx.typing():
             try:
-                latest = await ctx.get(
+                latest: Dict[str, Any] = await ctx.get(
                     f"{self.BASE}/countries/{quote(country)}", cache__=True
-                )
+                )  # type: ignore
             except HTTPRequestFailed as exc:
                 if exc.status == 404:
-                    await ctx.send(exc.data["message"])
+                    # Exception data is a dict at this point.
+                    await ctx.send(exc.data["message"])  # type: ignore
                     return
 
                 raise
@@ -324,9 +347,9 @@ class Covid(
             country = latest["country"]
 
             try:
-                hist = await ctx.get(
+                hist: Dict[str, Any] = await ctx.get(
                     f"{self.BASE}/historical/{country}?lastdays=all", cache__=True
-                )
+                )  # type: ignore
             except HTTPRequestFailed:
                 # Either worldometers has data on a country that jhucsse
                 # historical doesn't, or the "country" is actually considered
@@ -339,10 +362,10 @@ class Covid(
                 # I absolutely hate this level of nesting, but unfortunately,
                 # there isn't a better or cleaner way of doing this.
                 try:
-                    v_hist = await ctx.get(
+                    v_hist: Dict[str, Any] = await ctx.get(
                         f"{self.BASE}/vaccine/coverage/countries/{country}?lastdays=all",
                         cache__=True,
-                    )
+                    )  # type: ignore
                 except HTTPRequestFailed:
                     pass
                 else:
@@ -400,8 +423,9 @@ class Covid(
         embed.add_field(name="Continent", value=latest['continent'] or "N/A")
 
         if buffer is not None:
+            # delta isn't unbound if the buffer isn't None.
             embed.set_footer(
-                text=f"Powered by disease.sh \N{BULLET} Took {delta:.2f} ms."
+                text=f"Powered by disease.sh \N{BULLET} Took {delta:.2f} ms."  # type: ignore
             )
             embed.set_image(url="attachment://covid19_graph.png")
             await ctx.send(embed=embed, file=File(buffer, filename="covid19_graph.png"))
@@ -413,7 +437,9 @@ class Covid(
     @covid19.command(name="unitedstates", aliases=("us", "usa"))
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(2, 5, commands.BucketType.member)
-    async def covid19_unitedstates(self, ctx, *, state: clean_input):
+    async def covid19_unitedstates(
+        self, ctx: SleepyContext, *, state: Annotated[str, clean_input]
+    ) -> None:
         """Shows detailed COVID-19 statistics for a U.S. entity.
 
         This includes statistics from states, territories,
@@ -428,10 +454,13 @@ class Covid(
         ```
         """
         try:
-            latest = await ctx.get(f"{self.BASE}/states/{quote(state)}", cache__=True)
+            latest: Dict[str, Any] = await ctx.get(
+                f"{self.BASE}/states/{quote(state)}", cache__=True
+            )  # type: ignore
         except HTTPRequestFailed as exc:
             if exc.status == 404:
-                await ctx.send(exc.data["message"])
+                # Exception data is a dict at this point.
+                await ctx.send(exc.data["message"])  # type: ignore
                 return
 
             raise
@@ -481,5 +510,5 @@ class Covid(
         await ctx.send(embed=embed)
 
 
-async def setup(bot):
+async def setup(bot: Sleepy) -> None:
     await bot.add_cog(Covid())
