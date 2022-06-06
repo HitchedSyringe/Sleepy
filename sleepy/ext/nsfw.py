@@ -16,106 +16,6 @@ from sleepy.converters import ImageAssetConverter
 from sleepy.http import HTTPRequestFailed
 from sleepy.menus import EmbedSource
 
-NEKOBOT_IMAGE_COMMANDS = (
-    {
-        "name": "anal",
-        "help": "Sends a random image of an4l.",
-    },
-    {
-        "name": "analhentai",
-        "help": "Sends a random image of an4l h3nt4i.",
-        "type": "hanal",
-    },
-    {
-        "name": "animeass",
-        "aliases": ("aass",),
-        "help": "Sends a random image of anime 4$$.",
-        "type": "hass",
-    },
-    {
-        "name": "animeboobs",
-        "aliases": ("animetits", "animetitties"),
-        "help": "Sends a random image of anime b00bs.",
-        "type": "hboobs",
-    },
-    {
-        "name": "animemidriff",
-        "aliases": ("amidriff",),
-        "help": "Sends a random image of anime midriff.",
-        "type": "hmidriff",
-    },
-    {
-        "name": "animethighs",
-        "aliases": ("athighs",),
-        "help": "Sends a random image of anime thighs.",
-        "type": "hthigh",
-    },
-    {
-        "name": "ass",
-        "help": "Sends a random image of 4$$.",
-    },
-    {
-        "name": "boobs",
-        "aliases": ("tits", "titties"),
-        "help": "Sends a random image of b00bs.",
-    },
-    {
-        "name": "4Knude",
-        "aliases": ("4knude", "fourknude"),
-        "help": "Sends nud3s in crisp 4K resolution.",
-        "type": "4k",
-    },
-    {
-        "name": "hentai",
-        "help": "Sends a random h3nt41 image.",
-    },
-    # NOTE: This was intentionally left out due to some
-    # images seemingly depicting what looks, to me at
-    # least, like underage characters. I've left this
-    # commented here in case NekoBot decides to remove
-    # the offending images from the serving pool.
-    # {
-    #     "name": "nekohentai",
-    #     "aliases": ("catgirlhentai",),
-    #     "help": "Sends a random catgirl h3nt41 image.",
-    #     "type": "hneko",
-    # },
-    {
-        "name": "lewdkitsune",
-        "help": "Sends a random image of l3wd kitsunes.",
-        "type": "hkitsune",
-    },
-    {
-        "name": "paizuri",
-        "help": "Sends a random image of p41zur1.",
-    },
-    {
-        "name": "porngif",
-        "aliases": ("pgif",),
-        "help": "Sends a random pr0n GIF.",
-        "type": "pgif",
-    },
-    {
-        "name": "pussy",
-        "help": "Sends a random image of pu$$y.",
-    },
-    {
-        "name": "tentacle",
-        "aliases": ("tentai",),
-        "help": "You've seen enough to know what this entails.",
-    },
-    {
-        "name": "thighs",
-        "help": "Sends a random image of thighs.",
-        "type": "thigh",
-    },
-    {
-        "name": "yaoi",
-        "help": "Sends a random y401 image.",
-    },
-)
-
-
 # These bans are mostly generalised.
 NSFW_TAG_BLOCKLIST = (
     "adolescent",
@@ -197,28 +97,6 @@ class NSFW(
     def __init__(self, config):
         self.saucenao_api_key = config["saucenao_api_key"]
 
-        # Same process and reasoning as in Weeb.
-        for attrs in NEKOBOT_IMAGE_COMMANDS:
-            attrs["help"] += "\n\n(Bot Needs: Embed Links)"
-
-            @commands.command(**attrs)
-            @commands.bot_has_permissions(embed_links=True)
-            async def nekobot_image_command(cog, ctx):
-                resp = await ctx.get(
-                    "https://nekobot.xyz/api/image",
-                    type=ctx.command.__original_kwargs__.get("type", ctx.command.name),
-                )
-
-                embed = Embed(colour=Colour(resp["color"]))
-                embed.set_image(url=resp["message"])
-                embed.set_footer(text="Powered by nekobot.xyz")
-
-                await ctx.send(embed=embed)
-
-            nekobot_image_command.cog = self
-
-            self.__cog_commands__ += (nekobot_image_command,)
-
     async def cog_check(self, ctx):
         if ctx.guild is not None and not ctx.channel.is_nsfw():
             raise commands.NSFWChannelRequired(ctx.channel)
@@ -234,12 +112,94 @@ class NSFW(
             ctx._already_handled_error = True
 
     @staticmethod
+    async def send_nekobot_image_embed(ctx, *, image_type):
+        resp = await ctx.get("https://nekobot.xyz/api/image", type=image_type)
+
+        embed = Embed(colour=Colour(resp["color"]))
+        embed.set_image(url=resp["message"])
+        embed.set_footer(text="Powered by nekobot.xyz")
+
+        await ctx.send(embed=embed)
+
+    @staticmethod
     def safe_query(tags, sep, *, exclude_prefix):
         return (
             sep.join(tags)
             + sep
             + sep.join(exclude_prefix + t for t in NSFW_TAG_BLOCKLIST)
         )
+
+    @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
+    async def anal(self, ctx):
+        """Sends a random image of an4l.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="anal")
+
+    @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
+    async def analhental(self, ctx):
+        """Sends a random image of an4l h3nt4i.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="hanal")
+
+    @commands.command(aliases=("aass",))
+    @commands.bot_has_permissions(embed_links=True)
+    async def animeass(self, ctx):
+        """Sends a random image of anime 4$$.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="hass")
+
+    @commands.command(aliases=("animetits", "animetitties"))
+    @commands.bot_has_permissions(embed_links=True)
+    async def animeboobs(self, ctx):
+        """Sends a random image of anime b00bs.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="hboobs")
+
+    @commands.command(aliases=("amidriff",))
+    @commands.bot_has_permissions(embed_links=True)
+    async def animemidriff(self, ctx):
+        """Sends a random image of anime midriff.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="hmidriff")
+
+    @commands.command(aliases=("athighs",))
+    @commands.bot_has_permissions(embed_links=True)
+    async def animethighs(self, ctx):
+        """Sends a random image of anime thighs.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="hthigh")
+
+    @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
+    async def ass(self, ctx):
+        """Sends a random image of 4$$.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="ass")
+
+    @commands.command(aliases=("tits", "titties"))
+    @commands.bot_has_permissions(embed_links=True)
+    async def boobs(self, ctx):
+        """Sends a random image of b00bs.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="boobs")
 
     @commands.command(require_var_positional=True)
     @commands.bot_has_permissions(embed_links=True)
@@ -384,6 +344,73 @@ class NSFW(
         else:
             await ctx.paginate(EmbedSource(embeds))
 
+    @commands.command(name="4knude", aliases=("fourknude",))
+    @commands.bot_has_permissions(embed_links=True)
+    async def fourknude(self, ctx):
+        """Sends a random nud3 image in crisp 4K resolution.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="4k")
+
+    @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
+    async def hentai(self, ctx):
+        """Sends a random h3nt41 image.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="hentai")
+
+    @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
+    async def lewdkitsune(self, ctx):
+        """Sends a random image of l3wd kitsunes.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="hkitsune")
+
+    # This was intentionally left out due to some images
+    # looking like they shouldn't be allowed on Discord.
+    # This will be added in officially when said images
+    # are no longer being served.
+    # @commands.command(aliases=("catgirlhentai",))
+    # @commands.bot_has_permissions(embed_links=True)
+    # async def nekohentai(self, ctx):
+    #     """Sends a random catgirl h3nt41 image.
+
+    #     (Bot Needs: Embed Links)
+    #     """
+    #     await self.send_nekobot_image_embed(ctx, image_type="hneko")
+
+    @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
+    async def paizuri(self, ctx):
+        """Sends a random image of p41zur1.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="paizuri")
+
+    @commands.command(aliases=("pgif",))
+    @commands.bot_has_permissions(embed_links=True)
+    async def porngif(self, ctx):
+        """Sends a random pr0n GIF.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="pgif")
+
+    @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
+    async def pussy(self, ctx):
+        """Sends a random image of pu$$y.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="pussy")
+
     @commands.command(aliases=("r34",), require_var_positional=True)
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
@@ -495,6 +522,24 @@ class NSFW(
 
         await ctx.paginate(EmbedSource(embeds))
 
+    @commands.command(aliases=("tentai",))
+    @commands.bot_has_permissions(embed_links=True)
+    async def tentacle(self, ctx):
+        """You've seen enough to know what this entails.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="tentacle")
+
+    @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
+    async def thighs(self, ctx):
+        """Sends a random image of thighs.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="thigh")
+
     @commands.command(require_var_positional=True)
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
@@ -558,6 +603,15 @@ class NSFW(
             await ctx.send("All results involve banned content on Discord")
         else:
             await ctx.paginate(EmbedSource(embeds))
+
+    @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
+    async def yaoi(self, ctx):
+        """Sends a random y401 image.
+
+        (Bot Needs: Embed Links)
+        """
+        await self.send_nekobot_image_embed(ctx, image_type="yaoi")
 
 
 async def setup(bot):
