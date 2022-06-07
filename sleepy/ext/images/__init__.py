@@ -7,24 +7,18 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
-# I split this up into a semi-library to make
-# this easier to maintain and allow others to
-# interact with this extension from elsewhere
-# without having to mill about with the actual
-# command interface. However, I won't bother
-# documenting any of this since this isn't
-# considered part of the public bot API. I bid
-# good luck to anyone willing to extend their
-# resources and time toward reverse engineering
-# this hot mess I have created for myself and
-# whoever shall maintain this in the far future.
+from __future__ import annotations as _annotations
+
+from typing import TYPE_CHECKING as _TYPE_CHECKING
+
+from . import backend as backend, helpers as helpers
+from .fonts import *
+from .frontend import *
+from .templates import *
+
+if _TYPE_CHECKING:
+    from sleepy.bot import Sleepy
 
 
-from . import backend, helpers
-from .fonts import FONTS
-from .frontend import Images, RGBColourConverter
-from .templates import TEMPLATES
-
-
-async def setup(bot):
+async def setup(bot: Sleepy) -> None:
     await bot.add_cog(Images())

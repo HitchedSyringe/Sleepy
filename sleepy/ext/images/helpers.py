@@ -7,6 +7,8 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+from __future__ import annotations
+
 __all__ = (
     "get_accurate_text_size",
     "wrap_text",
@@ -14,15 +16,19 @@ __all__ = (
 
 
 import textwrap
+from typing import TYPE_CHECKING, Tuple
+
+if TYPE_CHECKING:
+    from PIL.ImageFont import FreeTypeFont
 
 
-def get_accurate_text_size(font, text):
+def get_accurate_text_size(font: FreeTypeFont, text: str) -> Tuple[int, int]:
     # The normal getsize doesn't account for newline characters.
     width, height = font.getsize_multiline(text)
     return width, height + font.getmetrics()[1]
 
 
-def wrap_text(text, font, *, width):
+def wrap_text(text: str, font: FreeTypeFont, *, width: int) -> str:
     text_width = font.getsize(text)[0]
     adjusted_width = len(text) * width // text_width
 

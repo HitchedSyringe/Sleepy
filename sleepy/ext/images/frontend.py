@@ -7,6 +7,8 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+from __future__ import annotations
+
 # fmt: off
 __all__ = (
     "Images",
@@ -15,13 +17,14 @@ __all__ = (
 
 
 import io
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 import discord
 from discord import Colour, Embed, File
 from discord.ext import commands
 from PIL import UnidentifiedImageError
 from PIL.Image import DecompressionBombError
+from typing_extensions import Annotated
 
 from sleepy.converters import (
     ImageAssetConversionFailure,
@@ -39,13 +42,16 @@ from .fonts import FONTS
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from sleepy.context import Context as SleepyContext
+    from sleepy.mimics import PartialAsset
 
-def resolve_font_from_name(font_name):
+
+def resolve_font_from_name(font_name: str) -> Path:
     return FONTS.joinpath(f"{font_name}.ttf").resolve()
 
 
 class TTIFlags(commands.FlagConverter):
-    text: commands.clean_content(fix_channel_mentions=True)
+    text: str = commands.flag(converter=commands.clean_content(fix_channel_mentions=True))
     font_path: Path = commands.flag(
         name="font",
         converter=resolve_font_from_name,
@@ -74,9 +80,9 @@ class Images(
 ):
     """Commands having to do with images and/or their manipulation."""
 
-    ICON = "\N{FRAME WITH PICTURE}"
+    ICON: str = "\N{FRAME WITH PICTURE}"
 
-    async def cog_command_error(self, ctx, error):
+    async def cog_command_error(self, ctx: SleepyContext, error: Exception) -> None:
         error = getattr(error, "original", error)
 
         if isinstance(error, (ImageAssetConversionFailure, UnidentifiedImageError)):
@@ -93,18 +99,20 @@ class Images(
             await ctx.send("Go be Ted Kaczynski somewhere else.")
             ctx._already_handled_error = True
         elif isinstance(error, commands.MaxConcurrencyReached):
-            await ctx.send(error)
+            await ctx.send(error)  # type: ignore
             ctx._already_handled_error = True
 
     @commands.command(aliases=("asskeyify",), usage="[--invert] <image>")
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def asciify(
         self,
-        ctx,
-        inverted: Optional[_pseudo_bool_flag("--invert")] = False,
+        ctx: SleepyContext,
+        inverted: Annotated[
+            bool, Optional[_pseudo_bool_flag("--invert")]  # type: ignore
+        ] = False,
         *,
-        image: ImageAssetConverter,
-    ):
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """Converts an image into ASCII art.
 
         This is best viewed on desktop.
@@ -136,8 +144,11 @@ class Images(
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def axiostrumpinterview(
-        self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)
-    ):
+        self,
+        ctx: SleepyContext,
+        *,
+        text: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
+    ) -> None:
         """Generates an Axios interview with Trump meme.
 
         (Bot Needs: Attach Files)
@@ -158,11 +169,13 @@ class Images(
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def blurplefy(
         self,
-        ctx,
-        use_rebrand: Optional[_pseudo_bool_flag("--rebranded")] = False,
+        ctx: SleepyContext,
+        use_rebrand: Annotated[
+            bool, Optional[_pseudo_bool_flag("--rebranded")]  # type: ignore
+        ] = False,
         *,
-        image: ImageAssetConverter,
-    ):
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """Blurplefies an image.
 
         By default, this uses the blurple colour prior to
@@ -194,12 +207,14 @@ class Images(
     @commands.command(aliases=("meow",))
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def cats(self, ctx):
+    async def cats(self, ctx: SleepyContext) -> None:
         """Sends a random series of images of cats.
 
         (Bot Needs: Embed Links)
         """
-        cats = await ctx.get("https://api.thecatapi.com/v1/images/search?limit=50")
+        cats: List[Dict[str, Any]] = await ctx.get(
+            "https://api.thecatapi.com/v1/images/search?limit=50"
+        )  # type: ignore
 
         embeds = [
             Embed(title="\N{CAT FACE}", colour=0x2F3136)
@@ -215,11 +230,11 @@ class Images(
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def captcha(
         self,
-        ctx,
-        image: ImageAssetConverter,
+        ctx: SleepyContext,
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
         *,
-        text: commands.clean_content(fix_channel_mentions=True),
-    ):
+        text: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
+    ) -> None:
         """Generates a fake Google image captcha.
 
         (Bot Needs: Attach Files)
@@ -242,8 +257,11 @@ class Images(
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def changemymind(
-        self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)
-    ):
+        self,
+        ctx: SleepyContext,
+        *,
+        text: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
+    ) -> None:
         """Generates a "change my mind" meme.
 
         (Bot Needs: Attach Files)
@@ -261,11 +279,13 @@ class Images(
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def clyde(
         self,
-        ctx,
-        use_rebrand: Optional[_pseudo_bool_flag("--rebranded")] = False,
+        ctx: SleepyContext,
+        use_rebrand: Annotated[
+            bool, Optional[_pseudo_bool_flag("--rebranded")]  # type: ignore
+        ] = False,
         *,
-        text: commands.clean_content(fix_channel_mentions=True),
-    ):
+        text: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
+    ) -> None:
         """Generates a fake Clyde bot message.
 
         By default, this uses the message design prior to
@@ -285,9 +305,11 @@ class Images(
         )
 
     @commands.command(aliases=("cupofjoe",))
-    async def coffee(self, ctx):
+    async def coffee(self, ctx: SleepyContext) -> None:
         """Sends a random image of coffee."""
-        coffee = await ctx.get("https://coffee.alexflipnote.dev/random.json")
+        coffee: Dict[str, Any] = await ctx.get(
+            "https://coffee.alexflipnote.dev/random.json"
+        )  # type: ignore
 
         embed = Embed(title="\N{HOT BEVERAGE}", colour=0x2F3136)
         embed.set_image(url=coffee["file"])
@@ -298,7 +320,12 @@ class Images(
     @commands.command(aliases=("honeycomb",))
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
-    async def dalgona(self, ctx, *, image: ImageAssetConverter):
+    async def dalgona(
+        self,
+        ctx: SleepyContext,
+        *,
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """\N{IDEOGRAPHIC NUMBER ZERO}\N{WHITE UP-POINTING TRIANGLE}\N{BALLOT BOX}
 
         Image can either be a user, custom emoji, link, or
@@ -324,7 +351,12 @@ class Images(
     @commands.command(aliases=("df",))
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
-    async def deepfry(self, ctx, *, image: ImageAssetConverter):
+    async def deepfry(
+        self,
+        ctx: SleepyContext,
+        *,
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """Deep fries an image.
 
         Image can either be a user, custom emoji, link, or
@@ -350,12 +382,14 @@ class Images(
     @commands.command(aliases=("doggos", "woof"))
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def dogs(self, ctx):
+    async def dogs(self, ctx: SleepyContext) -> None:
         """Sends a random series of images of dogs.
 
         (Bot Needs: Embed Links)
         """
-        dogs = await ctx.get("https://dog.ceo/api/breeds/image/random/50")
+        dogs: Dict[str, Any] = await ctx.get(
+            "https://dog.ceo/api/breeds/image/random/50"
+        )  # type: ignore
 
         embeds = [
             Embed(title="\N{DOG FACE}", colour=0x2F3136)
@@ -369,12 +403,12 @@ class Images(
     @commands.command(aliases=("quack",))
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(2, 5, commands.BucketType.member)
-    async def duck(self, ctx):
+    async def duck(self, ctx: SleepyContext) -> None:
         """Sends a random image of a duck.
 
         (Bot Needs: Embed Links)
         """
-        duck = await ctx.get("https://random-d.uk/api/random")
+        duck: Dict[str, Any] = await ctx.get("https://random-d.uk/api/random")  # type: ignore
 
         embed = Embed(title="\N{DUCK}", colour=0x2F3136)
         embed.set_image(url=duck["url"])
@@ -385,12 +419,12 @@ class Images(
     @commands.command(aliases=("floof",))
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(2, 5, commands.BucketType.member)
-    async def fox(self, ctx):
+    async def fox(self, ctx: SleepyContext) -> None:
         """Sends a random image of a fox.
 
         (Bot Needs: Embed Links)
         """
-        fox = await ctx.get("https://randomfox.ca/floof/")
+        fox: Dict[str, Any] = await ctx.get("https://randomfox.ca/floof/")  # type: ignore
 
         embed = Embed(title="\N{FOX FACE}", colour=0x2F3136)
         embed.set_image(url=fox["image"])
@@ -401,7 +435,12 @@ class Images(
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
-    async def invert(self, ctx, *, image: ImageAssetConverter):
+    async def invert(
+        self,
+        ctx: SleepyContext,
+        *,
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """Inverts an image's colours.
 
         Image can either be a user, custom emoji, link, or
@@ -427,7 +466,12 @@ class Images(
     @commands.command(aliases=("iphone10",))
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
-    async def iphonex(self, ctx, *, image: ImageAssetConverter):
+    async def iphonex(
+        self,
+        ctx: SleepyContext,
+        *,
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """Fits an image into an iPhone X screen.
 
         Image can either be a user, custom emoji, link, or
@@ -454,8 +498,12 @@ class Images(
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def jpeg(
-        self, ctx, intensity: Optional[int] = 5, *, image: ImageAssetConverter
-    ):
+        self,
+        ctx: SleepyContext,
+        intensity: Annotated[int, Optional[int]] = 5,
+        *,
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """JPEGifies an image to an optional intensity.
 
         Intensity value must be between 1 and 10, inclusive.
@@ -493,11 +541,11 @@ class Images(
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def lensflareeyes(
         self,
-        ctx,
-        colour: Optional[Colour] = Colour.red(),
+        ctx: SleepyContext,
+        colour: Annotated[Colour, Optional[Colour]] = Colour.red(),
         *,
-        image: ImageAssetConverter,
-    ):
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """Places lensflares of a given colour on human eyes.
 
         Colour can either be a name, 6 digit hex value prefixed
@@ -533,8 +581,12 @@ class Images(
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def magik(
-        self, ctx, intensity: Optional[int] = 1, *, image: ImageAssetConverter
-    ):
+        self,
+        ctx: SleepyContext,
+        intensity: Annotated[int, Optional[int]] = 1,
+        *,
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """Heavily warps an image to an optional intensity.
 
         Intensity value must be between 1 and 25, inclusive.
@@ -556,11 +608,11 @@ class Images(
 
         async with ctx.typing():
             try:
-                resp = await ctx.get(
+                resp: bytes = await ctx.get(
                     "https://nekobot.xyz/api/imagegen?type=magik&raw=1",
                     image=str(image),
                     intensity=intensity,
-                )
+                )  # type: ignore
             except HTTPRequestFailed as exc:
                 # For whatever reason, NekoBot doesn't actually
                 # support converting WEBP files in this instance
@@ -587,7 +639,12 @@ class Images(
     @commands.command(aliases=("colours", "colors"))
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
-    async def palette(self, ctx, *, image: ImageAssetConverter):
+    async def palette(
+        self,
+        ctx: SleepyContext,
+        *,
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """Shows the five most prominent colours in an image.
 
         Image can either be a user, custom emoji, link, or
@@ -616,11 +673,11 @@ class Images(
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def pornhubcomment(
         self,
-        ctx,
-        user: Optional[discord.Member] = commands.Author,
+        ctx: SleepyContext,
+        user: Annotated[discord.Member, Optional[discord.Member]] = commands.Author,
         *,
-        text: commands.clean_content(fix_channel_mentions=True),
-    ):
+        text: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
+    ) -> None:
         """Generates a fake Pr0nhub comment from the specified user.
 
         User can either be a name, ID, or mention.
@@ -657,7 +714,7 @@ class Images(
     @commands.guild_only()
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
-    async def robloxcancel(self, ctx, *, user: discord.Member):
+    async def robloxcancel(self, ctx: SleepyContext, *, user: discord.Member) -> None:
         """Cancels someone for being poor on bloxburg.
 
         User can either be a name, ID, or mention.
@@ -691,10 +748,10 @@ class Images(
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def ship(
         self,
-        ctx,
+        ctx: SleepyContext,
         first_user: discord.Member,
         second_user: discord.Member = commands.Author,
-    ):
+    ) -> None:
         """Ships two users.
 
         Users can either be a name, ID, or mention.
@@ -738,7 +795,12 @@ class Images(
     @commands.command(aliases=("soyjacks", "soyjak", "soyjack"))
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
-    async def soyjaks(self, ctx, *, image: ImageAssetConverter):
+    async def soyjaks(
+        self,
+        ctx: SleepyContext,
+        *,
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """Generates a consoomer soyjaks pointing meme.
 
         Image can either be a user, custom emoji, link, or
@@ -768,7 +830,12 @@ class Images(
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(2, commands.BucketType.guild)
     @commands.cooldown(1, 40, commands.BucketType.member)
-    async def stickbug(self, ctx, *, image: ImageAssetConverter):
+    async def stickbug(
+        self,
+        ctx: SleepyContext,
+        *,
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """Generates a stickbug meme.
 
         Image can either be a user, custom emoji, link, or
@@ -779,9 +846,9 @@ class Images(
         """
         async with ctx.typing():
             try:
-                resp = await ctx.get(
-                    "https://nekobot.xyz/api/imagegen?type=stickbug", url=str(image)
-                )
+                resp: Dict[str, Any] = await ctx.get(
+                    "https://nekobot.xyz/api/imagegen?type=stickbug&raw=1", url=str(image)
+                )  # type: ignore
             except HTTPRequestFailed as exc:
                 # I'm not sure if this is filetype-specific or not,
                 # but this sometimes gets returned so I might as
@@ -796,17 +863,23 @@ class Images(
 
                 raise
 
+        video_bytes: bytes = await ctx.get(resp["message"])  # type: ignore
+
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Powered by nekobot.xyz",
-            file=File(io.BytesIO(await ctx.get(resp["message"])), "stickbug.mp4"),
+            file=File(io.BytesIO(video_bytes), "stickbug.mp4"),
         )
 
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def swirl(
-        self, ctx, intensity: Optional[int] = 5, *, image: ImageAssetConverter
-    ):
+        self,
+        ctx: SleepyContext,
+        intensity: Annotated[int, Optional[int]] = 5,
+        *,
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """Swirls an image to an optional intensity.
 
         Intensity value must be between 1 and 15, inclusive.
@@ -841,7 +914,7 @@ class Images(
 
     @commands.command(aliases=("tti",), usage="text: <text> [options...]")
     @commands.bot_has_permissions(attach_files=True)
-    async def texttoimage(self, ctx, *, options: TTIFlags):
+    async def texttoimage(self, ctx: SleepyContext, *, options: TTIFlags) -> None:
         """Converts text into an image.
 
         This command's interface is similar to Discord's slash commands.
@@ -908,7 +981,12 @@ class Images(
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
-    async def threats(self, ctx, *, image: ImageAssetConverter):
+    async def threats(
+        self,
+        ctx: SleepyContext,
+        *,
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """Generates a "three threats to society" meme.
 
         Image can either be a user, custom emoji, link, or
@@ -936,12 +1014,12 @@ class Images(
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def trapcard(
         self,
-        ctx,
-        title: commands.clean_content(fix_channel_mentions=True),
-        image: ImageAssetConverter,
+        ctx: SleepyContext,
+        title: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
         *,
-        flavour_text: commands.clean_content(fix_channel_mentions=True),
-    ):
+        flavour_text: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
+    ) -> None:
         """Generates a fake Yu-Gi-Oh! trap card.
 
         Image can either be a user, custom emoji, link, or
@@ -968,7 +1046,12 @@ class Images(
 
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
-    async def tucker(self, ctx, *, image: ImageAssetConverter):
+    async def tucker(
+        self,
+        ctx: SleepyContext,
+        *,
+        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """Generates a live Tucker reaction meme.
 
         Image can either be a user, custom emoji, link, or
@@ -998,11 +1081,11 @@ class Images(
     @commands.bot_has_permissions(attach_files=True)
     async def tweet(
         self,
-        ctx,
-        user: Optional[discord.Member] = commands.Author,
+        ctx: SleepyContext,
+        user: Annotated[discord.Member, Optional[discord.Member]] = commands.Author,
         *,
-        text: commands.clean_content(fix_channel_mentions=True),
-    ):
+        text: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
+    ) -> None:
         """Generates a fake Tweet from the specified user.
 
         User can either be a name, ID, or mention.
@@ -1036,10 +1119,10 @@ class Images(
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def whowouldwin(
         self,
-        ctx,
-        left_image: ImageAssetConverter,
-        right_image: ImageAssetConverter,
-    ):
+        ctx: SleepyContext,
+        left_image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        right_image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+    ) -> None:
         """Generates a "who would win" meme.
 
         Images can either be a user, custom emoji, link, or
@@ -1071,11 +1154,11 @@ class Images(
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def youtubecomment(
         self,
-        ctx,
-        user: Optional[discord.Member] = commands.Author,
+        ctx: SleepyContext,
+        user: Annotated[discord.Member, Optional[discord.Member]] = commands.Author,
         *,
-        text: commands.clean_content(fix_channel_mentions=True),
-    ):
+        text: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
+    ) -> None:
         """Generates a fake YouTube comment from the specified user.
 
         User can either be a name, ID, or mention.

@@ -7,6 +7,8 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+from __future__ import annotations
+
 __all__ = (
     "do_asciify",
     "do_blurpify",
@@ -37,6 +39,7 @@ __all__ = (
 
 import io
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING, Any, Optional, Tuple, Union
 
 import cv2
 import numpy as np
@@ -51,12 +54,20 @@ from .fonts import FONTS
 from .helpers import get_accurate_text_size, wrap_text
 from .templates import TEMPLATES
 
-HAAR_EYES = cv2.CascadeClassifier(cv2_haarcascades + "haarcascade_eye.xml")
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    PILColour = Union[str, int, Tuple[int, ...]]
+
+
+HAAR_EYES: cv2.CascadeClassifier = cv2.CascadeClassifier(
+    f"{cv2_haarcascades}haarcascade_eye.xml"
+)
 
 
 @executor_function
 @measure_performance
-def do_asciify(image_buffer, *, inverted=False):
+def do_asciify(image_buffer: io.BytesIO, *, inverted: bool = False) -> str:
     # Chars are ordered from dark -> light.
     chars = " .'-,_\"^*:;~=+<>!?\\/|()][}{#&$%@"
 
@@ -71,13 +82,15 @@ def do_asciify(image_buffer, *, inverted=False):
 
 @executor_function
 @measure_performance
-def do_blurpify(image_buffer, *, use_rebrand=False):
+def do_blurpify(image_buffer: io.BytesIO, *, use_rebrand: bool = False) -> io.BytesIO:
     with Image.open(image_buffer) as image:
         blurple = (88, 101, 242) if use_rebrand else (114, 137, 218)
 
         frames = [
             ImageOps.colorize(
-                ImageEnhance.Contrast(f.convert("L")).enhance(1000), blurple, "white"
+                ImageEnhance.Contrast(f.convert("L")).enhance(1000),
+                blurple,  # type: ignore
+                "white",
             )
             for f in ImageSequence.Iterator(image)
         ]
@@ -100,7 +113,7 @@ def do_blurpify(image_buffer, *, use_rebrand=False):
 
 @executor_function
 @measure_performance
-def do_deepfry(image_buffer):
+def do_deepfry(image_buffer: io.BytesIO) -> io.BytesIO:
     with Image.open(image_buffer) as image:
         frames = []
         for frame in ImageSequence.Iterator(image):
@@ -109,7 +122,7 @@ def do_deepfry(image_buffer):
             red = frame.split()[0]
             red = ImageEnhance.Contrast(red).enhance(2)
             red = ImageEnhance.Brightness(red).enhance(1.5)
-            red = ImageOps.colorize(red, (254, 0, 2), (255, 255, 15))
+            red = ImageOps.colorize(red, (254, 0, 2), (255, 255, 15))  # type: ignore
 
             frame = Image.blend(frame, red, 0.77)
             frame = ImageEnhance.Sharpness(frame).enhance(150)
@@ -133,7 +146,7 @@ def do_deepfry(image_buffer):
 
 @executor_function
 @measure_performance
-def do_invert(image_buffer):
+def do_invert(image_buffer: io.BytesIO) -> io.BytesIO:
     with Image.open(image_buffer) as image:
         img = ~np.asarray(image.convert("RGB"))
 
@@ -150,7 +163,7 @@ def do_invert(image_buffer):
 
 @executor_function
 @measure_performance
-def do_jpegify(image_buffer, *, quality=1):
+def do_jpegify(image_buffer: io.BytesIO, *, quality: int = 1) -> io.BytesIO:
     with Image.open(image_buffer) as image:
         buffer = io.BytesIO()
 
@@ -163,7 +176,9 @@ def do_jpegify(image_buffer, *, quality=1):
 
 @executor_function
 @measure_performance
-def do_lensflare_eyes(image_buffer, *, colour=None):
+def do_lensflare_eyes(
+    image_buffer: io.BytesIO, *, colour: Optional[PILColour] = None
+) -> io.BytesIO:
     with Image.open(image_buffer) as image:
         image = image.convert("RGBA")
 
@@ -176,7 +191,7 @@ def do_lensflare_eyes(image_buffer, *, colour=None):
 
     with Image.open(TEMPLATES / "lensflare.png") as flare:
         if colour is not None:
-            flare_c = ImageOps.colorize(flare.convert("L"), colour, "white", colour)
+            flare_c = ImageOps.colorize(flare.convert("L"), colour, "white", colour)  # type: ignore
             flare_c = ImageEnhance.Color(flare_c).enhance(10)
             flare_c.putalpha(flare.getchannel("A"))
             flare = flare_c
@@ -201,7 +216,7 @@ def do_lensflare_eyes(image_buffer, *, colour=None):
 
 @executor_function
 @measure_performance
-def do_swirl(image_buffer, *, intensity=1):
+def do_swirl(image_buffer: io.BytesIO, *, intensity: float = 1) -> io.BytesIO:
     with Image.open(image_buffer) as image:
         image = transform.swirl(
             np.asarray(image.convert("RGBA")),
@@ -217,7 +232,7 @@ def do_swirl(image_buffer, *, intensity=1):
 
 @executor_function
 @measure_performance
-def make_axios_interview_meme(text):
+def make_axios_interview_meme(text: str) -> io.BytesIO:
     with Image.open(TEMPLATES / "axios_interview.jpg") as template:
         font = ImageFont.truetype(str(FONTS / "Arimo-Regular.ttf"), 60)
 
@@ -247,7 +262,7 @@ def make_axios_interview_meme(text):
 
 @executor_function
 @measure_performance
-def make_captcha(image_buffer, text):
+def make_captcha(image_buffer: io.BytesIO, text: str) -> io.BytesIO:
     with Image.open(TEMPLATES / "captcha.png") as template:
         with Image.open(image_buffer) as image:
             binder = Image.new("RGB", template.size)
@@ -257,7 +272,7 @@ def make_captcha(image_buffer, text):
             (29, 46), text, font=ImageFont.truetype(str(FONTS / "Roboto-Black.ttf"), 28)
         )
 
-        binder.paste(template, template)
+        binder.paste(template, None, template)
 
     buffer = io.BytesIO()
 
@@ -270,7 +285,7 @@ def make_captcha(image_buffer, text):
 
 @executor_function
 @measure_performance
-def make_change_my_mind_meme(text):
+def make_change_my_mind_meme(text: str) -> io.BytesIO:
     with Image.open(TEMPLATES / "change_my_mind.png") as template:
         font = ImageFont.truetype(str(FONTS / "Arimo-Regular.ttf"), 50)
 
@@ -332,7 +347,7 @@ def make_change_my_mind_meme(text):
 
 @executor_function
 @measure_performance
-def make_clyde_message(text, *, use_rebrand=False):
+def make_clyde_message(text: str, *, use_rebrand: bool = False) -> io.BytesIO:
     clyde = "rebrand_clyde.png" if use_rebrand else "classic_clyde.png"
 
     with Image.open(TEMPLATES / clyde) as template:
@@ -358,7 +373,7 @@ def make_clyde_message(text, *, use_rebrand=False):
 
 @executor_function
 @measure_performance
-def make_dalgona(image_buffer):
+def make_dalgona(image_buffer: io.BytesIO) -> io.BytesIO:
     with Image.open(image_buffer) as image:
         size = (245, 205)
 
@@ -366,7 +381,7 @@ def make_dalgona(image_buffer):
 
     med = np.median(grey)
     contours, _ = cv2.findContours(
-        cv2.Canny(grey, int(max(0, 0.67 * med)), int(min(255, 1.33 * med))),
+        cv2.Canny(grey, int(max(0, 0.67 * med)), int(min(255, 1.33 * med))),  # type: ignore
         cv2.RETR_EXTERNAL,
         cv2.CHAIN_APPROX_NONE,
     )
@@ -408,7 +423,7 @@ def make_dalgona(image_buffer):
 
 @executor_function
 @measure_performance
-def make_iphone_x(image_buffer):
+def make_iphone_x(image_buffer: io.BytesIO) -> io.BytesIO:
     with Image.open(TEMPLATES / "iphonex.png") as template:
         with Image.open(image_buffer) as image:
             binder = Image.new("RGBA", template.size)
@@ -427,7 +442,7 @@ def make_iphone_x(image_buffer):
 
 @executor_function
 @measure_performance
-def make_live_tucker_reaction_meme(image_buffer):
+def make_live_tucker_reaction_meme(image_buffer: io.BytesIO) -> io.BytesIO:
     with Image.open(TEMPLATES / "live_tucker_reaction.png") as template:
         with Image.open(image_buffer) as image:
             image.putalpha(255)
@@ -460,7 +475,7 @@ def make_live_tucker_reaction_meme(image_buffer):
 
 @executor_function
 @measure_performance
-def make_palette(image_buffer):
+def make_palette(image_buffer: io.BytesIO) -> io.BytesIO:
     with Image.open(image_buffer) as image:
         image = image.convert("RGB")
         thumb = image.copy()
@@ -529,7 +544,7 @@ def make_palette(image_buffer):
 
 @executor_function
 @measure_performance
-def make_pointing_soyjaks_meme(image_buffer):
+def make_pointing_soyjaks_meme(image_buffer: io.BytesIO) -> io.BytesIO:
     with Image.open(TEMPLATES / "pointing_soyjaks.png") as template:
         with Image.open(image_buffer) as image:
             image = image.convert("RGBA")
@@ -552,9 +567,11 @@ def make_pointing_soyjaks_meme(image_buffer):
 
 @executor_function
 @measure_performance
-def make_pornhub_comment(username, avatar, comment):
+def make_pornhub_comment(
+    username: str, avatar_buffer: io.BytesIO, comment: str
+) -> io.BytesIO:
     with Image.open(TEMPLATES / "pornhub_comment.png") as template:
-        with Image.open(avatar) as avi:
+        with Image.open(avatar_buffer) as avi:
             template.paste(avi.convert("RGB").resize((52, 52)), (24, 264))
 
         draw = ImageDraw.Draw(template)
@@ -574,9 +591,11 @@ def make_pornhub_comment(username, avatar, comment):
 
 @executor_function
 @measure_performance
-def make_roblox_cancel_meme(avatar, username, discriminator):
+def make_roblox_cancel_meme(
+    avatar_buffer: io.BytesIO, username: str, discriminator: str
+) -> io.BytesIO:
     with Image.open(TEMPLATES / "roblox_cancel.jpg") as template:
-        with Image.open(avatar) as avi:
+        with Image.open(avatar_buffer) as avi:
             mask = Image.new("1", (80, 80))
             ImageDraw.Draw(mask).ellipse((0, 0, *mask.size), 255)
 
@@ -623,7 +642,13 @@ def make_roblox_cancel_meme(avatar, username, discriminator):
 
 @executor_function
 @measure_performance
-def make_ship(name1, avatar1_buffer, name2, avatar2_buffer, seed=None):
+def make_ship(
+    name1: str,
+    avatar1_buffer: io.BytesIO,
+    name2: str,
+    avatar2_buffer: io.BytesIO,
+    seed: Any = None,
+) -> io.BytesIO:
     with Image.open(TEMPLATES / "ship.png") as template:
         mask = Image.new("1", (80, 80))
         ImageDraw.Draw(mask).ellipse((0, 0, *mask.size), 255)
@@ -681,10 +706,17 @@ def make_ship(name1, avatar1_buffer, name2, avatar2_buffer, seed=None):
 
 @executor_function
 @measure_performance
-def make_text_image(text, font_path, *, size, text_colour=None, bg_colour=None):
+def make_text_image(
+    text: str,
+    font_path: Path,
+    *,
+    size: int,
+    text_colour: Optional[PILColour] = None,
+    bg_colour: Optional[PILColour] = None,
+) -> io.BytesIO:
     font = ImageFont.truetype(str(font_path), size)
     text = wrap_text(text, font, width=650)
-    image = Image.new("RGBA", get_accurate_text_size(font, text), bg_colour)
+    image = Image.new("RGBA", get_accurate_text_size(font, text), bg_colour)  # type: ignore
 
     # Default colour is Discord's light grey for neutrality
     # between dark mode and light mode users.
@@ -701,7 +733,7 @@ def make_text_image(text, font_path, *, size, text_colour=None, bg_colour=None):
 
 @executor_function
 @measure_performance
-def make_threats_meme(image_buffer):
+def make_threats_meme(image_buffer: io.BytesIO) -> io.BytesIO:
     with Image.open(TEMPLATES / "threats.png") as template:
         with Image.open(image_buffer) as image:
             template.paste(image.convert("RGB").resize((330, 230)), (735, 125))
@@ -717,7 +749,7 @@ def make_threats_meme(image_buffer):
 
 @executor_function
 @measure_performance
-def make_trapcard(title, flavour_text, image_buffer):
+def make_trapcard(title: str, flavour_text: str, image_buffer: io.BytesIO) -> io.BytesIO:
     with Image.open(TEMPLATES / "trapcard.png") as template:
         with Image.open(image_buffer) as image:
             template.paste(image.convert("RGB").resize((526, 526)), (107, 210))
@@ -745,9 +777,11 @@ def make_trapcard(title, flavour_text, image_buffer):
 
 @executor_function
 @measure_performance
-def make_tweet(handle, display_name, avatar, text):
+def make_tweet(
+    handle: str, display_name: str, avatar_buffer: io.BytesIO, text: str
+) -> io.BytesIO:
     with Image.open(TEMPLATES / "tweet.png") as template:
-        with Image.open(avatar) as avi:
+        with Image.open(avatar_buffer) as avi:
             mask = Image.new("1", (49, 49))
             ImageDraw.Draw(mask).ellipse((0, 0, *mask.size), 255)
 
@@ -790,13 +824,15 @@ def make_tweet(handle, display_name, avatar, text):
 
 @executor_function
 @measure_performance
-def make_who_would_win_meme(left_image, right_image):
+def make_who_would_win_meme(
+    left_image_buffer: io.BytesIO, right_image_buffer: io.BytesIO
+) -> io.BytesIO:
     with Image.open(TEMPLATES / "who_would_win.png") as template:
-        with Image.open(left_image) as left:
-            template.paste(left.convert("RGB").resize((1024, 1220)), (85, 380))
+        with Image.open(left_image_buffer) as left_image:
+            template.paste(left_image.convert("RGB").resize((1024, 1220)), (85, 380))
 
-        with Image.open(right_image) as right:
-            template.paste(right.convert("RGB").resize((992, 1220)), (1138, 380))
+        with Image.open(right_image_buffer) as right_image:
+            template.paste(right_image.convert("RGB").resize((992, 1220)), (1138, 380))
 
         buffer = io.BytesIO()
 
@@ -809,9 +845,11 @@ def make_who_would_win_meme(left_image, right_image):
 
 @executor_function
 @measure_performance
-def make_youtube_comment(username, avatar, comment):
+def make_youtube_comment(
+    username: str, avatar_buffer: io.BytesIO, comment: str
+) -> io.BytesIO:
     with Image.open(TEMPLATES / "youtube_comment.png") as template:
-        with Image.open(avatar) as avi:
+        with Image.open(avatar_buffer) as avi:
             mask = Image.new("1", (40, 40))
             ImageDraw.Draw(mask).ellipse((0, 0, *mask.size), 255)
 
