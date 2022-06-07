@@ -946,13 +946,13 @@ class Images(
         > If omitted, the background will be transparent.
         `size: <integer>`
         > The size of the text.
-        > Must be between 5 and 35, inclusive.
+        > Must be between 20 and 50, inclusive.
         > Defaults to `35` if omitted.
 
         (Bot Needs: Attach Files)
         """
-        if not 5 <= options.size <= 35:
-            await ctx.send("Text size must be between 5 and 35, inclusive.")
+        if not 20 <= options.size <= 50:
+            await ctx.send("Text size must be between 20 and 50, inclusive.")
             return
 
         if not options.font_path.is_relative_to(FONTS):  # type: ignore
