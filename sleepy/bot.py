@@ -443,10 +443,17 @@ class Sleepy(commands.Bot):
             await ctx.send(
                 f"The `{flag.name}` flag takes a maximum of {flag.max_args} value(s)."
             )
+        elif isinstance(error, commands.BadFlagArgument):
+            ctx._refund_cooldown_token()
+            await ctx.send(
+                f"Your argument for the `{error.flag.name}` flag was invalid."
+                "\nPlease double-check your input and try again."
+            )
         elif isinstance(error, (commands.BadArgument, commands.BadUnionArgument)):
             ctx._refund_cooldown_token()
             await ctx.send(
-                "Bad argument: Please double-check your input arguments and try again."
+                "One or more of your command arguments were invalid."
+                "\nPlease double-check your input(s) and try again."
             )
         elif isinstance(error, commands.ArgumentParsingError):
             ctx._refund_cooldown_token()
