@@ -36,7 +36,6 @@ from sleepy.menus import EmbedSource
 from sleepy.utils import plural
 
 from . import backend
-from .templates import TEMPLATES
 
 if TYPE_CHECKING:
     from sleepy.context import Context as SleepyContext
@@ -329,16 +328,6 @@ class Weeb(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
             file=File(buffer, "bodypillow.png"),
         )
-
-    # What a stupid command lmao.
-    @commands.command()
-    @commands.bot_has_permissions(attach_files=True)
-    async def gah(self, ctx: SleepyContext) -> None:
-        """GAH!
-
-        (Bot Needs: Attach Files)
-        """
-        await ctx.send(file=File(TEMPLATES / "gah.gif"))
 
     # Commented out because the API this is powered by is
     # currently on hiatus until v3 is completed, in an
