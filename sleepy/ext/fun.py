@@ -7,6 +7,8 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+from __future__ import annotations
+
 import colorsys
 import io
 import json
@@ -14,7 +16,7 @@ import random
 import re
 import unicodedata
 from collections import Counter
-from typing import Optional
+from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Set, Tuple, Union
 
 import discord
 import emoji
@@ -25,11 +27,20 @@ from discord.ui import View, select
 from discord.utils import MISSING
 from jishaku.functools import executor_function
 from PIL import Image, ImageDraw
+from typing_extensions import Annotated
 
-from sleepy.utils import measure_performance, plural, randint as s_randint, tchart
+from sleepy.utils import measure_performance, plural, randint, tchart
+
+if TYPE_CHECKING:
+    from discord.ui import Item, Select
+    from typing_extensions import Self
+
+    from sleepy.bot import Sleepy
+    from sleepy.context import Context as SleepyContext
+
 
 # + is positive, - is negative, no sign is neutral.
-BALL_RESPONSES = (
+BALL_RESPONSES: Tuple[str, ...] = (
     "+ It is certain.",
     "+ It is decidedly so.",
     "+ Without a doubt.",
@@ -54,7 +65,7 @@ BALL_RESPONSES = (
 
 
 # regex: repl
-OWO_TRANSLATIONS = {
+OWO_TRANSLATIONS: Dict[re.Pattern, str] = {
     re.compile(r"[lr]"): "w",
     re.compile(r"[LR]"): "W",
     re.compile(r"([Nn])([aeiou])"): "\\1y\\2",
@@ -64,9 +75,16 @@ OWO_TRANSLATIONS = {
 }
 
 
-class resolve_emote_char(commands.Converter):
-    @staticmethod
-    async def convert(ctx, argument):
+class EmoteData:
+
+    __slots__: Tuple[str, ...] = ("char", "name")
+
+    def __init__(self, char: str, name: str) -> None:
+        self.char: str = char
+        self.name: str = name
+
+    @classmethod
+    async def convert(cls, ctx: SleepyContext, argument: str) -> Self:
         argument = await commands.clean_content().convert(ctx, argument)
 
         try:
@@ -74,10 +92,10 @@ class resolve_emote_char(commands.Converter):
         except KeyError:
             pass
         else:
-            return argument, emoji_name.strip(":")
+            return cls(argument, emoji_name.strip(":"))
 
         if len(argument) == 1:
-            return argument, unicodedata.name(argument, "unknown emote")
+            return cls(argument, unicodedata.name(argument, "unknown emote"))
 
         try:
             custom = await commands.PartialEmojiConverter().convert(ctx, argument)
@@ -85,24 +103,30 @@ class resolve_emote_char(commands.Converter):
             pass
         else:
             # Assume that we can use this emoji.
-            return custom.name, str(custom)
+            return cls(custom.name, str(custom))
 
-        return argument, "unknown emote"
+        return cls(argument, "unknown emote")
 
 
 class PollView(View):
 
-    __slots__ = ("question", "starter", "votes", "_message", "__voted")
+    __slots__: Tuple[str, ...] = (
+        "question",
+        "starter",
+        "votes",
+        "_message",
+        "__voted",
+    )
 
-    def __init__(self, question, options):
+    def __init__(self, question: str, options: Iterable[str]) -> None:
         super().__init__(timeout=60)
 
-        self.question = question
-        self.starter = None
-        self.votes = Counter()
+        self.question: str = question
+        self.starter: Optional[Union[discord.User, discord.Member]] = None
+        self.votes: Counter[str] = Counter()
 
-        self._message = None
-        self.__voted = set()
+        self._message: Optional[discord.Message] = None
+        self.__voted: Set[int] = set()
 
         for option in options:
             if not 0 < len(option) <= 100:
@@ -114,7 +138,9 @@ class PollView(View):
 
     # This is overrided to remove the reset-timeout-on-interaction
     # logic, thus, forcing this view to time out in the given time.
-    async def _scheduled_task(self, item, itn):
+    async def _scheduled_task(
+        self, item: Item["PollView"], itn: discord.Interaction
+    ) -> None:
         try:
             allow = await self.interaction_check(itn)
 
@@ -125,7 +151,7 @@ class PollView(View):
         except Exception as e:
             return await self.on_error(itn, e, item)
 
-    async def send_to(self, ctx):
+    async def send_to(self, ctx: SleepyContext) -> None:
         self.starter = author = ctx.author
 
         embed = Embed(
@@ -144,7 +170,7 @@ class PollView(View):
 
         await self.wait()
 
-    async def interaction_check(self, itn):
+    async def interaction_check(self, itn: discord.Interaction) -> bool:
         if itn.user is MISSING:
             return False
 
@@ -154,16 +180,16 @@ class PollView(View):
 
         return True
 
-    async def on_timeout(self):
+    async def on_timeout(self) -> None:
         del self.__voted
 
         try:
-            await self._message.delete()
+            await self._message.delete()  # type: ignore
         except discord.HTTPException:
             pass
 
         votes = self.votes
-        channel = self._message.channel
+        channel = self._message.channel  # type: ignore
 
         if not votes:
             await channel.send("Nobody voted? Oh well. Better luck next time.")
@@ -175,7 +201,8 @@ class PollView(View):
             colour=0x2F3136,
         )
         embed.set_footer(
-            text=f"Started by: {self.starter}", icon_url=self.starter.display_avatar
+            text=f"Started by: {self.starter}",
+            icon_url=self.starter.display_avatar,  # type: ignore
         )
         embed.add_field(name="Everyone voted on:", value=self.question)
         embed.add_field(name="Total Votes", value=format(sum(votes.values()), ","))
@@ -183,7 +210,7 @@ class PollView(View):
         await channel.send(embed=embed)
 
     @select(placeholder="Select an option.")
-    async def vote(self, itn, select):
+    async def vote(self, itn: discord.Interaction, select: Select) -> None:
         self.votes[select.values[0]] += 1
         self.__voted.add(itn.user.id)
 
@@ -193,8 +220,8 @@ class PollView(View):
 
 
 class FigletFlags(commands.FlagConverter):
-    font: Optional[str.lower] = None
-    text: commands.clean_content(fix_channel_mentions=True)
+    font: Optional[Annotated[str, str.lower]] = None
+    text: str = commands.flag(converter=commands.clean_content(fix_channel_mentions=True))
 
 
 class Fun(
@@ -210,14 +237,14 @@ class Fun(
     ||This totally isn't a dumping ground for janky commands! Not at all!||
     """
 
-    ICON = "\N{CIRCUS TENT}"
+    ICON: str = "\N{CIRCUS TENT}"
 
-    def __init__(self):
-        self.figlet_format = measure_performance(pyfiglet.figlet_format)
+    def __init__(self) -> None:
+        self.figlet_format: Any = measure_performance(pyfiglet.figlet_format)
 
     @staticmethod
     @executor_function
-    def create_colour_preview(colour):
+    def create_colour_preview(colour: Tuple[int, int, int]) -> io.BytesIO:
         buffer = io.BytesIO()
 
         image = Image.new("RGBA", (256, 256))
@@ -230,7 +257,9 @@ class Fun(
         return buffer
 
     @commands.command(name="8ball")
-    async def _8ball(self, ctx, *, question: commands.clean_content):
+    async def _8ball(
+        self, ctx: SleepyContext, *, question: Annotated[str, commands.clean_content]
+    ) -> None:
         """Asks the magic 8 ball a question.
 
         **EXAMPLE:**
@@ -246,16 +275,16 @@ class Fun(
             await ctx.send(f"{question}```diff\n{random.choice(BALL_RESPONSES)}```")
 
     @commands.command()
-    async def advice(self, ctx):
+    async def advice(self, ctx: SleepyContext) -> None:
         """Gives some advice."""
-        resp = await ctx.get("https://api.adviceslip.com/advice")
+        resp: str = await ctx.get("https://api.adviceslip.com/advice")  # type: ignore
         data = json.loads(resp)
 
         await ctx.send(f"{data['slip']['advice']}\n`Powered by adviceslip.com`")
 
     @commands.command(aliases=("asskeyart", "figlet"), usage="text: <text> [options...]")
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def asciiart(self, ctx, *, options: FigletFlags):
+    async def asciiart(self, ctx: SleepyContext, *, options: FigletFlags) -> None:
         """Generates ASCII art out of the given text.
 
         This command's interface is similar to Discord's slash commands.
@@ -304,7 +333,9 @@ class Fun(
             await ctx.send("The result is too long to post.")
 
     @commands.group(name="choose", invoke_without_command=True)
-    async def choose(self, ctx, *choices: commands.clean_content):
+    async def choose(
+        self, ctx: SleepyContext, *choices: Annotated[str, commands.clean_content]
+    ) -> None:
         """Chooses between the given choices.
 
         Quotation marks must be used for values containing spaces.
@@ -327,7 +358,10 @@ class Fun(
 
     @choose.command(name="bestof")
     async def choose_bestof(
-        self, ctx, times: Optional[int], *choices: commands.clean_content
+        self,
+        ctx: SleepyContext,
+        times: Optional[int],
+        *choices: Annotated[str, commands.clean_content],
     ):
         """Recursively chooses between the given choices.
 
@@ -368,14 +402,18 @@ class Fun(
             await ctx.send("The result is too long to post.")
 
     @commands.command(aliases=("cnorris",))
-    async def chucknorris(self, ctx):
+    async def chucknorris(self, ctx: SleepyContext) -> None:
         """Tells a Chuck Norris joke/fact."""
-        resp = await ctx.get("https://api.icndb.com/jokes/random?escape=javascript")
+        resp: Dict[str, Any] = await ctx.get(
+            "https://api.icndb.com/jokes/random?escape=javascript"
+        )  # type: ignore
 
         await ctx.send(f"{resp['value']['joke']}\n`Powered by icndb.com`")
 
     @commands.command()
-    async def clap(self, ctx, *, text: commands.clean_content):
+    async def clap(
+        self, ctx: SleepyContext, *, text: Annotated[str, commands.clean_content]
+    ) -> None:
         """\N{CLAPPING HANDS SIGN}
 
         **EXAMPLE:**
@@ -397,7 +435,7 @@ class Fun(
     @commands.command(aliases=("color",))
     @commands.bot_has_permissions(embed_links=True, attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)  # mainly because using PIL.
-    async def colour(self, ctx, *, colour: discord.Colour = None):
+    async def colour(self, ctx: SleepyContext, *, colour: discord.Colour = None) -> None:
         """Shows a representation of a given colour.
 
         Colour can either be a name, 6 digit hex value
@@ -445,7 +483,7 @@ class Fun(
 
     @commands.command()
     @commands.guild_only()
-    async def compliment(self, ctx, *, user: discord.Member):
+    async def compliment(self, ctx: SleepyContext, *, user: discord.Member) -> None:
         """Compliments a user.
 
         User can either be a name, ID, or mention.
@@ -460,7 +498,7 @@ class Fun(
         if user == ctx.me:
             await ctx.send("I know I'm perfection! Compliment someone who needs it!")
         else:
-            resp = await ctx.get("https://complimentr.com/api")
+            resp: Dict[str, Any] = await ctx.get("https://complimentr.com/api")  # type: ignore
 
             await ctx.send(
                 f"{user.mention} {resp['compliment']}.\n`Powered by complimentr.com`",
@@ -468,16 +506,16 @@ class Fun(
             )
 
     @commands.command(aliases=("pun",))
-    async def dadjoke(self, ctx):
+    async def dadjoke(self, ctx: SleepyContext) -> None:
         """Tells a dad joke (or a pun, whatever you want to call it.)"""
-        resp = await ctx.get(
+        resp: Dict[str, Any] = await ctx.get(
             "https://icanhazdadjoke.com/", headers__={"Accept": "application/json"}
-        )
+        )  # type: ignore
 
         await ctx.send(f"{resp['joke']}\n`Powered by icanhazdadjoke.com`")
 
     @commands.command(aliases=("emojidick", "emojidong", "emojipp"))
-    async def emojipenis(self, ctx, *, emote: resolve_emote_char):
+    async def emojipenis(self, ctx: SleepyContext, *, emote: EmoteData) -> None:
         """ "___\\_\\_\\_ penis"
 
         **EXAMPLES:**
@@ -487,10 +525,10 @@ class Fun(
         <3> emojipenis =
         ```
         """
-        char, name = emote
+        char = emote.char
 
         content = (
-            f"{name.lower().replace('_', ' ')} penis\n"
+            f"{emote.name.lower().replace('_', ' ')} penis\n"
             f"{char * 2}\n{char * 3}\n  {char * 3}\n    {char * 3}\n"
             f"     {char * 3}\n       {char * 3}\n        {char * 3}\n"
             f"         {char * 3}\n          {char * 3}\n"
@@ -504,7 +542,7 @@ class Fun(
             await ctx.send("The result is too long to post. (Pun intended)")
 
     @commands.command(aliases=("emojipussy", "emojivulva", "emojiclit"))
-    async def emojivagina(self, ctx, *, emote: resolve_emote_char):
+    async def emojivagina(self, ctx: SleepyContext, *, emote: EmoteData) -> None:
         """ "___\\_\\_\\_ vagina"
 
         **EXAMPLES:**
@@ -514,10 +552,10 @@ class Fun(
         <3> emojivagina =
         ```
         """
-        char, name = emote
+        char = emote.char
 
         content = (
-            f"{name.lower().replace('_', ' ')} vagina\n"
+            f"{emote.name.lower().replace('_', ' ')} vagina\n"
             f"         {char}\n       {char * 2}\n  {char * 4}\n"
             f" {char * 2}  {char * 2}\n{char * 2}    {char * 2}\n"
             f"{char * 2}    {char * 2}\n {char * 2}  {char * 2}\n"
@@ -531,7 +569,7 @@ class Fun(
 
     @commands.command(aliases=("fite", "1v1"))
     @commands.guild_only()
-    async def fight(self, ctx, *, user: discord.Member):
+    async def fight(self, ctx: SleepyContext, *, user: discord.Member) -> None:
         """Fights someone.
 
         User can either be a name, ID, or mention.
@@ -562,23 +600,22 @@ class Fun(
             )
 
     @commands.command()
-    async def flipcoin(self, ctx):
+    async def flipcoin(self, ctx: SleepyContext):
         """Flips a coin."""
-        await ctx.send(
-            f"You flipped **{'Heads' if random.random() < 0.5 else 'Tails'}**!"
-        )
+        flip = "Heads" if random.random() < 0.5 else "Tails"
+        await ctx.send(f"You flipped **{flip}**!")
 
     @commands.command(aliases=("bored", "boredidea"))
     @commands.bot_has_permissions(embed_links=True)
-    async def idea(self, ctx):
+    async def idea(self, ctx: SleepyContext) -> None:
         """Gives you something to do for when you're bored."""
-        data = await ctx.get("http://boredapi.com/api/activity/")
+        data: Dict[str, Any] = await ctx.get("http://boredapi.com/api/activity/")  # type: ignore
 
         await ctx.send(data["activity"] + ".\n`Powered by boredapi.com`")
 
     @commands.command(aliases=("roast",))
     @commands.guild_only()
-    async def insult(self, ctx, *, user: discord.Member):
+    async def insult(self, ctx: SleepyContext, *, user: discord.Member) -> None:
         """Insults someone.
 
         User can either be a name, ID, or mention.
@@ -616,7 +653,9 @@ class Fun(
 
     @commands.command()
     @commands.guild_only()
-    async def iq(self, ctx, *, user: discord.Member = commands.Author):
+    async def iq(
+        self, ctx: SleepyContext, *, user: discord.Member = commands.Author
+    ) -> None:
         """Calculates a user's IQ.
         100% accurate or your money back.
 
@@ -635,7 +674,7 @@ class Fun(
         if await ctx.bot.is_owner(user) or user == ctx.me:
             iq = 1000
         else:
-            iq = s_randint(0, 1000, seed=user.id)
+            iq = randint(0, 1000, seed=user.id)
 
         await ctx.send(
             f"{user.mention} has at least **{iq}** IQ.",
@@ -643,7 +682,9 @@ class Fun(
         )
 
     @commands.command()
-    async def owoify(self, ctx, *, text: commands.clean_content):
+    async def owoify(
+        self, ctx: SleepyContext, *, text: Annotated[str, commands.clean_content]
+    ) -> None:
         """OwOifies some text.
 
         **EXAMPLE:**
@@ -663,7 +704,9 @@ class Fun(
     # At least you won't have to try to be featured on LWIAY.
     @commands.command(aliases=("dongsize", "dicksize", "peensize", "ppsize"))
     @commands.guild_only()
-    async def penissize(self, ctx, *, user: discord.Member = commands.Author):
+    async def penissize(
+        self, ctx: SleepyContext, *, user: discord.Member = commands.Author
+    ) -> None:
         """Calculates a user's pp length.
         100% accurate or your money back.
 
@@ -683,25 +726,30 @@ class Fun(
             # haha guys i'm so funny and original i should really be a comedian.
             await ctx.send("The result is too long to post.")
         else:
+            shaft = "=" * randint(0, 40, seed=user.id)
+
             await ctx.send(
-                f"{user.mention}'s penis length: `8{'=' * s_randint(0, 40, seed=user.id)}D`",
+                f"{user.mention}'s penis length: `8{shaft}D`",
                 allowed_mentions=discord.AllowedMentions(users=False),
             )
 
     @commands.command()
-    async def picknumber(self, ctx, minimum: int, maximum: int):
+    async def picknumber(
+        self,
+        ctx: SleepyContext,
+        minimum: commands.Range[int, -1_000_000_000],
+        maximum: commands.Range[int, None, 1_000_000_000],
+    ) -> None:
         """Picks a random number between a given minimum and maximum, inclusive.
 
-        The hard range is ±1000000000, inclusive.
+        The widest possible range is ±1000000000, inclusive.
 
         **EXAMPLE:**
         ```
         picknumber 1 10
         ```
         """
-        if minimum < -1_000_000_000 or maximum > 1_000_000_000:
-            await ctx.send("Range must fall between ±1000000000, inclusive.")
-        elif minimum >= maximum:
+        if minimum >= maximum:
             await ctx.send("The maximum value must be greater than the minimum value.")
         else:
             await ctx.send(f"You got **{random.randint(minimum, maximum)}**!")
@@ -710,7 +758,12 @@ class Fun(
     @commands.guild_only()  # Wouldn't make sense to have instances running in DMs.
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def poll(self, ctx, question: commands.clean_content, *options: str.strip):
+    async def poll(
+        self,
+        ctx: SleepyContext,
+        question: Annotated[str, commands.clean_content],
+        *options: Annotated[str, str.strip],
+    ) -> None:
         """Creates a quick reaction-based voting poll.
 
         Users will have 1 minute to cast their vote before
@@ -739,25 +792,25 @@ class Fun(
             )
             return
 
-        options = frozenset(options)
+        unique_options = frozenset(options)
 
-        if not 2 <= len(options) <= 15:
+        if not 2 <= len(unique_options) <= 15:
             await ctx.send("You must have between 2 and 15 unique options, inclusive.")
             return
 
         try:
-            poll = PollView(question.strip(), options)
-        except ValueError as e:
-            await ctx.send(e)
+            poll = PollView(question.strip(), unique_options)
+        except ValueError as exc:
+            await ctx.send(exc)  # type: ignore
         else:
             await poll.send_to(ctx)
 
     @commands.command(aliases=("expression",))
-    async def quote(self, ctx):
+    async def quote(self, ctx: SleepyContext) -> None:
         """Shows a random inspiring expression/quote."""
-        data = await ctx.get(
+        data: Dict[str, Any] = await ctx.get(
             "https://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en"
-        )
+        )  # type: ignore
 
         await ctx.send(
             f"> {data['quoteText']}\n- {data['quoteAuthor'] or 'Unknown'}"
@@ -766,7 +819,9 @@ class Fun(
 
     @commands.command()
     @commands.guild_only()
-    async def rate(self, ctx, *, user: discord.Member = commands.Author):
+    async def rate(
+        self, ctx: SleepyContext, *, user: discord.Member = commands.Author
+    ) -> None:
         """Rates a user out of 10.
         100% accurate or your money back.
 
@@ -785,7 +840,7 @@ class Fun(
         if await ctx.bot.is_owner(user) or user == ctx.me:
             rate = 10
         else:
-            rate = s_randint(0, 10, seed=user.id)
+            rate = randint(0, 10, seed=user.id)
 
         await ctx.send(
             f"I would give {user.mention} a **{rate}/10**!",
@@ -793,7 +848,9 @@ class Fun(
         )
 
     @commands.command(aliases=("rps",))
-    async def rockpaperscissors(self, ctx, choice: str.lower):
+    async def rockpaperscissors(
+        self, ctx: SleepyContext, choice: Annotated[str, str.lower]
+    ) -> None:
         """Play a game of rock paper scissors against yours truly.
 
         **EXAMPLE:**
@@ -817,7 +874,7 @@ class Fun(
             await ctx.send(f"My `{bot_choice}` beats your `{choice}`, I win!")
 
     @commands.command(aliases=("rolldie",))
-    async def rolldice(self, ctx, sides: int = 6):
+    async def rolldice(self, ctx: SleepyContext, sides: int = 6) -> None:
         """Rolls a die with a given amount of sides.
 
         The die must have between 3 and 120 sides, inclusive.
@@ -835,7 +892,7 @@ class Fun(
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
-    async def say(self, ctx, *, content):
+    async def say(self, ctx: SleepyContext, *, content: str) -> None:
         """Lets me speak on your behalf.
 
         This command only accepts and displays text.
@@ -874,7 +931,7 @@ class Fun(
             pass
 
     @commands.command()
-    async def sheriff(self, ctx, *, emote: resolve_emote_char):
+    async def sheriff(self, ctx: SleepyContext, *, emote: EmoteData) -> None:
         """ "howdy. i'm the sheriff of ___\\_\\_\\_"
 
         **EXAMPLES:**
@@ -884,7 +941,7 @@ class Fun(
         <3> sheriff =
         ```
         """
-        char, name = emote
+        char = emote.char
 
         content = (
             f"⠀ ⠀ ⠀  \N{FACE WITH COWBOY HAT}\n　   {char * 3}\n"
@@ -893,7 +950,7 @@ class Fun(
             f"\N{WHITE DOWN POINTING BACKHAND INDEX}\n  　  {char}　"
             f"{char}\n　   {char}　 {char}\n"
             f"　   \N{WOMANS BOOTS}     \N{WOMANS BOOTS}\n"
-            f"howdy. i'm the sheriff of {name.lower().replace('_', ' ')}"
+            f"howdy. i'm the sheriff of {emote.name.lower().replace('_', ' ')}"
         )
 
         if len(content) < 2000:
@@ -902,15 +959,17 @@ class Fun(
             await ctx.send("The result is too long to post.")
 
     @commands.command()
-    async def uselessfact(self, ctx):
+    async def uselessfact(self, ctx: SleepyContext) -> None:
         """Gives an utterly useless and pointless fact."""
-        resp = await ctx.get("https://useless-facts.sameerkumar.website/api")
+        resp: Dict[str, Any] = await ctx.get(
+            "https://useless-facts.sameerkumar.website/api"
+        )  # type: ignore
 
         await ctx.send(f"{resp['data']}\n`Powered by sameerkumar.website`")
 
     @commands.command(aliases=("yomama",))
     @commands.guild_only()
-    async def yomomma(self, ctx, *, user: discord.Member):
+    async def yomomma(self, ctx: SleepyContext, *, user: discord.Member) -> None:
         """Makes an insulting joke about a user's mom.
 
         It literally just tells a yo momma joke.
@@ -936,7 +995,7 @@ class Fun(
                 "You really must be some kind of comedic genius."
             )
         else:
-            resp = await ctx.get("https://api.yomomma.info/")
+            resp: Dict[str, Any] = await ctx.get("https://api.yomomma.info/")  # type: ignore
 
             await ctx.send(
                 f"{user.mention} {resp['joke']}\n`Powered by yomomma.info`",
@@ -944,5 +1003,5 @@ class Fun(
             )
 
 
-async def setup(bot):
+async def setup(bot: Sleepy) -> None:
     await bot.add_cog(Fun())
