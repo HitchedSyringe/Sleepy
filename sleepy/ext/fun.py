@@ -620,9 +620,8 @@ class Fun(
 
         User can either be a name, ID, or mention.
 
-        **Disclaimer:** This command was made for
-        the purpose of entertainment only. Please
-        do **not** use this to harass others.
+        **Disclaimer:** This command was made for entertainment
+        purposes only. __Do not use this to harass others.__
 
         **EXAMPLES:**
         ```bnf
@@ -976,9 +975,8 @@ class Fun(
 
         User can either be a name, ID, or mention.
 
-        **Disclaimer:** This command was made for
-        the purpose of entertainment only. Please
-        do **not** use this to harass others.
+        **Disclaimer:** This command was made for entertainment
+        purposes only. __Do not use this to harass others.__
 
         **EXAMPLES:**
         ```bnf
