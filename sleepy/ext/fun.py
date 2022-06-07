@@ -24,7 +24,7 @@ import pyfiglet
 from discord import Embed, File
 from discord.ext import commands
 from discord.ui import View, select
-from discord.utils import MISSING
+from discord.utils import MISSING, escape_markdown
 from jishaku.functools import executor_function
 from PIL import Image, ImageDraw
 from typing_extensions import Annotated
@@ -527,7 +527,7 @@ class Fun(
         """
         char = emote.char
 
-        content = (
+        content = escape_markdown(
             f"{emote.name.lower().replace('_', ' ')} penis\n"
             f"{char * 2}\n{char * 3}\n  {char * 3}\n    {char * 3}\n"
             f"     {char * 3}\n       {char * 3}\n        {char * 3}\n"
@@ -554,7 +554,7 @@ class Fun(
         """
         char = emote.char
 
-        content = (
+        content = escape_markdown(
             f"{emote.name.lower().replace('_', ' ')} vagina\n"
             f"         {char}\n       {char * 2}\n  {char * 4}\n"
             f" {char * 2}  {char * 2}\n{char * 2}    {char * 2}\n"
@@ -943,7 +943,7 @@ class Fun(
         """
         char = emote.char
 
-        content = (
+        content = escape_markdown(
             f"⠀ ⠀ ⠀  \N{FACE WITH COWBOY HAT}\n　   {char * 3}\n"
             f"    {char}   {char}　{char}\n"
             f"   \N{WHITE DOWN POINTING BACKHAND INDEX}   {char * 2} "
