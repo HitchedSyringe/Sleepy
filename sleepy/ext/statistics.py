@@ -7,6 +7,8 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+from __future__ import annotations
+
 import asyncio
 import logging
 import textwrap
@@ -15,31 +17,53 @@ from collections import Counter
 from datetime import datetime, timezone
 from os import path
 from platform import python_version
+from typing import TYPE_CHECKING, Any, Coroutine
 
 import discord
 import psutil
 from discord import Colour, Embed
 from discord.ext import commands, tasks
-from discord.utils import format_dt as fmt_dt
+from discord.utils import format_dt
 
 from sleepy import __version__
 from sleepy.menus import BotLinksView, PaginatorSource
 from sleepy.utils import human_delta, plural, tchart
 
-_LOG = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    from sleepy.bot import Sleepy
+    from sleepy.context import Context as SleepyContext
+
+    # Needs to be here in order to prevent overuse of `type: ignore`
+    # due to monkey patches and custom attribute setting. This could
+    # have been prevented by just simply adding these attributes to
+    # the bot itself, but I'd rather keep this stuff separate.
+
+    class StatsSleepy(Sleepy):
+        identifies: int
+        command_uses: Counter[str]
+        socket_events: Counter[str]
+        started_at: datetime
+
+        _original_before_identify_hook: Coroutine[Any, Any, None]
+
+    class StatsSleepyContext(SleepyContext):
+        bot: StatsSleepy
+
+
+_LOG: logging.Logger = logging.getLogger(__name__)
 
 
 class GatewayWebhookHandler(logging.Handler):
-    def __init__(self, bot):
+    def __init__(self, bot: Sleepy) -> None:
         super().__init__(logging.INFO)
 
-        self._queue = asyncio.Queue()
-        self._webhook = bot.webhook
+        self._queue: asyncio.Queue = asyncio.Queue()
+        self._webhook: discord.Webhook = bot.webhook
 
         self._worker.start()
 
     @tasks.loop()
-    async def _worker(self):
+    async def _worker(self) -> None:
         rec = await self._queue.get()
         created = datetime.fromtimestamp(rec.created, timezone.utc)
 
@@ -50,18 +74,18 @@ class GatewayWebhookHandler(logging.Handler):
         lvl = levels.get(rec.levelname, "\N{CROSS MARK}")
 
         await self._webhook.send(
-            textwrap.shorten(f"{lvl} [{fmt_dt(created, 'F')}] `{rec.message}`", 2000),
+            textwrap.shorten(f"{lvl} [{format_dt(created, 'F')}] `{rec.message}`", 2000),
             username="Gateway Status",
             avatar_url="https://i.imgur.com/4PnCKB3.png",
         )
 
-    def filter(self, record):
+    def filter(self, record: logging.LogRecord) -> bool:
         return record.name in ("discord.gateway", "discord.shard")
 
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord) -> None:
         self._queue.put_nowait(record)
 
-    def close(self):
+    def close(self) -> None:
         self._worker.cancel()
         super().close()
 
@@ -78,33 +102,33 @@ class Statistics(
 
     # ...also responsible for some logging & error handling stuff.
 
-    ICON = "\N{BAR CHART}"
+    ICON: str = "\N{BAR CHART}"
 
-    def __init__(self, bot):
-        self.bot = bot
-        self.process = psutil.Process()
+    def __init__(self, bot: StatsSleepy) -> None:
+        self.bot: StatsSleepy = bot
+        self.process: psutil.Process = psutil.Process()
 
         self.gw_handler = handler = GatewayWebhookHandler(bot)
         logging.getLogger("discord").addHandler(handler)
 
-        bot._original_before_identify_hook = bot.before_identify_hook
+        bot._original_before_identify_hook = bot.before_identify_hook  # type: ignore
 
         # I decided to just monkey-patch this in rather than
         # including it in the bot class since I figured that
         # not everyone would want to be forced to use this.
-        type(bot).before_identify_hook = _new_before_identify_hook
+        type(bot).before_identify_hook = _new_before_identify_hook  # type: ignore
 
         # Mainly for the ``about``` command. This removes the
         # need to iterate through guilds on each command invoke.
-        self.total_guilds = 0
-        self.total_members = 0
-        self.total_text = 0
-        self.total_voice = 0
-        self.total_stage = 0
+        self.total_guilds: int = 0
+        self.total_members: int = 0
+        self.total_text: int = 0
+        self.total_voice: int = 0
+        self.total_stage: int = 0
 
         bot.loop.create_task(self.cache_bot_statistics())
 
-    def cog_unload(self):
+    def cog_unload(self) -> None:
         self.gw_handler.close()
         logging.getLogger("discord").removeHandler(self.gw_handler)
 
@@ -113,29 +137,30 @@ class Statistics(
 
         bot = self.bot
 
-        type(bot).before_identify_hook = bot._original_before_identify_hook
+        type(bot).before_identify_hook = bot._original_before_identify_hook  # type: ignore
         del bot._original_before_identify_hook
 
-    async def cache_bot_statistics(self):
+    async def cache_bot_statistics(self) -> None:
         await self.bot.wait_until_ready()
 
         for guild in self.bot.guilds:
             self.total_guilds += 1
-            self.total_members += guild.member_count
+            self.total_members += guild.member_count or 0
             self.total_text += len(guild.text_channels)
             self.total_voice += len(guild.voice_channels)
             self.total_stage += len(guild.stage_channels)
 
-    async def send_brief_guild_info(self, guild, *, joined):
+    async def send_brief_guild_info(self, guild: discord.Guild, *, joined: bool) -> None:
+        member_count = guild.member_count
         bots = sum(m.bot for m in guild.members)
 
         embed = Embed(
             description=(
                 f"\N{BLACK DIAMOND} **ID:** {guild.id}"
                 f"\n\N{BLACK DIAMOND} **Owner:** {guild.owner} (ID: {guild.owner_id})"
-                f"\n\N{BLACK DIAMOND} **Members:** {guild.member_count:,d} ({plural(bots, ',d'):bot})"
+                f"\n\N{BLACK DIAMOND} **Members:** {member_count or 0:,d} ({plural(bots, ',d'):bot})"
                 f"\n\N{BLACK DIAMOND} **Channels:** {len(guild.channels)}"
-                f"\n\N{BLACK DIAMOND} **Created:** {fmt_dt(guild.created_at, 'R')}"
+                f"\n\N{BLACK DIAMOND} **Created:** {format_dt(guild.created_at, 'R')}"
                 f"\n\N{BLACK DIAMOND} **Shard ID:** {guild.shard_id or 'N/A'}"
             ),
             timestamp=datetime.now(timezone.utc),
@@ -145,15 +170,14 @@ class Statistics(
 
         if joined:
             embed.title = "Joined a new server!"
-            bot_percentage = bots / guild.member_count
 
-            if bot_percentage > 0.5:
+            if member_count is not None and (ratio := bots / member_count) > 0.5:
                 embed.colour = 0xFFD257
                 embed.add_field(
                     name="\N{WARNING SIGN} Potential Bot Farm Alert \N{WARNING SIGN}",
                     value="__Heads up! This server could be a bot farm.__"
                     "\nThis server was automatically flagged due to bots making"
-                    f" up around **{bot_percentage:.2%}** of its membership.",
+                    f" up around **{ratio:.2%}** of its membership.",
                 )
             else:
                 embed.colour = 0x36BF38
@@ -164,11 +188,11 @@ class Statistics(
         await self.bot.webhook.send(embed=embed)
 
     @commands.Cog.listener()
-    async def on_command(self, ctx):
+    async def on_command(self, ctx: StatsSleepyContext) -> None:
         ctx.bot.command_uses[ctx.command.qualified_name] += 1
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx, error):
+    async def on_command_error(self, ctx: SleepyContext, error: Exception) -> None:
         if (
             not isinstance(error, (commands.CommandInvokeError, commands.ConversionError))
             or ctx._already_handled_error
@@ -223,9 +247,9 @@ class Statistics(
             pass
 
     @commands.Cog.listener()
-    async def on_guild_join(self, guild):
+    async def on_guild_join(self, guild: discord.Guild) -> None:
         self.total_guilds += 1
-        self.total_members += guild.member_count
+        self.total_members += guild.member_count or 0
         self.total_text += len(guild.text_channels)
         self.total_voice += len(guild.voice_channels)
         self.total_stage += len(guild.stage_channels)
@@ -233,9 +257,9 @@ class Statistics(
         await self.send_brief_guild_info(guild, joined=True)
 
     @commands.Cog.listener()
-    async def on_guild_remove(self, guild):
+    async def on_guild_remove(self, guild: discord.Guild) -> None:
         self.total_guilds -= 1
-        self.total_members -= guild.member_count
+        self.total_members -= guild.member_count or 0
         self.total_text -= len(guild.text_channels)
         self.total_voice -= len(guild.voice_channels)
         self.total_stage -= len(guild.stage_channels)
@@ -243,18 +267,18 @@ class Statistics(
         await self.send_brief_guild_info(guild, joined=False)
 
     @commands.Cog.listener()
-    async def on_socket_event_type(self, event_type):
+    async def on_socket_event_type(self, event_type: str) -> None:
         self.bot.socket_events[event_type] += 1
 
     @commands.command(aliases=("info", "botinfo"))
     @commands.bot_has_permissions(embed_links=True)
-    async def about(self, ctx):
+    async def about(self, ctx: StatsSleepyContext) -> None:
         """Shows information about me.
 
         (Bot Needs: Embed Links)
         """
         embed = Embed(
-            description=ctx.bot.description or ctx.bot.application.description,
+            description=ctx.bot.description or ctx.bot.application.description,  # type: ignore
             colour=0x2F3136,
         )
         embed.set_author(name=ctx.me)
@@ -265,8 +289,8 @@ class Statistics(
             name="About Me",
             value=(
                 f"<:ar:862433028088135711> **Owner:** {ctx.bot.owner}"
-                f"\n<:ar:862433028088135711> **Created:** {fmt_dt(ctx.me.created_at, 'R')}"
-                f"\n<:ar:862433028088135711> **Booted:** {fmt_dt(ctx.bot.started_at, 'R')}"
+                f"\n<:ar:862433028088135711> **Created:** {format_dt(ctx.me.created_at, 'R')}"
+                f"\n<:ar:862433028088135711> **Booted:** {format_dt(ctx.bot.started_at, 'R')}"
                 f"\n<:ar:862433028088135711> **Servers:** {self.total_guilds:,d}"
                 "\n<:ar:862433028088135711> **Channels:**"
                 f" <:tc:828149291812913152> {self.total_text:,d}"
@@ -299,7 +323,7 @@ class Statistics(
     @commands.command(hidden=True)
     @commands.is_owner()
     @commands.bot_has_permissions(embed_links=True)
-    async def bothealth(self, ctx):
+    async def bothealth(self, ctx: SleepyContext) -> None:
         """Shows a brief summary of my current health.
 
         This command can only be used by my higher-ups.
@@ -375,7 +399,7 @@ class Statistics(
 
     @commands.command(aliases=("cs",), hidden=True)
     @commands.is_owner()
-    async def commandstats(self, ctx):
+    async def commandstats(self, ctx: StatsSleepyContext) -> None:
         """Shows command usage data for the current session.
 
         This command can only be used by my higher-ups.
@@ -406,7 +430,7 @@ class Statistics(
     @commands.command(aliases=("gws",), hidden=True)
     @commands.is_owner()
     @commands.bot_has_permissions(embed_links=True)
-    async def gatewaystats(self, ctx):
+    async def gatewaystats(self, ctx: StatsSleepyContext) -> None:
         """Shows gateway identifies/resumes for the current session.
 
         This command can only be used by my higher-ups.
@@ -421,7 +445,7 @@ class Statistics(
 
     @commands.command(aliases=("wss",))
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def socketstats(self, ctx):
+    async def socketstats(self, ctx: StatsSleepyContext) -> None:
         """Shows observed socket events data for the current session."""
         stats = ctx.bot.socket_events
         total = sum(stats.values())
@@ -438,23 +462,23 @@ class Statistics(
         await ctx.paginate(PaginatorSource(paginator))
 
     @commands.command()
-    async def uptime(self, ctx):
+    async def uptime(self, ctx: StatsSleepyContext) -> None:
         """Shows my uptime, including the time I was booted."""
         started_at = ctx.bot.started_at
 
         await ctx.send(
-            f"I was booted on {fmt_dt(started_at, 'F')} and have been"
+            f"I was booted on {format_dt(started_at, 'F')} and have been"
             f" online for `{human_delta(started_at, absolute=True)}`."
         )
 
 
-async def _new_before_identify_hook(self, shard_id, *, initial):
+async def _new_before_identify_hook(self, shard_id: int, *, initial: bool) -> None:
     self.identifies += 1
 
     await self._original_before_identify_hook(shard_id, initial=initial)
 
 
-async def setup(bot):
+async def setup(bot: StatsSleepy) -> None:
     # Allows preservation of the counters if this
     # cog gets unloaded/reloaded.
     if not hasattr(bot, "command_uses"):
