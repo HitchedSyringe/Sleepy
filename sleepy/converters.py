@@ -131,6 +131,11 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
           attachments via ID or URL.
         * This now returns :class:`PartialAsset` instances.
 
+    .. versionchanged:: 3.3
+
+        * Removed support for resolving a message with image
+          attachments via ID or URL.
+
     Parameters
     ----------
     max_filesize: Optional[:class:`int`]
@@ -213,19 +218,6 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
         # can't really use the twemoji cdn.
 
         url = argument.strip("<>")
-
-        try:
-            message = await commands.MessageConverter().convert(ctx, url)
-
-            return self._convert_attachment(message._state, message.attachments[0])
-        except commands.MessageNotFound:
-            # Ideally, we would want this to fail completely if
-            # the message couldn't be resolved, however, this can
-            # also be raised if the URL regex didn't find a match.
-            # In any case, just ignore this exception altogether.
-            pass
-        except (IndexError, commands.ChannelNotReadable, commands.ChannelNotFound):
-            raise ImageAssetConversionFailure(argument) from None
 
         try:
             resp = await ctx.session.head(url, raise_for_status=True)
