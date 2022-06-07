@@ -718,9 +718,7 @@ def make_text_image(
     text = wrap_text(text, font, width=650)
     image = Image.new("RGBA", get_accurate_text_size(font, text), bg_colour)  # type: ignore
 
-    # Default colour is Discord's light grey for neutrality
-    # between dark mode and light mode users.
-    ImageDraw.Draw(image).text((0, 0), text, text_colour or (153, 170, 181), font)
+    ImageDraw.Draw(image).text((0, 0), text, text_colour, font)
 
     buffer = io.BytesIO()
 
