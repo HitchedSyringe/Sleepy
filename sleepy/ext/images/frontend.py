@@ -7,17 +7,18 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+# fmt: off
 __all__ = (
     "Images",
-    "RGBColourConverter",
 )
+# fmt: on
 
 
 import io
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import discord
-from discord import Embed, File
+from discord import Colour, Embed, File
 from discord.ext import commands
 from PIL import UnidentifiedImageError
 from PIL.Image import DecompressionBombError
@@ -35,24 +36,30 @@ from sleepy.utils import _as_argparse_dict
 from . import backend
 from .fonts import FONTS
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
-# This serves a shortcut to have the input colours
-# converted to 3 item tuple RGB values without having
-# to manually do the conversions within commands.
-class RGBColourConverter(commands.ColourConverter):
-    async def convert(self, ctx, argument):
-        colour = await super().convert(ctx, argument)
-        return colour.to_rgb()
+
+def resolve_font_from_name(font_name):
+    return FONTS.joinpath(f"{font_name}.ttf").resolve()
 
 
 class TTIFlags(commands.FlagConverter):
     text: commands.clean_content(fix_channel_mentions=True)
-    font_path: str = commands.flag(name="font", default="Arimo-Regular")
-    text_colour: RGBColourConverter = commands.flag(
-        name="text-colour", aliases=("text-color",), default=None
+    font_path: Path = commands.flag(
+        name="font",
+        converter=resolve_font_from_name,
+        default=resolve_font_from_name("Arimo-Regular"),
     )
-    bg_colour: RGBColourConverter = commands.flag(
-        name="bg-colour", aliases=("bg-color",), default=None
+    text_colour: Colour = commands.flag(
+        name="text-colour",
+        aliases=("text-color",),  # type: ignore
+        default=Colour.greyple(),
+    )
+    bg_colour: Colour = commands.flag(
+        name="bg-colour",
+        aliases=("bg-color",),  # type: ignore
+        default=None,
     )
     size: int = 35
 
@@ -487,7 +494,7 @@ class Images(
     async def lensflareeyes(
         self,
         ctx,
-        colour: Optional[RGBColourConverter] = "red",
+        colour: Optional[Colour] = Colour.red(),
         *,
         image: ImageAssetConverter,
     ):
@@ -514,7 +521,7 @@ class Images(
                 return
 
             buffer, delta = await backend.do_lensflare_eyes(
-                io.BytesIO(image_bytes), colour=colour
+                io.BytesIO(image_bytes), colour=colour.to_rgb()
             )
 
         await ctx.send(
@@ -875,13 +882,15 @@ class Images(
             await ctx.send("Text size must be between 5 and 35, inclusive.")
             return
 
-        options.font_path = font = FONTS.joinpath(options.font_path + ".ttf").resolve()
-
-        if not font.is_relative_to(FONTS):
+        if not options.font_path.is_relative_to(FONTS):  # type: ignore
             await ctx.send("Nice try with the path traversal, buddy.")
             return
 
         kwargs = _as_argparse_dict(options)
+        kwargs["text_colour"] = kwargs["text_colour"].to_rgb()
+
+        if kwargs["bg_colour"] is not None:
+            kwargs["bg_colour"] = kwargs["bg_colour"].to_rgb()
 
         async with ctx.typing():
             try:
