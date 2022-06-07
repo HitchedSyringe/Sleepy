@@ -213,9 +213,7 @@ class Fun(
     ICON = "\N{CIRCUS TENT}"
 
     def __init__(self):
-        # Create our own asynchronous and performance-measured figlet
-        # formatter without actually modifying the normal global one.
-        self.fig_fmt = executor_function(measure_performance(pyfiglet.figlet_format))
+        self.figlet_format = measure_performance(pyfiglet.figlet_format)
 
     @staticmethod
     @executor_function
@@ -286,7 +284,7 @@ class Fun(
             options.font = random.choice(pyfiglet.FigletFont.getFonts())
 
         try:
-            output, delta = await self.fig_fmt(options.text, options.font)
+            output, delta = self.figlet_format(options.text, options.font)
         except pyfiglet.FontNotFound:
             await ctx.send("That font wasn't found.")
             return
