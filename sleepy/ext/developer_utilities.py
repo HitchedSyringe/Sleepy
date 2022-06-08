@@ -7,12 +7,15 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+from __future__ import annotations
+
 import base64
 import binascii
 import json
 import re
 import unicodedata
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 from urllib.parse import quote
 
 import discord
@@ -21,40 +24,51 @@ from discord.ext import commands
 from discord.ui import button
 from discord.utils import escape_mentions, snowflake_time
 from jishaku.paginators import WrappedPaginator
+from typing_extensions import Annotated
 
 from sleepy.http import HTTPRequestFailed
 from sleepy.menus import BaseView, PaginatorSource
 
+if TYPE_CHECKING:
+    from discord.ui import Button
+
+    from sleepy.bot import Sleepy
+    from sleepy.context import Context as SleepyContext
+    from sleepy.http import HTTPRequester
+
 
 class PistonView(BaseView):
 
-    __slots__ = ("_message", "body", "ctx")
+    __slots__: Tuple[str, ...] = (
+        "_message",
+        "body",
+        "ctx",
+    )
 
-    def __init__(self, ctx, body):
+    def __init__(self, ctx: SleepyContext, body: Dict[str, Any]) -> None:
         super().__init__(owner_id=ctx.author.id, timeout=300)
 
-        self.ctx = ctx
-        self.body = body
-        self._message = None
+        self.ctx: SleepyContext = ctx
+        self.body: Dict[str, Any] = body
+        self._message: Optional[discord.Message] = None
 
-    async def on_timeout(self):
+    async def on_timeout(self) -> None:
         try:
-            await self._message.delete()
+            await self._message.delete()  # type: ignore
         except discord.HTTPException:
             pass
 
-    def _format_message_content(self, data, out):
+    def _format_message_content(self, data: Dict[str, Any], out: str) -> str:
         return (
-            f"**{data['language']} {data['version']}**"
-            f" \N{BULLET} `Powered by Piston`\n{out}"
-            f"\nExit code: {data['run']['code']}"
+            f"**{data['language']} {data['version']}** \N{BULLET} `Powered by Piston`"
+            f"\n{out}\nExit code: {data['run']['code']}"
         )
 
     @button(
         label="Repeat Execution",
         emoji="\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS}",
     )
-    async def repeat(self, itn, button):
+    async def repeat(self, itn: discord.Interaction, button: Button) -> None:
         data, out = await execute_on_piston(self.ctx, self.body)
 
         if data is None:
@@ -64,14 +78,14 @@ class PistonView(BaseView):
             await itn.response.edit_message(content=content)
 
     @button(emoji="\N{WASTEBASKET}", style=discord.ButtonStyle.danger)
-    async def dispose(self, itn, button):
-        await self._message.delete()
+    async def dispose(self, itn: discord.Interaction, button: Button) -> None:
+        await self._message.delete()  # type: ignore
         self.stop()
 
 
-class PistonPayload(commands.Converter):
+class PistonPayload(commands.Converter[Dict[str, Any]]):
 
-    PAYLOAD_REGEX = re.compile(
+    PAYLOAD_REGEX: re.Pattern = re.compile(
         r"""
         (?s)(?P<args>(?:[^\n\r\f\v]*\n)*?)?\s*
         ```(?:(?P<lang>\S+)\n)?\s*(?P<src>.*)```
@@ -80,7 +94,7 @@ class PistonPayload(commands.Converter):
         re.X,
     )
 
-    async def convert(self, ctx, argument):
+    async def convert(self, ctx: SleepyContext, argument: str) -> Dict[str, Any]:
         payload_match = self.PAYLOAD_REGEX.search(argument)
 
         if payload_match is None:
@@ -97,7 +111,8 @@ class PistonPayload(commands.Converter):
         language = language.lower()
 
         try:
-            version = ctx.cog.piston_runtimes[language]
+            # This will only be used within this cog.
+            version = ctx.cog.piston_runtimes[language]  # type: ignore
         except KeyError:
             raise commands.BadArgument("Invalid language to compile with.") from None
 
@@ -110,11 +125,16 @@ class PistonPayload(commands.Converter):
         }
 
 
-async def execute_on_piston(ctx, body):
+async def execute_on_piston(
+    ctx: SleepyContext, body: Dict[str, Any]
+) -> Tuple[Optional[Dict[str, Any]], str]:
     try:
-        data = await ctx.post("https://emkc.org/api/v2/piston/execute", json__=body)
+        data: Dict[str, Any] = await ctx.post(
+            "https://emkc.org/api/v2/piston/execute", json__=body
+        )  # type: ignore
     except HTTPRequestFailed as exc:
-        msg = exc.data.get("message", "Compilation failed. Try again later?")
+        # Exception data is a dict.
+        msg = exc.data.get("message", "Compilation failed. Try again later?")  # type: ignore
         return None, msg
 
     out = data["run"]["output"]
@@ -139,15 +159,16 @@ async def execute_on_piston(ctx, body):
     return data, fmt_out
 
 
-async def create_paste(ctx, data):
-    hastebin = "https://www.toptal.com/developers/hastebin"
+async def create_paste(ctx: SleepyContext, data: Dict[str, Any]) -> Optional[str]:
+    # Defined here in case it needs to be changed for w/e reason.
+    hb_url = "https://www.toptal.com/developers/hastebin"
 
     try:
-        doc = await ctx.post(f"{hastebin}/documents", data__=data)
+        doc: Dict[str, Any] = await ctx.post(f"{hb_url}/documents", data__=data)  # type: ignore
     except HTTPRequestFailed:
         return None
 
-    return f"{hastebin}/raw/{doc['key']}"
+    return f"{hb_url}/raw/{doc['key']}"
 
 
 class DeveloperUtilities(
@@ -161,20 +182,26 @@ class DeveloperUtilities(
 ):
     """Commands that serve as utilities for developers."""
 
-    ICON = "\N{WRENCH}"
+    ICON: str = "\N{WRENCH}"
 
-    def __init__(self, bot):
-        self.piston_runtimes = {}
+    def __init__(self, bot: Sleepy) -> None:
+        self.piston_runtimes: Dict[str, Any] = {}
 
-        bot.loop.create_task(self.fetch_piston_runtimes(bot.http_requester))
+        name = "ext-developer-utilities-fetch-piston-runtimes"
+        bot.loop.create_task(self.fetch_piston_runtimes(bot.http_requester), name=name)
 
     @staticmethod
     async def send_formatted_nodes_embed(
-        ctx, endpoint, *, embed_author_name, colour=None, **params
-    ):
-        resp = await ctx.get(
+        ctx: SleepyContext,
+        endpoint: str,
+        *,
+        name: str,
+        colour: Optional[Union[int, discord.Colour]] = None,
+        **params: Any,
+    ) -> None:
+        resp: Dict[str, Any] = await ctx.get(
             f"https://idevision.net/api/public/{endpoint}", cache__=True, **params
-        )
+        )  # type: ignore
 
         nodes = resp["nodes"]
 
@@ -191,21 +218,23 @@ class DeveloperUtilities(
             text=f"Took {float(resp['query_time']) * 1000:.2f} ms "
             "\N{BULLET} Powered by idevision.net"
         )
-        embed.set_author(name=embed_author_name)
+        embed.set_author(name=name)
 
         await ctx.send(embed=embed)
 
-    async def fetch_piston_runtimes(self, http):
-        resp = await http.request("GET", "https://emkc.org/api/v2/piston/runtimes")
+    async def fetch_piston_runtimes(self, http_requester: HTTPRequester) -> None:
+        resp: List[Dict[str, Any]] = await http_requester.request(
+            "GET", "https://emkc.org/api/v2/piston/runtimes"
+        )  # type: ignore
 
         for runtime in resp:
-            self.piston_runtimes[runtime["language"]] = ver = runtime["version"]
+            self.piston_runtimes[runtime["language"]] = version = runtime["version"]
 
             for alias in runtime["aliases"]:
-                self.piston_runtimes[alias] = ver
+                self.piston_runtimes[alias] = version
 
     @commands.command()
-    async def charinfo(self, ctx, *, chars):
+    async def charinfo(self, ctx: SleepyContext, *, chars: str) -> None:
         """Gets information about the characters in a given string.
 
         **EXAMPLES:**
@@ -215,7 +244,7 @@ class DeveloperUtilities(
         ```
         """
 
-        def format_char_info(c):
+        def format_char_info(c: str) -> str:
             code = format(ord(c), "x")
 
             return (
@@ -232,7 +261,9 @@ class DeveloperUtilities(
 
     @commands.command(aliases=("openeval", "runcode", "executecode", "execcode"))
     @commands.cooldown(1, 4, commands.BucketType.member)
-    async def piston(self, ctx, *, body: PistonPayload):
+    async def piston(
+        self, ctx: SleepyContext, *, body: Annotated[Dict[str, Any], PistonPayload]
+    ) -> None:
         """Runs code on Engineer Man's Piston API.
 
         Body must be in the following format:
@@ -280,14 +311,16 @@ class DeveloperUtilities(
             view._message = await ctx.send(content, view=view)
 
     @piston.error
-    async def on_piston_error(self, ctx, error):
+    async def on_piston_error(self, ctx: SleepyContext, error: Exception) -> None:
         if isinstance(error, commands.BadArgument):
-            await ctx.send(error)
+            await ctx.send(error)  # type: ignore
             ctx._already_handled_error = True
 
     @commands.command(aliases=("msgraw",))
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def messageraw(self, ctx, message: discord.PartialMessage = None):
+    async def messageraw(
+        self, ctx: SleepyContext, message: discord.PartialMessage = None
+    ) -> None:
         """Shows the raw JSON data for a given message.
 
         Message can either be an ID, link, or, alternatively,
@@ -329,7 +362,7 @@ class DeveloperUtilities(
         await ctx.paginate(PaginatorSource(data))
 
     @commands.command(aliases=("pt",))
-    async def parsetoken(self, ctx, *, token):
+    async def parsetoken(self, ctx: SleepyContext, *, token: str) -> None:
         """Analyzes a Discord API authorisation token.
 
         **EXAMPLE:**
@@ -357,7 +390,7 @@ class DeveloperUtilities(
             return
 
         try:
-            ts = int.from_bytes(base64.urlsafe_b64decode(enc_ts + "=="), "big")
+            ts = int.from_bytes(base64.urlsafe_b64decode(f"{enc_ts}=="), "big")
         except (binascii.Error, ValueError):
             await ctx.send("Decoding the token creation timestamp failed.")
             return
@@ -397,7 +430,9 @@ class DeveloperUtilities(
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
-    async def pypi(self, ctx, *, package: str.lower):
+    async def pypi(
+        self, ctx: SleepyContext, *, package: Annotated[str, str.lower]
+    ) -> None:
         """Shows information about a package on PyPI.
 
         (Bot Needs: Embed Links)
@@ -408,9 +443,9 @@ class DeveloperUtilities(
         ```
         """
         try:
-            resp = await ctx.get(
+            resp: Dict[str, Any] = await ctx.get(
                 f"https://pypi.org/pypi/{quote(package, safe='')}/json", cache__=True
-            )
+            )  # type: ignore
         except HTTPRequestFailed as exc:
             if exc.status == 404:
                 await ctx.send("That PyPI package wasn't found.")
@@ -456,7 +491,7 @@ class DeveloperUtilities(
         invoke_without_command=True,
     )
     @commands.bot_has_permissions(embed_links=True)
-    async def rtfm(self, ctx, *, query):
+    async def rtfm(self, ctx: SleepyContext, *, query: str) -> None:
         """Gives a documentation link for a discord.py entity.
 
         (Bot Needs: Embed Links)
@@ -470,7 +505,7 @@ class DeveloperUtilities(
         await self.send_formatted_nodes_embed(
             ctx,
             "rtfm.sphinx",
-            embed_author_name="RTFM: discord.py",
+            name="RTFM: discord.py",
             colour=0x5865F2,
             location="https://discordpy.readthedocs.io/en/latest",
             query=query,
@@ -478,7 +513,7 @@ class DeveloperUtilities(
 
     @rtfm.command(name="master", aliases=("main", "latest"))
     @commands.bot_has_permissions(embed_links=True)
-    async def rtfm_master(self, ctx, *, query):
+    async def rtfm_master(self, ctx: SleepyContext, *, query: str) -> None:
         """Gives a documentation link for a discord.py entity (master branch).
 
         (Bot Needs: Embed Links)
@@ -492,7 +527,7 @@ class DeveloperUtilities(
         await self.send_formatted_nodes_embed(
             ctx,
             "rtfm.sphinx",
-            embed_author_name="RTFM: discord.py (master branch)",
+            name="RTFM: discord.py (master branch)",
             colour=0x5865F2,
             location="https://discordpy.readthedocs.io/en/latest",
             query=query,
@@ -500,7 +535,7 @@ class DeveloperUtilities(
 
     @rtfm.command(name="python", aliases=("py",))
     @commands.bot_has_permissions(embed_links=True)
-    async def rtfm_python(self, ctx, *, query):
+    async def rtfm_python(self, ctx: SleepyContext, *, query: str) -> None:
         """Gives a documentation link for a Python 3 entity.
 
         (Bot Needs: Embed Links)
@@ -515,7 +550,7 @@ class DeveloperUtilities(
         await self.send_formatted_nodes_embed(
             ctx,
             "rtfm.sphinx",
-            embed_author_name="RTFM: Python",
+            name="RTFM: Python",
             colour=0x5865F2,
             location="https://docs.python.org/3",
             query=query,
@@ -523,7 +558,7 @@ class DeveloperUtilities(
 
     @commands.command(aliases=("readthefuckingsource",))
     @commands.bot_has_permissions(embed_links=True)
-    async def rtfs(self, ctx, *, query):
+    async def rtfs(self, ctx: SleepyContext, *, query: str) -> None:
         """Searches the GitHub repository of discord.py.
 
         (Bot Needs: Embed Links)
@@ -537,12 +572,12 @@ class DeveloperUtilities(
         await self.send_formatted_nodes_embed(
             ctx,
             "rtfs",
-            embed_author_name="RTFS: discord.py",
+            name="RTFS: discord.py",
             colour=0x5865F2,
             library="discord.py",
             query=query,
         )
 
 
-async def setup(bot):
+async def setup(bot: Sleepy) -> None:
     await bot.add_cog(DeveloperUtilities(bot))
