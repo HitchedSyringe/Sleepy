@@ -100,7 +100,7 @@ class NSFW(
         ),
     },
 ):
-    """Don't act like you don't already know what this encompasses."""
+    """Don't lie, you know what this category encompasses."""
 
     ICON: str = "\N{NO ONE UNDER EIGHTEEN SYMBOL}"
 

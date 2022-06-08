@@ -78,7 +78,7 @@ class Images(
         ),
     },
 ):
-    """Commands having to do with images and/or their manipulation."""
+    """Commands that involve images and/or their manipulation."""
 
     ICON: str = "\N{FRAME WITH PICTURE}"
 

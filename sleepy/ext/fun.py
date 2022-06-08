@@ -232,9 +232,9 @@ class Fun(
         ),
     },
 ):
-    """Commands provided for your entertainment and not to be taken seriously.
+    """Commands made for entertaining and nothing more.
 
-    ||This totally isn't a dumping ground for janky commands! Not at all!||
+    ||Totally not a dumping ground for janky commands.||
     """
 
     ICON: str = "\N{CIRCUS TENT}"
