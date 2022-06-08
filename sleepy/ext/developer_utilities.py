@@ -58,11 +58,22 @@ class PistonView(BaseView):
         except discord.HTTPException:
             pass
 
-    def _format_message_content(self, data: Dict[str, Any], out: str) -> str:
-        return (
+    async def show_formatted_result(
+        self,
+        data: Dict[str, Any],
+        out: str,
+        *,
+        interaction: Optional[discord.Interaction] = None,
+    ) -> None:
+        message_content = (
             f"**{data['language']} {data['version']}** \N{BULLET} `Powered by Piston`"
             f"\n{out}\nExit code: {data['run']['code']}"
         )
+
+        if interaction is None:
+            self._message = await self.ctx.send(message_content, view=self)
+        else:
+            await interaction.response.edit_message(content=message_content)
 
     @button(
         label="Repeat Execution",
@@ -74,8 +85,7 @@ class PistonView(BaseView):
         if data is None:
             await itn.response.send_message(out, ephemeral=True)
         else:
-            content = self._format_message_content(data, out)
-            await itn.response.edit_message(content=content)
+            await self.show_formatted_result(data, out, interaction=itn)
 
     @button(emoji="\N{WASTEBASKET}", style=discord.ButtonStyle.danger)
     async def dispose(self, itn: discord.Interaction, button: Button) -> None:
@@ -306,9 +316,7 @@ class DeveloperUtilities(
             await ctx.send(out)
         else:
             view = PistonView(ctx, body)
-
-            content = view._format_message_content(data, out)
-            view._message = await ctx.send(content, view=view)
+            await view.show_formatted_result(data, out)
 
     @piston.error
     async def on_piston_error(self, ctx: SleepyContext, error: Exception) -> None:
