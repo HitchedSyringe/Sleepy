@@ -126,7 +126,8 @@ class Statistics(
         self.total_voice: int = 0
         self.total_stage: int = 0
 
-        bot.loop.create_task(self.cache_bot_statistics())
+        name = "ext-statistics-cache-bot-counts"
+        asyncio.create_task(self.cache_bot_counts(), name=name)
 
     def cog_unload(self) -> None:
         self.gw_handler.close()
@@ -140,7 +141,7 @@ class Statistics(
         type(bot).before_identify_hook = bot._original_before_identify_hook  # type: ignore
         del bot._original_before_identify_hook
 
-    async def cache_bot_statistics(self) -> None:
+    async def cache_bot_counts(self) -> None:
         await self.bot.wait_until_ready()
 
         for guild in self.bot.guilds:

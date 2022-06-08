@@ -93,7 +93,7 @@ class BaseSession:
         except asyncio.CancelledError:
             pass
         except Exception as exc:
-            name = f"minigames-session-error-{self.channel.id}"
+            name = f"ext-minigames-session-error-{self.channel.id}"
             asyncio.create_task(self.on_error(exc), name=name)
 
             self.bot.dispatch("minigame_session_error", self, exc)
@@ -122,7 +122,7 @@ class BaseSession:
 
         Starts the session.
         """
-        name = f"minigames-session-callback-{self.channel.id}"
+        name = f"ext-minigames-session-callback-{self.channel.id}"
 
         task = asyncio.create_task(self.callback(), name=name)
         task.add_done_callback(self.__done_callback)
