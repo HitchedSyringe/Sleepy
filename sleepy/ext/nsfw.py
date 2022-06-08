@@ -134,14 +134,6 @@ class NSFW(
 
         await ctx.send(embed=embed)
 
-    @staticmethod
-    def safe_query(tags: Iterable[str], sep: str, *, exclude_prefix: str) -> str:
-        return (
-            sep.join(tags)
-            + sep
-            + sep.join(exclude_prefix + t for t in NSFW_TAG_BLOCKLIST)
-        )
-
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
     async def anal(self, ctx: SleepyContext) -> None:
@@ -286,8 +278,8 @@ class NSFW(
 
         if not embeds:
             await ctx.send(
-                "All results either involve banned content on "
-                "Discord or, for some reason, lack image links."
+                "The returned results either all involve banned content"
+                " on Discord or, for some reason, lack image links."
             )
         else:
             await ctx.paginate(EmbedSource(embeds))
@@ -359,7 +351,10 @@ class NSFW(
             embeds.append(embed)
 
         if not embeds:
-            await ctx.send("All results lack image links for some reason.")
+            await ctx.send(
+                "The returned results either all involve banned content"
+                " on Discord or, for some reason, lack image links."
+            )
         else:
             await ctx.paginate(EmbedSource(embeds))
 
@@ -451,7 +446,7 @@ class NSFW(
         resp: List[Dict[str, Any]] = await ctx.get(
             "https://rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&limit=100",
             cache__=True,
-            tags=self.safe_query(tags, " ", exclude_prefix="-"),
+            tags=f"{' '.join(tags)} {' '.join(f'-{t}' for t in NSFW_TAG_BLOCKLIST)}",
         )  # type: ignore
 
         if not resp:
@@ -630,7 +625,7 @@ class NSFW(
             embeds.append(embed)
 
         if not embeds:
-            await ctx.send("All results involve banned content on Discord")
+            await ctx.send("All returned results involve banned content on Discord.")
         else:
             await ctx.paginate(EmbedSource(embeds))
 
