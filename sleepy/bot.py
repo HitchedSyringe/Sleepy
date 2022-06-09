@@ -37,7 +37,8 @@ if TYPE_CHECKING:
 
     from discord import AppInfo
 
-_LOG = logging.getLogger(__name__)
+
+_LOG: logging.Logger = logging.getLogger(__name__)
 
 
 class Sleepy(commands.Bot):

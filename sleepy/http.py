@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     RequestUrl = Union[str, URL]
 
 
-_LOG = logging.getLogger(__name__)
+_LOG: logging.Logger = logging.getLogger(__name__)
 
 
 class HTTPRequestFailed(commands.CommandError):
