@@ -475,13 +475,12 @@ class DeveloperUtilities(
         embed.set_footer(text="Powered by pypi.org")
         embed.add_field(
             name="Information",
-            value=(
-                f"**Author/Maintainer:** {data['author'] or data['maintainer']}"
-                f"\n> **E-mail:** {data['author_email'] or data['maintainer_email'] or 'N/A'}"
-                f"\n**License:** {data['license'] or 'None provided.'}"
-                f"\n**Python Requirements:** {data['requires_python'] or 'N/A'}"
-                f"\n**Keywords:** {data['keywords'] or 'N/A'}"
-            ),
+            value=f"**Author:** {data['author'] or 'N/A'}"
+            f"\n> **Email:** {data['author_email'] or 'N/A'}"
+            f"\n**Maintainer:** {data['maintainer'] or 'N/A'}"
+            f"\n> **Email:** {data['maintainer_email'] or 'N/A'}"
+            f"\n**License:** {data['license'] or 'None provided.'}"
+            f"\n**Python Requirements:** {data['requires_python'] or 'N/A'}",
         )
 
         urls = data["project_urls"]
@@ -491,6 +490,9 @@ class DeveloperUtilities(
 
             if links:
                 embed.add_field(name="Links", value=links)
+
+        if keywords := data["keywords"]:
+            embed.add_field(name="Keywords", value=keywords, inline=False)
 
         await ctx.send(embed=embed)
 
