@@ -379,7 +379,7 @@ def human_join(sequence: Sequence[Any], /, *, joiner: str = "and") -> str:
     sequence_size = len(sequence)
 
     if sequence_size == 1:
-        return sequence[0]
+        return str(sequence[0])
 
     if sequence_size == 2:
         return f"{sequence[0]} {joiner} {sequence[1]}"
