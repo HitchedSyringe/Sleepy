@@ -18,7 +18,7 @@ __all__ = (
 
 import io
 import textwrap
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING
 
 import discord
 from discord import Colour, Embed, File
@@ -80,9 +80,7 @@ class Weeb(
 
     @staticmethod
     async def send_nekobot_image_embed(ctx: SleepyContext, *, image_type: str) -> None:
-        resp: Dict[str, Any] = await ctx.get(
-            "https://nekobot.xyz/api/image", type=image_type
-        )  # type: ignore
+        resp = await ctx.get("https://nekobot.xyz/api/image", type=image_type)
 
         embed = Embed(colour=Colour(resp["color"]))
         embed.set_image(url=resp["message"])
@@ -118,7 +116,7 @@ class Weeb(
 
         await ctx.typing()
 
-        search: Dict[str, Any] = await ctx.get(search_url, cache__=True, q=query)  # type: ignore
+        search = await ctx.get(search_url, cache__=True, q=query)
 
         results = search["data"]
 
@@ -479,7 +477,7 @@ class Weeb(
 
         await ctx.typing()
 
-        search: Dict[str, Any] = await ctx.get(search_url, cache__=True, q=query)  # type: ignore
+        search = await ctx.get(search_url, cache__=True, q=query)
         results = search["data"]
 
         if not results:

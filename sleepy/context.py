@@ -37,7 +37,7 @@ if TYPE_CHECKING:
     from discord.ext.menus import PageSource
 
     from .bot import Sleepy
-    from .http import HTTPResponseData, RequestUrl
+    from .http import RequestUrl
 
 
 class Context(commands.Context["Sleepy"]):
@@ -84,7 +84,7 @@ class Context(commands.Context["Sleepy"]):
 
     async def request(
         self, method: str, url: RequestUrl, /, *, cache__: bool = False, **options: Any
-    ) -> HTTPResponseData:
+    ) -> Any:
         """|coro|
 
         Same as :meth:`HTTPRequester.request`.
@@ -100,7 +100,7 @@ class Context(commands.Context["Sleepy"]):
 
     async def get(
         self, url: RequestUrl, /, *, cache__: bool = False, **options: Any
-    ) -> HTTPResponseData:
+    ) -> Any:
         """|coro|
 
         Similar to :meth:`request` except slimmed down to only do GET requests.
@@ -114,7 +114,7 @@ class Context(commands.Context["Sleepy"]):
 
     async def post(
         self, url: RequestUrl, /, *, cache__: bool = False, **options: Any
-    ) -> HTTPResponseData:
+    ) -> Any:
         """|coro|
 
         Similar to :meth:`request` except slimmed down to only do POST requests.

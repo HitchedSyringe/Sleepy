@@ -15,7 +15,7 @@ import json
 import re
 import unicodedata
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple, Union
 from urllib.parse import quote
 
 import discord
@@ -139,12 +139,9 @@ async def execute_on_piston(
     ctx: SleepyContext, body: Dict[str, Any]
 ) -> Tuple[Optional[Dict[str, Any]], str]:
     try:
-        data: Dict[str, Any] = await ctx.post(
-            "https://emkc.org/api/v2/piston/execute", json__=body
-        )  # type: ignore
+        data = await ctx.post("https://emkc.org/api/v2/piston/execute", json__=body)
     except HTTPRequestFailed as exc:
-        # Exception data is a dict.
-        msg = exc.data.get("message", "Compilation failed. Try again later?")  # type: ignore
+        msg = exc.data.get("message", "Compilation failed. Try again later?")
         return None, msg
 
     out = data["run"]["output"]
@@ -174,7 +171,7 @@ async def create_paste(ctx: SleepyContext, data: Dict[str, Any]) -> Optional[str
     hb_url = "https://www.toptal.com/developers/hastebin"
 
     try:
-        doc: Dict[str, Any] = await ctx.post(f"{hb_url}/documents", data__=data)  # type: ignore
+        doc = await ctx.post(f"{hb_url}/documents", data__=data)
     except HTTPRequestFailed:
         return None
 
@@ -209,9 +206,9 @@ class DeveloperUtilities(
         colour: Optional[Union[int, discord.Colour]] = None,
         **params: Any,
     ) -> None:
-        resp: Dict[str, Any] = await ctx.get(
+        resp = await ctx.get(
             f"https://idevision.net/api/public/{endpoint}", cache__=True, **params
-        )  # type: ignore
+        )
 
         nodes = resp["nodes"]
 
@@ -233,9 +230,9 @@ class DeveloperUtilities(
         await ctx.send(embed=embed)
 
     async def fetch_piston_runtimes(self, http_requester: HTTPRequester) -> None:
-        resp: List[Dict[str, Any]] = await http_requester.request(
+        resp = await http_requester.request(
             "GET", "https://emkc.org/api/v2/piston/runtimes"
-        )  # type: ignore
+        )
 
         for runtime in resp:
             self.piston_runtimes[runtime["language"]] = version = runtime["version"]
@@ -451,9 +448,9 @@ class DeveloperUtilities(
         ```
         """
         try:
-            resp: Dict[str, Any] = await ctx.get(
+            resp = await ctx.get(
                 f"https://pypi.org/pypi/{quote(package, safe='')}/json", cache__=True
-            )  # type: ignore
+            )
         except HTTPRequestFailed as exc:
             if exc.status == 404:
                 await ctx.send("That PyPI package wasn't found.")

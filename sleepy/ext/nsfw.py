@@ -10,7 +10,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Tuple
+from typing import TYPE_CHECKING, Iterable, Tuple
 
 from discord import Colour, Embed
 from discord.ext import commands
@@ -124,9 +124,7 @@ class NSFW(
 
     @staticmethod
     async def send_nekobot_image_embed(ctx: SleepyContext, *, image_type: str) -> None:
-        resp: Dict[str, Any] = await ctx.get(
-            "https://nekobot.xyz/api/image", type=image_type
-        )  # type: ignore
+        resp = await ctx.get("https://nekobot.xyz/api/image", type=image_type)
 
         embed = Embed(colour=Colour(resp["color"]))
         embed.set_image(url=resp["message"])
@@ -228,16 +226,15 @@ class NSFW(
         await ctx.typing()
 
         try:
-            resp: List[Dict[str, Any]] = await ctx.get(
+            resp = await ctx.get(
                 "https://danbooru.donmai.us/post/index.json?limit=200",
                 cache__=True,
                 tags=" ".join(tags),
-            )  # type: ignore
+            )
         except HTTPRequestFailed as exc:
             # Hit the two tag limit.
             if exc.status == 422:
-                # Exception data is a dict here.
-                await ctx.send(exc.data["message"])  # type: ignore
+                await ctx.send(exc.data["message"])
                 return
 
             raise
@@ -306,14 +303,13 @@ class NSFW(
         await ctx.typing()
 
         try:
-            resp: Dict[str, Any] = await ctx.get(
+            resp = await ctx.get(
                 "https://e621.net/posts.json", cache__=True, tags=" ".join(tags)
-            )  # type: ignore
+            )
         except HTTPRequestFailed as exc:
             # Hit the 40 tag limit.
             if exc.status == 422:
-                # Exception data is a dict here.
-                await ctx.send(exc.data["message"])  # type: ignore
+                await ctx.send(exc.data["message"])
                 return
 
             raise
@@ -443,11 +439,11 @@ class NSFW(
         """
         await ctx.typing()
 
-        resp: List[Dict[str, Any]] = await ctx.get(
+        resp = await ctx.get(
             "https://rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&limit=100",
             cache__=True,
             tags=f"{' '.join(tags)} {' '.join(f'-{t}' for t in NSFW_TAG_BLOCKLIST)}",
-        )  # type: ignore
+        )
 
         if not resp:
             await ctx.send("The search returned no results.")
@@ -488,11 +484,11 @@ class NSFW(
         """
         await ctx.typing()
 
-        resp: Dict[str, Any] = await ctx.get(
+        resp = await ctx.get(
             "https://saucenao.com/search.php?db=999&output_type=2&numres=24",
             api_key=self.saucenao_api_key,
             url=str(image),
-        )  # type: ignore
+        )
 
         # Don't know why, nor do I want to know why, but for
         # whatever reason, SauceNAO doesn't use HTTP statuses.
@@ -585,9 +581,9 @@ class NSFW(
         await ctx.typing()
 
         try:
-            resp: List[Dict[str, Any]] = await ctx.get(
+            resp = await ctx.get(
                 "https://yande.re/post.json?limit=100", cache__=True, tags=" ".join(tags)
-            )  # type: ignore
+            )
         except HTTPRequestFailed as exc:
             # Assuming from testing, there's probably a hard limit of 6 tags.
             if exc.status == 500:

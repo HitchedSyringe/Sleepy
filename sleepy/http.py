@@ -18,7 +18,7 @@ __all__ = (
 import asyncio
 import logging
 from collections.abc import MutableMapping
-from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Optional, Tuple, Union
 
 import aiohttp
 from discord.ext import commands
@@ -28,7 +28,6 @@ if TYPE_CHECKING:
     from multidict import CIMultiDictProxy
     from yarl import URL
 
-    HTTPResponseData = Union[str, bytes, Dict[str, Any]]
     RequestUrl = Union[str, URL]
 
 
@@ -60,18 +59,18 @@ class HTTPRequestFailed(commands.CommandError):
         The response headers.
 
         .. versionadded:: 3.0
-    data: Union[:class:`dict`, :class:`str`, :class:`bytes`]
+    data: Any
         The data returned from the failed request.
     """
 
     status: int
 
-    def __init__(self, response: aiohttp.ClientResponse, data: HTTPResponseData) -> None:
+    def __init__(self, response: aiohttp.ClientResponse, data: Any) -> None:
         self.response: aiohttp.ClientResponse = response
         self.status = status = response.status
         self.reason: str = response.reason  # type: ignore
         self.headers: CIMultiDictProxy[str] = response.headers
-        self.data: HTTPResponseData = data
+        self.data: Any = data
 
         super().__init__(
             f"{response.method} {response.url} failed with HTTP status code {status}."
@@ -182,7 +181,7 @@ class HTTPRequester:
 
     async def _perform_http_request(
         self, method: str, url: RequestUrl, /, **options: Any
-    ) -> HTTPResponseData:
+    ) -> Any:
         if self.is_closed():
             raise RuntimeError("HTTP requester session is closed.")
 
@@ -215,7 +214,7 @@ class HTTPRequester:
 
     async def request(
         self, method: str, url: RequestUrl, /, *, cache__: bool = False, **options: Any
-    ) -> HTTPResponseData:
+    ) -> Any:
         """|coro|
 
         Performs an HTTP request and optionally caches the response.
@@ -247,7 +246,7 @@ class HTTPRequester:
 
         Returns
         -------
-        Union[:class:`dict`, :class:`str`, :class:`bytes`]
+        Any
             The raw response data.
 
         Raises

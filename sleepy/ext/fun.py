@@ -277,7 +277,7 @@ class Fun(
     @commands.command()
     async def advice(self, ctx: SleepyContext) -> None:
         """Gives some advice."""
-        resp: str = await ctx.get("https://api.adviceslip.com/advice")  # type: ignore
+        resp = await ctx.get("https://api.adviceslip.com/advice")
         data = json.loads(resp)
 
         await ctx.send(f"{data['slip']['advice']}\n`Powered by adviceslip.com`")
@@ -404,9 +404,7 @@ class Fun(
     @commands.command(aliases=("cnorris",))
     async def chucknorris(self, ctx: SleepyContext) -> None:
         """Tells a Chuck Norris joke/fact."""
-        resp: Dict[str, Any] = await ctx.get(
-            "https://api.icndb.com/jokes/random?escape=javascript"
-        )  # type: ignore
+        resp = await ctx.get("https://api.icndb.com/jokes/random?escape=javascript")
 
         await ctx.send(f"{resp['value']['joke']}\n`Powered by icndb.com`")
 
@@ -498,7 +496,7 @@ class Fun(
         if user == ctx.me:
             await ctx.send("I know I'm perfection! Compliment someone who needs it!")
         else:
-            resp: Dict[str, Any] = await ctx.get("https://complimentr.com/api")  # type: ignore
+            resp = await ctx.get("https://complimentr.com/api")
 
             await ctx.send(
                 f"{user.mention} {resp['compliment']}.\n`Powered by complimentr.com`",
@@ -508,9 +506,9 @@ class Fun(
     @commands.command(aliases=("pun",))
     async def dadjoke(self, ctx: SleepyContext) -> None:
         """Tells a dad joke (or a pun, whatever you want to call it.)"""
-        resp: Dict[str, Any] = await ctx.get(
+        resp = await ctx.get(
             "https://icanhazdadjoke.com/", headers__={"Accept": "application/json"}
-        )  # type: ignore
+        )
 
         await ctx.send(f"{resp['joke']}\n`Powered by icanhazdadjoke.com`")
 
@@ -609,7 +607,7 @@ class Fun(
     @commands.bot_has_permissions(embed_links=True)
     async def idea(self, ctx: SleepyContext) -> None:
         """Gives you something to do for when you're bored."""
-        data: Dict[str, Any] = await ctx.get("http://boredapi.com/api/activity/")  # type: ignore
+        data = await ctx.get("http://boredapi.com/api/activity/")
 
         await ctx.send(data["activity"] + ".\n`Powered by boredapi.com`")
 
@@ -807,9 +805,9 @@ class Fun(
     @commands.command(aliases=("expression",))
     async def quote(self, ctx: SleepyContext) -> None:
         """Shows a random inspiring expression/quote."""
-        data: Dict[str, Any] = await ctx.get(
+        data = await ctx.get(
             "https://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en"
-        )  # type: ignore
+        )
 
         await ctx.send(
             f"> {data['quoteText']}\n- {data['quoteAuthor'] or 'Unknown'}"
@@ -960,9 +958,7 @@ class Fun(
     @commands.command()
     async def uselessfact(self, ctx: SleepyContext) -> None:
         """Gives an utterly useless and pointless fact."""
-        resp: Dict[str, Any] = await ctx.get(
-            "https://useless-facts.sameerkumar.website/api"
-        )  # type: ignore
+        resp = await ctx.get("https://useless-facts.sameerkumar.website/api")
 
         await ctx.send(f"{resp['data']}\n`Powered by sameerkumar.website`")
 
@@ -993,7 +989,7 @@ class Fun(
                 "You really must be some kind of comedic genius."
             )
         else:
-            resp: Dict[str, Any] = await ctx.get("https://api.yomomma.info/")  # type: ignore
+            resp = await ctx.get("https://api.yomomma.info/")
 
             await ctx.send(
                 f"{user.mention} {resp['joke']}\n`Powered by yomomma.info`",

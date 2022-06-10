@@ -17,7 +17,7 @@ __all__ = (
 
 
 import io
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 import discord
 from discord import Colour, Embed, File
@@ -212,9 +212,7 @@ class Images(
 
         (Bot Needs: Embed Links)
         """
-        cats: List[Dict[str, Any]] = await ctx.get(
-            "https://api.thecatapi.com/v1/images/search?limit=50"
-        )  # type: ignore
+        cats = await ctx.get("https://api.thecatapi.com/v1/images/search?limit=50")
 
         embeds = [
             Embed(title="\N{CAT FACE}", colour=0x2F3136)
@@ -307,9 +305,7 @@ class Images(
     @commands.command(aliases=("cupofjoe",))
     async def coffee(self, ctx: SleepyContext) -> None:
         """Sends a random image of coffee."""
-        coffee: Dict[str, Any] = await ctx.get(
-            "https://coffee.alexflipnote.dev/random.json"
-        )  # type: ignore
+        coffee = await ctx.get("https://coffee.alexflipnote.dev/random.json")
 
         embed = Embed(title="\N{HOT BEVERAGE}", colour=0x2F3136)
         embed.set_image(url=coffee["file"])
@@ -387,9 +383,7 @@ class Images(
 
         (Bot Needs: Embed Links)
         """
-        dogs: Dict[str, Any] = await ctx.get(
-            "https://dog.ceo/api/breeds/image/random/50"
-        )  # type: ignore
+        dogs = await ctx.get("https://dog.ceo/api/breeds/image/random/50")
 
         embeds = [
             Embed(title="\N{DOG FACE}", colour=0x2F3136)
@@ -408,7 +402,7 @@ class Images(
 
         (Bot Needs: Embed Links)
         """
-        duck: Dict[str, Any] = await ctx.get("https://random-d.uk/api/random")  # type: ignore
+        duck = await ctx.get("https://random-d.uk/api/random")
 
         embed = Embed(title="\N{DUCK}", colour=0x2F3136)
         embed.set_image(url=duck["url"])
@@ -424,7 +418,7 @@ class Images(
 
         (Bot Needs: Embed Links)
         """
-        fox: Dict[str, Any] = await ctx.get("https://randomfox.ca/floof/")  # type: ignore
+        fox = await ctx.get("https://randomfox.ca/floof/")
 
         embed = Embed(title="\N{FOX FACE}", colour=0x2F3136)
         embed.set_image(url=fox["image"])
@@ -608,11 +602,11 @@ class Images(
 
         async with ctx.typing():
             try:
-                resp: bytes = await ctx.get(
+                resp = await ctx.get(
                     "https://nekobot.xyz/api/imagegen?type=magik&raw=1",
                     image=str(image),
                     intensity=intensity,
-                )  # type: ignore
+                )
             except HTTPRequestFailed as exc:
                 # For whatever reason, NekoBot doesn't actually
                 # support converting WEBP files in this instance
@@ -846,9 +840,9 @@ class Images(
         """
         async with ctx.typing():
             try:
-                resp: Dict[str, Any] = await ctx.get(
+                resp = await ctx.get(
                     "https://nekobot.xyz/api/imagegen?type=stickbug&raw=1", url=str(image)
-                )  # type: ignore
+                )
             except HTTPRequestFailed as exc:
                 # I'm not sure if this is filetype-specific or not,
                 # but this sometimes gets returned so I might as
@@ -863,7 +857,7 @@ class Images(
 
                 raise
 
-        video_bytes: bytes = await ctx.get(resp["message"])  # type: ignore
+        video_bytes = await ctx.get(resp["message"])
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Powered by nekobot.xyz",

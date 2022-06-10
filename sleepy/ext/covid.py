@@ -241,11 +241,9 @@ class Covid(
         (Bot Needs: Embed Links and Attach Files)
         """
         async with ctx.typing():
-            latest: Dict[str, Any] = await ctx.get(f"{self.BASE}/all", cache__=True)  # type: ignore
+            latest = await ctx.get(f"{self.BASE}/all", cache__=True)
 
-            hist: Dict[str, Any] = await ctx.get(
-                f"{self.BASE}/historical/all?lastdays=all", cache__=True
-            )  # type: ignore
+            hist = await ctx.get(f"{self.BASE}/historical/all?lastdays=all", cache__=True)
 
             hist["vaccines"] = await ctx.get(
                 f"{self.BASE}/vaccine/coverage?lastdays=all", cache__=True
@@ -333,13 +331,12 @@ class Covid(
         """
         async with ctx.typing():
             try:
-                latest: Dict[str, Any] = await ctx.get(
+                latest = await ctx.get(
                     f"{self.BASE}/countries/{quote(country)}", cache__=True
-                )  # type: ignore
+                )
             except HTTPRequestFailed as exc:
                 if exc.status == 404:
-                    # Exception data is a dict at this point.
-                    await ctx.send(exc.data["message"])  # type: ignore
+                    await ctx.send(exc.data["message"])
                     return
 
                 raise
@@ -347,9 +344,9 @@ class Covid(
             country = latest["country"]
 
             try:
-                hist: Dict[str, Any] = await ctx.get(
+                hist = await ctx.get(
                     f"{self.BASE}/historical/{country}?lastdays=all", cache__=True
-                )  # type: ignore
+                )
             except HTTPRequestFailed:
                 # Either worldometers has data on a country that jhucsse
                 # historical doesn't, or the "country" is actually considered
@@ -362,10 +359,10 @@ class Covid(
                 # I absolutely hate this level of nesting, but unfortunately,
                 # there isn't a better or cleaner way of doing this.
                 try:
-                    v_hist: Dict[str, Any] = await ctx.get(
+                    v_hist = await ctx.get(
                         f"{self.BASE}/vaccine/coverage/countries/{country}?lastdays=all",
                         cache__=True,
-                    )  # type: ignore
+                    )
                 except HTTPRequestFailed:
                     pass
                 else:
@@ -454,13 +451,10 @@ class Covid(
         ```
         """
         try:
-            latest: Dict[str, Any] = await ctx.get(
-                f"{self.BASE}/states/{quote(state)}", cache__=True
-            )  # type: ignore
+            latest = await ctx.get(f"{self.BASE}/states/{quote(state)}", cache__=True)
         except HTTPRequestFailed as exc:
             if exc.status == 404:
-                # Exception data is a dict at this point.
-                await ctx.send(exc.data["message"])  # type: ignore
+                await ctx.send(exc.data["message"])
                 return
 
             raise
