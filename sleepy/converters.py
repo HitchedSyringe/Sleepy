@@ -19,7 +19,7 @@ __all__ = (
 
 import math
 from inspect import isclass
-from typing import TYPE_CHECKING, Any, Callable, Optional, cast
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union, cast
 
 from discord import Attachment
 from discord.ext import commands
@@ -34,47 +34,54 @@ if TYPE_CHECKING:
 
 
 class ImageAssetConversionFailure(commands.BadArgument):
-    """Exception raised when the argument provided
-    fails to convert to a :class:`PartialAsset`.
+    """Exception raised when the argument provided fails to convert
+    to a :class:`PartialAsset`.
 
     This inherits from :exc:`commands.BadArgument`.
 
     .. versionadded:: 3.0
 
+    .. versionchanged:: 3.3
+        Argument can now be a :class:`discord.Attachment`.
+
     Attributes
     ----------
-    argument: :class:`str`
-        The argument supplied by the caller that could
-        not be converted.
+    argument: Union[:class:`str`, :class:`discord.Attachment`]
+        The argument supplied by the caller that could not be converted.
     """
 
-    def __init__(self, argument: str) -> None:
-        self.argument: str = argument
+    def __init__(self, argument: Union[str, Attachment]) -> None:
+        self.argument: Union[str, Attachment] = argument
 
         super().__init__(f'Couldn\'t convert "{argument}" to PartialAsset.')
 
 
 class ImageAssetTooLarge(commands.BadArgument):
-    """Exception raised when the argument provided
-    exceeds the maximum conversion filesize.
+    """Exception raised when the argument provided exceeds the maximum
+    conversion filesize.
 
     This inherits from :exc:`commands.BadArgument`.
 
     .. versionadded:: 3.0
 
+    .. versionchanged:: 3.3
+        Argument can now be a :class:`discord.Attachment`.
+
     Attributes
     ----------
-    argument: :class:`str`
-        The argument supplied by the caller that exceeded
-        the maximum conversion filesize.
+    argument: Union[:class:`str`, :class:`discord.Attachment`]
+        The argument supplied by the caller that exceeded the maximum
+        conversion filesize.
     filesize: :class:`int`
         The argument's filesize in bytes.
     max_filesize: :class:`int`
         The converter's maximum filesize in bytes.
     """
 
-    def __init__(self, argument: str, filesize: int, max_filesize: int) -> None:
-        self.argument: str = argument
+    def __init__(
+        self, argument: Union[str, Attachment], filesize: int, max_filesize: int
+    ) -> None:
+        self.argument: Union[str, Attachment] = argument
         self.filesize: int = filesize
         self.max_filesize: int = max_filesize
 
