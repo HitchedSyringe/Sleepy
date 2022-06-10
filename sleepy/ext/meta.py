@@ -30,37 +30,40 @@ from sleepy.utils import (
     progress_bar,
 )
 
-# (channel_type, is_locked): emoji
+# fmt: off
+# (channel_type, is_viewable): emoji
 CHANNEL_EMOJI = {
-    (ChannelType.text, True): "<:tc:828149291812913152> ",
-    (ChannelType.voice, True): "<:vc:828151635791839252> ",
-    (ChannelType.stage_voice, True): "<:sc:828149291750785055> ",
-    (ChannelType.news, True): "<:ac:828419969133314098> ",
-    (ChannelType.category, True): "",
-    (ChannelType.public_thread, True): "<:thc:917442358377869373> ",
-    (ChannelType.text, False): "<:ltc:828149291533074544> ",
-    (ChannelType.voice, False): "<:lvc:828149291628625960> ",
-    (ChannelType.stage_voice, False): "<:lsc:828149291590746112> ",
-    (ChannelType.news, False): "<:lac:828149291578556416> ",
-    (ChannelType.category, False): "",
+    (ChannelType.text, True):            "<:tc:828149291812913152> ",
+    (ChannelType.voice, True):           "<:vc:828151635791839252> ",
+    (ChannelType.stage_voice, True):     "<:sc:828149291750785055> ",
+    (ChannelType.news, True):            "<:ac:828419969133314098> ",
+    (ChannelType.category, True):        "",
+    (ChannelType.public_thread, True):   "<:thc:917442358377869373> ",
+
+    (ChannelType.text, False):           "<:ltc:828149291533074544> ",
+    (ChannelType.voice, False):          "<:lvc:828149291628625960> ",
+    (ChannelType.stage_voice, False):    "<:lsc:828149291590746112> ",
+    (ChannelType.news, False):           "<:lac:828149291578556416> ",
+    (ChannelType.category, False):       "",
     (ChannelType.private_thread, False): "<:thc:917442358377869373> ",
 }
 
 
 # flag: emoji
 BADGES = {
-    "bug_hunter": "<:bh:886251266517389332>",
-    "bug_hunter_level_2": "<:bh2:886251265342988320>",
-    "early_supporter": "<:es:886251265573666897>",
-    "hypesquad": "<:he:886251265418477639>",
-    "hypesquad_balance": "<:hbl:886251265493958687>",
-    "hypesquad_bravery": "<:hbv:886251265951137792>",
-    "hypesquad_brilliance": "<:hbr:886251265875656814>",
-    "partner": "<:po:886251265997299822>",
-    "staff": "<:stl:886252968339460096>",
-    "verified_bot_developer": "<:vd:886251266211184700>",
+    "bug_hunter":                  "<:bh:886251266517389332>",
+    "bug_hunter_level_2":          "<:bh2:886251265342988320>",
+    "early_supporter":             "<:es:886251265573666897>",
+    "hypesquad":                   "<:he:886251265418477639>",
+    "hypesquad_balance":           "<:hbl:886251265493958687>",
+    "hypesquad_bravery":           "<:hbv:886251265951137792>",
+    "hypesquad_brilliance":        "<:hbr:886251265875656814>",
+    "partner":                     "<:po:886251265997299822>",
+    "staff":                       "<:stl:886252968339460096>",
+    "verified_bot_developer":      "<:vd:886251266211184700>",
     "discord_certified_moderator": "<:dcm:932853177894715392>",
 }
+# fmt: on
 
 
 class HomePageSource(PageSource):
@@ -706,9 +709,11 @@ class Meta(commands.Cog):
 
         (Bot Needs: Embed Links)
         """
-        total = 0
-        default = ctx.guild.default_role
         tree = WrappedPaginator(prefix="", suffix="")
+        total = 0
+
+        default = ctx.guild.default_role
+        rules_channel = ctx.guild.rules_channel
 
         for category, channels in ctx.guild.by_category():
             if category is not None:
@@ -717,21 +722,16 @@ class Meta(commands.Cog):
 
             for channel in channels:
                 total += 1
-                allow, deny = channel.overwrites_for(default).pair()
-                perms = discord.Permissions(
-                    (default.permissions.value & ~deny.value) | allow.value
-                )
 
-                if ctx.guild.rules_channel == channel:
+                if channel == rules_channel:
                     icon = "<:rc:828149291712774164> "
-                elif perms.read_messages:
-                    # Only text channels and categories can be NSFW.
-                    if isinstance(channel, discord.TextChannel) and channel.is_nsfw():
-                        icon = "<:ntc:828149291683807282> "
-                    else:
-                        icon = CHANNEL_EMOJI[(channel.type, True)]
+                elif isinstance(channel, discord.TextChannel) and channel.is_nsfw():
+                    icon = "<:ntc:828149291683807282> "
                 else:
-                    icon = CHANNEL_EMOJI[(channel.type, False)]
+                    perms = channel.permissions_for(default)
+                    icon = CHANNEL_EMOJI[
+                        (channel.type, perms.connect or perms.read_messages)
+                    ]
 
                 tree.add_line(f"{icon}{channel.name}")
 
