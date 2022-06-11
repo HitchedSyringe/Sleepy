@@ -1,946 +1,709 @@
 AUTHOR: HitchedSyringe
-
-
 Which element does the symbol "Ac" represent?:
   answers:
     - Actinium
-
 Which element does the symbol "Ag" represent?:
   answers:
     - Silver
-
 Which element does the symbol "Al" represent?:
   answers:
     - Aluminium
-
 Which element does the symbol "Am" represent?:
   answers:
     - Americium
-
 Which element does the symbol "Ar" represent?:
   answers:
     - Argon
-
 Which element does the symbol "As" represent?:
   answers:
     - Arsenic
-
 Which element does the symbol "At" represent?:
   answers:
     - Astatine
-
 Which element does the symbol "Au" represent?:
   answers:
     - Gold
-
 Which element does the symbol "B" represent?:
   answers:
     - Boron
-
 Which element does the symbol "Ba" represent?:
   answers:
     - Barium
-
 Which element does the symbol "Be" represent?:
   answers:
     - Berylium
-
 Which element does the symbol "Bh" represent?:
   answers:
     - Bohrium
-
 Which element does the symbol "Bi" represent?:
   answers:
     - Bismuth
-
 Which element does the symbol "Bk" represent?:
   answers:
     - Berkelium
-
 Which element does the symbol "Br" represent?:
   answers:
     - Bromine
-
 Which element does the symbol "C" represent?:
   answers:
     - Carbon
-
 Which element does the symbol "Ca" represent?:
   answers:
     - Calcium
-
 Which element does the symbol "Cd" represent?:
   answers:
     - Cadmium
-
 Which element does the symbol "Ce" represent?:
   answers:
     - Cerium
-
 Which element does the symbol "Cf" represent?:
   answers:
     - Californium
-
 Which element does the symbol "Cl" represent?:
   answers:
     - Chlorine
-
 Which element does the symbol "Cm" represent?:
   answers:
     - Curium
-
 Which element does the symbol "Cn" represent?:
   answers:
     - Copernicium
-
 Which element does the symbol "Co" represent?:
   answers:
     - Cobalt
-
 Which element does the symbol "Cr" represent?:
   answers:
     - Chromium
-
 Which element does the symbol "Cs" represent?:
   answers:
     - Cesium
-
 Which element does the symbol "Cu" represent?:
   answers:
     - Copper
-
 Which element does the symbol "Db" represent?:
   answers:
     - Dubnium
-
 Which element does the symbol "Ds" represent?:
   answers:
     - Darmstadtium
-
 Which element does the symbol "Dy" represent?:
   answers:
     - Dysprosium
-
 Which element does the symbol "Er" represent?:
   answers:
     - Erbium
-
 Which element does the symbol "Es" represent?:
   answers:
     - Einsteinium
-
 Which element does the symbol "Eu" represent?:
   answers:
     - Europium
-
 Which element does the symbol "F" represent?:
   answers:
     - Fluorine
-
 Which element does the symbol "Fe" represent?:
   answers:
     - Iron
-
 Which element does the symbol "Fl" represent?:
   answers:
     - Flerovium
-
 Which element does the symbol "Fm" represent?:
   answers:
     - Fermium
-
 Which element does the symbol "Fr" represent?:
   answers:
     - Francium
-
 Which element does the symbol "Ga" represent?:
   answers:
     - Gallium
-
 Which element does the symbol "Gd" represent?:
   answers:
     - Gadolinium
-
 Which element does the symbol "Ge" represent?:
   answers:
     - Germanium
-
 Which element does the symbol "H" represent?:
   answers:
     - Hydrogen
-
 Which element does the symbol "He" represent?:
   answers:
     - Helium
-
 Which element does the symbol "Hf" represent?:
   answers:
     - Hafnium
-
 Which element does the symbol "Hg" represent?:
   answers:
     - Mercury
-
 Which element does the symbol "Ho" represent?:
   answers:
     - Holmium
-
 Which element does the symbol "Hs" represent?:
   answers:
     - Hassium
-
 Which element does the symbol "I" represent?:
   answers:
     - Iodine
-
 Which element does the symbol "In" represent?:
   answers:
     - Indium
-
 Which element does the symbol "Ir" represent?:
   answers:
     - Iridium
-
 Which element does the symbol "K" represent?:
   answers:
     - Potassium
-
 Which element does the symbol "Kr" represent?:
   answers:
     - Krypton
-
 Which element does the symbol "La" represent?:
   answers:
     - Lanthanum
-
 Which element does the symbol "Li" represent?:
   answers:
     - Lithium
-
 Which element does the symbol "Lr" represent?:
   answers:
     - Lawrencium
-
 Which element does the symbol "Lu" represent?:
   answers:
     - Lutetium
-
 Which element does the symbol "Lv" represent?:
   answers:
     - Livermorium
-
 Which element does the symbol "Mc" represent?:
   answers:
     - Moscovium
-
 Which element does the symbol "Md" represent?:
   answers:
     - Mendelevium
-
 Which element does the symbol "Mg" represent?:
   answers:
     - Magnesium
-
 Which element does the symbol "Mn" represent?:
   answers:
     - Manganese
-
 Which element does the symbol "Mo" represent?:
   answers:
     - Molybdenum
-
 Which element does the symbol "Mt" represent?:
   answers:
     - Meitnerium
-
 Which element does the symbol "N" represent?:
   answers:
     - Nitrogen
-
 Which element does the symbol "Na" represent?:
   answers:
     - Sodium
-
 Which element does the symbol "Nb" represent?:
   answers:
     - Niobium
-
 Which element does the symbol "Nd" represent?:
   answers:
     - Neodymium
-
 Which element does the symbol "Ne" represent?:
   answers:
     - Neon
-
 Which element does the symbol "Nh" represent?:
   answers:
     - Nihonium
-
 Which element does the symbol "Ni" represent?:
   answers:
     - Nickel
-
 Which element does the symbol "No" represent?:
   answers:
     - Nobelium
-
 Which element does the symbol "Np" represent?:
   answers:
     - Neptunium
-
 Which element does the symbol "O" represent?:
   answers:
     - Oxygen
-
 Which element does the symbol "Og" represent?:
   answers:
     - Oganesson
-
 Which element does the symbol "Os" represent?:
   answers:
     - Osmium
-
 Which element does the symbol "P" represent?:
   answers:
     - Phosphorus
-
 Which element does the symbol "Pa" represent?:
   answers:
     - Protactinium
-
 Which element does the symbol "Pb" represent?:
   answers:
     - Lead
-
 Which element does the symbol "Pd" represent?:
   answers:
     - Palladium
-
 Which element does the symbol "Pm" represent?:
   answers:
     - Promethium
-
 Which element does the symbol "Po" represent?:
   answers:
     - Polonium
-
 Which element does the symbol "Pr" represent?:
   answers:
     - Praseodymium
-
 Which element does the symbol "Pt" represent?:
   answers:
     - Platinum
-
 Which element does the symbol "Pu" represent?:
   answers:
     - Plutonium
-
 Which element does the symbol "Ra" represent?:
   answers:
     - Radium
-
 Which element does the symbol "Rb" represent?:
   answers:
     - Rubidium
-
 Which element does the symbol "Re" represent?:
   answers:
     - Rhenium
-
 Which element does the symbol "Rf" represent?:
   answers:
     - Rutherfordium
-
 Which element does the symbol "Rg" represent?:
   answers:
     - Roentgnium
-
 Which element does the symbol "Rh" represent?:
   answers:
     - Rhodium
-
 Which element does the symbol "Rn" represent?:
   answers:
     - Radon
-
 Which element does the symbol "Ru" represent?:
   answers:
     - Ruthenium
-
 Which element does the symbol "S" represent?:
   answers:
     - Sulfur
-
 Which element does the symbol "Sb" represent?:
   answers:
     - Antimony
-
 Which element does the symbol "Sc" represent?:
   answers:
     - Scandium
-
 Which element does the symbol "Se" represent?:
   answers:
     - Selenium
-
 Which element does the symbol "Sg" represent?:
   answers:
     - Seaborgium
-
 Which element does the symbol "Si" represent?:
   answers:
     - Silicon
-
 Which element does the symbol "Sm" represent?:
   answers:
     - Samarium
-
 Which element does the symbol "Sn" represent?:
   answers:
     - Tin
-
 Which element does the symbol "Sr" represent?:
   answers:
     - Strontium
-
 Which element does the symbol "Ta" represent?:
   answers:
     - Tantalum
-
 Which element does the symbol "Tb" represent?:
   answers:
     - Terbium
-
 Which element does the symbol "Tc" represent?:
   answers:
     - Technetium
-
 Which element does the symbol "Te" represent?:
   answers:
     - Tellurium
-
 Which element does the symbol "Th" represent?:
   answers:
     - Thorium
-
 Which element does the symbol "Ti" represent?:
   answers:
     - Titanium
-
 Which element does the symbol "Tl" represent?:
   answers:
     - Thallium
-
 Which element does the symbol "Tm" represent?:
   answers:
     - Thulium
-
 Which element does the symbol "Ts" represent?:
   answers:
     - Tennessine
-
 Which element does the symbol "U" represent?:
   answers:
     - Uranium
-
 Which element does the symbol "V" represent?:
   answers:
     - Vanadium
-
 Which element does the symbol "W" represent?:
   answers:
     - Tungsten
-
 Which element does the symbol "Xe" represent?:
   answers:
     - Xenon
-
 Which element does the symbol "Y" represent?:
   answers:
     - Yttrium
-
 Which element does the symbol "Yb" represent?:
   answers:
     - Ytterbium
-
 Which element does the symbol "Zn" represent?:
   answers:
     - Zinc
-
 Which element does the symbol "Zr" represent?:
   answers:
     - Zirconium
-
 What is the element symbol for Actinium?:
   answers:
     - Ac
-
 What is the element symbol for Aluminum?:
   answers:
     - Al
-
 What is the element symbol for Americium?:
   answers:
     - Am
-
 What is the element symbol for Antimony?:
   answers:
     - Sb
-
 What is the element symbol for Argon?:
   answers:
     - Ar
-
 What is the element symbol for Arsenic?:
   answers:
     - As
-
 What is the element symbol for Astatine?:
   answers:
     - At
-
 What is the element symbol for Barium?:
   answers:
     - Ba
-
 What is the element symbol for Berkelium?:
   answers:
     - Bk
-
 What is the element symbol for Berylium?:
   answers:
     - Be
-
 What is the element symbol for Bismuth?:
   answers:
     - Bi
-
 What is the element symbol for Bohrium?:
   answers:
     - Bh
-
 What is the element symbol for Boron?:
   answers:
     - B
-
 What is the element symbol for Bromine?:
   answers:
     - Br
-
 What is the element symbol for Cadmium?:
   answers:
     - Cd
-
 What is the element symbol for Calcium?:
   answers:
     - Ca
-
 What is the element symbol for Califormium?:
   answers:
     - Cf
-
 What is the element symbol for Carbon?:
   answers:
     - C
-
 What is the element symbol for Cerium?:
   answers:
     - Ce
-
 What is the element symbol for Cesium?:
   answers:
     - Cs
-
 What is the element symbol for Chlorine?:
   answers:
     - Cl
-
 What is the element symbol for Chromium?:
   answers:
     - Cr
-
 What is the element symbol for Cobalt?:
   answers:
     - Co
-
 What is the element symbol for Copernicium?:
   answers:
     - Cn
-
 What is the element symbol for Copper?:
   answers:
     - Cu
-
 What is the element symbol for Curium?:
   answers:
     - Cm
-
 What is the element symbol for Darmstadtium?:
   answers:
     - Ds
-
 What is the element symbol for Dubnium?:
   answers:
     - Db
-
 What is the element symbol for Dysprosium?:
   answers:
     - Dy
-
 What is the element symbol for Einsteinium?:
   answers:
     - Es
-
 What is the element symbol for Erbium?:
   answers:
     - Er
-
 What is the element symbol for Europium?:
   answers:
     - Eu
-
 What is the element symbol for Fermium?:
   answers:
     - Fm
-
 What is the element symbol for Flerovium?:
   answers:
     - Fl
-
 What is the element symbol for Fluorine?:
   answers:
     - F
-
 What is the element symbol for Francium?:
   answers:
     - Fr
-
 What is the element symbol for Gadolinium?:
   answers:
     - Gd
-
 What is the element symbol for Gallium?:
   answers:
     - Ga
-
 What is the element symbol for Germanium?:
   answers:
     - Ge
-
 What is the element symbol for Gold?:
   answers:
     - Au
-
 What is the element symbol for Hafnium?:
   answers:
     - Hf
-
 What is the element symbol for Hassium?:
   answers:
     - Hs
-
 What is the element symbol for Helium?:
   answers:
     - He
-
 What is the element symbol for Holmium?:
   answers:
     - Ho
-
 What is the element symbol for Hydrogen?:
   answers:
     - H
-
 What is the element symbol for Indium?:
   answers:
     - In
-
 What is the element symbol for Iodine?:
   answers:
     - I
-
 What is the element symbol for Iridium?:
   answers:
     - Ir
-
 What is the element symbol for Iron?:
   answers:
     - Fe
-
 What is the element symbol for Krypton?:
   answers:
     - Kr
-
 What is the element symbol for Lanthanum?:
   answers:
     - La
-
 What is the element symbol for Lawrencium?:
   answers:
     - Lr
-
 What is the element symbol for Lead?:
   answers:
     - Pb
-
 What is the element symbol for Lithium?:
   answers:
     - Li
-
 What is the element symbol for Livermorium?:
   answers:
     - Lv
-
 What is the element symbol for Lutetium?:
   answers:
     - Lu
-
 What is the element symbol for Magnesium?:
   answers:
     - Mg
-
 What is the element symbol for Manganese?:
   answers:
     - Mn
-
 What is the element symbol for Meitnerium?:
   answers:
     - Mt
-
 What is the element symbol for Mendelevium?:
   answers:
     - Md
-
 What is the element symbol for Mercury?:
   answers:
     - Hg
-
 What is the element symbol for Molybdenum?:
   answers:
     - Mo
-
 What is the element symbol for Moscovium?:
   answers:
     - Mc
-
 What is the element symbol for Neodymium?:
   answers:
     - Nd
-
 What is the element symbol for Neon?:
   answers:
     - Ne
-
 What is the element symbol for Neptunium?:
   answers:
     - Np
-
 What is the element symbol for Nickel?:
   answers:
     - Ni
-
 What is the element symbol for Nihonium?:
   answers:
     - Nh
-
 What is the element symbol for Niobium?:
   answers:
     - Nb
-
 What is the element symbol for Nitrogen?:
   answers:
     - "N"
-
 What is the element symbol for Nobelium?:
   answers:
     - "No"
-
 What is the element symbol for Oganesson?:
   answers:
     - Og
-
 What is the element symbol for Osmium?:
   answers:
     - Os
-
 What is the element symbol for Oxygen?:
   answers:
     - O
-
 What is the element symbol for Palladium?:
   answers:
     - Pd
-
 What is the element symbol for Phosphorus?:
   answers:
     - P
-
 What is the element symbol for Platinum?:
   answers:
     - Pt
-
 What is the element symbol for Plutonium?:
   answers:
     - Pu
-
 What is the element symbol for Polonium?:
   answers:
     - Po
-
 What is the element symbol for Potassium?:
   answers:
     - K
-
 What is the element symbol for Praseodymium?:
   answers:
     - Pr
-
 What is the element symbol for Promethium?:
   answers:
     - Pm
-
 What is the element symbol for Protactinium?:
   answers:
     - Pa
-
 What is the element symbol for Radium?:
   answers:
     - Ra
-
 What is the element symbol for Radon?:
   answers:
     - Rn
-
 What is the element symbol for Rhenium?:
   answers:
     - Re
-
 What is the element symbol for Rhodium?:
   answers:
     - Rh
-
 What is the element symbol for Roentgnium?:
   answers:
     - Rg
-
 What is the element symbol for Rubidium?:
   answers:
     - Rb
-
 What is the element symbol for Ruthenium?:
   answers:
     - Ru
-
 What is the element symbol for Rutherfordium?:
   answers:
     - Rf
-
 What is the element symbol for Samarium?:
   answers:
     - Sm
-
 What is the element symbol for Scandium?:
   answers:
     - Sc
-
 What is the element symbol for Seaborgium?:
   answers:
     - Sg
-
 What is the element symbol for Selenium?:
   answers:
     - Se
-
 What is the element symbol for Silicon?:
   answers:
     - Si
-
 What is the element symbol for Silver?:
   answers:
     - Ag
-
 What is the element symbol for Sodium?:
   answers:
     - Na
-
 What is the element symbol for Strontium?:
   answers:
     - Sr
-
 What is the element symbol for Sulfur?:
   answers:
     - S
-
 What is the element symbol for Tantalum?:
   answers:
     - Ta
-
 What is the element symbol for Technetium?:
   answers:
     - Tc
-
 What is the element symbol for Tellurium?:
   answers:
     - Te
-
 What is the element symbol for Tennessine?:
   answers:
     - Ts
-
 What is the element symbol for Terbium?:
   answers:
     - Tb
-
 What is the element symbol for Thallium?:
   answers:
     - Tl
-
 What is the element symbol for Thorium?:
   answers:
     - Th
-
 What is the element symbol for Thulium?:
   answers:
     - Tm
-
 What is the element symbol for Tin?:
   answers:
     - Sn
-
 What is the element symbol for Titanium?:
   answers:
     - Ti
-
 What is the element symbol for Tungsten?:
   answers:
     - W
-
 What is the element symbol for Uranium?:
   answers:
     - U
-
 What is the element symbol for Vanadium?:
   answers:
     - V
-
 What is the element symbol for Xenon?:
   answers:
     - Xe
-
 What is the element symbol for Ytterbium?:
   answers:
     - Yb
-
 What is the element symbol for Yttrium?:
   answers:
     - "Y"
-
 What is the element symbol for Zinc?:
   answers:
     - Zn
-
 What is the element symbol for Zirconium?:
   answers:
     - Zr
