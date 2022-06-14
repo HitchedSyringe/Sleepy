@@ -1123,7 +1123,8 @@ class Web(
     async def steaminfo(self, ctx: SleepyContext, *, account: SteamAccountMeta) -> None:
         """Gets information about a Steam account.
 
-        Argument can either be a Steam ID 64, vanity username, or link.
+        Argument can either be a Steam community ID, Steam ID, Steam3 ID,
+        vanity username, or link.
 
         (Bot Needs: Embed Links)
 
@@ -1132,7 +1133,9 @@ class Web(
         <1> steaminfo https://steamcommunity.com/profiles/76561192109582121
         <2> steaminfo https://steamcommunity.com/id/ReallyCoolExampleVanity
         <3> steaminfo 76561192109582121
-        <4> steaminfo ReallyCoolExampleVanity
+        <4> steaminfo STEAM_0:1:1647295
+        <5> steaminfo [U:1:4285023]
+        <6> steaminfo ReallyCoolExampleVanity
         ```
         """
         resp = await ctx.get(
@@ -1163,13 +1166,11 @@ class Web(
         )
 
         embed = Embed(
-            description=(
-                f"**[Avatar Link]({avatar_url})**"
-                f"\n\N{SMALL BLUE DIAMOND} **Steam ID 64:** {account.steam_community_id}"
-                f"\n\N{SMALL BLUE DIAMOND} **Steam ID:** {account.steam_id}"
-                f"\n\N{SMALL BLUE DIAMOND} **Steam ID 3:** {account.steam3_id}"
-                f"\n\N{SMALL BLUE DIAMOND} **Status:** {steam_statuses[status]}"
-            ),
+            description=f"**[Avatar Link]({avatar_url})**"
+            f"\n\N{SMALL BLUE DIAMOND} **Steam Community ID:** {account.steam_community_id}"
+            f"\n\N{SMALL BLUE DIAMOND} **Steam ID:** {account.steam_id}"
+            f"\n\N{SMALL BLUE DIAMOND} **Steam3 ID:** {account.steam3_id}"
+            f"\n\N{SMALL BLUE DIAMOND} **Status:** {steam_statuses[status]}",
             colour=0x555555 if status == 0 else 0x53A4C4,
         )
         embed.set_author(name=data["personaname"], url=data["profileurl"])
