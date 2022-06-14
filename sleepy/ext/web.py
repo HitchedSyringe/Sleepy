@@ -7,12 +7,14 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+from __future__ import annotations
+
 import io
 import random
 import re
 import textwrap
-from datetime import datetime as dt, timezone as tz
-from typing import Optional
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING, Any, Callable, Dict, Mapping, Optional, Tuple
 from urllib.parse import quote
 
 import yarl
@@ -22,24 +24,31 @@ from discord.utils import format_dt
 from googletrans import LANGUAGES, Translator
 from jishaku.functools import executor_function
 from jishaku.paginators import WrappedPaginator
+from typing_extensions import Annotated
 
 from sleepy.converters import real_float
 from sleepy.http import HTTPRequestFailed
 from sleepy.menus import EmbedSource
 from sleepy.utils import bool_to_emoji, human_number, plural, tchart, truncate
 
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
-def clean_subreddit(value):
+    from sleepy.bot import Sleepy
+    from sleepy.context import Context as SleepyContext
+
+
+def clean_subreddit(value: str) -> str:
     match = re.search(r"(?:\/?[rR]\/)?([A-Za-z0-9_]{3,21})", value)
 
     if match is None:
         raise commands.BadArgument("Invalid subreddit.")
 
-    return match.group(1).lower()
+    return match[1].lower()
 
 
-def _prefixed_argument(prefix):
-    def convert(value):
+def _prefixed_argument(prefix: str) -> Callable[[str], str]:
+    def convert(value: str) -> str:
         if not value.startswith(prefix):
             raise commands.BadArgument(f"Argument must begin with {prefix}") from None
 
@@ -48,8 +57,8 @@ def _prefixed_argument(prefix):
     return convert
 
 
-class RedditSubmissionURL(commands.Converter):
-    async def convert(self, ctx, argument):
+class RedditSubmissionURL(commands.Converter[str]):
+    async def convert(self, ctx: SleepyContext, argument: str) -> str:
         try:
             url = yarl.URL(argument.strip("<>"))
         except:
@@ -95,19 +104,23 @@ class RedditSubmissionURL(commands.Converter):
 
 class SteamAccountMeta:
 
-    __slots__ = ("steam_id", "steam3_id", "steam_community_id")
+    __slots__: Tuple[str, ...] = (
+        "steam_id",
+        "steam3_id",
+        "steam_community_id",
+    )
 
-    _U_STEAMID64_IDENTIFIER = 0x0110000100000000
+    _U_STEAMID64_IDENTIFIER: int = 0x0110000100000000
 
-    _STEAM_URL_REGEX = re.compile(
+    _STEAM_URL_REGEX: re.Pattern = re.compile(
         r"(?:https?\:\/\/)?(?:w{3}\.?)?steamcommunity\.com\/"
         r"(?:id|profile)\/([A-Za-z0-9_-]{2,32})\/?"
     )
 
-    def __init__(self, steam_id, steam3_id, steam_community_id):
-        self.steam_id = steam_id
-        self.steam3_id = steam3_id
-        self.steam_community_id = steam_community_id
+    def __init__(self, steam_id: str, steam3_id: str, steam_community_id: int) -> None:
+        self.steam_id: str = steam_id
+        self.steam3_id: str = steam3_id
+        self.steam_community_id: int = steam_community_id
 
     # For reference:
     # - Steam3 ID: [U:1:<W>]
@@ -126,7 +139,7 @@ class SteamAccountMeta:
     #   - The next 8 bits represents <X>.
 
     @classmethod
-    async def convert(cls, ctx, argument):
+    async def convert(cls, ctx: SleepyContext, argument: str) -> Self:
         # Converting a Steam3 ID.
         steam_id3_match = re.fullmatch(r"\[U:1:([0-9]+)]", argument)
 
@@ -175,7 +188,8 @@ class SteamAccountMeta:
         resp = await ctx.get(
             "https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1",
             cache__=True,
-            key=ctx.cog.steam_api_key,
+            # This will only be used within this cog.
+            key=ctx.cog.steam_api_key,  # type: ignore
             vanityurl=argument.lower(),
         )
 
@@ -185,7 +199,7 @@ class SteamAccountMeta:
             raise commands.BadArgument("That Steam user wasn't found.") from None
 
     @classmethod
-    def _from_steam_community_id(cls, steam_community_id):
+    def _from_steam_community_id(cls, steam_community_id: int) -> Self:
         W = steam_community_id - cls._U_STEAMID64_IDENTIFIER
         Z = 0x7FFFFFFF & steam_community_id >> 1
 
@@ -199,15 +213,17 @@ class SteamAccountMeta:
 # current ambiguity this possesses, I'll just allow
 # all types of URLs to be recognized, including the
 # variant of /c which is no /c.
-YOUTUBE_URL = re.compile(
+YOUTUBE_URL: re.Pattern = re.compile(
     r"(?:https?\:\/\/)?(?:w{3}\.?)?youtube\.com"
     r"(?:\/c|\/user|\/channel)?\/([A-Za-z0-9_\-]+)"
 )
 
 
-def youtube_channel_kwargs(value):
-    if (match := YOUTUBE_URL.fullmatch(value.strip("<>"))) is not None:
-        value = match.group(1)
+def youtube_channel_kwargs(value: str) -> Dict[str, str]:
+    url_match = YOUTUBE_URL.fullmatch(value.strip("<>"))
+
+    if url_match is not None:
+        value = url_match[1]
 
     if re.fullmatch(r"UC[A-Za-z0-9_-]{21}[AQgw]", value) is not None:
         return {"id": value}
@@ -228,20 +244,22 @@ class Web(
     These are usually intended to serve as utilities in a sense.
     """
 
-    ICON = "\N{GLOBE WITH MERIDIANS}"
+    ICON: str = "\N{GLOBE WITH MERIDIANS}"
 
-    def __init__(self, config):
-        self.steam_api_key = config["steam_api_key"]
-        self.weatherapi_api_key = config["weatherapi_api_key"]
+    translator: Translator
 
-        self.google_api_key = config["google_api_key"]
-        self.google_search_engine_id = config["google_search_engine_id"]
+    def __init__(self, config: Mapping[str, Any]) -> None:
+        self.steam_api_key: str = config["steam_api_key"]
+        self.weatherapi_api_key: str = config["weatherapi_api_key"]
+
+        self.google_api_key: str = config["google_api_key"]
+        self.google_search_engine_id: str = config["google_search_engine_id"]
 
         self.translator = translator = Translator()
         translator.translate = executor_function(translator.translate)
 
     @staticmethod
-    async def do_calculation(ctx, route, expr):
+    async def do_calculation(ctx: SleepyContext, route: str, expr: str) -> None:
         await ctx.typing()
 
         try:
@@ -260,12 +278,14 @@ class Web(
         else:
             await ctx.send(f"```\n{result}```\n`Powered by newton.vercel.app`")
 
-    async def do_google_search(self, ctx, query, *, search_images=False):
+    async def do_google_search(
+        self, ctx: SleepyContext, query: str, *, search_images: bool = False
+    ) -> None:
         await ctx.typing()
 
         url = "https://www.googleapis.com/customsearch/v1?searchInformation,items(title,link,snippet)"
 
-        if ctx.guild is not None and not ctx.channel.is_nsfw():
+        if ctx.guild is not None and not ctx.channel.is_nsfw():  # type: ignore
             url += "&safe=active"
 
         if search_images:
@@ -322,10 +342,10 @@ class Web(
     # Perhaps whenever PokeAPI releases their GraphQL endpoint,
     # I can come back and revisit this.
     @staticmethod
-    async def get_pokemon_info(ctx, name):
+    async def get_pokemon_info(ctx: SleepyContext, name: str) -> Dict[str, Any]:
         http = ctx.bot.http_requester
 
-        async with http._request_lock:
+        async with http._lock:
             if http.cache is not None:
                 key = f"<GET:PokeAPI:{name}>"
 
@@ -373,12 +393,14 @@ class Web(
                 slimmed_data["evolves_from"] = None
 
             if http.cache is not None:
-                http.cache[key] = slimmed_data
+                http.cache[key] = slimmed_data  # type: ignore
 
             return slimmed_data
 
     @staticmethod
-    async def send_formatted_comic_embed(ctx, comic):
+    async def send_formatted_comic_embed(
+        ctx: SleepyContext, comic: Dict[str, Any]
+    ) -> None:
         number = comic["num"]
 
         embed = Embed(
@@ -387,11 +409,11 @@ class Web(
             url=f"https://xkcd.com/{number}",
             colour=0x708090,
         )
-        embed.timestamp = dt(
+        embed.timestamp = datetime(
             month=int(comic["month"]),
             year=int(comic["year"]),
             day=int(comic["day"]),
-            tzinfo=tz.utc,
+            tzinfo=timezone.utc,
         )
         embed.set_author(name=f"#{number}")
         embed.set_image(url=comic["img"])
@@ -403,7 +425,7 @@ class Web(
     # functionality or existing functional equivalent: `abs`,
     # `arccos`, `arcsin`, `arctan`, `cosine`, `sine`, `tan`.
     @commands.group(aliases=("calc", "calculator", "math"), invoke_without_command=True)
-    async def calculate(self, ctx, *, expression):
+    async def calculate(self, ctx: SleepyContext, *, expression: str) -> None:
         """Evaluates the solution to the given expression.
 
         Answers are returned as exact values.
@@ -420,7 +442,9 @@ class Web(
     @calculate.command(
         name="antiderivative", aliases=("integral", "indefiniteintegral", "∫")
     )
-    async def calculate_antiderivative(self, ctx, *, expression):
+    async def calculate_antiderivative(
+        self, ctx: SleepyContext, *, expression: str
+    ) -> None:
         """Finds the antiderivative of the given expression.
 
         ||Friendly reminder to include the `+ c` in the answer. \N{SLIGHTLY SMILING FACE}||
@@ -434,7 +458,9 @@ class Web(
         await self.do_calculation(ctx, "integrate", expression)
 
     @calculate.command(name="definiteintegral", aliases=("areaunderthecurve",))
-    async def calculate_definiteintegral(self, ctx, a: int, b: int, *, expression):
+    async def calculate_definiteintegral(
+        self, ctx: SleepyContext, a: int, b: int, *, expression: str
+    ) -> None:
         """Evaluates the definite integral of the given expression from `a` to `b`.
 
         Answers are rounded to the nearest ones place.
@@ -450,7 +476,7 @@ class Web(
         await self.do_calculation(ctx, "area", f"{a}:{b} | {expression}")
 
     @calculate.command(name="derivative", aliases=("diff", "differencial"))
-    async def calculate_derivative(self, ctx, *, expression):
+    async def calculate_derivative(self, ctx: SleepyContext, *, expression: str) -> None:
         """Finds the derivative of the given expression.
 
         **EXAMPLES:**
@@ -462,7 +488,7 @@ class Web(
         await self.do_calculation(ctx, "derive", expression)
 
     @calculate.command(name="factor")
-    async def calculate_factor(self, ctx, *, expression):
+    async def calculate_factor(self, ctx: SleepyContext, *, expression: str) -> None:
         """Factors the given expression.
 
         If the expression can't be factored, then the input
@@ -477,7 +503,9 @@ class Web(
         await self.do_calculation(ctx, "factor", expression)
 
     @calculate.command(name="logarithm", aliases=("log",))
-    async def calculate_logarithm(self, ctx, base: int, *, expression):
+    async def calculate_logarithm(
+        self, ctx: SleepyContext, base: int, *, expression: str
+    ) -> None:
         """Calculates the logarithm with the given base of the given expression.
 
         **EXAMPLES:**
@@ -489,7 +517,9 @@ class Web(
         await self.do_calculation(ctx, "log", f"{base} | {expression}")
 
     @calculate.command(name="tangentline")
-    async def calculate_tangentline(self, ctx, x: int, *, expression):
+    async def calculate_tangentline(
+        self, ctx: SleepyContext, x: int, *, expression: str
+    ) -> None:
         """Finds the equation of the tangent line to the given expression at a given x value.
 
         **EXAMPLES:**
@@ -503,7 +533,7 @@ class Web(
     # NOTE: Commented because this consistently returns incorrect
     # answers. See https://github.com/aunyks/newton-api/issues/12
     # @calculate.command(name="xintercepts", aliases=("xints", "zeroes"))
-    # async def calculate_zeroes(self, ctx, *, expression):
+    # async def calculate_zeroes(self, ctx: SleepyContext, *, expression: str) -> None:
     #     """Finds the x-intercepts of the given expression.
 
     #     **EXAMPLES:**
@@ -516,7 +546,9 @@ class Web(
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
-    async def countryinfo(self, ctx, *, country: str.lower):
+    async def countryinfo(
+        self, ctx: SleepyContext, *, country: Annotated[str, str.lower]
+    ) -> None:
         """Gets information about a country.
 
         (Bot Needs: Embed Links)
@@ -541,7 +573,7 @@ class Web(
         try:
             data = await ctx.disambiguate(resp, lambda x: x["name"])
         except ValueError as exc:
-            await ctx.send(exc)
+            await ctx.send(exc)  # type: ignore
             return
 
         lat, long = data["latlng"]
@@ -600,7 +632,9 @@ class Web(
     @commands.command(aliases=("dictionary", "definition"))
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def define(self, ctx, *, term: str.lower):
+    async def define(
+        self, ctx: SleepyContext, *, term: Annotated[str, str.lower]
+    ) -> None:
         """Shows the definition of a word or phrase.
 
         This command only takes words or phrases in the
@@ -629,7 +663,7 @@ class Web(
         # due to how inconsistent and volatile the data from
         # this API is.
 
-        def format_term(term):
+        def format_term(term: Dict[str, Any]) -> str:
             if phonetics := term.get("phonetics"):
                 return f"{term['word']} {phonetics[0].get('text', '')}"
 
@@ -638,7 +672,7 @@ class Web(
         try:
             data = await ctx.disambiguate(resp, format_term)
         except ValueError as exc:
-            await ctx.send(exc)
+            await ctx.send(exc)  # type: ignore
             return
 
         base_embed = Embed(
@@ -696,11 +730,11 @@ class Web(
     @commands.command(aliases=("er", "forex"), require_var_positional=True)
     async def exchangerate(
         self,
-        ctx,
-        base: str.upper,
-        amount: Optional[real_float(max_decimal_places=4)] = 1,
-        *currencies: str.upper,
-    ):
+        ctx: SleepyContext,
+        base: Annotated[str, str.upper],
+        amount: Annotated[float, Optional[real_float(max_decimal_places=4)]] = 1,  # type: ignore
+        *currencies: Annotated[str, str.upper],
+    ) -> None:
         """Shows the exchange rate between two or more currencies.
 
         Currency rates tracks foreign exchange references rates
@@ -736,9 +770,9 @@ class Web(
             await ctx.send("You cannot convert the base currency to itself.")
             return
 
-        currencies = frozenset(currencies)
+        unique_currencies = frozenset(currencies)
 
-        if len(currencies) > 15:
+        if len(unique_currencies) > 15:
             await ctx.send("You may only convert to 15 different currencies at a time.")
             return
 
@@ -747,7 +781,7 @@ class Web(
                 "https://api.vatcomply.com/rates",
                 cache__=True,
                 base=base,
-                symbols=",".join(currencies),
+                symbols=",".join(unique_currencies),
             )
         except HTTPRequestFailed as exc:
             if exc.status == 400:
@@ -756,7 +790,7 @@ class Web(
 
             raise
 
-        updated = dt.fromisoformat(resp["date"]).replace(tzinfo=tz.utc)
+        updated = datetime.fromisoformat(resp["date"]).replace(tzinfo=timezone.utc)
 
         # According to the ISO 4217 standard, currencies can
         # have decimal precision between 0-4 places. As of
@@ -775,7 +809,9 @@ class Web(
     @commands.command(aliases=("lyrics",))
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def genius(self, ctx, *, song_title: str.lower):
+    async def genius(
+        self, ctx: SleepyContext, *, song_title: Annotated[str, str.lower]
+    ) -> None:
         """Gets a song's lyrics.
 
         (Bot Needs: Embed Links)
@@ -828,7 +864,9 @@ class Web(
     @commands.group(invoke_without_command=True, aliases=("search",))
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def google(self, ctx, *, query: str.lower):
+    async def google(
+        self, ctx: SleepyContext, *, query: Annotated[str, str.lower]
+    ) -> None:
         """Searches for something on Google, returning the top 10 results.
 
         Safe mode is enabled based on whether or not you're
@@ -844,7 +882,9 @@ class Web(
         await self.do_google_search(ctx, query, search_images=False)
 
     @google.command(name="imagesearch")
-    async def google_imagesearch(self, ctx, *, query: str.lower):
+    async def google_imagesearch(
+        self, ctx: SleepyContext, *, query: Annotated[str, str.lower]
+    ) -> None:
         """Searches for something on Google images, returning the top 10 results.
 
         Safe mode is enabled based on whether or not you're
@@ -861,7 +901,9 @@ class Web(
 
     @commands.command(aliases=("mcinfo",))
     @commands.bot_has_permissions(embed_links=True)
-    async def minecraftinfo(self, ctx, *, account: str.lower):
+    async def minecraftinfo(
+        self, ctx: SleepyContext, *, account: Annotated[str, str.lower]
+    ) -> None:
         """Gets information about a Minecraft: Java Edition account.
 
         Argument can either be a username or UUID.
@@ -900,7 +942,7 @@ class Web(
         embed.set_thumbnail(url=f"https://crafatar.com/renders/body/{data['uuid']}")
 
         if (joined := data["created_at"]) is not None:
-            embed.timestamp = dt.fromisoformat(joined).replace(tzinfo=tz.utc)
+            embed.timestamp = datetime.fromisoformat(joined).replace(tzinfo=timezone.utc)
             embed.set_footer(
                 text="Powered by ashcon.app & crafatar.com \N{BULLET} Created"
             )
@@ -908,7 +950,8 @@ class Web(
             embed.set_footer(text="Powered by ashcon.app & crafatar.com")
 
         try:
-            embed.description += f" \N{BULLET} **[Cape]({textures['cape']['url']})**"
+            # Description is filled in, so this shouldn't be an issue.
+            embed.description += f" \N{BULLET} **[Cape]({textures['cape']['url']})**"  # type: ignore
         except KeyError:
             pass
 
@@ -953,7 +996,9 @@ class Web(
 
     @commands.command(aliases=("pdex", "pokédex"))
     @commands.bot_has_permissions(embed_links=True)
-    async def pokedex(self, ctx, *, pokemon: str.lower):
+    async def pokedex(
+        self, ctx: SleepyContext, *, pokemon: Annotated[str, str.lower]
+    ) -> None:
         """Gets basic information about a Pokémon.
 
         (Bot Needs: Embed Links)
@@ -1010,7 +1055,9 @@ class Web(
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
-    async def reddit(self, ctx, subreddit: clean_subreddit):
+    async def reddit(
+        self, ctx: SleepyContext, subreddit: Annotated[str, clean_subreddit]
+    ) -> None:
         """Shows a subreddit's top weekly submissions.
 
         The posts displayed are based on whether or not
@@ -1042,7 +1089,7 @@ class Web(
         for child in resp["data"]["children"]:
             post = child["data"]
 
-            if ctx.guild is not None and not ctx.channel.is_nsfw() and post["over_18"]:
+            if ctx.guild is not None and not ctx.channel.is_nsfw() and post["over_18"]:  # type: ignore
                 continue
 
             embed = Embed(
@@ -1075,7 +1122,7 @@ class Web(
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
-    async def steaminfo(self, ctx, *, account: SteamAccountMeta):
+    async def steaminfo(self, ctx: SleepyContext, *, account: SteamAccountMeta) -> None:
         """Gets information about a Steam account.
 
         Argument can either be a Steam ID 64, vanity username, or link.
@@ -1141,12 +1188,12 @@ class Web(
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def translate(
         self,
-        ctx,
-        destination: _prefixed_argument(">"),
-        source: Optional[_prefixed_argument("$")] = "auto",
+        ctx: SleepyContext,
+        destination: Annotated[str, _prefixed_argument(">")],
+        source: Annotated[str, Optional[_prefixed_argument("$")]] = "auto",  # type: ignore
         *,
-        text: commands.clean_content(fix_channel_mentions=True) = None,
-    ):
+        text: Annotated[str, commands.clean_content(fix_channel_mentions=True)] = None,
+    ) -> None:
         """Translates some text using Google Translate.
         This allows you to either provide text or use a
         message's text content via replying.
@@ -1209,7 +1256,7 @@ class Web(
         await ctx.send(embed=embed)
 
     @translate.error
-    async def on_translate_error(self, ctx, error):
+    async def on_translate_error(self, ctx: SleepyContext, error: Exception) -> None:
         if isinstance(error, commands.BadArgument):
             await ctx.send("Destination language must begin with `>`.")
             ctx._already_handled_error = True
@@ -1217,7 +1264,9 @@ class Web(
     @commands.command(aliases=("urban", "urbanup"))
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def urbandict(self, ctx, *, term: str.lower):
+    async def urbandict(
+        self, ctx: SleepyContext, *, term: Annotated[str, str.lower]
+    ) -> None:
         """Searches for a term on Urban Dictionary.
 
         (Bot Needs: Embed Links)
@@ -1237,9 +1286,9 @@ class Web(
             await ctx.send("That term isn't on Urban Dictionary.")
             return
 
-        def apply_hyperlinks(string):
-            def hyperlink_brackets(m):
-                word = m.group(1).strip("[]")
+        def apply_hyperlinks(string: str) -> str:
+            def hyperlink_brackets(m: re.Match) -> str:
+                word = m[1].strip("[]")
                 return f"[{word}](http://{word.replace(' ', '-')}.urbanup.com)"
 
             return re.sub(r"(\[.+?])", hyperlink_brackets, string)
@@ -1248,8 +1297,8 @@ class Web(
         for entry in entries:
             embed = Embed(
                 description=textwrap.shorten(apply_hyperlinks(entry["definition"]), 2000),
-                timestamp=dt.fromisoformat(entry["written_on"][:-1]).replace(
-                    tzinfo=tz.utc
+                timestamp=datetime.fromisoformat(entry["written_on"][:-1]).replace(
+                    tzinfo=timezone.utc
                 ),
                 colour=0x1D2439,
             )
@@ -1274,7 +1323,12 @@ class Web(
 
     @commands.command(aliases=("vredditdownloader",))
     @commands.bot_has_permissions(attach_files=True)
-    async def vreddit(self, ctx, *, url: RedditSubmissionURL):
+    async def vreddit(
+        self,
+        ctx: SleepyContext,
+        *,
+        url: str = commands.parameter(converter=RedditSubmissionURL),
+    ) -> None:
         """Downloads a Reddit video submission.
         Both v.redd.it and regular Reddit links are
         supported.
@@ -1299,22 +1353,26 @@ class Web(
                 await ctx.send("The video is too big to be uploaded.")
                 return
 
+            video_bytes = await resp.read()
+
             await ctx.send(
                 f"Requested by {ctx.author} (ID: {ctx.author.id})",
-                file=File(io.BytesIO(await resp.read()), "submission.mp4"),
+                file=File(io.BytesIO(video_bytes), "submission.mp4"),
             )
 
     @reddit.error
     @steaminfo.error
     @vreddit.error
-    async def on_entity_command_error(self, ctx, error):
+    async def on_entity_command_error(self, ctx: SleepyContext, error: Exception) -> None:
         if isinstance(error, commands.BadArgument):
-            await ctx.send(error)
+            await ctx.send(error)  # type: ignore
             ctx._already_handled_error = True
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
-    async def weather(self, ctx, *, location: str.lower):
+    async def weather(
+        self, ctx: SleepyContext, *, location: Annotated[str, str.lower]
+    ) -> None:
         """Gets the current weather data for a location.
 
         Location can be either a US zip code, UK postal code,
@@ -1354,10 +1412,10 @@ class Web(
         region = loc["region"]
 
         embed = Embed(
-            title=f"{loc['name']}, {region + ', ' if region else ''}{loc['country']}",
+            title=f"{loc['name']}, {f'{region}, ' if region else ''}{loc['country']}",
             description=f"(Lat. {loc['lat']}°, Lon. {loc['lon']}°)",
             colour=0xE3C240 if data["is_day"] == 1 else 0x1D50A8,
-            timestamp=dt.fromtimestamp(data["last_updated_epoch"], tz.utc),
+            timestamp=datetime.fromtimestamp(data["last_updated_epoch"], timezone.utc),
         )
 
         condition = data["condition"]
@@ -1396,7 +1454,7 @@ class Web(
 
     @commands.command(aliases=("wiki",))
     @commands.bot_has_permissions(embed_links=True)
-    async def wikipedia(self, ctx, *, article):
+    async def wikipedia(self, ctx: SleepyContext, *, article: str) -> None:
         """Searches for something on Wikipedia.
 
         (Bot Needs: Embed Links)
@@ -1422,7 +1480,9 @@ class Web(
         embed = Embed(
             description=resp["extract"],
             colour=0xE3E3E3,
-            timestamp=dt.fromisoformat(resp["timestamp"][:-1]).replace(tzinfo=tz.utc),
+            timestamp=datetime.fromisoformat(resp["timestamp"][:-1]).replace(
+                tzinfo=timezone.utc
+            ),
         )
         embed.set_author(
             name=truncate(resp["title"], 128),
@@ -1440,7 +1500,7 @@ class Web(
 
     @commands.group(invoke_without_command=True)
     @commands.bot_has_permissions(embed_links=True)
-    async def xkcd(self, ctx, number: int = None):
+    async def xkcd(self, ctx: SleepyContext, number: int = None) -> None:
         """Shows a comic from xkcd.
 
         If no comic number is given, then the latest
@@ -1473,7 +1533,7 @@ class Web(
         await self.send_formatted_comic_embed(ctx, comic)
 
     @xkcd.command(name="random", aliases=("r",))
-    async def xkcd_random(self, ctx):
+    async def xkcd_random(self, ctx: SleepyContext) -> None:
         """Shows a random xkcd comic.
 
         (Bot Needs: Embed Links)
@@ -1498,7 +1558,11 @@ class Web(
 
     @commands.command(aliases=("ytinfo",))
     @commands.bot_has_permissions(embed_links=True)
-    async def youtubeinfo(self, ctx, channel: youtube_channel_kwargs):
+    async def youtubeinfo(
+        self,
+        ctx: SleepyContext,
+        channel: Annotated[Dict[str, Any], youtube_channel_kwargs],
+    ) -> None:
         """Gets information about a YouTube channel.
 
         Argument can either be a channel ID, username, or link.
@@ -1540,7 +1604,9 @@ class Web(
         embed = Embed(
             description=snip["localized"]["description"],
             colour=0xFF0000,
-            timestamp=dt.fromisoformat(snip["publishedAt"][:-1]).replace(tzinfo=tz.utc),
+            timestamp=datetime.fromisoformat(snip["publishedAt"][:-1]).replace(
+                tzinfo=timezone.utc
+            ),
         )
 
         id_ = data["id"]
@@ -1569,5 +1635,5 @@ class Web(
         await ctx.send(embed=embed)
 
 
-async def setup(bot):
+async def setup(bot: Sleepy) -> None:
     await bot.add_cog(Web(bot.config))
