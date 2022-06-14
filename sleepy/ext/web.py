@@ -1120,7 +1120,7 @@ class Web(
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
-    async def steaminfo(self, ctx: SleepyContext, *, account: SteamAccountMeta) -> None:
+    async def steaminfo(self, ctx: SleepyContext, account: SteamAccountMeta) -> None:
         """Gets information about a Steam account.
 
         Argument can either be a Steam community ID, Steam ID, Steam3 ID,
