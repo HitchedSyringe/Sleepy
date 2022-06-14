@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 
 
 def clean_subreddit(value: str) -> str:
-    match = re.search(r"(?:\/?[rR]\/)?([A-Za-z0-9_]{3,21})", value)
+    match = re.search(r"(?:r\/)?([a-z0-9_]{3,21})$", value, re.I)
 
     if match is None:
         raise commands.BadArgument("Invalid subreddit.")
@@ -113,8 +113,7 @@ class SteamAccountMeta:
     _U_STEAMID64_IDENTIFIER: int = 0x0110000100000000
 
     _STEAM_URL_REGEX: re.Pattern = re.compile(
-        r"(?:https?\:\/\/)?(?:w{3}\.?)?steamcommunity\.com\/"
-        r"(?:id|profile)\/([A-Za-z0-9_-]{2,32})\/?"
+        r"steamcommunity\.com\/(?:id|profile)\/([A-Za-z0-9_-]{2,32})\/?$"
     )
 
     def __init__(self, steam_id: str, steam3_id: str, steam_community_id: int) -> None:
@@ -164,7 +163,7 @@ class SteamAccountMeta:
             return cls(argument, f"[U:1:{W}]", cls._U_STEAMID64_IDENTIFIER + W)
 
         # Get either a Steam community ID or vanity from URL.
-        steam_url_match = cls._STEAM_URL_REGEX.fullmatch(argument.strip("<>"))
+        steam_url_match = cls._STEAM_URL_REGEX.search(argument.strip("<>"))
 
         if steam_url_match is not None:
             argument = steam_url_match[1]
@@ -214,13 +213,12 @@ class SteamAccountMeta:
 # all types of URLs to be recognized, including the
 # variant of /c which is no /c.
 YOUTUBE_URL: re.Pattern = re.compile(
-    r"(?:https?\:\/\/)?(?:w{3}\.?)?youtube\.com"
-    r"(?:\/c|\/user|\/channel)?\/([A-Za-z0-9_\-]+)"
+    r"youtube\.com(?:\/c|\/user|\/channel)?\/([A-Za-z0-9_\-]+)$"
 )
 
 
 def youtube_channel_kwargs(value: str) -> Dict[str, str]:
-    url_match = YOUTUBE_URL.fullmatch(value.strip("<>"))
+    url_match = YOUTUBE_URL.search(value.strip("<>"))
 
     if url_match is not None:
         value = url_match[1]
@@ -1288,10 +1286,10 @@ class Web(
 
         def apply_hyperlinks(string: str) -> str:
             def hyperlink_brackets(m: re.Match) -> str:
-                word = m[1].strip("[]")
+                word = m[0].strip("[]")
                 return f"[{word}](http://{word.replace(' ', '-')}.urbanup.com)"
 
-            return re.sub(r"(\[.+?])", hyperlink_brackets, string)
+            return re.sub(r"\[.+?\]", hyperlink_brackets, string)
 
         embeds = []
         for entry in entries:
