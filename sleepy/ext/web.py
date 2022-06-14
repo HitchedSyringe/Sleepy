@@ -95,101 +95,101 @@ class RedditSubmissionURL(commands.Converter):
 
 class SteamAccountMeta:
 
-    __slots__ = ("id", "id_3", "id_64")
+    __slots__ = ("steam_id", "steam3_id", "steam_community_id")
 
-    # Steam Base ID used for ID conversion calculations.
-    # Side note: this isn't in the official docs.
-    BASE_ID_64 = 76561197960265728
+    _U_STEAMID64_IDENTIFIER = 0x0110000100000000
 
-    URL_REGEX = re.compile(
+    _STEAM_URL_REGEX = re.compile(
         r"(?:https?\:\/\/)?(?:w{3}\.?)?steamcommunity\.com\/"
         r"(?:id|profile)\/([A-Za-z0-9_-]{2,32})\/?"
     )
 
-    def __init__(self, id_, id_3, id_64):
-        self.id = id_
-        self.id_3 = id_3
-        self.id_64 = id_64
+    def __init__(self, steam_id, steam3_id, steam_community_id):
+        self.steam_id = steam_id
+        self.steam3_id = steam3_id
+        self.steam_community_id = steam_community_id
+
+    # For reference:
+    # - Steam3 ID: [U:1:<W>]
+    #   - W = steam_community_id - 0x0110000100000000
+    # - SteamID: STEAM_<X>:<Y>:<Z>
+    #   - Y = W % 2
+    #   - Z = 0x7FFFFFFF & steam_community_id >> 1
+    #   - Z = (W - Y) / 2 [somewhat inaccurate w/ rounding]
+    #   - In all conversions, except SteamID, we assume <X> is 0.
+    # - Steam Community ID: 64 bit integer
+    #   - The lowest bit represents <Y>.
+    #   - The next 31 bits represent <Z>.
+    #   - The next 20 bits represent the instance of the account.
+    #     It is usually set to 1 for user accounts.
+    #   - The next 4 bits represent the type of account.
+    #   - The next 8 bits represents <X>.
 
     @classmethod
     async def convert(cls, ctx, argument):
-        # Steam ID 3
-        if (
-            id_3_match := re.fullmatch(r"U:1:([0-9]+)", argument.strip("[]"))
-        ) is not None:
-            return cls.from_id_3(int(id_3_match.group(1)))
+        # Converting a Steam3 ID.
+        steam_id3_match = re.fullmatch(r"\[U:1:([0-9]+)]", argument)
 
-        # Steam ID
-        if (id_match := re.fullmatch(r"STEAM_0:([01]):([0-9]+)", argument)) is not None:
-            a_type, id_n = id_match.groups()
-            return cls.from_id(int(a_type), int(id_n))
+        if steam_id3_match is not None:
+            W = int(steam_id3_match[1])
+            # We use bit math for finding Z because it's the most
+            # accurate. The alternative would be to either divide
+            # by 2 and round or floor divide by 2, both of which
+            # aren't guaranteed to be accurate.
+            steam_community_id = cls._U_STEAMID64_IDENTIFIER + W
+            Z = 0x7FFFFFFF & steam_community_id >> 1
 
-        # Get argument from URL.
-        if (url_match := cls.URL_REGEX.fullmatch(argument.strip("<>"))) is not None:
-            argument = url_match.group(1)
+            return cls(f"STEAM_0:{W % 2}:{Z}", argument, steam_community_id)
 
-        # Steam ID 64
-        try:
-            id_64 = int(argument)
-        except ValueError:
-            pass
-        else:
-            # The last 32 bytes of a Steam ID is usually
-            # equal to the hex value 0x1100001. This is
-            # here mainly to handle the possibility of
-            # a vanity being comprised of only numbers.
-            # The only way this check would actually
-            # return a false positive would be if the
-            # user has a custom URL that mimicks an ID.
-            if id_64 >> 32 == 0x1100001:
-                return cls.from_id_64(id_64)
+        # Converting a SteamID.
+        steam_id_match = re.fullmatch(r"STEAM_[01]:([01]):([0-9]+)", argument)
 
-        # ID resolve through vanity.
+        if steam_id_match is not None:
+            sY, sZ = steam_id_match.groups()
+            W = int(sZ) * 2 + int(sY)
+
+            return cls(argument, f"[U:1:{W}]", cls._U_STEAMID64_IDENTIFIER + W)
+
+        # Get either a Steam community ID or vanity from URL.
+        steam_url_match = cls._STEAM_URL_REGEX.fullmatch(argument.strip("<>"))
+
+        if steam_url_match is not None:
+            argument = steam_url_match[1]
+
+        # Convert a Steam community ID.
+        if argument.isdecimal():
+            maybe_steam_community_id = int(argument)
+
+            # The first 32 bits of a Steam community ID is equal to 0x1100001,
+            # which also happens to be the first 32 bits of the SteamID64 user
+            # identifier. This check handles the possibility of a vanity being
+            # comprised of only numbers. The only false positive case would be
+            # if the user has a vanity that mimicks a real Steam community ID.
+            if maybe_steam_community_id >> 32 == 0x1100001:
+                return cls._from_steam_community_id(maybe_steam_community_id)
+
+            # No need for this if the above check failed.
+            del maybe_steam_community_id
+
+        # Resolve a Steam community ID through vanity URL.
         resp = await ctx.get(
             "https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1",
+            cache__=True,
             key=ctx.cog.steam_api_key,
             vanityurl=argument.lower(),
-            cache__=True,
         )
 
         try:
-            return cls.from_id_64(int(resp["response"]["steamid"]))
+            return cls._from_steam_community_id(int(resp["response"]["steamid"]))
         except KeyError:
             raise commands.BadArgument("That Steam user wasn't found.") from None
 
-    # These are mainly here so as to not repeat any
-    # mathematical operations later on. Essentially,
-    # if either a SteamID, SteamID3, or SteamID64 is
-    # found, the other two IDs can simply be resolved
-    # through somewhat simple math.
-
     @classmethod
-    def from_id(cls, account_type, number_id):
-        id_3_n = number_id * 2 + account_type
+    def _from_steam_community_id(cls, steam_community_id):
+        W = steam_community_id - cls._U_STEAMID64_IDENTIFIER
+        Z = 0x7FFFFFFF & steam_community_id >> 1
 
-        return cls(
-            f"STEAM_0:{account_type}:{number_id}",
-            f"[U:1:{id_3_n}]",
-            cls.BASE_ID_64 + id_3_n,
-        )
-
-    @classmethod
-    def from_id_3(cls, number_id):
-        a_type = number_id % 2
-        id_n = number_id + a_type
-
-        return cls(
-            f"STEAM_0:{a_type}:{id_n}", f"[U:1:{number_id}]", cls.BASE_ID_64 + id_n
-        )
-
-    @classmethod
-    def from_id_64(cls, id_64):
-        id_3_n = id_64 - cls.BASE_ID_64
-        a_type = id_3_n % 2
-
-        return cls(
-            f"STEAM_0:{a_type}:{round((id_3_n - a_type) / 2)}", f"[U:1:{id_3_n}]", id_64
-        )
+        return cls(f"STEAM_0:{W % 2}:{Z}", f"[U:1:{W}]", steam_community_id)
 
 
 # NOTE: Some channels have a /user and /c URL. In many
@@ -1093,7 +1093,7 @@ class Web(
         resp = await ctx.get(
             "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2",
             key=self.steam_api_key,
-            steamids=account.id_64,
+            steamids=account.steam_community_id,
             cache__=True,
         )
 
@@ -1120,9 +1120,9 @@ class Web(
         embed = Embed(
             description=(
                 f"**[Avatar Link]({avatar_url})**"
-                f"\n\N{SMALL BLUE DIAMOND} **Steam ID 64:** {account.id_64}"
-                f"\n\N{SMALL BLUE DIAMOND} **Steam ID:** {account.id}"
-                f"\n\N{SMALL BLUE DIAMOND} **Steam ID 3:** {account.id_3}"
+                f"\n\N{SMALL BLUE DIAMOND} **Steam ID 64:** {account.steam_community_id}"
+                f"\n\N{SMALL BLUE DIAMOND} **Steam ID:** {account.steam_id}"
+                f"\n\N{SMALL BLUE DIAMOND} **Steam ID 3:** {account.steam3_id}"
                 f"\n\N{SMALL BLUE DIAMOND} **Status:** {steam_statuses[status]}"
             ),
             colour=0x555555 if status == 0 else 0x53A4C4,
