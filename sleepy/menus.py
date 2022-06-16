@@ -243,6 +243,16 @@ class BaseView(View):
 
         return True
 
+    async def on_error(
+        self, itn: discord.Interaction, error: Exception, item: Item["BaseView"]
+    ) -> None:
+        if itn.response.is_done():
+            await itn.followup.send("Sorry, but something went wrong.", ephemeral=True)
+        else:
+            await itn.response.send_message(
+                "Sorry, but something went wrong.", ephemeral=True
+            )
+
 
 class BotLinksView(View):
     """View class which contains URL buttons leading to
@@ -782,16 +792,6 @@ class PaginationView(BaseView):
             await self._do_items_cleanup()
         except discord.HTTPException:
             pass
-
-    async def on_error(
-        self, itn: discord.Interaction, item: Item, error: Exception
-    ) -> None:
-        if itn.response.is_done():
-            await itn.followup.send("Sorry, but something went wrong.", ephemeral=True)
-        else:
-            await itn.response.send_message(
-                "Sorry, but something went wrong.", ephemeral=True
-            )
 
     @button(emoji="<:rrwnd:862379040802865182>")
     async def first_page(
