@@ -7,11 +7,11 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+import argparse
 import logging
-import sys
 from contextlib import contextmanager
 from logging.handlers import RotatingFileHandler
-from typing import Any, Dict, Generator, Optional
+from typing import Any, Generator, Mapping, Optional, Tuple
 
 import yaml
 from discord import AllowedMentions, Intents, Streaming
@@ -65,17 +65,7 @@ def _setup_logging(*, log_filename: Optional[str] = None) -> Generator[None, Non
             root_logger.removeHandler(handler)
 
 
-def _load_config() -> Dict[str, Any]:
-    try:
-        config_file = sys.argv[1]
-    except IndexError:
-        config_file = "config.yaml"
-
-    with open(config_file) as f:
-        return yaml.safe_load(f)
-
-
-def _create_bot(config: Dict[str, Any]) -> Sleepy:
+def _create_bot(config: Mapping[str, Any]) -> Sleepy:
     prefixes = config["prefixes"]
 
     if not prefixes:
@@ -125,23 +115,58 @@ def _create_bot(config: Dict[str, Any]) -> Sleepy:
     )
 
 
-if __name__ == "__main__":
-    try:
-        import uvloop  # type: ignore
-    except ModuleNotFoundError:
-        pass
-    else:
-        uvloop.install()
+def _parse_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
+    parser = argparse.ArgumentParser(prog=__package__)
 
-    config = _load_config()
+    parser.add_argument(
+        "config_filename",
+        default="config.yaml",
+        help="the config file to load (default: config.yaml)",
+        nargs="?",
+    )
+    parser.add_argument(
+        "--log-filename", "-lfn", help="the file to write logging messages to"
+    )
+    parser.set_defaults(func=_run)
+
+    return parser, parser.parse_args()
+
+
+def _run(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
+    try:
+        with open(args.config_filename) as f:
+            config = yaml.safe_load(f)
+    except (OSError, yaml.YAMLError):
+        parser.error(f'Failed to read config file "{args.config_filename}".')
+
     bot = _create_bot(config)
 
-    with _setup_logging():
-        # discord.py logging
-        logging.getLogger("discord").setLevel(logging.INFO)
-        logging.getLogger("discord.http").setLevel(logging.WARNING)
+    try:
+        with _setup_logging(log_filename=args.log_filename):
+            # discord.py logging
+            logging.getLogger("discord").setLevel(logging.INFO)
 
-        # bot logging
-        logging.getLogger(__package__).setLevel(logging.DEBUG)
+            # bot logging
+            logger = logging.getLogger(__package__)
+            logger.setLevel(logging.INFO)
 
-        bot.run(config["discord_auth_token"], log_handler=None)
+            try:
+                import uvloop  # type: ignore
+            except ModuleNotFoundError:
+                logger.info("uvloop not found, skipping installation.")
+            else:
+                uvloop.install()
+                logger.info("uvloop installed successfully.")
+
+            bot.run(config["discord_auth_token"], log_handler=None)
+    except OSError:
+        parser.error(f'Failed to write to log file "{args.log_filename}".')
+
+
+def main() -> None:
+    parser, args = _parse_args()
+    args.func(parser, args)
+
+
+if __name__ == "__main__":
+    main()
