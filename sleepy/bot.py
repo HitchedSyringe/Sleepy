@@ -221,9 +221,6 @@ class Sleepy(commands.Bot):
         # --- Populate general stuff. ---
 
         config = self.config
-        # Should be fetched by the time we're here.
-        app_info: AppInfo = self.application  # type: ignore
-
         self.started_at = utcnow()
 
         # --- Set up HTTP requester session. ---
@@ -270,6 +267,8 @@ class Sleepy(commands.Bot):
         if self.owner_id is None and not self.owner_ids:
             _LOG.info("No owner IDs were passed in, auto-detecting owners...")
 
+            # Should be fetched by the time we're here.
+            app_info: AppInfo = self.application  # type: ignore
             owner_ids = set(self.config["owner_ids"])
 
             if app_info.team is None:
@@ -286,27 +285,7 @@ class Sleepy(commands.Bot):
                 # don't know if this is a bot we're dealing with.
                 self.owner_ids = owner_ids
 
-        # --- Display instance information. ---
-
-        _LOG.info("--------- Sleepy Instance Info ---------")
-        _LOG.info("| Version: %s", __version__)
-        # At this point, the user data has already been populated.
-        _LOG.info("| Bot User: %s (ID: %s)", self.user, self.user.id)  # type: ignore
-        _LOG.info("|\t- Application ID: %s", app_info.id)
-        _LOG.info("|\t- Public Bot: %s", app_info.bot_public)
-        _LOG.info("| Detected Extensions: %s", total)
-        _LOG.info("|\t- Loaded: %s", loaded)
-        _LOG.info("|\t- Failed: %s", total - loaded)
-
-        if owner_ids := self.owner_ids:
-            _LOG.info("| Owner IDs (%s): %s", len(owner_ids), owner_ids)
-        else:
-            _LOG.info("| Owner ID: %s", self.owner_id)
-
-        _LOG.info("| Intents: %s", ", ".join(k for k, v in self.intents if v))
-        _LOG.info("| Message Cache Cap: %s", self._connection.max_messages)
-
-        _LOG.info("Booted successfully, awaiting READY event...")
+        _LOG.info("Sleepy %s booted successfully. Awaiting READY event...", __version__)
 
     def get_all_extensions(self) -> Generator[str, None, None]:
         """Returns a generator of all recognized extensions
