@@ -9,7 +9,9 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import logging
 import sys
-from typing import Any, Dict
+from contextlib import contextmanager
+from logging.handlers import RotatingFileHandler
+from typing import Any, Dict, Generator, Optional
 
 import yaml
 from discord import AllowedMentions, Intents, Streaming
@@ -19,20 +21,48 @@ from . import __version__
 from .bot import Sleepy
 
 
-def _set_up_logging() -> None:
-    logging.basicConfig(
-        datefmt="%Y-%m-%d %H:%M:%S",
-        format="[{asctime}] [{levelname:<7}] {name}: {message}",
-        style="{",
-    )
+@contextmanager
+def _setup_logging(*, log_filename: Optional[str] = None) -> Generator[None, None, None]:
+    root_logger = logging.getLogger()
 
-    # discord.py logging
-    logging.getLogger("discord").setLevel(logging.INFO)
-    logging.getLogger("discord.http").setLevel(logging.WARNING)
+    try:
+        stream_handler = logging.StreamHandler()
 
-    # bot logging
-    logging.getLogger("sleepy").setLevel(logging.DEBUG)
-    logging.getLogger("sleepy.http").setLevel(logging.INFO)
+        formatter = logging.Formatter(
+            fmt="[{asctime}] [{levelname:<8}] {name}: {message}",
+            datefmt="%Y-%m-%d %H:%M:%S",
+            style="{",
+        )
+
+        stream_handler.setFormatter(formatter)
+        root_logger.addHandler(stream_handler)
+
+        if log_filename is not None:
+            from os import makedirs, path
+
+            # Avoids an error when we try to write to a file with a
+            # non-existant parent directory. Logically, this should
+            # be silently handled from a user standpoint. This only
+            # fails on Windows if we exceed the nested path limit.
+            if log_parent := path.dirname(log_filename):
+                makedirs(log_parent, exist_ok=True)
+
+            file_handler = RotatingFileHandler(
+                filename=log_filename,
+                mode="w",
+                maxBytes=33_554_432,  # 32 MiB
+                backupCount=5,
+                encoding="utf-8",
+            )
+
+            file_handler.setFormatter(formatter)
+            root_logger.addHandler(file_handler)
+
+        yield
+    finally:
+        for handler in root_logger.handlers:
+            handler.close()
+            root_logger.removeHandler(handler)
 
 
 def _load_config() -> Dict[str, Any]:
@@ -96,8 +126,6 @@ def _create_bot(config: Dict[str, Any]) -> Sleepy:
 
 
 if __name__ == "__main__":
-    _set_up_logging()
-
     try:
         import uvloop  # type: ignore
     except ModuleNotFoundError:
@@ -108,4 +136,12 @@ if __name__ == "__main__":
     config = _load_config()
     bot = _create_bot(config)
 
-    bot.run(config["discord_auth_token"])
+    with _setup_logging():
+        # discord.py logging
+        logging.getLogger("discord").setLevel(logging.INFO)
+        logging.getLogger("discord.http").setLevel(logging.WARNING)
+
+        # bot logging
+        logging.getLogger(__package__).setLevel(logging.DEBUG)
+
+        bot.run(config["discord_auth_token"], log_handler=None)
