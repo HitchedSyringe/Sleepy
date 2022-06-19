@@ -38,10 +38,9 @@ if TYPE_CHECKING:
 
 
 ExtensionConverter = modules.ExtensionConverter
-_original_resolve_extensions = modules.resolve_extensions
 
 
-def resolve_extensions(bot: Sleepy, name: str) -> List[str]:
+def _new_resolve_extensions(bot: Sleepy, name: str) -> List[str]:
     exts = []
     exts_dir = ".".join(bot.extensions_directory.parts)
 
@@ -57,13 +56,6 @@ def resolve_extensions(bot: Sleepy, name: str) -> List[str]:
             exts.append(ext)
 
     return exts
-
-
-# Inject the custom extension resolving behaviour.
-# I figured this was the best way to do it rather
-# than writing my own extensions converter, which
-# would probably just end up copying the original.
-modules.resolve_extensions = resolve_extensions
 
 
 class Owner(
@@ -83,9 +75,18 @@ class Owner(
 
     ICON: str = "\N{MAGNET}"
 
+    def cog_load(self) -> None:
+        self._original_resolve_extensions = modules.resolve_extensions
+
+        # Inject the custom extension resolving behaviour.
+        # I figured this was the best way to do it rather
+        # than writing my own extensions converter, which
+        # would probably just end up copying the original.
+        modules.resolve_extensions = _new_resolve_extensions
+
     def cog_unload(self) -> None:
         # Restore the original functionality.
-        modules.resolve_extensions = _original_resolve_extensions
+        modules.resolve_extensions = self._original_resolve_extensions
 
     @Feature.Command(aliases=("pm",))
     async def dm(self, ctx: SleepyContext, user: discord.User, *, content: str) -> None:
