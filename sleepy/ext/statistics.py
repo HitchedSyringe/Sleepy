@@ -104,9 +104,23 @@ class Statistics(
 
     ICON: str = "\N{BAR CHART}"
 
+    if TYPE_CHECKING:
+        gw_handler: GatewayWebhookHandler
+
     def __init__(self, bot: StatsSleepy) -> None:
         self.bot: StatsSleepy = bot
         self.process: psutil.Process = psutil.Process()
+
+        # Mainly for the ``about``` command. This removes the
+        # need to iterate through guilds on each command invoke.
+        self.total_guilds: int = 0
+        self.total_members: int = 0
+        self.total_text: int = 0
+        self.total_voice: int = 0
+        self.total_stage: int = 0
+
+    def cog_load(self) -> None:
+        bot = self.bot
 
         self.gw_handler = handler = GatewayWebhookHandler(bot)
         logging.getLogger("discord").addHandler(handler)
@@ -118,14 +132,8 @@ class Statistics(
         # not everyone would want to be forced to use this.
         type(bot).before_identify_hook = _new_before_identify_hook  # type: ignore
 
-        # Mainly for the ``about``` command. This removes the
-        # need to iterate through guilds on each command invoke.
-        self.total_guilds: int = 0
-        self.total_members: int = 0
-        self.total_text: int = 0
-        self.total_voice: int = 0
-        self.total_stage: int = 0
-
+        # This needs to be ran in a task since awaiting it would
+        # deadlock the bot on startup.
         name = "ext-statistics-cache-bot-counts"
         asyncio.create_task(self.cache_bot_counts(), name=name)
 
