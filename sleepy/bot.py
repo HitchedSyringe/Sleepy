@@ -288,8 +288,8 @@ class Sleepy(commands.Bot):
         _LOG.info("Sleepy %s booted successfully. Awaiting READY event...", __version__)
 
     def get_all_extensions(self) -> Generator[str, None, None]:
-        """Returns a generator of all recognized extensions
-        in the configured extensions directory.
+        """Returns a generator with the names of every recognized
+        extension in the configured extensions directory.
 
         This is equivalent to passing :attr:`extensions_directory`
         in `.utils.find_extensions_in`.
