@@ -21,12 +21,14 @@ __all__ = (
 
 
 import traceback
-from typing import TYPE_CHECKING, Callable, Dict, TypeVar, Union
+from typing import TYPE_CHECKING, Callable, Dict, TypeVar
 
 import discord
 from discord.ext import commands
+from jishaku.paginators import WrappedPaginator
 
 from sleepy.menus import PaginatorSource
+from sleepy.utils import tchart
 
 from .trivia import TriviaFlags, trivia_command
 
@@ -34,10 +36,6 @@ T = TypeVar("T")
 
 
 if TYPE_CHECKING:
-    from collections import Counter
-
-    from discord import Member, User
-
     from sleepy.context import Context as SleepyContext
 
     from .base_session import BaseSession
@@ -67,20 +65,6 @@ def no_active_minigame_session() -> Callable[[T], T]:
         return True
 
     return commands.check(predicate)
-
-
-def _generate_scoreboard(scores: Counter[Union[Member, User]]) -> commands.Paginator:
-    paginator = commands.Paginator(prefix="**Scoreboard**\n```hs", max_size=800)
-
-    def as_name(user: Union[Member, User]) -> str:
-        return user.display_name
-
-    max_width = len(max(map(as_name, scores), key=len))
-
-    for (user, score) in scores.most_common():
-        paginator.add_line(f"{as_name(user):<{max_width}} | {score}")
-
-    return paginator
 
 
 class HasActiveMinigameSession(commands.CheckFailure):
@@ -218,8 +202,12 @@ class Minigames(commands.Cog):
         if session is None:
             await ctx.send("This channel has no active minigame session.")
         elif scores := session.scores:
-            scoreboard = _generate_scoreboard(scores)
-            await ctx.paginate(PaginatorSource(scoreboard))
+            scoreboard = tchart(dict(scores.most_common()), lambda u: u.display_name)
+
+            paginator = WrappedPaginator(prefix="**Scoreboard**\n```hs", max_size=1000)
+            paginator.add_line(scoreboard)
+
+            await ctx.paginate(PaginatorSource(paginator))
         else:
             await ctx.send("There are no player scores to show.")
 
