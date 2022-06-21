@@ -38,7 +38,6 @@ if TYPE_CHECKING:
 
     from discord import Member, User
 
-    from sleepy.bot import Sleepy
     from sleepy.context import Context as SleepyContext
 
     from .base_session import BaseSession
@@ -59,7 +58,7 @@ def no_active_minigame_session() -> Callable[[T], T]:
         The invoking channel already has an active minigame session.
     """
 
-    def predicate(ctx: commands.Context) -> bool:
+    def predicate(ctx: SleepyContext) -> bool:
         # This will only be used within this cog.
         if ctx.channel.id in ctx.cog.sessions:  # type: ignore
             message = "This channel already has an active minigame session."
@@ -164,7 +163,7 @@ class Minigames(commands.Cog):
 
     @commands.group(invoke_without_command=True)
     @commands.guild_only()
-    async def minigame(self, ctx: commands.Context) -> None:
+    async def minigame(self, ctx: SleepyContext) -> None:
         """Various minigame-related commands."""
         if ctx.invoked_subcommand is None:
             await ctx.send_help(ctx.command)
@@ -172,7 +171,7 @@ class Minigames(commands.Cog):
     @minigame.command(usage="categories: <categories...> [options...]")
     @no_active_minigame_session()
     @commands.bot_has_permissions(embed_links=True)
-    async def trivia(self, ctx: commands.Context, *, options: TriviaFlags) -> None:
+    async def trivia(self, ctx: SleepyContext, *, options: TriviaFlags) -> None:
         """Starts a new trivia session.
 
         This command's interface is similar to Discord's slash commands.
@@ -225,7 +224,7 @@ class Minigames(commands.Cog):
             await ctx.send("There are no player scores to show.")
 
     @minigame.command()
-    async def stop(self, ctx: commands.Context) -> None:
+    async def stop(self, ctx: SleepyContext) -> None:
         """Stops the current minigame session.
 
         You must either be the host, the bot owner, or a user

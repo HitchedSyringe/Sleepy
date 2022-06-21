@@ -31,10 +31,8 @@ from ..base_session import BaseSession
 from .question import TriviaQuestion
 
 if TYPE_CHECKING:
-    from discord.ext.commands import Context
+    from discord.ext.commands import Bot, Context
     from typing_extensions import Self
-
-    from sleepy.bot import Sleepy
 
     from ..base_session import TextGuildChannel
 
@@ -84,12 +82,9 @@ class TriviaSession(BaseSession):
         "_last_interaction",
     )
 
-    if TYPE_CHECKING:
-        bot: Sleepy
-
     def __init__(
         self,
-        bot: Sleepy,
+        bot: Bot,
         channel: TextGuildChannel,
         host: discord.Member,
         questions: List[TriviaQuestion],

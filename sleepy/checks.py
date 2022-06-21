@@ -7,6 +7,8 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+from __future__ import annotations
+
 __all__ = (
     "MissingAnyPermissions",
     "are_users",
@@ -17,12 +19,16 @@ __all__ = (
 )
 
 
-from typing import Any, Callable, Dict, List, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, TypeVar
 
 from discord import Permissions
 from discord.ext import commands
 
 from .utils import human_join
+
+if TYPE_CHECKING:
+    from sleepy.context import Context as SleepyContext
+
 
 _T = TypeVar("_T")
 
@@ -105,7 +111,7 @@ def has_permissions(
     if invalid := set(permissions) - set(Permissions.VALID_FLAGS):
         raise TypeError(f"Invalid permission(s): {', '.join(invalid)}")
 
-    async def predicate(ctx: commands.Context) -> bool:
+    async def predicate(ctx: SleepyContext) -> bool:
         if await ctx.bot.is_owner(ctx.author):
             return True
 
@@ -166,7 +172,7 @@ def has_guild_permissions(
     if invalid := set(permissions) - set(Permissions.VALID_FLAGS):
         raise TypeError(f"Invalid permission(s): {', '.join(invalid)}")
 
-    async def predicate(ctx: commands.Context) -> bool:
+    async def predicate(ctx: SleepyContext) -> bool:
         if ctx.guild is None:
             raise commands.NoPrivateMessage()
 
@@ -201,7 +207,7 @@ def is_in_guilds(*guild_ids: int) -> Callable[[_T], _T]:
         The command was executed in a private message.
     """
 
-    async def predicate(ctx: commands.Context) -> bool:
+    async def predicate(ctx: SleepyContext) -> bool:
         if ctx.guild is None:
             raise commands.NoPrivateMessage()
 
@@ -220,7 +226,7 @@ def is_in_channels(*channel_ids: int) -> Callable[[_T], _T]:
         The channel IDs to check for.
     """
 
-    async def predicate(ctx: commands.Context) -> bool:
+    async def predicate(ctx: SleepyContext) -> bool:
         return ctx.channel.id in channel_ids or await ctx.bot.is_owner(ctx.author)
 
     return commands.check(predicate)
@@ -236,7 +242,7 @@ def are_users(*user_ids: int) -> Callable[[_T], _T]:
         The user IDs to check for.
     """
 
-    async def predicate(ctx: commands.Context) -> bool:
+    async def predicate(ctx: SleepyContext) -> bool:
         return ctx.author.id in user_ids or await ctx.bot.is_owner(ctx.author)
 
     return commands.check(predicate)

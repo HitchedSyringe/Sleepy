@@ -32,8 +32,6 @@ if TYPE_CHECKING:
 
     from .context import Context as SleepyContext
 
-    AnyContext = commands.Context[Any]
-
 
 class ImageAssetConversionFailure(commands.BadArgument):
     """Exception raised when the argument provided
@@ -326,7 +324,7 @@ _original_command_transform = commands.Command.transform
 async def _iac_transform(
     converter: ImageAssetConverter,
     command: commands.Command,
-    ctx: AnyContext,
+    ctx: SleepyContext,
     param: commands.Parameter,
     attachments: _AttachmentIterator,
 ) -> Any:
@@ -344,7 +342,7 @@ async def _iac_transform(
 
 async def _new_command_transform(
     self: commands.Command,
-    ctx: AnyContext,
+    ctx: commands.Context,
     param: commands.Parameter,
     attachments: _AttachmentIterator,
 ) -> Any:

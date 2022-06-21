@@ -32,6 +32,8 @@ from .question import TriviaQuestion
 from .session import TriviaSession
 
 if TYPE_CHECKING:
+    from sleepy.context import Context as SleepyContext
+
     from ..cog import Minigames
 
 
@@ -49,7 +51,7 @@ class TriviaFlags(commands.FlagConverter):
 
 
 async def trivia_command(
-    cog: Minigames, ctx: commands.Context, *, options: TriviaFlags
+    cog: Minigames, ctx: SleepyContext, *, options: TriviaFlags
 ) -> None:
     category_credits = []
     questions = []

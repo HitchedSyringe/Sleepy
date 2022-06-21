@@ -20,8 +20,8 @@ from .base_session import *
 from .cog import *
 
 if _TYPE_CHECKING:
-    from discord.ext.commands import Bot
+    from sleepy.bot import Sleepy
 
 
-async def setup(bot: Bot) -> None:
+async def setup(bot: Sleepy) -> None:
     await bot.add_cog(Minigames())
