@@ -253,6 +253,5 @@ class Owner(
 
 async def setup(bot: Sleepy) -> None:
     os.environ["JISHAKU_RETAIN"] = "True"
-    os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 
     await bot.add_cog(Owner(bot=bot))
