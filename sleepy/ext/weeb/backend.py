@@ -172,14 +172,13 @@ def make_kanna_fact_meme(text: str) -> io.BytesIO:
         font = ImageFont.truetype(str(FONTS / "Arimo-Regular.ttf"), 18)
 
         text = wrap_text(text, font, width=160)
-        text_layer = Image.new("RGBA", get_accurate_text_size(font, text))
+        text_layer = Image.new("LA", get_accurate_text_size(font, text))
 
         ImageDraw.Draw(text_layer).text((0, 0), text, "black", font, align="center")
 
         text_layer = text_layer.rotate(-13, expand=True)
 
-        # For reference, the desired point to center the
-        # text around is (155, 151).
+        # For reference, the desired point to center the text around is (155, 151).
         template.paste(
             text_layer,
             (155 - text_layer.width // 2, 151 - text_layer.height // 2),
@@ -273,13 +272,13 @@ def make_ritsu_fact_meme(text: str) -> io.BytesIO:
         font = ImageFont.truetype(str(FONTS / "Arimo-Regular.ttf"), 50)
 
         text = wrap_text(text, font, width=270)
-        text_layer = Image.new("RGBA", get_accurate_text_size(font, text))
+        text_layer = Image.new("LA", get_accurate_text_size(font, text))
 
         ImageDraw.Draw(text_layer).text((0, 0), text, "black", font, align="center")
+
         text_layer = text_layer.rotate(-2, expand=True)
 
-        # For reference, the desired point to center the
-        # text around is (727, 428).
+        # For reference, the desired point to center the text around is (727, 428).
         template.paste(
             text_layer,
             (727 - text_layer.width // 2, 428 - text_layer.height // 2),

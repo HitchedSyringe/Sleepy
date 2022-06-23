@@ -237,7 +237,7 @@ def make_axios_interview_meme(text: str) -> io.BytesIO:
         font = ImageFont.truetype(str(FONTS / "Arimo-Regular.ttf"), 60)
 
         text = wrap_text(text, font, width=650)
-        text_layer = Image.new("RGBA", get_accurate_text_size(font, text))
+        text_layer = Image.new("LA", get_accurate_text_size(font, text))
 
         ImageDraw.Draw(text_layer).text((0, 0), text, "black", font, align="center")
 
@@ -290,50 +290,17 @@ def make_change_my_mind_meme(text: str) -> io.BytesIO:
         font = ImageFont.truetype(str(FONTS / "Arimo-Regular.ttf"), 50)
 
         text = wrap_text(text, font, width=620)
-        text_layer = Image.new("RGBA", get_accurate_text_size(font, text))
+        text_layer = Image.new("LA", get_accurate_text_size(font, text))
 
         ImageDraw.Draw(text_layer).text((0, 0), text, "black", font, align="center")
 
-        # We want to center the text around a desired point.
-        # Since the image placement is relative to the upper
-        # left corner, the proper coordinates must be found
-        # to ensure desirable positioning of the text layer.
-        # Since the text layer is initially created with the
-        # dimensions matching the bounding box of the given
-        # text, rotating the layer will always result in a
-        # larger rectangle. In this case, the new rectangle
-        # consists of four similar triangles of empty space,
-        # displacing either the x or y coordinate of the
-        # corner point of the initial text layer.
+        text_layer = text_layer.rotate(22.5, expand=True)
 
-        # For reference, the desired point to center the
-        # text around is (1245, 983).
-
-        # For this command:
-        # - We find the proper x coordinate by subtracting
-        #   the x coordinate of the desired point by 1/2 of
-        #   the unrotated text layer width (the hypotenuse
-        #   of the top right triangle).
-        # - We find the proper y coordinate by subtracting
-        #   the y coordinate of the desired point by the y
-        #   displacement (the length of the short leg of
-        #   the top right triangle). To find the this, we
-        #   must do basic trigonometry. For reference, the
-        #   equation used is: h * sin(a), where h and a
-        #   are the hypotenuse length (the unrotated text
-        #   layer height) and rotation angle (22.5 deg),
-        #   respectively.
-
-        #   sin(22.5 deg) ~= 0.383; value is rounded to 3
-        #   sig figs as doesn't need to be overly precise.
-        #   Furthermore, this also avoids having to store
-        #   or repeatedly calculate the trig result.
-
-        hyp_length = text_layer.width
-
-        template.alpha_composite(
-            text_layer.rotate(22.5, expand=True),
-            (1245 - hyp_length // 2, 983 - int(hyp_length * 0.383)),
+        # For reference, the desired point to center the text around is (1250, 980).
+        template.paste(
+            text_layer,
+            (1255 - text_layer.width // 2, 980 - text_layer.height // 2),
+            text_layer,
         )
 
         buffer = io.BytesIO()
