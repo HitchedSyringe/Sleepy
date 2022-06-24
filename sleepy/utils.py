@@ -46,6 +46,7 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
+    cast,
     overload,
 )
 
@@ -498,13 +499,13 @@ def measure_performance(func: Callable[_P, _RT]) -> Callable[_P, Tuple[_RT, floa
 
 @overload
 def measure_performance(
-    func: Awaitable[_RT],
+    func: Callable[_P, Awaitable[_RT]],
 ) -> Callable[_P, Awaitable[Tuple[_RT, float]]]:
     ...
 
 
 def measure_performance(
-    func: Union[Callable[_P, _RT], Awaitable[_RT]]
+    func: Union[Callable[_P, _RT], Callable[_P, Awaitable[_RT]]]
 ) -> Callable[_P, Union[Tuple[_RT, float], Awaitable[Tuple[_RT, float]]]]:
     """A decorator that returns a function or coroutine's
     execution time in milliseconds.
@@ -542,19 +543,21 @@ def measure_performance(
     # decorator given that it has been deprecated since
     # Python 3.8.
     if asyncio.iscoroutinefunction(func):
+        func = cast(Callable[_P, Awaitable[_RT]], func)
 
-        @wraps(func)  # type: ignore
+        @wraps(func)
         async def decorator(*args: _P.args, **kwargs: _P.kwargs) -> Tuple[_RT, float]:  # type: ignore
             start = time.perf_counter()
-            result = await func(*args, **kwargs)  # type: ignore
+            result = await func(*args, **kwargs)
             return result, (time.perf_counter() - start) * 1000
 
     else:
+        func = cast(Callable[_P, _RT], func)
 
-        @wraps(func)  # type: ignore
+        @wraps(func)
         def decorator(*args: _P.args, **kwargs: _P.kwargs) -> Tuple[_RT, float]:
             start = time.perf_counter()
-            result: _RT = func(*args, **kwargs)  # type: ignore
+            result = func(*args, **kwargs)
             return result, (time.perf_counter() - start) * 1000
 
     return decorator
