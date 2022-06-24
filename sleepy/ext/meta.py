@@ -287,7 +287,7 @@ class SleepyHelpCommand(commands.HelpCommand):
 
         def key(command: commands.Command) -> str:
             cog = command.cog
-            return cog is not None and cog.qualified_name
+            return cog is not None and cog.qualified_name  # type: ignore -- This is fine.
 
         cmds = await self.filter_commands(ctx.bot.commands, sort=True, key=key)
 
