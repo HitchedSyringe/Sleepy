@@ -217,7 +217,7 @@ def make_lolice_meme(image_buffer: io.BytesIO) -> io.BytesIO:
 @measure_performance
 def make_nichijou_gif_meme(text: str) -> io.BytesIO:
     with Image.open(TEMPLATES / "nichijou.gif") as template:
-        font = ImageFont.truetype(str(FONTS / "Arimo-Bold.ttf"), 36)
+        font = ImageFont.truetype(str(FONTS / "Arimo-Bold.ttf"), 45)
 
         frames = []
         for index, frame in enumerate(ImageSequence.Iterator(template)):
