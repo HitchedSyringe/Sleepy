@@ -7,11 +7,13 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+from __future__ import annotations
+
 import difflib
 import inspect
 import itertools
 from os import path
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Mapping, Optional, Tuple, Union
 
 import discord
 from discord import ActivityType, ChannelType, Embed, SelectOption, Status
@@ -20,6 +22,7 @@ from discord.ext.menus import ListPageSource, PageSource
 from discord.ui import Select
 from discord.utils import format_dt as fmt_dt, oauth_url, utcnow
 from jishaku.paginators import WrappedPaginator
+from typing_extensions import Annotated
 
 from sleepy.menus import BotLinksView, PaginationView
 from sleepy.utils import (
@@ -30,9 +33,14 @@ from sleepy.utils import (
     progress_bar,
 )
 
+if TYPE_CHECKING:
+    from sleepy.bot import Sleepy
+    from sleepy.context import Context as SleepyContext
+
+
 # fmt: off
 # (channel_type, is_viewable): emoji
-CHANNEL_EMOJI = {
+CHANNEL_EMOJI: Dict[Tuple[ChannelType, bool], str] = {
     (ChannelType.text, True):            "<:tc:828149291812913152> ",
     (ChannelType.voice, True):           "<:vc:828151635791839252> ",
     (ChannelType.stage_voice, True):     "<:sc:828149291750785055> ",
@@ -50,7 +58,7 @@ CHANNEL_EMOJI = {
 
 
 # flag: emoji
-BADGES = {
+BADGES: Dict[str, str] = {
     "bug_hunter":                  "<:bh:886251266517389332>",
     "bug_hunter_level_2":          "<:bh2:886251265342988320>",
     "early_supporter":             "<:es:886251265573666897>",
@@ -67,34 +75,30 @@ BADGES = {
 
 
 class HomePageSource(PageSource):
-    def __init__(self, *, prefix):
-        self.prefix = prefix
+    def __init__(self, *, prefix: str) -> None:
+        self.prefix: str = prefix
 
-    async def format_page(self, menu, entries):
+    async def format_page(self, menu: "BotHelpView", entries: None) -> Embed:
         embed = Embed(
             title="Hello! Welcome to the help menu.",
-            description=(
-                "Select a category using the dropdown menu below."
-                f" Alternatively, you can also use `{self.prefix}help"
-                " <command|category>` to view more information about"
-                " a command or category."
-            ),
+            description="Select a category using the dropdown menu below."
+            f" Alternatively, you can also use `{self.prefix}help"
+            " <command|category>` to view more information about"
+            " a command or category.",
             colour=0x2F3136,
         )
         embed.set_footer(text="Check out our links using the buttons below!")
 
         embed.add_field(
             name="How do I read the command syntax?",
-            value=(
-                "Understanding my command syntax is quite simple:"
-                "\n```lasso"
-                "\n<argument> means the argument is 𝗿𝗲𝗾𝘂𝗶𝗿𝗲𝗱."
-                "\n[argument] means the argument is 𝗼𝗽𝘁𝗶𝗼𝗻𝗮𝗹."
-                "\n[A|B] means 𝗲𝗶𝘁𝗵𝗲𝗿 𝗔 𝗼𝗿 𝗕."
-                "\n[argument...] means 𝗺𝘂𝗹𝘁𝗶𝗽𝗹𝗲 arguments can be entered."
-                "```"
-                "\nWhatever you do, **do not include the brackets.**"
-            ),
+            value="Understanding my command syntax is quite simple:"
+            "\n```lasso"
+            "\n<argument> means the argument is 𝗿𝗲𝗾𝘂𝗶𝗿𝗲𝗱."
+            "\n[argument] means the argument is 𝗼𝗽𝘁𝗶𝗼𝗻𝗮𝗹."
+            "\n[A|B] means 𝗲𝗶𝘁𝗵𝗲𝗿 𝗔 𝗼𝗿 𝗕."
+            "\n[argument...] means 𝗺𝘂𝗹𝘁𝗶𝗽𝗹𝗲 arguments can be entered."
+            "```"
+            "\nWhatever you do, **do not include the brackets.**",
             inline=False,
         )
 
@@ -102,23 +106,31 @@ class HomePageSource(PageSource):
 
     # These are needed for the pagination view to actually work.
 
-    def is_paginating(self):
+    def is_paginating(self) -> bool:
         return False
 
-    async def get_page(self, page_number):
+    async def get_page(self, page_number: int) -> None:
         pass
 
 
 class GroupPageSource(ListPageSource):
-    def __init__(self, group, cmds, *, per_page=6):
+    def __init__(
+        self,
+        group: Union[commands.Group, commands.Cog],
+        cmds: List[commands.Command],
+        *,
+        per_page: int = 6,
+    ) -> None:
         super().__init__(cmds, per_page=per_page)
 
-        self.title = group.qualified_name
-        self.description = group.description
+        self.title: str = group.qualified_name
+        self.description: str = group.description
 
-        self.cmds = cmds
+        self.cmds: List[commands.Command] = cmds
 
-    async def format_page(self, menu, cmds):
+    async def format_page(
+        self, menu: PaginationView, cmds: List[commands.Command]
+    ) -> Embed:
         embed = Embed(title=self.title, description=self.description, colour=0x2F3136)
 
         for cmd in cmds:
@@ -131,10 +143,14 @@ class GroupPageSource(ListPageSource):
         return embed
 
 
-class CategorySelect(Select):
-    def __init__(self, bot, mapping):
-        self.bot = bot
-        self.mapping = mapping
+class CategorySelect(Select["BotHelpView"]):
+    def __init__(
+        self,
+        bot: Sleepy,
+        mapping: Dict[commands.Cog, List[commands.Command]],
+    ) -> None:
+        self.bot: Sleepy = bot
+        self.mapping: Dict[commands.Cog, List[commands.Command]] = mapping
 
         options = [
             SelectOption(
@@ -148,7 +164,7 @@ class CategorySelect(Select):
 
         super().__init__(placeholder="Select a category...", options=options)
 
-    async def callback(self, itn):
+    async def callback(self, itn: discord.Interaction) -> None:
         cog = self.bot.get_cog(self.values[0])
 
         # The cog may have been unloaded while this was open.
@@ -166,30 +182,37 @@ class CategorySelect(Select):
             )
             return
 
-        await self.view.change_source(GroupPageSource(cog, cmds), itn)
+        source = GroupPageSource(cog, cmds)
+
+        # View shouldn't be None by the time we're here.
+        await self.view.change_source(source, itn)  # type: ignore
 
 
 class BotHelpView(PaginationView):
-    def __init__(self, ctx, mapping):
+
+    bot: Sleepy
+
+    def __init__(
+        self, ctx: SleepyContext, mapping: Dict[commands.Cog, List[commands.Command]]
+    ) -> None:
         self.bot = bot = ctx.bot
-        self.mapping = mapping
+        self.mapping: Dict[commands.Cog, List[commands.Command]] = mapping
 
         source = HomePageSource(prefix=ctx.clean_prefix)
 
         super().__init__(
             source,
-            owner_ids={ctx.author.id, bot.owner_id, *bot.owner_ids},
-            delete_message_when_stopped=True,
+            owner_ids={ctx.author.id, bot.owner_id, *bot.owner_ids},  # type: ignore
         )
 
-    def _do_items_setup(self):
+    def _do_items_setup(self) -> None:
         self.add_item(CategorySelect(self.bot, self.mapping))
         super()._do_items_setup()
 
         # If we're on the main page, inject these
         # button links into this view.
         if hasattr(self._source, "prefix"):
-            bot_links = BotLinksView(self.bot.application_id)
+            bot_links = BotLinksView(self.bot.application_id)  # type: ignore
 
             for button in bot_links.children:
                 self.add_item(button)
@@ -199,7 +222,14 @@ class BotHelpView(PaginationView):
 
 
 class SleepyHelpCommand(commands.HelpCommand):
-    def _apply_formatting(self, embed_like, command):
+
+    context: SleepyContext
+
+    def _apply_formatting(
+        self,
+        embed_like: Union[Embed, GroupPageSource],
+        command: commands.Command,
+    ) -> None:
         embed_like.title = self.get_command_signature(command)
 
         if command.description:
@@ -207,7 +237,7 @@ class SleepyHelpCommand(commands.HelpCommand):
         else:
             embed_like.description = command.help or "No help given."
 
-    async def command_not_found(self, string):
+    async def command_not_found(self, string: str) -> str:
         cmds = await self.filter_commands(self.context.bot.commands, sort=True)
         close = difflib.get_close_matches(string, (c.name for c in cmds))
 
@@ -220,7 +250,7 @@ class SleepyHelpCommand(commands.HelpCommand):
             + "```"
         )
 
-    async def subcommand_not_found(self, command, string):
+    async def subcommand_not_found(self, command: commands.Command, string: str) -> str:
         if not isinstance(command, commands.Group):
             return "That command isn't a group command."
 
@@ -238,7 +268,7 @@ class SleepyHelpCommand(commands.HelpCommand):
 
         return "That command has no visible subcommands."
 
-    def get_command_signature(self, command):
+    def get_command_signature(self, command: commands.Command) -> str:
         if command.aliases:
             aliases = "|".join(command.aliases)
             cmd_fmt = f"[{command.name}|{aliases}]"
@@ -250,10 +280,12 @@ class SleepyHelpCommand(commands.HelpCommand):
 
         return f"{cmd_fmt} {command.signature}"
 
-    async def send_bot_help(self, mapping):
+    async def send_bot_help(
+        self, mapping: Mapping[Optional[commands.Cog], List[commands.Command]]
+    ) -> None:
         ctx = self.context
 
-        def key(command):
+        def key(command: commands.Command) -> str:
             cog = command.cog
             return cog is not None and cog.qualified_name
 
@@ -268,7 +300,7 @@ class SleepyHelpCommand(commands.HelpCommand):
         view = BotHelpView(ctx, sorted_mapping)
         await view.send_to(ctx)
 
-    async def send_cog_help(self, cog):
+    async def send_cog_help(self, cog: commands.Cog) -> None:
         ctx = self.context
         cmds = await self.filter_commands(cog.get_commands(), sort=True)
 
@@ -278,26 +310,25 @@ class SleepyHelpCommand(commands.HelpCommand):
 
         await ctx.paginate(GroupPageSource(cog, cmds))
 
-    async def send_command_help(self, command):
+    async def send_command_help(self, command: commands.Command) -> None:
         embed = Embed(colour=0x2F3136)
 
         self._apply_formatting(embed, command)
 
         await self.context.send(embed=embed)
 
-    async def send_group_help(self, group):
+    async def send_group_help(self, group: commands.Group) -> None:
         cmds = await self.filter_commands(group.commands, sort=True)
 
         if not cmds:
             await self.send_command_help(group)
             return
 
-        ctx = self.context
         source = GroupPageSource(group, cmds)
 
         self._apply_formatting(source, group)
 
-        await ctx.paginate(source)
+        await self.context.paginate(source)
 
 
 class Meta(commands.Cog):
@@ -307,11 +338,11 @@ class Meta(commands.Cog):
     multinational technology conglomerate.||
     """
 
-    ICON = "\N{INFORMATION SOURCE}"
+    ICON: str = "\N{INFORMATION SOURCE}"
 
-    def __init__(self, bot):
-        self.bot = bot
-        self.old_help_command = bot.help_command
+    def __init__(self, bot: Sleepy) -> None:
+        self.bot: Sleepy = bot
+        self.old_help_command: Optional[commands.HelpCommand] = bot.help_command
 
         command_attrs = {
             "cooldown": commands.CooldownMapping.from_cooldown(
@@ -327,14 +358,16 @@ class Meta(commands.Cog):
         # Pertains to the prefixes command and is here so
         # I don't have to repeatedly perform lookups just
         # to figure out whether to drop the dupe mention.
-        self.mentionable = bot.config["mentionable"] or not bot.config["prefixes"]
+        self.mentionable: bool = bot.config["mentionable"] or not bot.config["prefixes"]
 
-    def cog_unload(self):
+    def cog_unload(self) -> None:
         self.bot.help_command = self.old_help_command
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
-    async def avatar(self, ctx, *, user: discord.User = commands.Author):
+    async def avatar(
+        self, ctx: SleepyContext, *, user: discord.User = commands.Author
+    ) -> None:
         """Shows an enlarged version of a user's avatar.
 
         User can either be a name, ID, or mention.
@@ -361,7 +394,7 @@ class Meta(commands.Cog):
 
     @commands.command(aliases=("feedback", "suggest", "complain"))
     @commands.cooldown(1, 60, commands.BucketType.user)
-    async def contact(self, ctx, *, content):
+    async def contact(self, ctx: SleepyContext, *, content: str) -> None:
         """Directly contacts my higher-ups.
 
         This is a quick and easy method to request features
@@ -401,20 +434,20 @@ class Meta(commands.Cog):
             await ctx.send("Your message was sent successfully.")
 
     @commands.command(aliases=("hi",))
-    async def hello(self, ctx):
+    async def hello(self, ctx: SleepyContext) -> None:
         """Shows my brief introduction."""
         await ctx.send(
             "Hello! \N{WAVING HAND SIGN} I am a bot made by HitchedSyringe#0598."
         )
 
     @commands.command()
-    async def invite(self, ctx):
+    async def invite(self, ctx: SleepyContext) -> None:
         """Gives you the invite link to join me to your server."""
         permissions = discord.Permissions(PERMISSIONS_VALUE)
-        await ctx.send(f"<{oauth_url(ctx.bot.application_id, permissions=permissions)}>")
+        await ctx.send(f"<{oauth_url(ctx.bot.application_id, permissions=permissions)}>")  # type: ignore
 
     @commands.command()
-    async def ping(self, ctx):
+    async def ping(self, ctx: SleepyContext) -> None:
         """Pong!
 
         Not all bots need a ping command.
@@ -458,10 +491,10 @@ class Meta(commands.Cog):
     @commands.bot_has_permissions(embed_links=True)
     async def permissions(
         self,
-        ctx,
-        user: Optional[discord.Member] = commands.Author,
+        ctx: SleepyContext,
+        user: Annotated[discord.Member, Optional[discord.Member]] = commands.Author,
         channel: discord.abc.GuildChannel = commands.CurrentChannel,
-    ):
+    ) -> None:
         """Shows a user's permissions optionally in another channel.
 
         User can either be a name, ID, or mention. The same
@@ -503,7 +536,9 @@ class Meta(commands.Cog):
     @commands.command(aliases=("debugperms",), hidden=True)
     @commands.is_owner()
     @commands.bot_has_permissions(embed_links=True)
-    async def debugpermissions(self, ctx, channel_id: int, user: discord.User = None):
+    async def debugpermissions(
+        self, ctx: SleepyContext, channel_id: int, user: discord.User = None
+    ) -> None:
         """Shows a channel's resolved permissions as an optional user.
 
         If no user is given, then my permissions in the
@@ -518,20 +553,21 @@ class Meta(commands.Cog):
             return
 
         if user is None:
-            user = channel.guild.me
+            user = channel.guild.me  # type: ignore
         else:
-            user = channel.guild.get_member(user.id)
+            user = channel.guild.get_member(user.id)  # type: ignore
 
             if user is None:
                 await ctx.send("That user isn't a member of the channel's guild.")
                 return
 
-        await self.permissions(ctx, user, channel)
+        # These should work regardless.
+        await self.permissions(ctx, user, channel)  # type: ignore
 
     @commands.command()
-    async def prefixes(self, ctx):
+    async def prefixes(self, ctx: SleepyContext) -> None:
         """Shows my command prefixes."""
-        prefixes = await ctx.bot.get_prefix(ctx.message)
+        prefixes: List[str] = await ctx.bot.get_prefix(ctx.message)  # type: ignore
 
         # Remove the extra mention to prevent potential
         # confusion for the end user as it would appear
@@ -547,7 +583,7 @@ class Meta(commands.Cog):
     @commands.command(aliases=("guildinfo", "gi", "si"), usage="")
     @commands.guild_only()
     @commands.bot_has_permissions(embed_links=True)
-    async def serverinfo(self, ctx, *, guild=None):
+    async def serverinfo(self, ctx: SleepyContext, *, server: str = None):
         """Shows information about the server.
 
         An optional argument can be passed in order to get
@@ -555,13 +591,13 @@ class Meta(commands.Cog):
 
         (Bot Needs: Embed Links)
         """
-        if guild is not None and await ctx.bot.is_owner(ctx.author):
+        if server is not None and await ctx.bot.is_owner(ctx.author):
             # The reason this is down here instead of up in the
             # command arguments itself is because I would rather
             # have this be silent if the user isn't the owner.
-            guild = await commands.GuildConverter().convert(ctx, guild)
+            guild = await commands.GuildConverter().convert(ctx, server)
         else:
-            guild = ctx.guild
+            guild: discord.Guild = ctx.guild  # type: ignore
 
         embed = Embed(colour=0x2F3136)
         embed.set_author(name=guild.name)
@@ -577,23 +613,21 @@ class Meta(commands.Cog):
 
         embed.add_field(
             name="Information",
-            value=(
-                f"<:ar:862433028088135711> **ID:** {guild.id}"
-                f"\n<:ar:862433028088135711> **Owner:** {guild.owner.mention}"
-                f"\n<:ar:862433028088135711> **Created:** {fmt_dt(guild.created_at, 'R')}"
-                "\n<:ar:862433028088135711> **Members:**"
-                f" <:sm:829503770454523994> {guild.member_count:,d}"
-                f" \N{BULLET} <:nb:829503770060390471> {len(guild.premium_subscribers):,d}"
-                f" \N{BULLET} <:bt:833117614690533386> {sum(m.bot for m in guild.members):,d}"
-                "\n<:ar:862433028088135711> **Channels:**"
-                f" <:tc:828149291812913152> {len(guild.text_channels)}"
-                f" \N{BULLET} <:vc:828151635791839252> {len(guild.voice_channels)}"
-                f" \N{BULLET} <:sc:828149291750785055> {len(guild.stage_channels)}"
-                f"\n<:ar:862433028088135711> **Locale:** {guild.preferred_locale}"
-                f"\n<:ar:862433028088135711> **Upload Limit:** {guild.filesize_limit // 1e6} MB"
-                f"\n<:ar:862433028088135711> **Bitrate Limit:** {guild.bitrate_limit // 1e3} kbps"
-                f"\n<:ar:862433028088135711> **Shard ID:** {guild.shard_id or 'N/A'}"
-            ),
+            value=f"<:ar:862433028088135711> **ID:** {guild.id}"
+            f"\n<:ar:862433028088135711> **Owner:** {guild.owner.mention}"  # type: ignore
+            f"\n<:ar:862433028088135711> **Created:** {fmt_dt(guild.created_at, 'R')}"
+            "\n<:ar:862433028088135711> **Members:**"
+            f" <:sm:829503770454523994> {guild.member_count:,d}"
+            f" \N{BULLET} <:nb:829503770060390471> {len(guild.premium_subscribers):,d}"
+            f" \N{BULLET} <:bt:833117614690533386> {sum(m.bot for m in guild.members):,d}"
+            "\n<:ar:862433028088135711> **Channels:**"
+            f" <:tc:828149291812913152> {len(guild.text_channels)}"
+            f" \N{BULLET} <:vc:828151635791839252> {len(guild.voice_channels)}"
+            f" \N{BULLET} <:sc:828149291750785055> {len(guild.stage_channels)}"
+            f"\n<:ar:862433028088135711> **Locale:** {guild.preferred_locale}"
+            f"\n<:ar:862433028088135711> **Upload Limit:** {guild.filesize_limit // 1e6} MB"
+            f"\n<:ar:862433028088135711> **Bitrate Limit:** {guild.bitrate_limit // 1e3} kbps"
+            f"\n<:ar:862433028088135711> **Shard ID:** {guild.shard_id or 'N/A'}",
             inline=False,
         )
 
@@ -661,7 +695,7 @@ class Meta(commands.Cog):
     # note that this is hard-coded to view the master branch. As for the
     # third case, you're on your own.
     @commands.command()
-    async def source(self, ctx, *, command=None):
+    async def source(self, ctx: SleepyContext, *, command: str = None) -> None:
         """Sends a link to my full source code or for a specific command."""
         base = GITHUB_URL
 
@@ -671,7 +705,7 @@ class Meta(commands.Cog):
 
         if command == "help":
             src = type(self.bot.help_command)
-            filename = inspect.getsourcefile(src)
+            filename: str = inspect.getsourcefile(src)  # type: ignore
         else:
             cmd = ctx.bot.get_command(command)
 
@@ -704,7 +738,7 @@ class Meta(commands.Cog):
     @commands.command(aliases=("dir",))
     @commands.guild_only()
     @commands.bot_has_permissions(embed_links=True)
-    async def tree(self, ctx):
+    async def tree(self, ctx: SleepyContext) -> None:
         """Shows a tree-like view of the server's channels.
 
         (Bot Needs: Embed Links)
@@ -712,10 +746,10 @@ class Meta(commands.Cog):
         tree = WrappedPaginator(prefix="", suffix="")
         total = 0
 
-        default = ctx.guild.default_role
-        rules_channel = ctx.guild.rules_channel
+        default = ctx.guild.default_role  # type: ignore
+        rules_channel = ctx.guild.rules_channel  # type: ignore
 
-        for category, channels in ctx.guild.by_category():
+        for category, channels in ctx.guild.by_category():  # type: ignore
             if category is not None:
                 total += 1
                 tree.add_line(f"**{category.name}**")
@@ -737,7 +771,7 @@ class Meta(commands.Cog):
 
         for page in tree.pages:
             embed = Embed(description=page, colour=0x2F3136)
-            embed.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon)
+            embed.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon)  # type: ignore
             embed.set_footer(text=f"{total} total channels.")
 
             await ctx.send(embed=embed)
@@ -745,8 +779,11 @@ class Meta(commands.Cog):
     @commands.command(aliases=("memberinfo", "ui", "mi"))
     @commands.bot_has_permissions(embed_links=True)
     async def userinfo(
-        self, ctx, *, user: Union[discord.Member, discord.User] = commands.Author
-    ):
+        self,
+        ctx: SleepyContext,
+        *,
+        user: Union[discord.Member, discord.User] = commands.Author,
+    ) -> None:
         """Shows information about a user.
 
         If no user is given, then your own info will be
@@ -850,5 +887,5 @@ class Meta(commands.Cog):
         await ctx.send(embed=embed)
 
 
-async def setup(bot):
+async def setup(bot: Sleepy) -> None:
     await bot.add_cog(Meta(bot))
