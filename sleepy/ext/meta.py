@@ -189,36 +189,36 @@ class CategorySelect(Select["BotHelpView"]):
 
 
 class BotHelpView(PaginationView):
-
-    bot: Sleepy
-
     def __init__(
         self, ctx: SleepyContext, mapping: Dict[commands.Cog, List[commands.Command]]
     ) -> None:
-        self.bot = bot = ctx.bot
+        bot = ctx.bot
+
+        self.bot: Sleepy = bot
         self.mapping: Dict[commands.Cog, List[commands.Command]] = mapping
+        self._use_home_page_layout: bool = True
 
         source = HomePageSource(prefix=ctx.clean_prefix)
 
         super().__init__(
             source,
             owner_ids={ctx.author.id, bot.owner_id, *bot.owner_ids},  # type: ignore
+            enable_stop_button=False,
         )
 
     def _do_items_setup(self) -> None:
         self.add_item(CategorySelect(self.bot, self.mapping))
         super()._do_items_setup()
 
-        # If we're on the main page, inject these
-        # button links into this view.
-        if hasattr(self._source, "prefix"):
+        if self._use_home_page_layout:
             bot_links = BotLinksView(self.bot.application_id)  # type: ignore
 
             for button in bot_links.children:
                 self.add_item(button)
 
-        if not self._source.is_paginating():
-            self.add_item(self.stop_menu)
+            self._use_home_page_layout = False
+
+        self.add_item(self.stop_menu)
 
 
 class SleepyHelpCommand(commands.HelpCommand):
