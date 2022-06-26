@@ -23,11 +23,11 @@ from typing import TYPE_CHECKING, Any, Optional, Tuple, Union
 if TYPE_CHECKING:
     from collections import Counter
 
-    from discord import Member, TextChannel, Thread, User, VoiceChannel
+    from discord import DMChannel, Member, TextChannel, Thread, User, VoiceChannel
     from discord.ext.commands import Bot, Context
     from typing_extensions import Self
 
-    TextGuildChannel = Union[TextChannel, Thread, VoiceChannel]
+    DiscordTextChannel = Union[DMChannel, TextChannel, Thread, VoiceChannel]
 
 
 _LOG: logging.Logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ class BaseSession:
     ----------
     bot: :class:`commands.Bot`
         The bot instance.
-    channel: Union[:class:`discord.TextChannel`, :class:`discord.Thread`, :class:`discord.VoiceChannel`]
+    channel: Union[:class:`discord.DMChannel`, :class:`discord.TextChannel`, :class:`discord.Thread`, :class:`discord.VoiceChannel`]
         The channel to run the session in.
     host: :class:`discord.Member`
         The member that is hosting the session.
@@ -55,10 +55,10 @@ class BaseSession:
     ----------
     bot: :class:`commands.Bot`
         The bot instance.
-    channel: Union[:class:`discord.TextChannel`, :class:`discord.Thread`, :class:`discord.VoiceChannel`]
+    channel: Union[:class:`discord.DMChannel`, :class:`discord.TextChannel`, :class:`discord.Thread`, :class:`discord.VoiceChannel`]
         The channel that this session is running in.
-    host: :class:`discord.Member`
-        The member that is hosting this session.
+    host: Union[:class:`discord.Member`, :class:`discord.User`]
+        The user that is hosting this session.
     scores: Optional[Counter[Union[:class:`discord.Member`, :class:`discord.User`]]]
         The player scores. By default, this is ``None``.
     """
@@ -71,11 +71,13 @@ class BaseSession:
         "__task",
     )
 
-    def __init__(self, bot: Bot, channel: TextGuildChannel, host: Member) -> None:
+    def __init__(
+        self, bot: Bot, channel: DiscordTextChannel, host: Union[Member, User]
+    ) -> None:
         self.bot: Bot = bot
-        self.channel: TextGuildChannel = channel
-        self.host: Member = host
-        self.scores: Optional[Counter[Union[User, Member]]] = None
+        self.channel: DiscordTextChannel = channel
+        self.host: Union[Member, User] = host
+        self.scores: Optional[Counter[Union[Member, User]]] = None
 
         self.__task: Optional[asyncio.Task] = None
 
@@ -98,20 +100,19 @@ class BaseSession:
 
             self.bot.dispatch("minigame_session_error", self, exc)
 
-    def is_manager(self, member: Member) -> bool:
-        """:class:`bool`: Indicates whether the given member can
+    def is_manager(self, user: Union[Member, User]) -> bool:
+        """:class:`bool`: Indicates whether the given user can
         manage this session.
 
-        A member can manage a session if they are either the host
+        A user can manage a session if they are either the host
         or a bot owner, or have the `Manage Messages` permission.
         """
         ids = {self.host.id, self.bot.owner_id, *self.bot.owner_ids}  # type: ignore
 
-        # Skip having to query channel permissions.
-        if member.id in ids:
-            return True
+        if isinstance(user, User):
+            return user.id in ids
 
-        return self.channel.permissions_for(member).manage_messages
+        return user.id in ids or self.channel.permissions_for(user).manage_messages
 
     def is_stopped(self) -> bool:
         """:class:`bool`: Indicates whether this session has been stopped."""

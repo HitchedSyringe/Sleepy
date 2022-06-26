@@ -222,7 +222,7 @@ class Minigames(commands.Cog):
 
         if session is None:
             await ctx.send("This channel has no active minigame session.")
-        elif session.is_manager(ctx.author):  # type: ignore
+        elif session.is_manager(ctx.author):
             await session.stop()
             await ctx.send("Minigame session stopped.")
         else:

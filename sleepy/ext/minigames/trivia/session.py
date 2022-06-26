@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from discord.ext.commands import Bot, Context
     from typing_extensions import Self
 
-    from ..base_session import TextGuildChannel
+    from ..base_session import DiscordTextChannel
 
 
 _TIMEOUT_MSGS_REVEAL: Tuple[str, ...] = (
@@ -85,8 +85,8 @@ class TriviaSession(BaseSession):
     def __init__(
         self,
         bot: Bot,
-        channel: TextGuildChannel,
-        host: discord.Member,
+        channel: DiscordTextChannel,
+        host: Union[discord.Member, discord.User],
         questions: List[TriviaQuestion],
         **options: Any,
     ) -> None:
@@ -95,7 +95,7 @@ class TriviaSession(BaseSession):
         random.shuffle(questions)
 
         self.questions: List[TriviaQuestion] = questions
-        self.scores: Counter[Union[discord.User, discord.Member]] = Counter()
+        self.scores: Counter[Union[discord.Member, discord.User]] = Counter()
 
         self.maximum_score: int = options.get("maximum_score", 10)
         self.question_time_limit: int = options.get("question_time_limit", 20)
