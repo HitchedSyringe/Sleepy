@@ -46,7 +46,7 @@ class BaseSession:
     ----------
     bot: :class:`commands.Bot`
         The bot instance.
-    channel: Union[:class:`discord.TextChannel`, :class:`discord.VoiceChannel`]
+    channel: Union[:class:`discord.TextChannel`, :class:`discord.Thread`, :class:`discord.VoiceChannel`]
         The channel to run the session in.
     host: :class:`discord.Member`
         The member that is hosting the session.
