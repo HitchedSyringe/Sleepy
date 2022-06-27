@@ -45,7 +45,7 @@ The version number has a 3-digit format: `main.major.micro`
 
 Contributions are 100% welcome! Feel free to open an issue or submit a pull request.
 
-When adding commands, look at the other commands in the category and pick which category the command fits best. Be sure to keep the commands alphabetised.
+When adding commands, pick an existing category where the command would best fit based on the other commands contained within. For example, an image manipulation command should be placed in the `Images` category.
 
 To test your changes, please refer to the [setup instructions](#installation).
 
