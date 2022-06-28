@@ -644,7 +644,7 @@ class Moderation(commands.Cog):
             checks.append(lambda m: m.content.startswith(options.startswith))
 
         if options.users is not None:
-            checks.append(lambda m: m.author in options.target_users)
+            checks.append(lambda m: m.author in options.users)
 
         if options.sent_by_bot:
             checks.append(lambda m: m.author.bot)
