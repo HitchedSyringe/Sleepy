@@ -394,6 +394,10 @@ class DeveloperUtilities(
             await ctx.send("Decoding the user ID failed.")
             return
 
+        if not user_id.isnumeric():
+            await ctx.send("The decoded user ID seems to be invalid.")
+            return
+
         try:
             ts = int.from_bytes(base64.urlsafe_b64decode(f"{enc_ts}=="), "big")
         except (binascii.Error, ValueError):
