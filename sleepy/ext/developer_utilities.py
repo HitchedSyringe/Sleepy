@@ -346,7 +346,7 @@ class DeveloperUtilities(
         **Disclaimer: The token featured above in the example
         is a fake token. Don't leak your own token using this.**
         """
-        token_match = re.fullmatch(r"([\w-]{23,28})\.([\w-]{6,7})\.([\w-]{27})", token)
+        token_match = re.fullmatch(r"([\w-]{23,28})\.([\w-]{6,7})\.([\w-]{27,})", token)
 
         if token_match is None:
             await ctx.send("Invalid Discord API authorisation token.")
