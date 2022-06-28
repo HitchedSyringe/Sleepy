@@ -7,20 +7,30 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """
 
 
+from __future__ import annotations
+
 import re
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Tuple
+from typing import TYPE_CHECKING, Callable, Optional, Sequence, Tuple, Union
 
 import discord
 from discord.ext import commands
 from discord.utils import find
 from jishaku.paginators import WrappedPaginator
+from typing_extensions import Annotated
 
 from sleepy import checks
 from sleepy.menus import PaginatorSource
 from sleepy.utils import plural
 
-CUSTOM_EMOJI_REGEX = re.compile(r"<a?:[A-Za-z0-9_]+:[0-9]{15,20}>")
+if TYPE_CHECKING:
+    from discord.abc import SnowflakeTime
+
+    from sleepy.bot import Sleepy
+    from sleepy.context import Context as SleepyContext
+
+
+CUSTOM_EMOJI_REGEX: re.Pattern = re.compile(r"<a?:[A-Za-z0-9_]+:[0-9]{15,20}>")
 
 
 class HierarchyError(commands.BadArgument):
@@ -35,21 +45,21 @@ class ReasonTooLong(commands.BadArgument):
     pass
 
 
-def has_higher_role(member, target):
+def has_higher_role(member: discord.Member, target: discord.Member) -> bool:
     return member.id == member.guild.owner_id or member.top_role > target.top_role
 
 
-class ActionableMember(commands.Converter):
+class ActionableMember(commands.Converter[discord.Member]):
     @staticmethod
-    async def convert(ctx, argument):
+    async def convert(ctx: SleepyContext, argument: str) -> discord.Member:
         member = await commands.MemberConverter().convert(ctx, argument)
 
-        if not has_higher_role(ctx.me, member):
+        if not has_higher_role(ctx.me, member):  # type: ignore
             raise HierarchyError(
                 "I can't perform this action on that user due to role hierarchy."
             )
 
-        if not has_higher_role(ctx.author, member):
+        if not has_higher_role(ctx.author, member):  # type: ignore
             raise HierarchyError(
                 "You can't perform this action on that user due to role hierarchy."
             )
@@ -57,18 +67,17 @@ class ActionableMember(commands.Converter):
         return member
 
 
-class BanEntry(commands.Converter):
+class BanEntryConverter(commands.Converter[discord.BanEntry]):
     @staticmethod
-    async def convert(ctx, argument):
+    async def convert(ctx: SleepyContext, argument: str) -> discord.BanEntry:
         try:
-            return await ctx.guild.fetch_ban(discord.Object(id=argument))
+            return await ctx.guild.fetch_ban(discord.Object(id=argument))  # type: ignore
         except discord.NotFound:
             raise BanEntryNotFound("That user isn't banned.") from None
         except ValueError:
             pass
 
-        ban_entries = await ctx.guild.bans()
-        ban_entry = find(lambda e: str(e.user) == argument, ban_entries)
+        ban_entry = await find(lambda e: str(e.user) == argument, ctx.guild.bans(limit=None))  # type: ignore
 
         if ban_entry is None:
             raise BanEntryNotFound("That user isn't banned.")
@@ -76,9 +85,9 @@ class BanEntry(commands.Converter):
         return ban_entry
 
 
-class BannableUser(commands.Converter):
+class BannableUser(commands.Converter[Union[discord.Member, discord.User]]):
     @staticmethod
-    async def convert(ctx, argument):
+    async def convert(ctx, argument: str) -> Union[discord.Member, discord.User]:
         try:
             return await ActionableMember.convert(ctx, argument)
         except commands.MemberNotFound:
@@ -87,9 +96,9 @@ class BannableUser(commands.Converter):
         return await commands.UserConverter().convert(ctx, argument)
 
 
-class Reason(commands.Converter):
+class Reason(commands.Converter[str]):
     @staticmethod
-    async def convert(ctx, argument):
+    async def convert(ctx: SleepyContext, argument: str) -> str:
         tag = f"{ctx.author} (ID: {ctx.author.id}): "
 
         argument_len = len(argument)
@@ -101,7 +110,7 @@ class Reason(commands.Converter):
         return tag + argument
 
 
-def _no_reason(ctx):
+def _no_reason(ctx: SleepyContext) -> str:
     return f"{ctx.author} (ID: {ctx.author.id}): No reason provided."
 
 
@@ -114,13 +123,18 @@ class MassbanFlags(commands.FlagConverter):
 
     reason: str = commands.flag(converter=Reason, default=_no_reason)
     delete_message_days: int = commands.flag(
-        name="delete-message-days", aliases=("dmd",), default=0
+        name="delete-message-days",
+        aliases=("dmd",),  # type: ignore
+        default=0,
     )
 
     startswith: Optional[Tuple[str, ...]] = None
     endswith: Optional[Tuple[str, ...]] = None
     contains: Optional[Tuple[str, ...]] = None
-    matches: str = commands.flag(aliases=("regex",), default=None)
+    matches: str = commands.flag(
+        aliases=("regex",),  # type: ignore
+        default=None,
+    )
 
     created: Optional[int] = None
     joined: Optional[int] = None
@@ -141,16 +155,23 @@ class PurgeFlags(commands.FlagConverter):
     startswith: Optional[Tuple[str, ...]] = None
     endswith: Optional[Tuple[str, ...]] = None
     contains: Optional[Tuple[str, ...]] = None
-    matches: str = commands.flag(aliases=("regex",), default=None)
+    matches: str = commands.flag(
+        aliases=("regex",),  # type: ignore
+        default=None,
+    )
 
     users: Tuple[discord.User, ...] = commands.flag(
-        name="users", aliases=("user",), default=None
+        name="users",
+        aliases=("user",),  # type: ignore
+        default=None,
     )
     sent_by_bot: bool = commands.flag(name="sent-by-bot", default=False)
     has_embeds: bool = commands.flag(name="has-embeds", default=False)
     has_emojis: bool = commands.flag(name="has-emojis", default=False)
     has_attachments: bool = commands.flag(
-        name="has-attachments", aliases=("has-files",), default=False
+        name="has-attachments",
+        aliases=("has-files",),  # type: ignore
+        default=False,
     )
 
     logical_any: bool = commands.flag(name="any-applies", default=False)
@@ -163,18 +184,18 @@ class Moderation(commands.Cog):
     These obviously cannot be used in Private Messages.
     """
 
-    ICON = "\N{SHIELD}"
+    ICON: str = "\N{SHIELD}"
 
     # Most of the command checks should have internal
     # guild checks already. This is just a fallback
     # to ensure nothing slips through.
-    async def cog_check(self, ctx):
+    async def cog_check(self, ctx: SleepyContext) -> bool:
         if ctx.guild is None:
             raise commands.NoPrivateMessage()
 
         return True
 
-    async def cog_command_error(self, ctx, error):
+    async def cog_command_error(self, ctx: SleepyContext, error: Exception) -> None:
         if isinstance(error, (commands.UserNotFound, commands.MemberNotFound)):
             await ctx.send("That user wasn't found.")
             ctx._already_handled_error = True
@@ -182,11 +203,18 @@ class Moderation(commands.Cog):
             await ctx.send("That message ID, link, or URL was invalid.")
             ctx._already_handled_error = True
         elif isinstance(error, (BanEntryNotFound, HierarchyError, ReasonTooLong)):
-            await ctx.send(error)
+            await ctx.send(error)  # type: ignore
             ctx._already_handled_error = True
 
     @staticmethod
-    async def do_purge(ctx, *, limit, check, before=None, after=None):
+    async def do_purge(
+        ctx: SleepyContext,
+        *,
+        limit: int,
+        check: Callable[[discord.Message], bool],
+        before: Optional[SnowflakeTime] = None,
+        after: Optional[SnowflakeTime] = None,
+    ) -> None:
         if not 1 <= limit <= 2000:
             await ctx.send("Amount must be between 1 and 2000, inclusive.")
             return
@@ -195,7 +223,7 @@ class Moderation(commands.Cog):
             before = ctx.message
 
         try:
-            deleted = await ctx.channel.purge(
+            deleted = await ctx.channel.purge(  # type: ignore
                 limit=limit, check=check, before=before, after=after
             )
         except discord.HTTPException:
@@ -210,7 +238,13 @@ class Moderation(commands.Cog):
             await ctx.send("No messages were deleted.")
 
     @staticmethod
-    async def do_multi_ban(ctx, users, *, reason, delete_message_days):
+    async def do_multi_ban(
+        ctx: SleepyContext,
+        users: Sequence[Union[discord.Member, discord.User]],
+        *,
+        reason: str,
+        delete_message_days: int,
+    ) -> None:
         total = len(users)
         confirmed = await ctx.prompt(
             f"This will ban **{plural(total, ',d'):user}** for:\n>>> {reason}\nAre you sure?"
@@ -225,7 +259,7 @@ class Moderation(commands.Cog):
         failed = 0
         for user in users:
             try:
-                await ctx.guild.ban(
+                await ctx.guild.ban(  # type: ignore
                     user, reason=reason, delete_message_days=delete_message_days
                 )
             except discord.HTTPException:
@@ -238,12 +272,12 @@ class Moderation(commands.Cog):
     @commands.bot_has_guild_permissions(ban_members=True)
     async def ban(
         self,
-        ctx,
-        user: BannableUser,
-        delete_message_days: Optional[int] = 0,
+        ctx: SleepyContext,
+        user: Annotated[Union[discord.Member, discord.User], BannableUser],
+        delete_message_days: Annotated[int, Optional[int]] = 0,
         *,
         reason: str = ReasonParameter,
-    ):
+    ) -> None:
         """Bans a user, optionally deleting *x* days worth of their messages.
 
         This command works on all users, regardless of whether
@@ -267,13 +301,13 @@ class Moderation(commands.Cog):
             )
             return
 
-        await ctx.guild.ban(user, reason=reason, delete_message_days=delete_message_days)
+        await ctx.guild.ban(user, reason=reason, delete_message_days=delete_message_days)  # type: ignore
 
         await ctx.send("<a:sapphire_ok_hand:786093988679516160>")
 
     @commands.command()
     @checks.has_permissions(manage_messages=True)
-    async def cleanup(self, ctx, amount: int = 10):
+    async def cleanup(self, ctx: SleepyContext, amount: int = 10) -> None:
         """Deletes my messages and (if possible) any messages that look like they invoked me.
 
         Up to 2000 messages can be searched for. If no amount is specified,
@@ -288,7 +322,7 @@ class Moderation(commands.Cog):
         cleanup 100
         ```
         """
-        if ctx.channel.permissions_for(ctx.me).manage_messages:
+        if ctx.channel.permissions_for(ctx.me).manage_messages:  # type: ignore
             # Shouts out to startswith for only taking tuples,
             # even though they're literally the same in almost
             # every manner other than mutability.
@@ -302,7 +336,13 @@ class Moderation(commands.Cog):
     @commands.command()
     @checks.has_guild_permissions(kick_members=True)
     @commands.bot_has_guild_permissions(kick_members=True)
-    async def kick(self, ctx, member: ActionableMember, *, reason: str = ReasonParameter):
+    async def kick(
+        self,
+        ctx: SleepyContext,
+        member: Annotated[discord.Member, ActionableMember],
+        *,
+        reason: str = ReasonParameter,
+    ) -> None:
         """Kicks a member.
 
         Member can either be a name, ID, or mention.
@@ -323,7 +363,7 @@ class Moderation(commands.Cog):
     @commands.command(usage="[options...]")
     @checks.has_guild_permissions(ban_members=True)
     @commands.bot_has_guild_permissions(ban_members=True)
-    async def massban(self, ctx, *, options: MassbanFlags):
+    async def massban(self, ctx: SleepyContext, *, options: MassbanFlags) -> None:
         """Bans multiple members from the server based on the given conditions.
 
         Members will only be banned **if and only if** ALL of the
@@ -383,7 +423,7 @@ class Moderation(commands.Cog):
             )
             return
 
-        checks = [lambda m: not m.bot and has_higher_role(ctx.author, m)]
+        checks = [lambda m: not m.bot and has_higher_role(ctx.author, m)]  # type: ignore
 
         if options.has_no_avatar:
             checks.append(lambda m: m.avatar is None)
@@ -392,7 +432,7 @@ class Moderation(commands.Cog):
             checks.append(lambda m: len(m.roles) <= 1)
 
         if options.contains:
-            checks.append(lambda m: any(sub in m.name for sub in options.contains))
+            checks.append(lambda m: any(sub in m.name for sub in options.contains))  # type: ignore
 
         if options.endswith:
             checks.append(lambda m: m.name.endswith(options.endswith))
@@ -407,7 +447,7 @@ class Moderation(commands.Cog):
                 await ctx.send(f"Invalid match regex: {exc}")
                 return
             else:
-                checks.append(lambda m: regex.match(m.name))
+                checks.append(lambda m: regex.match(m.name))  # type: ignore
 
         now = datetime.now(timezone.utc)
 
@@ -427,21 +467,25 @@ class Moderation(commands.Cog):
                 lambda m: m.joined_at and m.joined_at > now - timedelta(minutes=j_minutes)
             )
 
-        if (before := options.joined_before) is not None:
+        if options.joined_before is not None:
+            b_joined_at = options.joined_before.joined_at
+
             checks.append(
-                lambda m: m.joined_at
-                and before.joined_at
-                and m.joined_at < before.joined_at
+                lambda m: m.joined_at is not None
+                and b_joined_at is not None
+                and m.joined_at < b_joined_at
             )
 
-        if (after := options.joined_after) is not None:
+        if options.joined_after is not None:
+            a_joined_at = options.joined_after.joined_at
+
             checks.append(
-                lambda m: m.joined_at
-                and after.joined_at
-                and m.joined_at > after.joined_at
+                lambda m: m.joined_at is not None
+                and a_joined_at is not None
+                and m.joined_at > a_joined_at
             )
 
-        members = [m for m in ctx.guild.members if all(c(m) for c in checks)]
+        members = [m for m in ctx.guild.members if all(c(m) for c in checks)]  # type: ignore
 
         if not members:
             await ctx.send("No members met the criteria specified.")
@@ -473,12 +517,14 @@ class Moderation(commands.Cog):
     @commands.bot_has_guild_permissions(ban_members=True)
     async def multiban(
         self,
-        ctx,
-        users: commands.Greedy[BannableUser],
-        delete_message_days: Optional[int] = 0,
+        ctx: SleepyContext,
+        users: Annotated[
+            Sequence[Union[discord.Member, discord.User]], commands.Greedy[BannableUser]
+        ],
+        delete_message_days: Annotated[int, Optional[int]] = 0,
         *,
         reason: str = ReasonParameter,
-    ):
+    ) -> None:
         """Bans multiple users, optionally deleting *x* days worth of their messages.
 
         Users can either be a name, ID, or mention.
@@ -514,7 +560,13 @@ class Moderation(commands.Cog):
     )
     @checks.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True)
-    async def purge(self, ctx, amount: Optional[int] = 10, *, options: PurgeFlags):
+    async def purge(
+        self,
+        ctx: SleepyContext,
+        amount: Annotated[int, Optional[int]] = 10,
+        *,
+        options: PurgeFlags,
+    ) -> None:
         """Deletes a specified amount of messages.
 
         Up to 2000 messages can be searched for. If no amount is specified,
@@ -572,7 +624,8 @@ class Moderation(commands.Cog):
         checks = []
 
         if options.contains is not None:
-            checks.append(lambda m: any(s in m.content for s in options.contains))
+            # For whatever reason, the typechecker still thinks this is None here.
+            checks.append(lambda m: any(s in m.content for s in options.contains))  # type: ignore
 
         if options.endswith is not None:
             checks.append(lambda m: m.content.endswith(options.endswith))
@@ -606,7 +659,7 @@ class Moderation(commands.Cog):
 
         if checks:
 
-            def check(m):
+            def check(m: discord.Message) -> bool:
                 func = any if options.logical_any else all
                 result = func(c(m) for c in checks)
 
@@ -616,7 +669,7 @@ class Moderation(commands.Cog):
                 return result
 
         else:
-            check = lambda _: True
+            check = lambda _: True  # type: ignore
 
         await self.do_purge(
             ctx,
@@ -629,7 +682,7 @@ class Moderation(commands.Cog):
     @purge.command(name="reactions")
     @checks.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True, read_message_history=True)
-    async def purge_reactions(self, ctx, amount: int = 10):
+    async def purge_reactions(self, ctx: SleepyContext, amount: int = 10) -> None:
         """Removes all reactions from a specified number of messages that have them.
 
         Up to 2000 messages can be searched for. If no amount is specified,
@@ -661,12 +714,12 @@ class Moderation(commands.Cog):
     @commands.bot_has_guild_permissions(ban_members=True)
     async def softban(
         self,
-        ctx,
-        member: BannableUser,
-        delete_message_days: Optional[int] = 1,
+        ctx: SleepyContext,
+        member: Annotated[Union[discord.Member, discord.User], BannableUser],
+        delete_message_days: Annotated[int, Optional[int]] = 1,
         *,
         reason: str = ReasonParameter,
-    ):
+    ) -> None:
         """Softbans a user.
 
         Softbanning is the act of banning and then instantly
@@ -698,17 +751,23 @@ class Moderation(commands.Cog):
             )
             return
 
-        await ctx.guild.ban(
+        await ctx.guild.ban(  # type: ignore
             member, reason=reason, delete_message_days=delete_message_days
         )
-        await ctx.guild.unban(member, reason=reason)
+        await ctx.guild.unban(member, reason=reason)  # type: ignore
 
         await ctx.send("<a:sapphire_ok_hand:786093988679516160>")
 
     @commands.command(aliases=("pardon",))
     @checks.has_guild_permissions(ban_members=True)
     @commands.bot_has_guild_permissions(ban_members=True)
-    async def unban(self, ctx, user: BanEntry, *, reason: str = ReasonParameter):
+    async def unban(
+        self,
+        ctx: SleepyContext,
+        user: Annotated[discord.BanEntry, BanEntryConverter],
+        *,
+        reason: str = ReasonParameter,
+    ) -> None:
         """Unbans a user.
 
         You can either pass a user's ID or name#discrim combination.
@@ -723,12 +782,12 @@ class Moderation(commands.Cog):
         <2> unban 140540589329481728 Appealed
         ```
         """
-        await ctx.guild.unban(user.user, reason=reason)
+        await ctx.guild.unban(user.user, reason=reason)  # type: ignore
 
         await ctx.send(
             f"Unbanned {user.user} (ID: {user.user.id})\n>>> **Ban Reason:**\n{user.reason}"
         )
 
 
-async def setup(bot):
+async def setup(bot: Sleepy) -> None:
     await bot.add_cog(Moderation())
