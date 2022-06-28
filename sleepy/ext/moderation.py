@@ -189,6 +189,9 @@ class Moderation(commands.Cog):
 
     @staticmethod
     async def do_purge_strategy(ctx, *, limit, check, before=None, after=None):
+        if not 1 <= limit <= 2000:
+            await ctx.send("Amount must be between 1 and 2000, inclusive.")
+
         if before is None:
             before = ctx.message
 
@@ -763,7 +766,7 @@ class Moderation(commands.Cog):
         ```
         """
         if not 1 <= amount <= 2000:
-            await ctx.send("Amount must be between 0 and 2000, inclusive.")
+            await ctx.send("Amount must be between 1 and 2000, inclusive.")
 
         total = 0
         async for msg in ctx.history(limit=amount, before=ctx.message).filter(lambda m: m.reactions):
