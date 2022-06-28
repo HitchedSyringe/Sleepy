@@ -565,17 +565,17 @@ class Images(
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
+
+                buffer, delta = await backend.do_lensflare_eyes(
+                    io.BytesIO(image_bytes),
+                    colour=colour
+                )
             except discord.HTTPException:
                 await ctx.send("Downloading the image failed. Try again later?")
                 return
             except RuntimeError:
                 await ctx.send("I didn't detect any eyes.")
                 return
-
-            buffer, delta = await backend.do_lensflare_eyes(
-                io.BytesIO(image_bytes),
-                colour=colour
-            )
 
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
