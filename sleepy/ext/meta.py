@@ -225,6 +225,21 @@ class SleepyHelpCommand(commands.HelpCommand):
 
     context: SleepyContext
 
+    def __init__(self) -> None:
+        command_attrs = {
+            "cooldown": commands.CooldownMapping.from_cooldown(
+                1, 3, commands.BucketType.user
+            ),
+            # fmt: off
+            "checks": (
+                commands.bot_has_permissions(embed_links=True).predicate,
+            ),
+            # fmt: on
+            "help": "Shows help about me, a command, or a category.",
+        }
+
+        super().__init__(command_attrs=command_attrs)
+
     def _apply_formatting(
         self,
         embed_like: Union[Embed, GroupPageSource],
@@ -344,15 +359,7 @@ class Meta(commands.Cog):
         self.bot: Sleepy = bot
         self.old_help_command: Optional[commands.HelpCommand] = bot.help_command
 
-        command_attrs = {
-            "cooldown": commands.CooldownMapping.from_cooldown(
-                1, 3, commands.BucketType.user
-            ),
-            "checks": (commands.bot_has_permissions(embed_links=True).predicate,),
-            "help": "Shows help about me, a command, or a category.",
-        }
-
-        bot.help_command = help_command = SleepyHelpCommand(command_attrs=command_attrs)
+        bot.help_command = help_command = SleepyHelpCommand()
         help_command.cog = self
 
         # Pertains to the prefixes command and is here so
