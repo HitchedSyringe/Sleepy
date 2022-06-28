@@ -23,18 +23,20 @@ from sleepy.utils import plural
 CUSTOM_EMOJI_REGEX = re.compile(r"<a?:[A-Za-z0-9_]+:[0-9]{15,20}>")
 
 
-class CannotPerformAction(commands.BadArgument):
+class HierarchyError(commands.BadArgument):
     pass
 
 
 class BanEntryNotFound(commands.BadArgument):
-    def __init__(self, argument):
-        super().__init__(f'User "{argument}" isn\'t banned.')
+    pass
 
 
 class ReasonTooLong(commands.BadArgument):
-    def __init__(self, argument_length, max_length):
-        super().__init__(f"Reason is too long. ({argument_length} > {max_length})")
+    pass
+
+
+def has_higher_role(member, target):
+    return member.id == member.guild.owner_id or member.top_role > target.top_role
 
 
 class ActionableMember(commands.Converter):
@@ -42,20 +44,14 @@ class ActionableMember(commands.Converter):
     async def convert(ctx, argument):
         member = await commands.MemberConverter().convert(ctx, argument)
 
-        if member == ctx.author:
-            raise CannotPerformAction("Why would you want to do that to yourself?")
-
-        if member.id == ctx.guild.owner_id:
-            raise CannotPerformAction("I will not allow you to overthrow the owner.")
-
-        if ctx.me.top_role <= member.top_role:
-            raise CannotPerformAction(
-                "I can't do this action on that user due to role hierarchy."
+        if not has_higher_role(ctx.me, member):
+            raise HierarchyError(
+                "I can't perform this action on that user due to role hierarchy."
             )
 
-        if ctx.author.top_role <= member.top_role:
-            raise CannotPerformAction(
-                "You can't do this action on that user due to role hierarchy."
+        if not has_higher_role(ctx.author, member):
+            raise HierarchyError(
+                "You can't perform this action on that user due to role hierarchy."
             )
 
         return member
@@ -65,9 +61,9 @@ class BanEntry(commands.Converter):
     @staticmethod
     async def convert(ctx, argument):
         try:
-            return await ctx.guild.fetch_ban(discord.Object(id=int(argument)))
+            return await ctx.guild.fetch_ban(discord.Object(id=argument))
         except discord.NotFound:
-            raise BanEntryNotFound(argument) from None
+            raise BanEntryNotFound("That user isn't banned.") from None
         except ValueError:
             pass
 
@@ -75,7 +71,7 @@ class BanEntry(commands.Converter):
         ban_entry = find(lambda e: str(e.user) == argument, ban_entries)
 
         if ban_entry is None:
-            raise BanEntryNotFound(argument)
+            raise BanEntryNotFound("That user isn't banned.")
 
         return ban_entry
 
@@ -100,17 +96,23 @@ class Reason(commands.Converter):
         limit = 512 - len(tag)
 
         if argument_len > limit:
-            raise ReasonTooLong(argument_len, limit)
+            raise ReasonTooLong(f"Reason is too long. ({argument_len} > {limit})")
 
         return tag + argument
 
 
+def _no_reason(ctx):
+    return f"{ctx.author} (ID: {ctx.author.id}): No reason provided."
+
+
+ReasonParameter = commands.parameter(
+    converter=Reason, default=_no_reason, displayed_default="<no reason>"
+)
+
+
 class MassbanFlags(commands.FlagConverter):
 
-    reason: Reason = commands.flag(
-        aliases=("r",),
-        default=lambda ctx: f"{ctx.author} (ID: {ctx.author.id}): No reason provided.",
-    )
+    reason: str = commands.flag(converter=Reason, default=_no_reason)
     delete_message_days: int = commands.flag(
         name="delete-message-days", aliases=("dmd",), default=0
     )
@@ -176,13 +178,10 @@ class Moderation(commands.Cog):
         if isinstance(error, (commands.UserNotFound, commands.MemberNotFound)):
             await ctx.send("That user wasn't found.")
             ctx._already_handled_error = True
-        elif isinstance(error, BanEntryNotFound):
-            await ctx.send("That user isn't banned.")
-            ctx._already_handled_error = True
         elif isinstance(error, (commands.ChannelNotFound, commands.MessageNotFound)):
             await ctx.send("That message ID, link, or URL was invalid.")
             ctx._already_handled_error = True
-        elif isinstance(error, (CannotPerformAction, ReasonTooLong)):
+        elif isinstance(error, (BanEntryNotFound, HierarchyError, ReasonTooLong)):
             await ctx.send(error)
             ctx._already_handled_error = True
 
@@ -243,7 +242,7 @@ class Moderation(commands.Cog):
         user: BannableUser,
         delete_message_days: Optional[int] = 0,
         *,
-        reason: Reason = None,
+        reason: str = ReasonParameter,
     ):
         """Bans a user, optionally deleting *x* days worth of their messages.
 
@@ -267,9 +266,6 @@ class Moderation(commands.Cog):
                 "Days of messages to delete must be between 1 and 7, inclusive."
             )
             return
-
-        if reason is None:
-            reason = f"{ctx.author} (ID: {ctx.author.id}): No reason provided."
 
         await ctx.guild.ban(user, reason=reason, delete_message_days=delete_message_days)
 
@@ -306,7 +302,7 @@ class Moderation(commands.Cog):
     @commands.command()
     @checks.has_guild_permissions(kick_members=True)
     @commands.bot_has_guild_permissions(kick_members=True)
-    async def kick(self, ctx, member: ActionableMember, *, reason: Reason = None):
+    async def kick(self, ctx, member: ActionableMember, *, reason: str = ReasonParameter):
         """Kicks a member.
 
         Member can either be a name, ID, or mention.
@@ -321,11 +317,7 @@ class Moderation(commands.Cog):
         <3> kick 140540589329481728 Being annoying
         ```
         """
-        if reason is None:
-            reason = f"{ctx.author} (ID: {ctx.author.id}): No reason provided."
-
         await member.kick(reason=reason)
-
         await ctx.send("<a:sapphire_ok_hand:786093988679516160>")
 
     @commands.command(usage="[options...]")
@@ -335,7 +327,8 @@ class Moderation(commands.Cog):
         """Bans multiple members from the server based on the given conditions.
 
         Members will only be banned **if and only if** ALL of the
-        given conditions are met.
+        given conditions are met. Members with a higher role than
+        you or myself are automatically excluded and ignored.
 
         This command's interface is similar to Discord's slash commands.
         Values with spaces must be surrounded by quotation marks.
@@ -390,14 +383,7 @@ class Moderation(commands.Cog):
             )
             return
 
-        checks = [
-            lambda m: (
-                not m.bot
-                and m.id != ctx.guild.owner_id
-                and ctx.author.top_role > m.top_role
-                and ctx.me.top_role > m.top_role
-            )
-        ]
+        checks = [lambda m: not m.bot and has_higher_role(ctx.author, m)]
 
         if options.has_no_avatar:
             checks.append(lambda m: m.avatar is None)
@@ -491,7 +477,7 @@ class Moderation(commands.Cog):
         users: commands.Greedy[BannableUser],
         delete_message_days: Optional[int] = 0,
         *,
-        reason: Reason = None,
+        reason: str = ReasonParameter,
     ):
         """Bans multiple users, optionally deleting *x* days worth of their messages.
 
@@ -518,9 +504,6 @@ class Moderation(commands.Cog):
         if not users:
             await ctx.send("You must specify at least 1 user to ban.")
             return
-
-        if reason is None:
-            reason = f"{ctx.author} (ID: {ctx.author.id}): No reason provided."
 
         await self.do_multi_ban(
             ctx, users, reason=reason, delete_message_days=delete_message_days
@@ -682,7 +665,7 @@ class Moderation(commands.Cog):
         member: BannableUser,
         delete_message_days: Optional[int] = 1,
         *,
-        reason: Reason = None,
+        reason: str = ReasonParameter,
     ):
         """Softbans a user.
 
@@ -695,9 +678,9 @@ class Moderation(commands.Cog):
 
         User can either be a name, ID, or mention.
 
-        If the number of days worth of the users's messages
-        to delete isn't specified, then 1 day's worth of the
-        user's messages will be deleted.
+        Number of days' worth of messages to delete must be
+        between 0 and 7, inclusive. By default, this deletes
+        1 day's worth of the specified users' messages.
 
         (Permissions Needed: Kick Members)
         (Bot Needs: Ban Members)
@@ -715,9 +698,6 @@ class Moderation(commands.Cog):
             )
             return
 
-        if reason is None:
-            reason = f"{ctx.author} (ID: {ctx.author.id}): No reason provided."
-
         await ctx.guild.ban(
             member, reason=reason, delete_message_days=delete_message_days
         )
@@ -728,7 +708,7 @@ class Moderation(commands.Cog):
     @commands.command(aliases=("pardon",))
     @checks.has_guild_permissions(ban_members=True)
     @commands.bot_has_guild_permissions(ban_members=True)
-    async def unban(self, ctx, user: BanEntry, *, reason: Reason = None):
+    async def unban(self, ctx, user: BanEntry, *, reason: str = ReasonParameter):
         """Unbans a user.
 
         You can either pass a user's ID or name#discrim combination.
@@ -743,9 +723,6 @@ class Moderation(commands.Cog):
         <2> unban 140540589329481728 Appealed
         ```
         """
-        if reason is None:
-            reason = f"{ctx.author} (ID: {ctx.author.id}): No reason provided."
-
         await ctx.guild.unban(user.user, reason=reason)
 
         await ctx.send(
