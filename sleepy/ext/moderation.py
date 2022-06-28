@@ -133,8 +133,6 @@ class MassbanFlags(commands.FlagConverter):
 
 class PurgeFlags(commands.FlagConverter):
 
-    amount: int = 10
-
     before: Optional[discord.PartialMessage] = None
     after: Optional[discord.PartialMessage] = None
 
@@ -189,7 +187,11 @@ class Moderation(commands.Cog):
             ctx._already_handled_error = True
 
     @staticmethod
-    async def do_purge_strategy(ctx, *, limit, check, before=None, after=None):
+    async def do_purge(ctx, *, limit, check, before=None, after=None):
+        if not 1 <= limit <= 2000:
+            await ctx.send("Amount must be between 1 and 2000, inclusive.")
+            return
+
         if before is None:
             before = ctx.message
 
@@ -278,8 +280,8 @@ class Moderation(commands.Cog):
     async def cleanup(self, ctx, amount: int = 10):
         """Deletes my messages and (if possible) any messages that look like they invoked me.
 
-        If no amount is specified, then the previous 10
-        messages that meet the above criteria will be
+        Up to 2000 messages can be searched for. If no amount is specified,
+        then the previous 10 messages that meet the above criteria will be
         deleted.
 
         (Permissions Needed: Manage Messages)
@@ -299,7 +301,7 @@ class Moderation(commands.Cog):
         else:
             check = lambda m: m.author == ctx.me
 
-        await self.do_purge_strategy(ctx, limit=amount, check=check)
+        await self.do_purge(ctx, limit=amount, check=check)
 
     @commands.command()
     @checks.has_guild_permissions(kick_members=True)
@@ -524,81 +526,17 @@ class Moderation(commands.Cog):
             ctx, users, reason=reason, delete_message_days=delete_message_days
         )
 
-    @commands.group(aliases=("remove",), invoke_without_command=True)
+    @commands.group(
+        aliases=("remove",), usage="[amount=10] [options...]", invoke_without_command=True
+    )
     @checks.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True)
-    async def purge(self, ctx, amount: int = 10):
+    async def purge(self, ctx, amount: Optional[int] = 10, *, options: PurgeFlags):
         """Deletes a specified amount of messages.
 
-        If no amount is specified, then the previous 10
-        messages will be deleted.
-
-        (Permissions Needed: Manage Messages)
-        (Bot Needs: Manage Messages)
-
-        **EXAMPLE:**
-        ```
-        purge 100
-        ```
-        """
-        await self.do_purge_strategy(ctx, limit=amount, check=lambda _: True)
-
-    @purge.command(name="bots")
-    async def purge_bots(self, ctx, prefix: Optional[str], amount: int = 10):
-        """Deletes a bot user's messages and optionally any messages with a prefix.
-
-        If no amount is specified, then the previous 10
-        messages that meet the above criteria will be
-        deleted.
-
-        (Permissions Needed: Manage Messages)
-        (Bot Needs: Manage Messages)
-
-        **EXAMPLES:**
-        ```bnf
-        <1> purge bots 100
-        <2> purge bots ! 100
-        ```
-        """
-        await self.do_purge_strategy(
-            ctx,
-            limit=amount,
-            check=lambda m: (
-                (m.webhook_id is None and m.author.bot)
-                or (prefix is not None and m.content.startswith(prefix))
-            ),
-        )
-
-    @purge.command(name="contains")
-    async def purge_contains(self, ctx, substring, amount: int = 10):
-        """Deletes messages that contain a substring.
-
-        Substring is case-sensitive and must be at
-        least 3 characters long.
-
-        If no amount is specified, then the previous
-        10 messages that meet the above criteria will
-        be deleted.
-
-        (Permissions Needed: Manage Messages)
-        (Bot Needs: Manage Messages)
-
-        **EXAMPLES:**
-        ```bnf
-        <1> purge contains fuc 100
-        <2> purge contains "i am" 100
-        ```
-        """
-        if len(substring) < 3:
-            await ctx.send("Substrings must be at least 3 characters long.")
-        else:
-            await self.do_purge_strategy(
-                ctx, limit=amount, check=lambda m: substring in m.content
-            )
-
-    @purge.command(name="custom", aliases=("advanced",), usage="[options...]")
-    async def purge_custom(self, ctx, *, options: PurgeFlags):
-        """An advanced purge command that allows for granular control over filtering messages for deletion.
+        Up to 2000 messages can be searched for. If no amount is specified,
+        then this will search for and remove the previous 10 messages that
+        meet the given criteria.
 
         This command's interface is similar to Discord's slash commands.
         Values with spaces must be surrounded by quotation marks.
@@ -606,19 +544,12 @@ class Moderation(commands.Cog):
         Options can be given in any order and, unless otherwise stated,
         are assumed to be optional.
 
-        By default, messages that meet ALL of the given conditions
-        are deleted unless `--any-applies true` is passed, in which
-        case only if ANY of the given conditions are met.
-
-        If no options are given, then the previous 10 messages will
-        be deleted.
+        By default, messages that meet *ALL* of the given conditions are
+        deleted unless `any-applies: true` is passed, in which case only
+        if ANY of the given conditions are met.
 
         The following options are valid:
 
-        `amount: <integer>`
-        > The number of messages to search for and delete.
-        > Must be between 1 and 2000, inclusive.
-        > Defaults to `10` if omitted.
         `before: <message>`
         > Only target messages sent before the given message.
         > Message can either be a link or ID.
@@ -643,8 +574,8 @@ class Moderation(commands.Cog):
         > If `true`, only target messages sent by bots.
         `has-embeds: <true|false>`
         > If `true`, only target messages that contain embeds.
-        `has-emoji: <true|false>`
-        > If `true`, only target messages that contain a custom emoji.
+        `has-emojis: <true|false>`
+        > If `true`, only target messages that contain custom emojis.
         `[has-files|has-attachments]: <true|false>`
         > If `true`, only target messages that contain file attachments.
         `any-applies: <true|false>`
@@ -667,7 +598,7 @@ class Moderation(commands.Cog):
             checks.append(lambda m: m.content.startswith(options.startswith))
 
         if options.users is not None:
-            checks.append(lambda m: m.author in options.target_users)
+            checks.append(lambda m: m.author in options.users)
 
         if options.sent_by_bot:
             checks.append(lambda m: m.author.bot)
@@ -704,80 +635,23 @@ class Moderation(commands.Cog):
         else:
             check = lambda _: True
 
-        await self.do_purge_strategy(
+        await self.do_purge(
             ctx,
-            limit=options.amount,
+            limit=amount,
             check=check,
             before=options.before,
             after=options.after,
         )
 
-    @purge.command(name="embeds")
-    async def purge_embeds(self, ctx, amount: int = 10):
-        """Deletes messages that contain a rich embed.
-
-        If no amount is specified, then the previous 10
-        messages that meet the above criteria will be
-        deleted.
-
-        (Permissions Needed: Manage Messages)
-        (Bot Needs: Manage Messages)
-
-        **EXAMPLE:**
-        ```
-        purge embeds 100
-        ```
-        """
-        await self.do_purge_strategy(ctx, limit=amount, check=lambda m: m.embeds)
-
-    @purge.command(name="emojis")
-    async def purge_emojis(self, ctx, amount: int = 10):
-        """Deletes messages that contain a custom emoji.
-
-        If no amount is specified, then the previous 10
-        messages that meet the above criteria will be
-        deleted.
-
-        (Permissions Needed: Manage Messages)
-        (Bot Needs: Manage Messages)
-
-        **EXAMPLE:**
-        ```
-        purge emojis 100
-        ```
-        """
-        await self.do_purge_strategy(
-            ctx,
-            limit=amount,
-            check=lambda m: CUSTOM_EMOJI_REGEX.match(m.content) is not None,
-        )
-
-    @purge.command(name="files", aliases=("attachments",))
-    async def purge_files(self, ctx, amount: int = 10):
-        """Deletes messages that contain an attachment.
-
-        If no amount is specified, then the previous 10
-        messages that meet the above criteria will be
-        deleted.
-
-        (Permissions Needed: Manage Messages)
-        (Bot Needs: Manage Messages)
-
-        **EXAMPLE:**
-        ```
-        purge files 100
-        ```
-        """
-        await self.do_purge_strategy(ctx, limit=amount, check=lambda m: m.attachments)
-
     @purge.command(name="reactions")
     @checks.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True, read_message_history=True)
     async def purge_reactions(self, ctx, amount: int = 10):
-        """Removes all reactions from any messages that have them.
+        """Removes all reactions from a specified number of messages that have them.
 
-        If no amount is specified, then reactions will
-        be removed from the previous 10 messages.
+        Up to 2000 messages can be searched for. If no amount is specified,
+        then this will search for and remove reactions from the previous 10
+        messages.
 
         (Permissions Needed: Manage Messages)
         (Bot Needs: Manage Messages and Read Message History)
@@ -788,42 +662,16 @@ class Moderation(commands.Cog):
         ```
         """
         if not 1 <= amount <= 2000:
-            await ctx.send("Amount must be between 0 and 2000, inclusive.")
+            await ctx.send("Amount must be between 1 and 2000, inclusive.")
 
-        total = 0
-        async for msg in ctx.history(limit=amount, before=ctx.message).filter(
-            lambda m: m.reactions
-        ):
-            total += sum(r.count for r in msg.reactions)
-            await msg.clear_reactions()
+        reactions = 0
 
-        await ctx.send(f"Removed **{plural(total, ',d'):reaction}**.")
+        async for message in ctx.history(limit=amount, before=ctx.message):
+            if message.reactions:
+                reactions += sum(r.count for r in message.reactions)
+                await message.clear_reactions()
 
-    @purge.command(name="users", aliases=("user",))
-    async def purge_users(
-        self, ctx, users: commands.Greedy[discord.User], amount: int = 10
-    ):
-        """Deletes a user or list of users' messages.
-
-        If no amount is specified, then the previous 10
-        messages that meet the above criteria will be
-        deleted.
-
-        (Permissions Needed: Manage Messages)
-        (Bot Needs: Manage Messages)
-
-        **EXAMPLES:**
-        ```bnf
-        <1> purge users HitchedSyringe#0598 100
-        <2> purge users @HitchedSyringe#0598 140540589329481728 100
-        ```
-        """
-        if users:
-            await self.do_purge_strategy(
-                ctx, limit=amount, check=lambda m: m.author in users
-            )
-        else:
-            await ctx.send("You must specify at least **1 user** to purge messages for.")
+        await ctx.send(f"Removed **{plural(reactions, ',d'):reaction}**.")
 
     @commands.command()
     @checks.has_guild_permissions(kick_members=True)
