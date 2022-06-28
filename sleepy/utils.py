@@ -514,7 +514,7 @@ def measure_performance(
 
     Example
     -------
-    .. code-block::
+    .. code-block:: python3
 
         @measure_performance
         def foo():
