@@ -52,7 +52,7 @@ When adding commands, look at the other commands in the category and pick which 
 * [aiofiles](https://github.com/Tinche/aiofiles)
 * [cachetools](https://github.com/tkem/cachetools) (optional but recommended)
 * [discord.py 2.0.0a @ 45d498c1b76deaf3b394d17ccf56112fa691d160](https://github.com/Rapptz/discord.py)
-  * Using `requirements.txt` installs [my fork](https://github.com/HitSyr/discord.py/tree/aiohttp-unpinned) of the above repository. This fork **does not feature any code changes and only bumps `aiohttp` to 3.8**, allowing for Python 3.10+ support.
+  * Using `requirements.txt` installs [my fork](https://github.com/HitSyr/discord.py/tree/aiohttp-unpinned) of the above repository. This fork **does not feature any code changes and only bumps `aiohttp`**, allowing for Python 3.10+ support.
 * [discord-ext-menus](https://github.com/Rapptz/discord-ext-menus)
 * [emoji 1.1.0+](https://github.com/carpedm20/emoji)
 * [googletrans 4.0.0rc1+](https://github.com/ssut/py-googletrans)

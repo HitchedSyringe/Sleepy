@@ -1,8 +1,8 @@
 aiofiles
 cachetools
 # This is my fork of discord.py which ONLY bumps
-# aiohttp to 3.8 for Python 3.10 support. There
-# are NO code changes in this fork.
+# aiohttp for Python 3.10 support. There are NO
+# code changes in this fork.
 git+https://github.com/HitSyr/discord.py@aiohttp-unpinned
 git+https://github.com/Rapptz/discord-ext-menus
 emoji>=1.1.0
