@@ -39,11 +39,7 @@ if TYPE_CHECKING:
 
 class PistonView(BaseView):
 
-    __slots__: Tuple[str, ...] = (
-        "_message",
-        "body",
-        "ctx",
-    )
+    __slots__: Tuple[str, ...] = ("_message", "body", "ctx")
 
     def __init__(self, ctx: SleepyContext, body: Dict[str, Any]) -> None:
         super().__init__(owner_id=ctx.author.id, timeout=300)

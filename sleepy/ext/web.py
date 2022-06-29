@@ -104,11 +104,7 @@ class RedditSubmissionURL(commands.Converter[str]):
 
 class SteamAccountMeta:
 
-    __slots__: Tuple[str, ...] = (
-        "steam_id",
-        "steam3_id",
-        "steam_community_id",
-    )
+    __slots__: Tuple[str, ...] = ("steam_id", "steam3_id", "steam_community_id")
 
     _U_STEAMID64_IDENTIFIER: int = 0x0110000100000000
 
