@@ -350,7 +350,7 @@ class PaginationView(BaseView):
         bot: Bot,
         source: PageSource,
         *,
-        delete_message_when_stopped: bool = False,
+        delete_message_when_stopped: bool = True,
         remove_view_after: bool = False,
         disable_view_after: bool = True,
         **kwargs: Any

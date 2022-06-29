@@ -181,8 +181,7 @@ class BotHelpView(PaginationView):
         super().__init__(
             bot,
             source,
-            owner_ids={ctx.author.id, bot.owner_id, *bot.owner_ids},
-            delete_message_when_stopped=True
+            owner_ids={ctx.author.id, bot.owner_id, *bot.owner_ids}
         )
 
     def _do_items_setup(self):
