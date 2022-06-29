@@ -104,9 +104,6 @@ class Statistics(
 
     ICON: str = "\N{BAR CHART}"
 
-    if TYPE_CHECKING:
-        gw_handler: GatewayWebhookHandler
-
     def __init__(self, bot: StatsSleepy) -> None:
         self.bot: StatsSleepy = bot
         self.process: psutil.Process = psutil.Process()
@@ -122,11 +119,11 @@ class Statistics(
     def cog_load(self) -> None:
         bot = self.bot
 
-        self.gw_handler = handler = GatewayWebhookHandler(bot)
+        handler = GatewayWebhookHandler(bot)
         logging.getLogger("discord").addHandler(handler)
+        self.gw_handler: GatewayWebhookHandler = handler
 
         bot._original_before_identify_hook = bot.before_identify_hook  # type: ignore
-
         # I decided to just monkey-patch this in rather than
         # including it in the bot class since I figured that
         # not everyone would want to be forced to use this.
