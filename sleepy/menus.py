@@ -232,7 +232,7 @@ class BotLinksView(View):
         The client's user ID.
     """
 
-    buttons: Tuple[Button, ...]
+    buttons: Tuple[Button["BotLinksView"], ...]
 
     def __init__(self, client_id: int) -> None:
         super().__init__(timeout=None)
@@ -270,12 +270,12 @@ class ConfirmationView(BaseView):
         self.result: Optional[bool] = None
 
     @button(emoji="<:check:821284209401921557>", style=discord.ButtonStyle.green)
-    async def confirm(self, button: Button, itn: discord.Interaction) -> None:
+    async def confirm(self, button: Button["ConfirmationView"], itn: discord.Interaction) -> None:
         self.result = True
         self.stop()
 
     @button(emoji="<:x_:821284209792516096>", style=discord.ButtonStyle.red)
-    async def deny(self, button: Button, itn: discord.Interaction) -> None:
+    async def deny(self, button: Button["ConfirmationView"], itn: discord.Interaction) -> None:
         self.result = False
         self.stop()
 
@@ -646,29 +646,29 @@ class PaginationView(BaseView):
             await itn.response.send_message("Sorry, but something went wrong.", ephemeral=True)
 
     @button(emoji="<:rrwnd:862379040802865182>")
-    async def first_page(self, button: Button, itn: discord.Interaction) -> None:
+    async def first_page(self, button: Button["PaginationView"], itn: discord.Interaction) -> None:
         await self.show_page(0)
 
     @button(emoji="<:back:862407042172715038>")
-    async def previous_page(self, button: Button, itn: discord.Interaction) -> None:
+    async def previous_page(self, button: Button["PaginationView"], itn: discord.Interaction) -> None:
         await self.show_checked_page(self.current_page - 1)
 
     @button(style=discord.ButtonStyle.primary, disabled=True)
-    async def page_number(self, button: Button, itn: discord.Interaction) -> None:
+    async def page_number(self, button: Button["PaginationView"], itn: discord.Interaction) -> None:
         pass
 
     @button(emoji="<:fwd:862407042114125845>")
-    async def next_page(self, button: Button, itn: discord.Interaction) -> None:
+    async def next_page(self, button: Button["PaginationView"], itn: discord.Interaction) -> None:
         await self.show_checked_page(self.current_page + 1)
 
     @button(emoji="<:ffwd:862378579794460723>")
-    async def last_page(self, button: Button, itn: discord.Interaction) -> None:
+    async def last_page(self, button: Button["PaginationView"], itn: discord.Interaction) -> None:
         # This call is safe since the button itself is already
         # handled initially when the view starts.
         await self.show_page(self._source.get_max_pages() - 1)
 
     @button(emoji="\N{OCTAGONAL SIGN}", label="Stop", style=discord.ButtonStyle.danger)
-    async def stop_menu(self, button: Button, itn: discord.Interaction) -> None:
+    async def stop_menu(self, button: Button["PaginationView"], itn: discord.Interaction) -> None:
         self.stop()
 
         if self._delete_message_when_stopped:
@@ -678,7 +678,7 @@ class PaginationView(BaseView):
             await self._do_items_cleanup()
 
     @button(emoji="\N{PAGE WITH CURL}", label="Jump to page...")
-    async def select_page(self, button: Button, itn: discord.Interaction) -> None:
+    async def select_page(self, button: Button["PaginationView"], itn: discord.Interaction) -> None:
         if self._lock.locked():
             await itn.response.send_message("I'm already awaiting your response.", ephemeral=True)
             return
