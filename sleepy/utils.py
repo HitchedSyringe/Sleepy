@@ -119,8 +119,8 @@ class plural:
         if not isinstance(value, (int, float)):
             raise TypeError(f"Expected value to be int or float, not {type(value)!r}.")
 
-        self.__value = value
-        self.__value_fmt = value_format_spec or ""
+        self.__value: float = value
+        self.__value_fmt: str = value_format_spec or ""
 
     def __format__(self, spec: str) -> str:
         singular, _, plural = spec.partition("|")
