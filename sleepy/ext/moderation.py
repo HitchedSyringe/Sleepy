@@ -173,6 +173,7 @@ class PurgeFlags(commands.FlagConverter):
         aliases=("has-files",),  # type: ignore
         default=False,
     )
+    has_reactions: bool = commands.flag(name="has-reactions", default=False)
 
     logical_any: bool = commands.flag(name="any-applies", default=False)
     logical_not: bool = commands.flag(name="invert", default=False)
@@ -613,6 +614,8 @@ class Moderation(commands.Cog):
         > If `true`, only target messages that contain custom emojis.
         `[has-files|has-attachments]: <true|false>`
         > If `true`, only target messages that contain file attachments.
+        `has-reactions: <true|false>`
+        > If `true`, only target messages that have reactions.
         `any-applies: <true|false>`
         > If `true`, delete messages that meet ANY of the given conditions.
         `invert: <true|false>`
@@ -647,6 +650,9 @@ class Moderation(commands.Cog):
 
         if options.has_attachments:
             checks.append(lambda m: bool(m.attachments))
+
+        if options.has_reactions:
+            checks.append(lambda m: bool(m.reactions))
 
         if options.matches is not None:
             try:
