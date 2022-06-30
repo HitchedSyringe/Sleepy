@@ -180,9 +180,12 @@ class SteamAccountMeta:
     @classmethod
     def from_id_3(cls, number_id):
         a_type = number_id % 2
-        id_n = number_id * 2 + a_type
 
-        return cls(f"STEAM_0:{a_type}:{id_n}", f"[U:1:{number_id}]", cls.BASE_ID_64 + id_n)
+        return cls(
+            f"STEAM_0:{a_type}:{number_id * 2 + a_type}",
+            f"[U:1:{number_id}]",
+            cls.BASE_ID_64 + number_id
+        )
 
     @classmethod
     def from_id_64(cls, id_64):
