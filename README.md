@@ -101,3 +101,4 @@ To test your changes, please refer to the [setup instructions](#installation).
 * The bot's extension loader has special behaviour that allows for easy handling of extensions at startup, without the hassle of having to hardcode the names of any extensions. For ease of understanding, the extension loading behaviour is as follows:
   * If `enable_autoload` is set to `true`, the loader will assume that **ANY** existing Python files or modules in the extensions directory are valid extensions and will attempt to load them on startup.
   * If `enable_autoload` is set to `false`, any valid extensions not listed under `extensions_list` in your config will be ignored on startup.
+* As of `v3.3.0`, the bot includes a proper command-line interface. For usage information, use `python -m sleepy --help`.
