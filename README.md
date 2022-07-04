@@ -3,7 +3,7 @@
 <div align="center">
 
 [sleepy]: https://github.com/HitSyr/Sleepy
-[sleepy-s]: https://img.shields.io/github/v/release/HitSyr/Sleepy?color=F0D273&label=version
+[sleepy-s]: https://img.shields.io/github/v/release/HitSyr/Sleepy?color=FDC86F&label=version
 [python]: https://python.org
 [python-s]: https://img.shields.io/badge/python-3.8%2b-blue?logo=python
 [license]: https://github.com/HitSyr/Sleepy/blob/master/LICENSE
