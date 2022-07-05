@@ -27,7 +27,7 @@ from discord.ext import commands
 from .utils import human_join
 
 if TYPE_CHECKING:
-    from sleepy.context import Context as SleepyContext
+    from .context import Context as SleepyContext, GuildContext
 
 
 _T = TypeVar("_T")
@@ -118,9 +118,7 @@ def has_permissions(
         if not check_any:
             return await commands.has_permissions(**permissions).predicate(ctx)
 
-        channel_permissions = ctx.channel.permissions_for(ctx.author)  # type: ignore
-
-        if not _has_any_permissions(channel_permissions, permissions):
+        if not _has_any_permissions(ctx.permissions, permissions):
             raise MissingAnyPermissions(list(permissions))
 
         return True
@@ -172,7 +170,7 @@ def has_guild_permissions(
     if invalid := set(permissions) - set(Permissions.VALID_FLAGS):
         raise TypeError(f"Invalid permission(s): {', '.join(invalid)}")
 
-    async def predicate(ctx: SleepyContext) -> bool:
+    async def predicate(ctx: GuildContext) -> bool:
         if ctx.guild is None:
             raise commands.NoPrivateMessage()
 
@@ -182,7 +180,7 @@ def has_guild_permissions(
         if not check_any:
             return await commands.has_guild_permissions(**permissions).predicate(ctx)
 
-        guild_permissions = ctx.author.guild_permissions  # type: ignore
+        guild_permissions = ctx.author.guild_permissions
 
         if not _has_any_permissions(guild_permissions, permissions):
             raise MissingAnyPermissions(list(permissions))

@@ -48,6 +48,11 @@ class Context(commands.Context["Sleepy"]):
     .. versionadded:: 1.7
     """
 
+    channel: Union[
+        discord.TextChannel, discord.VoiceChannel, discord.Thread, discord.DMChannel
+    ]
+    command: commands.Command[Any, ..., Any]
+
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
 
@@ -465,8 +470,7 @@ class Context(commands.Context["Sleepy"]):
         if not self.valid:
             return
 
-        # This is covered by the above check.
-        mapping = self.command._buckets  # type: ignore
+        mapping = self.command._buckets
 
         if not mapping.valid:
             return
@@ -479,3 +483,12 @@ class Context(commands.Context["Sleepy"]):
             return
 
         bucket._tokens += 1
+
+
+if TYPE_CHECKING:
+
+    class GuildContext(Context):
+        author: discord.Member
+        guild: discord.Guild
+        channel: Union[discord.TextChannel, discord.VoiceChannel, discord.Thread]
+        me: discord.Member

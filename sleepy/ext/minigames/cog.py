@@ -36,7 +36,7 @@ T = TypeVar("T")
 
 
 if TYPE_CHECKING:
-    from sleepy.context import Context as SleepyContext
+    from sleepy.context import Context as SleepyContext, GuildContext
 
     from .base_session import BaseSession
 
@@ -212,7 +212,7 @@ class Minigames(commands.Cog):
             await ctx.send("There are no player scores to show.")
 
     @minigame.command()
-    async def stop(self, ctx: SleepyContext) -> None:
+    async def stop(self, ctx: GuildContext) -> None:
         """Stops the current minigame session.
 
         You must either be the host, the bot owner, or a user

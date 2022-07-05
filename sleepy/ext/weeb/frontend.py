@@ -38,7 +38,7 @@ from sleepy.utils import plural
 from . import backend
 
 if TYPE_CHECKING:
-    from sleepy.context import Context as SleepyContext
+    from sleepy.context import Context as SleepyContext, GuildContext
     from sleepy.mimics import PartialAsset
 
 
@@ -110,9 +110,7 @@ class Weeb(
     @commands.command(aliases=("animesearch",))
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def anime(
-        self, ctx: SleepyContext, *, query: Annotated[str, str.lower]
-    ) -> None:
+    async def anime(self, ctx: GuildContext, *, query: Annotated[str, str.lower]) -> None:
         """Searches for an anime on MyAnimeList.
 
         This command shows the top 10 results on MAL.
@@ -130,7 +128,7 @@ class Weeb(
 
         search_url = "https://api.jikan.moe/v4/anime?limit=10"
 
-        if ctx.guild is not None and not ctx.channel.is_nsfw():  # type: ignore
+        if ctx.guild is not None and not ctx.channel.is_nsfw():
             search_url += "&genre=9,12,49&genre_exclude=1"
 
         await ctx.typing()
@@ -471,9 +469,7 @@ class Weeb(
     @commands.command(aliases=("mangasearch",))
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def manga(
-        self, ctx: SleepyContext, *, query: Annotated[str, str.lower]
-    ) -> None:
+    async def manga(self, ctx: GuildContext, *, query: Annotated[str, str.lower]) -> None:
         """Searches for a manga on MyAnimeList.
 
         This command shows the top 10 results on MAL.
@@ -491,7 +487,7 @@ class Weeb(
 
         search_url = "https://api.jikan.moe/v4/manga?limit=10"
 
-        if ctx.guild is not None and not ctx.channel.is_nsfw():  # type: ignore
+        if ctx.guild is not None and not ctx.channel.is_nsfw():
             search_url += "&genre=9,12,49&genre_exclude=1"
 
         await ctx.typing()

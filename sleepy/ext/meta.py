@@ -35,7 +35,7 @@ from sleepy.utils import (
 
 if TYPE_CHECKING:
     from sleepy.bot import Sleepy
-    from sleepy.context import Context as SleepyContext
+    from sleepy.context import Context as SleepyContext, GuildContext
 
 
 # fmt: off
@@ -590,7 +590,7 @@ class Meta(commands.Cog):
     @commands.command(aliases=("guildinfo", "gi", "si"), usage="")
     @commands.guild_only()
     @commands.bot_has_permissions(embed_links=True)
-    async def serverinfo(self, ctx: SleepyContext, *, server: str = None):
+    async def serverinfo(self, ctx: GuildContext, *, server: str = None):
         """Shows information about the server.
 
         An optional argument can be passed in order to get
@@ -604,7 +604,7 @@ class Meta(commands.Cog):
             # have this be silent if the user isn't the owner.
             guild = await commands.GuildConverter().convert(ctx, server)
         else:
-            guild: discord.Guild = ctx.guild  # type: ignore
+            guild = ctx.guild
 
         embed = Embed(colour=0x2F3136)
         embed.set_author(name=guild.name)
@@ -745,7 +745,7 @@ class Meta(commands.Cog):
     @commands.command(aliases=("dir",))
     @commands.guild_only()
     @commands.bot_has_permissions(embed_links=True)
-    async def tree(self, ctx: SleepyContext) -> None:
+    async def tree(self, ctx: GuildContext) -> None:
         """Shows a tree-like view of the server's channels.
 
         (Bot Needs: Embed Links)
@@ -753,10 +753,10 @@ class Meta(commands.Cog):
         tree = WrappedPaginator(prefix="", suffix="")
         total = 0
 
-        default = ctx.guild.default_role  # type: ignore
-        rules_channel = ctx.guild.rules_channel  # type: ignore
+        default = ctx.guild.default_role
+        rules_channel = ctx.guild.rules_channel
 
-        for category, channels in ctx.guild.by_category():  # type: ignore
+        for category, channels in ctx.guild.by_category():
             if category is not None:
                 total += 1
                 tree.add_line(f"**{category.name}**")
@@ -778,7 +778,7 @@ class Meta(commands.Cog):
 
         for page in tree.pages:
             embed = Embed(description=page, colour=0x2F3136)
-            embed.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon)  # type: ignore
+            embed.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon)
             embed.set_footer(text=f"{total} total channels.")
 
             await ctx.send(embed=embed)

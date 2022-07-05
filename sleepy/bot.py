@@ -327,7 +327,7 @@ class Sleepy(commands.Bot):
 
         if await self.is_owner(author):
             await self.invoke(ctx)
-            ctx.command.reset_cooldown(ctx)  # type: ignore
+            ctx.command.reset_cooldown(ctx)
             return
 
         current = message.edited_at or message.created_at
@@ -401,7 +401,7 @@ class Sleepy(commands.Bot):
             msg = f"Missing required argument: `{error.param.name}`."
             param_match = re.search(
                 fr"<{error.param.name}(?:\.{{3}})?>",
-                f"{ctx.command.qualified_name} {ctx.command.signature}",  # type: ignore
+                f"{ctx.command.qualified_name} {ctx.command.signature}",
             )
 
             # Command signature may not be in a format we expect.

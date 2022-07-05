@@ -22,7 +22,7 @@ from sleepy.menus import EmbedSource
 
 if TYPE_CHECKING:
     from sleepy.bot import Sleepy
-    from sleepy.context import Context as SleepyContext
+    from sleepy.context import Context as SleepyContext, GuildContext
     from sleepy.mimics import PartialAsset
 
 
@@ -107,10 +107,10 @@ class NSFW(
     def __init__(self, saucenao_api_key: str) -> None:
         self.saucenao_api_key: str = saucenao_api_key
 
-    async def cog_check(self, ctx: SleepyContext) -> bool:
+    async def cog_check(self, ctx: GuildContext) -> bool:
         # The channel should be able to be NSFW checked here.
-        if ctx.guild is not None and not ctx.channel.is_nsfw():  # type: ignore
-            raise commands.NSFWChannelRequired(ctx.channel)  # type: ignore
+        if ctx.guild is not None and not ctx.channel.is_nsfw():
+            raise commands.NSFWChannelRequired(ctx.channel)
 
         return True
 

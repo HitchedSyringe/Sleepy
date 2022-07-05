@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     from typing_extensions import Self
 
     from sleepy.bot import Sleepy
-    from sleepy.context import Context as SleepyContext
+    from sleepy.context import Context as SleepyContext, GuildContext
 
 
 def clean_subreddit(value: str) -> str:
@@ -273,13 +273,13 @@ class Web(
             await ctx.send(f"```\n{result}```\n`Powered by newton.vercel.app`")
 
     async def do_google_search(
-        self, ctx: SleepyContext, query: str, *, search_images: bool = False
+        self, ctx: GuildContext, query: str, *, search_images: bool = False
     ) -> None:
         await ctx.typing()
 
         url = "https://www.googleapis.com/customsearch/v1?searchInformation,items(title,link,snippet)"
 
-        if ctx.guild is not None and not ctx.channel.is_nsfw():  # type: ignore
+        if ctx.guild is not None and not ctx.channel.is_nsfw():
             url += "&safe=active"
 
         if search_images:
@@ -859,7 +859,7 @@ class Web(
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def google(
-        self, ctx: SleepyContext, *, query: Annotated[str, str.lower]
+        self, ctx: GuildContext, *, query: Annotated[str, str.lower]
     ) -> None:
         """Searches for something on Google, returning the top 10 results.
 
@@ -877,7 +877,7 @@ class Web(
 
     @google.command(name="imagesearch")
     async def google_imagesearch(
-        self, ctx: SleepyContext, *, query: Annotated[str, str.lower]
+        self, ctx: GuildContext, *, query: Annotated[str, str.lower]
     ) -> None:
         """Searches for something on Google images, returning the top 10 results.
 
@@ -1050,7 +1050,7 @@ class Web(
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
     async def reddit(
-        self, ctx: SleepyContext, subreddit: Annotated[str, clean_subreddit]
+        self, ctx: GuildContext, subreddit: Annotated[str, clean_subreddit]
     ) -> None:
         """Shows a subreddit's top weekly submissions.
 
@@ -1083,7 +1083,7 @@ class Web(
         for child in resp["data"]["children"]:
             post = child["data"]
 
-            if ctx.guild is not None and not ctx.channel.is_nsfw() and post["over_18"]:  # type: ignore
+            if ctx.guild is not None and not ctx.channel.is_nsfw() and post["over_18"]:
                 continue
 
             embed = Embed(
