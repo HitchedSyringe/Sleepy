@@ -30,7 +30,7 @@ from sleepy.converters import (
     ImageAssetConversionFailure,
     ImageAssetConverter,
     ImageAssetTooLarge,
-    _pseudo_bool_flag,
+    _positional_bool_flag,
 )
 from sleepy.http import HTTPRequestFailed
 from sleepy.menus import EmbedSource
@@ -102,14 +102,12 @@ class Images(
             await ctx.send(error)  # type: ignore
             ctx._already_handled_error = True
 
-    @commands.command(aliases=("asskeyify",), usage="[--invert] <image>")
+    @commands.command(aliases=("asskeyify",), usage="[-invert] <image>")
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def asciify(
         self,
         ctx: SleepyContext,
-        inverted: Annotated[
-            bool, Optional[_pseudo_bool_flag("--invert")]  # type: ignore
-        ] = False,
+        inverted: Annotated[bool, Optional[_positional_bool_flag("-invert")]] = False,  # type: ignore
         *,
         image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
     ) -> None:
@@ -119,7 +117,7 @@ class Images(
 
         By default, this generates the dark mode friendly
         version. To generate the light mode version, pass
-        `--invert` before the image argument.
+        `-invert` before the image argument.
 
         Image can either be a user, custom emoji, link, or
         attachment. Links and attachments must be under 40
@@ -163,7 +161,7 @@ class Images(
 
     # No, this wasn't made because of Project Blurple.
     @commands.command(
-        aliases=("blurpify", "bpify", "discordify"), usage="[--rebranded] <image>"
+        aliases=("blurpify", "bpify", "discordify"), usage="[-rebranded] <image>"
     )
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
@@ -171,7 +169,7 @@ class Images(
         self,
         ctx: SleepyContext,
         use_rebrand: Annotated[
-            bool, Optional[_pseudo_bool_flag("--rebranded")]  # type: ignore
+            bool, Optional[_positional_bool_flag("-rebranded")]  # type: ignore
         ] = False,
         *,
         image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
@@ -180,7 +178,7 @@ class Images(
 
         By default, this uses the blurple colour prior to
         Discord's rebranding. To use the new colour, pass
-        `--rebrand` before the image argument.
+        `-rebranded` before the image argument.
 
         Image can either be a user, custom emoji, link, or
         attachment. Links and attachments must be under 40
@@ -272,14 +270,14 @@ class Images(
             file=File(buffer, "change_my_mind.png"),
         )
 
-    @commands.command(usage="[--rebranded] <text>")
+    @commands.command(usage="[-rebranded] <text>")
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def clyde(
         self,
         ctx: SleepyContext,
         use_rebrand: Annotated[
-            bool, Optional[_pseudo_bool_flag("--rebranded")]  # type: ignore
+            bool, Optional[_positional_bool_flag("-rebranded")]  # type: ignore
         ] = False,
         *,
         text: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
@@ -288,7 +286,7 @@ class Images(
 
         By default, this uses the message design prior to
         Discord's rebranding. To use the new design, pass
-        `--rebranded` before the image argument.
+        `-rebranded` before the image argument.
 
         (Bot Needs: Attach Files)
         """

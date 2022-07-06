@@ -22,7 +22,7 @@ from matplotlib.dates import AutoDateLocator, DateFormatter, datestr2num
 from matplotlib.figure import Figure
 from typing_extensions import Annotated
 
-from sleepy.converters import _pseudo_bool_flag
+from sleepy.converters import _positional_bool_flag
 from sleepy.http import HTTPRequestFailed
 from sleepy.utils import human_number, measure_performance
 
@@ -221,22 +221,19 @@ class Covid(
     @commands.group(
         invoke_without_command=True,
         aliases=("covid", "coronavirus", "corona"),
-        usage="[--logarithmic|--log]",
+        usage="[-log]",
     )
     @commands.bot_has_permissions(embed_links=True, attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def covid19(
         self,
         ctx: SleepyContext,
-        logarithmic: Annotated[
-            bool, Optional[_pseudo_bool_flag("--log", "--logarithmic")]  # type: ignore
-        ] = False,
+        logarithmic: Annotated[bool, Optional[_positional_bool_flag("-log")]] = False,  # type: ignore
     ) -> None:
         """Shows detailed global COVID-19 statistics.
 
-        By default, this graphs the historical data
-        linearly. To graph the data logarithmically,
-        pass either `--log` or `--logarithmic`.
+        By default, this graphs the historical data linearly.
+        To graph the data logarithmically, pass `-log`.
 
         (Bot Needs: Embed Links and Attach Files)
         """
@@ -304,29 +301,27 @@ class Covid(
 
         await ctx.send(embed=embed, file=File(buffer, "covid19_graph.png"))
 
-    @covid19.command(name="country", usage="[--logarithmic|--log] <country>")
+    @covid19.command(name="country", usage="[-log] <country>")
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def covid19_country(
         self,
         ctx: SleepyContext,
-        logarithmic: Annotated[
-            bool, Optional[_pseudo_bool_flag("--log", "--logarithmic")]  # type: ignore
-        ] = False,
+        logarithmic: Annotated[bool, Optional[_positional_bool_flag("-log")]] = False,  # type: ignore
         *,
         country: Annotated[str, clean_input],
     ) -> None:
         """Shows detailed COVID-19 statistics for a country.
 
         By default, this graphs the historical data linearly.
-        To graph the data logarithmically, pass either `--log`
-        or `--logarithmic` before the country argument.
+        To graph the data logarithmically, pass `-log` before
+        the country argument.
 
         (Bot Needs: Embed Links and Attach Files)
 
         **EXAMPLES:**
         ```bnf
         <1> covid19 country USA
-        <2> covid19 country --logarithmic USA
+        <2> covid19 country -log USA
         ```
         """
         async with ctx.typing():

@@ -315,10 +315,10 @@ def real_float(*, max_decimal_places: Optional[int] = None) -> Callable[[str], f
 # to be publicised since their behaviour is too
 # confusing to document properly in addition to
 # the countless ambiguities associated.
-def _pseudo_bool_flag(*names: str) -> Callable[[str], bool]:
+def _positional_bool_flag(*names: str) -> Callable[[str], bool]:
     def convert(value: str) -> bool:
         if value not in names:
-            raise commands.BadArgument("Invalid flag.")
+            raise commands.BadArgument(f"{value} is not a valid flag.")
 
         return True
 
