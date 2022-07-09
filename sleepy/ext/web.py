@@ -84,7 +84,7 @@ class SteamAccountMeta:
     __slots__ = ("id", "id_3", "id_64")
 
     # Steam Base ID used for ID conversion calculations.
-    # Side note: this isn't in the official docs.
+    # This is in the official docs as "0x0110000100000000".
     BASE_ID_64 = 76561197960265728
 
     URL_REGEX = re.compile(
@@ -160,9 +160,12 @@ class SteamAccountMeta:
     @classmethod
     def from_id_3(cls, number_id):
         a_type = number_id % 2
-        id_n = number_id + a_type
 
-        return cls(f"STEAM_0:{a_type}:{id_n}", f"[U:1:{number_id}]", cls.BASE_ID_64 + id_n)
+        return cls(
+            f"STEAM_0:{a_type}:{number_id * 2 + a_type}",
+            f"[U:1:{number_id}]",
+            cls.BASE_ID_64 + number_id
+        )
 
     @classmethod
     def from_id_64(cls, id_64):
