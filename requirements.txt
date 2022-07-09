@@ -13,7 +13,7 @@ googletrans>=4.0.0rc1
 jishaku>=2.2.0
 matplotlib
 opencv-python-headless
-Pillow>=8.0.0
+Pillow>=8.0.0,!=9.0.*
 psutil
 pyfiglet
 pyyaml
