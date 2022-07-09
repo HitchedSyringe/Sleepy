@@ -152,7 +152,7 @@ class Images(
 
         By default, this uses the blurple colour prior to
         Discord's rebranding. To use the new colour, pass
-        `--rebrand` before the image argument.
+        `--rebranded` before the image argument.
 
         Image can either be a user, custom emoji, link, or
         attachment. Links and attachments must be under 40
