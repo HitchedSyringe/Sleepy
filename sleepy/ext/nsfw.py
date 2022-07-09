@@ -303,8 +303,8 @@ class NSFW(
 
         if not embeds:
             await ctx.send(
-                "All results either involve banned content on "
-                "Discord or, for some reason, lack image links."
+                "The returned results either all involve banned content"
+                " on Discord or, for some reason, lack image links."
             )
         else:
             await ctx.paginate(menus.EmbedSource(embeds))
@@ -373,7 +373,10 @@ class NSFW(
             embeds.append(embed)
 
         if not embeds:
-            await ctx.send("All results lack image links for some reason.")
+            await ctx.send(
+                "The returned results either all involve banned content"
+                " on Discord or, for some reason, lack image links."
+            )
         else:
             await ctx.paginate(menus.EmbedSource(embeds))
 
@@ -551,7 +554,7 @@ class NSFW(
             embeds.append(embed)
 
         if not embeds:
-            await ctx.send("All results involve banned content on Discord")
+            await ctx.send("All returned results involve banned content on Discord.")
         else:
             await ctx.paginate(menus.EmbedSource(embeds))
 
