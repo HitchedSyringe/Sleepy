@@ -1020,7 +1020,7 @@ class Web(
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
-    async def steaminfo(self, ctx, *, account: SteamAccountMeta):
+    async def steaminfo(self, ctx, account: SteamAccountMeta):
         """Gets information about a Steam account.
 
         Argument can either be a Steam ID 64, vanity username, or link.
