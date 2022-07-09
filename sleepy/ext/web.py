@@ -1023,7 +1023,8 @@ class Web(
     async def steaminfo(self, ctx, account: SteamAccountMeta):
         """Gets information about a Steam account.
 
-        Argument can either be a Steam ID 64, vanity username, or link.
+        Argument can either be a Steam community ID, Steam ID, Steam3 ID,
+        vanity username, or link.
 
         (Bot Needs: Embed Links)
 
@@ -1032,7 +1033,9 @@ class Web(
         <1> steaminfo https://steamcommunity.com/profiles/76561192109582121
         <2> steaminfo https://steamcommunity.com/id/ReallyCoolExampleVanity
         <3> steaminfo 76561192109582121
-        <4> steaminfo ReallyCoolExampleVanity
+        <4> steaminfo STEAM_0:1:1647295
+        <5> steaminfo [U:1:4285023]
+        <6> steaminfo ReallyCoolExampleVanity
         ```
         """
         resp = await ctx.get(
