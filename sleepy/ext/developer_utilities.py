@@ -323,9 +323,13 @@ class DeveloperUtilities(
         enc_user_id, enc_ts, hmac = token_match.groups()
 
         try:
-            user_id = base64.b64decode(enc_user_id, validate=True).decode("utf-8")
+            user_id = base64.b64decode(enc_user_id).decode("utf-8")
         except (binascii.Error, UnicodeError):
             await ctx.send("Decoding the user ID failed.")
+            return
+
+        if not user_id.isnumeric():
+            await ctx.send("The decoded user ID seems to be invalid.")
             return
 
         try:
@@ -338,7 +342,7 @@ class DeveloperUtilities(
             type(user).__repr__ = lambda _: "Unknown"
 
         try:
-            ts = int.from_bytes(base64.b64decode(enc_ts + "==", validate=True), "big")
+            ts = int.from_bytes(base64.urlsafe_b64decode(enc_ts + "=="), "big")
         except (binascii.Error, ValueError):
             await ctx.send("Decoding the generation timestamp failed.")
             return
