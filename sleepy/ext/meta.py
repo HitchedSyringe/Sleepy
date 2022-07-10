@@ -540,37 +540,6 @@ class Meta(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=("debugperms",), hidden=True)
-    @commands.is_owner()
-    @commands.bot_has_permissions(embed_links=True)
-    async def debugpermissions(
-        self, ctx: SleepyContext, channel_id: int, user: discord.User = None
-    ) -> None:
-        """Shows a channel's resolved permissions as an optional user.
-
-        If no user is given, then my permissions in the
-        given channel will be shown instead.
-
-        This command can only be used by my higher-ups.
-        """
-        channel = ctx.bot.get_channel(channel_id)
-
-        if channel is None:
-            await ctx.send("Invalid channel ID.")
-            return
-
-        if user is None:
-            user = channel.guild.me  # type: ignore
-        else:
-            user = channel.guild.get_member(user.id)  # type: ignore
-
-            if user is None:
-                await ctx.send("That user isn't a member of the channel's guild.")
-                return
-
-        # These should work regardless.
-        await self.permissions(ctx, user, channel)  # type: ignore
-
     @commands.command()
     async def prefixes(self, ctx: SleepyContext) -> None:
         """Shows my command prefixes."""
