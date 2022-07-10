@@ -379,8 +379,7 @@ class Meta(commands.Cog):
 
         User can either be a name, ID, or mention.
 
-        If no user is given, then your own avatar will be
-        shown instead.
+        If no user is given, then your own avatar will be shown instead.
 
         (Bot Needs: Embed Links)
 
@@ -504,14 +503,14 @@ class Meta(commands.Cog):
     ) -> None:
         """Shows a user's permissions optionally in another channel.
 
-        User can either be a name, ID, or mention. The same
-        applies to the channel argument.
+        User can either be a name, ID, or mention. The same applies
+        to the channel argument.
 
-        If no user is given, then your own permissions will
-        be shown instead.
+        If no user is given, then your own permissions will be shown
+        instead.
 
-        If no channel is given, then the permissions in the
-        current channel will be shown instead.
+        If no channel is given, then the permissions in the current
+        channel will be shown instead.
 
         **EXAMPLES:**
         ```bnf
@@ -762,8 +761,7 @@ class Meta(commands.Cog):
     ) -> None:
         """Shows information about a user.
 
-        If no user is given, then your own info will be
-        shown instead.
+        If no user is given, then your own info will be shown instead.
 
         (Bot Needs: Embed Links)
 

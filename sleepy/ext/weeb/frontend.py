@@ -111,11 +111,10 @@ class Weeb(
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def anime(self, ctx: GuildContext, *, query: Annotated[str, str.lower]) -> None:
-        """Searches for an anime on MyAnimeList.
+        """Searches for an anime on MyAnimeList and returns the top 10 results.
 
-        This command shows the top 10 results on MAL.
-        The search results displayed are based on whether
-        or not this command was executed in an NSFW channel.
+        The search results displayed are based on whether or not this command
+        was executed in an NSFW channel.
 
         **EXAMPLE:**
         ```
@@ -470,11 +469,10 @@ class Weeb(
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def manga(self, ctx: GuildContext, *, query: Annotated[str, str.lower]) -> None:
-        """Searches for a manga on MyAnimeList.
+        """Searches for a manga on MyAnimeList and returns the top 10 results.
 
-        This command shows the top 10 results on MAL.
-        The search results displayed are based on whether
-        or not this command was executed in an NSFW channel.
+        The search results displayed are based on whether or not this command
+        was executed in an NSFW channel.
 
         **EXAMPLE:**
         ```

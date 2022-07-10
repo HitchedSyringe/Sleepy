@@ -94,8 +94,7 @@ class Owner(
 
         User can either be a name, ID, or mention.
 
-        This command does **not** send any Discord file
-        attachments.
+        This command does **not** send any Discord file attachments.
         """
         embed = Embed(
             description=content,
@@ -169,8 +168,7 @@ class Owner(
     ) -> None:
         """Reloads one or more extensions.
 
-        If no extensions are passed, then all loaded extensions
-        will be reloaded.
+        If no extensions are passed, then all loaded extensions will be reloaded.
         """
         to_reload = (
             itertools.chain(*extensions) if extensions else tuple(ctx.bot.extensions)
@@ -239,8 +237,7 @@ class Owner(
     ) -> None:
         """Forces me to leave a server.
 
-        If no server is given, then I will leave the
-        current server instead.
+        If no server is given, then I will leave the current server instead.
         """
         confirmed = await ctx.prompt(f"Leave {guild} (ID: {guild.id})?")
 

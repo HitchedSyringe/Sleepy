@@ -863,8 +863,7 @@ class Web(
     ) -> None:
         """Searches for something on Google, returning the top 10 results.
 
-        Safe mode is enabled based on whether or not you're
-        in an NSFW channel.
+        Safe mode is enabled based on whether or not you're in an NSFW channel.
 
         (Bot Needs: Embed Links, Add Reactions, and Read Message History)
 
@@ -881,8 +880,7 @@ class Web(
     ) -> None:
         """Searches for something on Google images, returning the top 10 results.
 
-        Safe mode is enabled based on whether or not you're
-        in an NSFW channel.
+        Safe mode is enabled based on whether or not you're in an NSFW channel.
 
         (Bot Needs: Embed Links, Add Reactions, and Read Message History)
 
@@ -1325,12 +1323,12 @@ class Web(
         url: str = commands.parameter(converter=RedditSubmissionURL),
     ) -> None:
         """Downloads a Reddit video submission.
-        Both v.redd.it and regular Reddit links are
-        supported.
 
-        Due to a limitation with how Reddit handles
-        and stores videos internally, this command
-        can only download videos **without** audio.
+        Both v.redd.it and regular Reddit links are supported.
+
+        Due to a limitation with how Reddit handles and stores
+        videos internally, this command can only download videos
+        **without** audio.
 
         (Bot Needs: Attach Files)
         """
@@ -1498,8 +1496,7 @@ class Web(
     async def xkcd(self, ctx: SleepyContext, number: int = None) -> None:
         """Shows a comic from xkcd.
 
-        If no comic number is given, then the latest
-        comic will be shown instead.
+        If no comic number is given, then the latest comic will be shown instead.
 
         (Bot Needs: Embed Links)
 

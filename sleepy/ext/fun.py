@@ -436,15 +436,13 @@ class Fun(
     async def colour(self, ctx: SleepyContext, *, colour: discord.Colour = None) -> None:
         """Shows a representation of a given colour.
 
-        Colour can either be a name, 6 digit hex value
-        prefixed with either a `0x`, `#`, or `0x#`; or
-        CSS RGB function (e.g. `rgb(103, 173, 242)`).
+        Colour can either be a name, 6 digit hex value prefixed with either a
+        `0x`, `#`, or `0x#`; or CSS RGB function (e.g. `rgb(103, 173, 242)`).
 
         For a list of valid colour names, refer to:
         <https://discordpy.readthedocs.io/en/latest/api.html#discord.Colour>
 
-        If no colour is given, then a random colour will
-        be shown instead.
+        If no colour is given, then a random colour will be shown instead.
 
         (Bot Needs: Embed Links and Attach Files)
 
@@ -704,13 +702,12 @@ class Fun(
     async def penissize(
         self, ctx: SleepyContext, *, user: discord.Member = commands.Author
     ) -> None:
-        """Calculates a user's pp length.
-        100% accurate or your money back.
+        """Calculates a user's pp length. 100% accurate or your money back.
 
         User can either be a name, ID, or mention.
 
-        If no user is specified, then your own pp
-        length will be calculated instead.
+        If no user is specified, then your own pp length will be calculated
+        instead.
 
         **EXAMPLES:**
         ```bnf
@@ -819,13 +816,11 @@ class Fun(
     async def rate(
         self, ctx: SleepyContext, *, user: discord.Member = commands.Author
     ) -> None:
-        """Rates a user out of 10.
-        100% accurate or your money back.
+        """Rates a user out of 10. 100% accurate or your money back.
 
         User can either be a name, ID, or mention.
 
-        If no user is specified, then you will be
-        rated instead.
+        If no user is specified, then you will be rated instead.
 
         **EXAMPLES:**
         ```bnf

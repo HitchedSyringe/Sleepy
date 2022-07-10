@@ -434,9 +434,9 @@ class Covid(
     ) -> None:
         """Shows detailed COVID-19 statistics for a U.S. entity.
 
-        This includes statistics from states, territories,
-        repatriated citizens, veteran affairs, federal
-        prisons, the U.S. military, and the Navajo Nation.
+        This includes statistics from states, territories, repatriated
+        citizens, veteran affairs, federal prisons, the U.S. military,
+        and the Navajo Nation.
 
         (Bot Needs: Embed Links)
 
