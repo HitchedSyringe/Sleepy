@@ -155,7 +155,7 @@ def do_invert(image_buffer: io.BytesIO) -> io.BytesIO:
         except ValueError:
             cv2.cvtColor(img, cv2.COLOR_RGB2BGR, img)
         else:
-            img = np.dstack((img, alpha))
+            img = np.dstack((img, alpha))  # type: ignore
             cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA, img)
 
     return io.BytesIO(cv2.imencode(".png", img)[1])

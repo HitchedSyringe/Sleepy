@@ -26,10 +26,10 @@ __all__ = (
 )
 
 
-import asyncio
 import math
 import random
 import time
+from asyncio import iscoroutinefunction
 from datetime import datetime, timezone
 from functools import wraps
 from pathlib import Path
@@ -52,14 +52,14 @@ from typing import (
 
 from dateutil.relativedelta import relativedelta
 
-_RT = TypeVar("_RT")
-
-
 if TYPE_CHECKING:
     from discord.ext.commands import FlagConverter
     from typing_extensions import ParamSpec
 
+    _R = TypeVar("_R")
     _P = ParamSpec("_P")
+
+    AsyncFunc = Callable[_P, Awaitable[_R]]
 
 
 DISCORD_SERVER_URL: str = "https://discord.gg/xHgh2Xg"
@@ -493,20 +493,18 @@ def human_number(
 
 
 @overload
-def measure_performance(func: Callable[_P, _RT]) -> Callable[_P, Tuple[_RT, float]]:
+def measure_performance(func: AsyncFunc[_P, _R]) -> AsyncFunc[_P, Tuple[_R, float]]:
     ...
 
 
 @overload
-def measure_performance(
-    func: Callable[_P, Awaitable[_RT]],
-) -> Callable[_P, Awaitable[Tuple[_RT, float]]]:
+def measure_performance(func: Callable[_P, _R]) -> Callable[_P, Tuple[_R, float]]:
     ...
 
 
 def measure_performance(
-    func: Union[Callable[_P, _RT], Callable[_P, Awaitable[_RT]]]
-) -> Callable[_P, Union[Tuple[_RT, float], Awaitable[Tuple[_RT, float]]]]:
+    func: Union[Callable[_P, _R], AsyncFunc[_P, _R]]
+) -> Union[Callable[_P, Tuple[_R, float]], AsyncFunc[_P, Tuple[_R, float]]]:
     """A decorator that returns a function or coroutine's
     execution time in milliseconds.
 
@@ -535,32 +533,30 @@ def measure_performance(
 
         result, delta = await foo()
     """
-    # I'm using `asyncio.iscoroutinefunction` instead of
-    # `inspect.iscoroutinefunction` here in case someone
-    # out there, for whatever reason, decides to use this
-    # with a function decorated with `asyncio.coroutine`.
-    # I highly doubt that anyone out there still uses the
-    # decorator given that it has been deprecated since
-    # Python 3.8.
-    if asyncio.iscoroutinefunction(func):
-        func = cast(Callable[_P, Awaitable[_RT]], func)
+    # The asyncio method is used so @asyncio.coroutine decorated
+    # functions actually work. I doubt anyone still uses them in
+    # however since they've been deprecated since Python 3.8.
+    # Maybe this can be switched to use inspect instead at some
+    # point in the future.
+    if iscoroutinefunction(func):
 
         @wraps(func)
-        async def decorator(*args: _P.args, **kwargs: _P.kwargs) -> Tuple[_RT, float]:  # type: ignore
+        async def async_deco(*args: _P.args, **kwargs: _P.kwargs) -> Tuple[_R, float]:
             start = time.perf_counter()
             result = await func(*args, **kwargs)
             return result, (time.perf_counter() - start) * 1000
 
+        return async_deco
     else:
-        func = cast(Callable[_P, _RT], func)
+        func = cast("Callable[_P, _R]", func)
 
         @wraps(func)
-        def decorator(*args: _P.args, **kwargs: _P.kwargs) -> Tuple[_RT, float]:
+        def deco(*args: _P.args, **kwargs: _P.kwargs) -> Tuple[_R, float]:
             start = time.perf_counter()
             result = func(*args, **kwargs)
             return result, (time.perf_counter() - start) * 1000
 
-    return decorator
+        return deco
 
 
 def progress_bar(*, progress: int, maximum: int, per: int = 1) -> str:
