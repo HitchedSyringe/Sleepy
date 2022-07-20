@@ -34,23 +34,18 @@ if TYPE_CHECKING:
 
 
 # fmt: off
-# (channel_type, is_viewable): emoji
-CHANNEL_EMOJI: Dict[Tuple[ChannelType, bool], str] = {
-    (ChannelType.text, True):            "<:tc:828149291812913152> ",
-    (ChannelType.voice, True):           "<:vc:828151635791839252> ",
-    (ChannelType.stage_voice, True):     "<:sc:828149291750785055> ",
-    (ChannelType.news, True):            "<:ac:828419969133314098> ",
-    (ChannelType.category, True):        "",
-    (ChannelType.public_thread, True):   "<:thc:917442358377869373> ",
-    (ChannelType.forum, True):           "<:fc:999410787540021308>",
+# channel_type: (locked_emoji, unlocked_emoji)
+CHANNEL_EMOJI: Dict[ChannelType, Tuple[str, str]] = {
+    ChannelType.text:           ("<:ltc:828149291533074544> ", "<:tc:828149291812913152> "),
+    ChannelType.voice:          ("<:lvc:828149291628625960> ", "<:vc:828151635791839252> "),
+    ChannelType.stage_voice:    ("<:lsc:828149291590746112> ", "<:sc:828149291750785055> "),
+    ChannelType.news:           ("<:lac:828149291578556416> ", "<:ac:828419969133314098> "),
 
-    (ChannelType.text, False):           "<:ltc:828149291533074544> ",
-    (ChannelType.voice, False):          "<:lvc:828149291628625960> ",
-    (ChannelType.stage_voice, False):    "<:lsc:828149291590746112> ",
-    (ChannelType.news, False):           "<:lac:828149291578556416> ",
-    (ChannelType.category, False):       "",
-    (ChannelType.private_thread, False): "<:thc:917442358377869373> ",
-    (ChannelType.forum, False):          "<:fc:999410787540021308>",
+    # Either has no locked icon version or has no icon at all.
+    ChannelType.category:       ("",) * 2,
+    ChannelType.forum:          ("<:fc:999410787540021308> ",) * 2,
+    ChannelType.public_thread:  ("<:thc:917442358377869373> ",) * 2,
+    ChannelType.private_thread: ("<:thc:917442358377869373> ",) * 2,
 }
 
 
@@ -517,7 +512,7 @@ class Meta(commands.Cog):
         ```
         """
         embed = Embed(
-            description=f"Showing permissions in {CHANNEL_EMOJI[(channel.type, True)]}"
+            description=f"Showing permissions in {CHANNEL_EMOJI[channel.type][0]}"
             f"{channel.name} (ID: {channel.id})",
             colour=0x2F3136,
         )
@@ -726,9 +721,8 @@ class Meta(commands.Cog):
                     icon = "<:ntc:828149291683807282> "
                 else:
                     perms = channel.permissions_for(default)
-                    icon = CHANNEL_EMOJI[
-                        (channel.type, perms.connect or perms.read_messages)
-                    ]
+                    type_ = int(perms.connect or perms.read_messages)
+                    icon = CHANNEL_EMOJI[channel.type][type_]
 
                 tree.add_line(f"{icon}{channel.name}")
 
