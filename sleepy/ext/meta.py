@@ -12,6 +12,7 @@ from __future__ import annotations
 import difflib
 import inspect
 import itertools
+from collections import Counter
 from os import path
 from typing import TYPE_CHECKING, Dict, List, Mapping, Optional, Tuple, Union
 
@@ -25,13 +26,7 @@ from jishaku.paginators import WrappedPaginator
 from typing_extensions import Annotated
 
 from sleepy.menus import BotLinksView, PaginationView
-from sleepy.utils import (
-    GITHUB_URL,
-    PERMISSIONS_VALUE,
-    bool_to_emoji,
-    plural,
-    progress_bar,
-)
+from sleepy.utils import GITHUB_URL, PERMISSIONS_VALUE, bool_to_emoji
 
 if TYPE_CHECKING:
     from sleepy.bot import Sleepy
@@ -574,7 +569,7 @@ class Meta(commands.Cog):
         else:
             guild = ctx.guild
 
-        embed = Embed(colour=0x2F3136)
+        embed = Embed(colour=0x2F3136, description=guild.description)
         embed.set_author(name=guild.name)
 
         if guild.icon is not None:
@@ -583,77 +578,68 @@ class Meta(commands.Cog):
         if guild.banner is not None:
             embed.set_image(url=guild.banner)
 
-        if guild.description is not None:
-            embed.description = guild.description
-
         embed.add_field(
-            name="Information",
-            value=f"<:ar:862433028088135711> **ID:** {guild.id}"
-            f"\n<:ar:862433028088135711> **Owner:** {guild.owner.mention}"  # type: ignore
-            f"\n<:ar:862433028088135711> **Created:** {fmt_dt(guild.created_at, 'R')}"
-            "\n<:ar:862433028088135711> **Members:**"
-            f" <:sm:829503770454523994> {guild.member_count:,d}"
-            f" \N{BULLET} <:nb:829503770060390471> {len(guild.premium_subscribers):,d}"
-            f" \N{BULLET} <:bt:833117614690533386> {sum(m.bot for m in guild.members):,d}"
-            "\n<:ar:862433028088135711> **Channels:**"
-            f" <:tc:828149291812913152> {len(guild.text_channels)}"
-            f" \N{BULLET} <:vc:828151635791839252> {len(guild.voice_channels)}"
-            f" \N{BULLET} <:sc:828149291750785055> {len(guild.stage_channels)}"
-            f"\n<:ar:862433028088135711> **Locale:** {guild.preferred_locale}"
-            f"\n<:ar:862433028088135711> **Upload Limit:** {guild.filesize_limit // 1e6} MB"
-            f"\n<:ar:862433028088135711> **Bitrate Limit:** {guild.bitrate_limit // 1e3} kbps"
-            f"\n<:ar:862433028088135711> **Shard ID:** {guild.shard_id or 'N/A'}",
-            inline=False,
+            name="\N{INFORMATION SOURCE} Information",
+            value=f"`ID:` {guild.id}"
+            f"\n`Owner:` {guild.owner}"
+            f"\n`Created:` {fmt_dt(guild.created_at, 'R')}"
+            f"\n`Locale:` {guild.preferred_locale}"
+            f"\n`Vanity URL:` {guild.vanity_url or 'N/A'}"
+            f"\n`Security Level:` {guild.verification_level.name.title()}"
+            f"\n`MFA Level:` {guild.mfa_level.name.replace('_', ' ').title()}"
+            f"\n`NSFW Filter:` {guild.explicit_content_filter.name.replace('_', ' ').title()}"
+            f"\n`Upload Limit:` {guild.filesize_limit // 1e6} MB"
+            f"\n`Max Bitrate:` {guild.bitrate_limit // 1e3} kbps"
+            f"\n`Max Members:` {guild.max_members:,d}"
+            f"\n`Shard ID:` {guild.shard_id or 'N/A'}",
         )
 
-        if guild.features:
+        rb_info = "N/A"
+
+        if guild.premium_subscription_count > 0:
+            recent = max(guild.members, key=lambda m: m.premium_since or guild.created_at)
+
+            if recent.premium_since is not None:
+                rb_info = f"{recent} ({fmt_dt(recent.premium_since, 'R')})"
+
+        channels = Counter(map(type, guild.channels))
+
+        total_emojis = 0
+        animated = 0
+
+        for emoji in guild.emojis:
+            total_emojis += 1
+
+            if emoji.animated:
+                animated += 1
+
+        embed.add_field(
+            name="\N{BAR CHART} Statistics",
+            value=f"`Members:` {guild.member_count:,d}"
+            f"\n<:bt:833117614690533386> {sum(m.bot for m in guild.members):,d}"
+            f" \N{BULLET} <:nb:829503770060390471> {len(guild.premium_subscribers):,d}"
+            f"\n`Channels:` {sum(channels.values())}"
+            f"\n\N{CARD INDEX DIVIDERS} {channels[discord.CategoryChannel]}"
+            f" \N{BULLET} <:tc:828149291812913152> {channels[discord.TextChannel]}"
+            f" \N{BULLET} <:vc:828151635791839252> {channels[discord.VoiceChannel]}"
+            f"\n<:sc:828149291750785055> {channels[discord.StageChannel]}"
+            f" \N{BULLET} <:thc:917442358377869373> {len(guild.threads):,d}"
+            f" \N{BULLET} <:fc:999410787540021308> {channels[discord.ForumChannel]}"
+            f"\n`Roles:` {len(guild.roles)}"
+            f"\n`Emojis:` {total_emojis} / {guild.emoji_limit * 2}"
+            f"\n\u251D`Regular:` {total_emojis - animated}"
+            f"\n\u2570`Animated:` {animated}"
+            f"\n`Stickers:` {len(guild.stickers)} / {guild.sticker_limit}"
+            f"\n`Boosts:` {guild.premium_subscription_count} \u2012 Tier {guild.premium_tier}"
+            f"\n\u2570`Recent:` {rb_info}",
+        )
+
+        if features := ", ".join(f.replace('_', ' ').title() for f in guild.features):
             embed.add_field(
-                name="Features",
-                value="\n".join(
-                    f"\N{SMALL BLUE DIAMOND} {f.replace('_', ' ').title()}"
-                    for f in guild.features
-                ),
-            )
-
-        if guild.emojis:
-            e_count = len(guild.emojis)
-            e_shown = " ".join(map(str, guild.emojis[:25]))
-
-            if e_count > 25:
-                e_shown += f" (+{e_count - 15} more)"
-
-            embed.add_field(
-                name=f"Emojis \N{BULLET} {e_count} / {guild.emoji_limit * 2}",
-                value=e_shown,
+                name=f"\N{SPARKLES} Features \N{BULLET} {len(guild.features)}",
+                value=f"```\n{features}\n```",
                 inline=False,
             )
-
-        # Get roles in reverse order, excluding @everyone.
-        if roles := guild.roles[:0:-1]:
-            r_count = len(roles)
-            r_shown = " ".join(r.mention for r in roles[:15])
-
-            if r_count > 15:
-                r_shown += f" (+{r_count - 15} more)"
-
-            embed.add_field(
-                name=f"Roles \N{BULLET} {r_count}", value=r_shown, inline=False
-            )
-
-        tier = guild.premium_tier
-        boosts = guild.premium_subscription_count
-
-        if tier == 3:
-            next_ = "Maximum boost tier achieved!"
-        else:
-            next_ = f"{plural((2, 7, 14)[tier] - boosts):boost} needed to reach tier {tier + 1}."
-
-        embed.add_field(
-            name=f"Server Boosts \N{BULLET} Tier {tier}",
-            value=f"**{plural(boosts, ',d'):boost}** \N{BULLET} {next_}"
-            f"\n\n0 {progress_bar(progress=min(boosts, 14), maximum=14)} 14",
-            inline=False,
-        )
 
         await ctx.send(embed=embed)
 
