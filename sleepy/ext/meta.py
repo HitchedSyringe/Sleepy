@@ -42,6 +42,7 @@ CHANNEL_EMOJI: Dict[Tuple[ChannelType, bool], str] = {
     (ChannelType.news, True):            "<:ac:828419969133314098> ",
     (ChannelType.category, True):        "",
     (ChannelType.public_thread, True):   "<:thc:917442358377869373> ",
+    (ChannelType.forum, True):           "<:fc:999410787540021308>",
 
     (ChannelType.text, False):           "<:ltc:828149291533074544> ",
     (ChannelType.voice, False):          "<:lvc:828149291628625960> ",
@@ -49,6 +50,7 @@ CHANNEL_EMOJI: Dict[Tuple[ChannelType, bool], str] = {
     (ChannelType.news, False):           "<:lac:828149291578556416> ",
     (ChannelType.category, False):       "",
     (ChannelType.private_thread, False): "<:thc:917442358377869373> ",
+    (ChannelType.forum, False):          "<:fc:999410787540021308>",
 }
 
 
