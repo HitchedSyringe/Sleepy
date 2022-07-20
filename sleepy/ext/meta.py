@@ -657,7 +657,7 @@ class Meta(commands.Cog):
     # Just change the ``base`` value to link to your fork. I should also
     # note that this is hard-coded to view the master branch. As for the
     # third case, you're on your own.
-    @commands.command()
+    @commands.command(aliases=("src",))
     async def source(self, ctx: SleepyContext, *, command: str = None) -> None:
         """Sends a link to my full source code or for a specific command."""
         base = GITHUB_URL
