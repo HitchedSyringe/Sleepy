@@ -511,23 +511,26 @@ class Meta(commands.Cog):
         <3> permissions 140540589329481728 #general
         ```
         """
+        perms = channel.permissions_for(user)
+        type_ = int(perms.connect or perms.read_messages)
+
         embed = Embed(
-            description=f"Showing permissions in {CHANNEL_EMOJI[channel.type][0]}"
-            f"{channel.name} (ID: {channel.id})",
+            description="Showing permissions in"
+            f" {CHANNEL_EMOJI[channel.type][type_]}{channel.name} (ID: {channel.id})",
             colour=0x2F3136,
         )
         embed.set_author(name=f"{user} (ID: {user.id})", icon_url=user.display_avatar)
 
-        perms = [
+        perms_readable = [
             f"{bool_to_emoji(v)} {p.replace('_', ' ').replace('guild', 'server').title()}"
-            for p, v in channel.permissions_for(user)
+            for p, v in perms
         ]
 
         # Do "ceiling division" (or just reverse floor division)
         # so the first column is longer than the second column.
-        half = -(len(perms) // -2)
-        embed.add_field(name="\u200b", value="\n".join(perms[:half]))
-        embed.add_field(name="\u200b", value="\n".join(perms[half:]))
+        half = -(len(perms_readable) // -2)
+        embed.add_field(name="\u200b", value="\n".join(perms_readable[:half]))
+        embed.add_field(name="\u200b", value="\n".join(perms_readable[half:]))
 
         await ctx.send(embed=embed)
 
