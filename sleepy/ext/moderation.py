@@ -506,7 +506,13 @@ class Moderation(commands.Cog):
                 and m.joined_at > a_joined_at
             )
 
-        members = [m for m in ctx.guild.members if all(c(m) for c in checks)]
+        if ctx.guild.chunked:
+            members = ctx.guild.members
+        else:
+            async with ctx.typing():
+                members = await ctx.guild.chunk()
+
+        members = [m for m in members if all(c(m) for c in checks)]
 
         if not members:
             await ctx.send("No members met the criteria specified.")

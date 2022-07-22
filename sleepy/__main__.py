@@ -112,6 +112,7 @@ def _create_bot(config: Mapping[str, Any]) -> Sleepy:
         allowed_mentions=AllowedMentions(everyone=False, roles=False),
         intents=intents,
         max_messages=None,
+        chunk_guilds_at_startup=False,
     )
 
 

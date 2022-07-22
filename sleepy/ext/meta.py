@@ -594,10 +594,16 @@ class Meta(commands.Cog):
             f"\n`Shard ID:` {guild.shard_id or 'N/A'}",
         )
 
+        if guild.chunked:
+            members = guild.members
+        else:
+            async with ctx.typing():
+                members = await guild.chunk()
+
         rb_info = "N/A"
 
         if guild.premium_subscription_count > 0:
-            recent = max(guild.members, key=lambda m: m.premium_since or guild.created_at)
+            recent = max(members, key=lambda m: m.premium_since or guild.created_at)
 
             if recent.premium_since is not None:
                 rb_info = f"{recent} ({format_dt(recent.premium_since, 'R')})"
@@ -616,7 +622,7 @@ class Meta(commands.Cog):
         embed.add_field(
             name="\N{BAR CHART} Statistics",
             value=f"`Members:` {guild.member_count:,d}"
-            f"\n<:bt:833117614690533386> {sum(m.bot for m in guild.members):,d}"
+            f"\n<:bt:833117614690533386> {sum(m.bot for m in members):,d}"
             f" \N{BULLET} <:nb:829503770060390471> {len(guild.premium_subscribers):,d}"
             f"\n`Channels:` {sum(channels.values())}"
             f"\n\N{CARD INDEX DIVIDERS} {channels[discord.CategoryChannel]}"
