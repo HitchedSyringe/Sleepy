@@ -892,7 +892,7 @@ class Web(
     @commands.command(aliases=("mcinfo",))
     @commands.bot_has_permissions(embed_links=True)
     async def minecraftinfo(
-        self, ctx: SleepyContext, *, account: Annotated[str, str.lower]
+        self, ctx: SleepyContext, account: Annotated[str, str.lower]
     ) -> None:
         """Gets information about a Minecraft: Java Edition account.
 
