@@ -21,7 +21,7 @@ from discord import ActivityType, ChannelType, Embed, SelectOption, Status
 from discord.ext import commands
 from discord.ext.menus import ListPageSource, PageSource
 from discord.ui import Select
-from discord.utils import format_dt as fmt_dt, oauth_url, utcnow
+from discord.utils import escape_markdown, format_dt, oauth_url, utcnow
 from jishaku.paginators import WrappedPaginator
 from typing_extensions import Annotated
 
@@ -582,7 +582,7 @@ class Meta(commands.Cog):
             name="\N{INFORMATION SOURCE} Information",
             value=f"`ID:` {guild.id}"
             f"\n`Owner:` {guild.owner}"
-            f"\n`Created:` {fmt_dt(guild.created_at, 'R')}"
+            f"\n`Created:` {format_dt(guild.created_at, 'R')}"
             f"\n`Locale:` {guild.preferred_locale}"
             f"\n`Vanity URL:` {guild.vanity_url or 'N/A'}"
             f"\n`Security Level:` {guild.verification_level.name.title()}"
@@ -600,7 +600,7 @@ class Meta(commands.Cog):
             recent = max(guild.members, key=lambda m: m.premium_since or guild.created_at)
 
             if recent.premium_since is not None:
-                rb_info = f"{recent} ({fmt_dt(recent.premium_since, 'R')})"
+                rb_info = f"{recent} ({format_dt(recent.premium_since, 'R')})"
 
         channels = Counter(map(type, guild.channels))
 
@@ -757,91 +757,88 @@ class Meta(commands.Cog):
         <3> userinfo HitchedSyringe
         ```
         """
-        avatar_url = user.display_avatar.with_static_format("png")
-
         embed = Embed(
             description=" ".join(
                 v for k, v in BADGES.items() if getattr(user.public_flags, k)
-            ),
-            colour=0x2F3136,
+            )
         )
         embed.set_author(name=user)
-        embed.set_thumbnail(url=avatar_url)
+        embed.set_thumbnail(url=user.display_avatar)
+
+        if user.banner is not None:
+            embed.set_image(url=user.banner)
+
+        shared = len(ctx.bot.guilds if user == ctx.me else user.mutual_guilds)
 
         embed.add_field(
-            name="Information",
-            value=f"{user.mention} \N{BULLET} **[Avatar]({avatar_url})**"
-            f"\n<:ar:862433028088135711> **ID:** {user.id}"
-            f"\n<:ar:862433028088135711> **Created:** {fmt_dt(user.created_at, 'R')}"
-            f"\n<:ar:862433028088135711> **Bot:** {bool_to_emoji(user.bot)}"
-            "\n<:ar:862433028088135711> **Shared Servers:** "
-            + str(len(ctx.bot.guilds if user == ctx.me else user.mutual_guilds)),
-            inline=False,
+            name="\N{INFORMATION SOURCE} General Information",
+            value=f"`Mention:` {user.mention}"
+            f"\n`ID:` {user.id}"
+            f"\n`Created:` {format_dt(user.created_at, 'R')}"
+            f"\n`Is Bot User:` {bool_to_emoji(user.bot)}"
+            f"\n`Is System User:` {bool_to_emoji(user.system)}"
+            f"\n`Shared Servers:` {shared}",
         )
 
         if isinstance(user, discord.User):
+            embed.colour = 0x2F3136
             embed.set_footer(text="This user is not a member of this server.")
-            await ctx.send(embed=embed)
-            return
-
-        # Better than calling `Embed.set_field_at`.
-        embed._fields[0]["value"] += (
-            f"\n<:ar:862433028088135711> **Nick:** {user.nick}"
-            "\n<:ar:862433028088135711> **Joined:** "
-            + ("N/A" if user.joined_at is None else fmt_dt(user.joined_at, 'R'))
-            + "\n<:ar:862433028088135711> **Boosted:** "
-            + "N/A"
-            if user.premium_since is None
-            else fmt_dt(user.premium_since, 'R')
-        )
-
-        if roles := user.roles[:0:-1]:
-            # Get roles in reverse order, excluding @everyone.
-            role_count = len(roles)
+        else:
+            embed.colour = user.colour.value or 0x2F3136
 
             embed.add_field(
-                name=f"Roles \N{BULLET} {role_count}",
-                value=" ".join(r.mention for r in roles)
-                if role_count < 42
-                else "Too many roles to show.",
-                inline=False,
+                name="\N{BUST IN SILHOUETTE} Member Information",
+                value=f"`Nickname:` {escape_markdown(user.nick) if user.nick else 'N/A'}"
+                f"\n`Joined:` {format_dt(user.joined_at, 'R') if user.joined_at else 'N/A'}"
+                f"\n`Boosted:` {format_dt(user.premium_since, 'R') if user.premium_since else 'N/A'}"
+                f"\n`Top Role:` {user.top_role.name}"
+                f"\n`Colour:` {user.colour}",
             )
 
-        # status_type: emoji
-        status_emojis = {
-            Status.dnd: "<:dnd:786093986900738079>",
-            Status.idle: "<:idle:786093987148202035>",
-            Status.offline: "<:offline:786093987227893790>",
-            Status.online: "<:online:786093986975711272>",
-        }
+            if roles := user.roles[:0:-1]:
+                r_count = len(roles)
+                r_shown = ", ".join(r.mention for r in roles[:15])
 
-        embed.add_field(
-            name="Status",
-            value=f"{status_emojis[user.mobile_status]} | \N{MOBILE PHONE} Mobile"
-            f"\n{status_emojis[user.desktop_status]} | \N{DESKTOP COMPUTER}\ufe0f Desktop"
-            f"\n{status_emojis[user.web_status]} | \N{GLOBE WITH MERIDIANS} Web",
-        )
-
-        if (activity := user.activity) is not None:
-            if isinstance(activity, discord.CustomActivity):
-                embed.add_field(
-                    name="Activity", value=f"{activity.emoji or ''} {activity.name or ''}"
-                )
-            else:
-                # activity type: activity type name
-                activity_verbs = {
-                    ActivityType.unknown: "",
-                    ActivityType.playing: "**Playing**",
-                    ActivityType.streaming: "**Streaming**",
-                    ActivityType.watching: "**Watching**",
-                    ActivityType.listening: "**Listening to**",
-                    ActivityType.competing: "**Competing in**",
-                }
+                if r_count > 15:
+                    r_shown += f" (+{r_count - 15} more)"
 
                 embed.add_field(
-                    name="Activity",
-                    value=f"{activity_verbs[activity.type]} {activity.name}",
+                    name=f"Roles \N{BULLET} {r_count}", value=r_shown, inline=False
                 )
+
+            # status_type: emoji
+            status_emojis = {
+                Status.dnd: "<:dnd:786093986900738079>",
+                Status.idle: "<:idle:786093987148202035>",
+                Status.offline: "<:offline:786093987227893790>",
+                Status.online: "<:online:786093986975711272>",
+            }
+
+            embed.add_field(
+                name="Status",
+                value=f"{status_emojis[user.mobile_status]} | \N{MOBILE PHONE} Mobile"
+                f"\n{status_emojis[user.desktop_status]} | \N{DESKTOP COMPUTER}\ufe0f Desktop"
+                f"\n{status_emojis[user.web_status]} | \N{GLOBE WITH MERIDIANS} Web",
+            )
+
+            if user.activity is not None:
+                if isinstance(user.activity, discord.CustomActivity):
+                    embed.add_field(name="Custom Activity", value=str(user.activity))
+                else:
+                    # activity_type: verb
+                    activity_verbs = {
+                        ActivityType.unknown: "",
+                        ActivityType.playing: "**Playing** ",
+                        ActivityType.streaming: "**Streaming** ",
+                        ActivityType.watching: "**Watching** ",
+                        ActivityType.listening: "**Listening to** ",
+                        ActivityType.competing: "**Competing in** ",
+                    }
+
+                    embed.add_field(
+                        name="Activity",
+                        value=f"{activity_verbs[user.activity.type]}{user.activity.name}",
+                    )
 
         await ctx.send(embed=embed)
 
