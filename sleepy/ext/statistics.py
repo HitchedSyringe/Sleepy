@@ -161,14 +161,12 @@ class Statistics(
         bots = sum(m.bot for m in guild.members)
 
         embed = Embed(
-            description=(
-                f"\N{BLACK DIAMOND} **ID:** {guild.id}"
-                f"\n\N{BLACK DIAMOND} **Owner:** {guild.owner} (ID: {guild.owner_id})"
-                f"\n\N{BLACK DIAMOND} **Members:** {member_count or 0:,d} ({plural(bots, ',d'):bot})"
-                f"\n\N{BLACK DIAMOND} **Channels:** {len(guild.channels)}"
-                f"\n\N{BLACK DIAMOND} **Created:** {format_dt(guild.created_at, 'R')}"
-                f"\n\N{BLACK DIAMOND} **Shard ID:** {guild.shard_id or 'N/A'}"
-            ),
+            description=f"`ID:` {guild.id}"
+            f"\n`Owner:` {guild.owner} (ID: {guild.owner_id})"
+            f"\n`Members:` {member_count or 0:,d} ({plural(bots, ',d'):bot})"
+            f"\n`Channels:` {len(guild.channels)}"
+            f"\n`Created:` {format_dt(guild.created_at, 'R')}"
+            f"\n`Shard ID:` {guild.shard_id or 'N/A'}",
             timestamp=datetime.now(timezone.utc),
         )
         embed.set_author(name=guild)

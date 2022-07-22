@@ -581,21 +581,19 @@ class Web(
 
         embed = Embed(
             title=data["name"],
-            description=(
-                f"\N{SMALL BLUE DIAMOND} **Capital City:** {data.get('capital', 'N/A')}"
-                f"\n\N{SMALL BLUE DIAMOND} **Region:** {data.get('continent', 'N/A')}"
-                f"\n\N{SMALL BLUE DIAMOND} **Subregion:** {data['region']}"
-                f"\n\N{SMALL BLUE DIAMOND} **Location:** (Lat. {lat:.2f}°, Lon. {long:.2f}°)"
-                f"\n\N{SMALL BLUE DIAMOND} **Population:** {data['population']:,d}"
-                f"\n\N{SMALL BLUE DIAMOND} **Demonym:** {data['demonym']}"
-                f"\n\N{SMALL BLUE DIAMOND} **Land Area:** {area}"
-                f"\n\N{SMALL BLUE DIAMOND} **Native Name:** {data['nativeName']}"
-                f"\n\N{SMALL BLUE DIAMOND} **ISO 2 Code:** {data['alpha2Code']}"
-                f"\n\N{SMALL BLUE DIAMOND} **ISO 3 Code:** {data['alpha3Code']}"
-                f"\n\N{SMALL BLUE DIAMOND} **IOC Code:** {data.get('cioc', 'N/A')}"
-                f"\n\N{SMALL BLUE DIAMOND} **Gini Index:** {data.get('gini', 'N/A')}"
-                f"\n\N{SMALL BLUE DIAMOND} **Top Level Domains:** {', '.join(data['topLevelDomain'])}"
-            ),
+            description=f"`Capital City:` {data.get('capital', 'N/A')}"
+            f"\n`Region:` {data.get('continent', 'N/A')}"
+            f"\n`Subregion:` {data['region']}"
+            f"\n`Location:` (Lat. {lat:.2f}°, Lon. {long:.2f}°)"
+            f"\n`Population:` {data['population']:,d}"
+            f"\n`Demonym:` {data['demonym']}"
+            f"\n`Land Area:` {area}"
+            f"\n`Native Name:` {data['nativeName']}"
+            f"\n`ISO 2 Code:` {data['alpha2Code']}"
+            f"\n`ISO 3 Code:` {data['alpha3Code']}"
+            f"\n`IOC Code:` {data.get('cioc', 'N/A')}"
+            f"\n`Gini Index:` {data.get('gini', 'N/A')}"
+            f"\n`Top Level Domains:` {', '.join(data['topLevelDomain'])}",
             colour=0x2F3136,
         )
         embed.set_footer(text="Powered by restcountries.com")
@@ -949,10 +947,10 @@ class Web(
 
         embed.add_field(
             name="Information",
-            value=f"\n\N{SMALL BLUE DIAMOND} **UUID:** {data['uuid']}"
-            f"\n\N{SMALL BLUE DIAMOND} **Demo:** {bool_to_emoji(data.get('demo', False))}"
-            f"\n\N{SMALL BLUE DIAMOND} **Legacy:** {bool_to_emoji(data.get('legacy', False))}"
-            f"\n\N{SMALL BLUE DIAMOND} **Slim Skin:** {bool_to_emoji(textures['slim'])}",
+            value=f"`UUID:` {data['uuid']}"
+            f"\n`Is Demo Account:` {bool_to_emoji(data.get('demo', False))}"
+            f"\n`Is Legacy Account:` {bool_to_emoji(data.get('legacy', False))}"
+            f"\n`Has Slim Skin:` {bool_to_emoji(textures['slim'])}",
         )
 
         history = data["username_history"]
@@ -1161,10 +1159,10 @@ class Web(
 
         embed = Embed(
             description=f"**[Avatar Link]({avatar_url})**"
-            f"\n\N{SMALL BLUE DIAMOND} **Steam Community ID:** {account.steam_community_id}"
-            f"\n\N{SMALL BLUE DIAMOND} **Steam ID:** {account.steam_id}"
-            f"\n\N{SMALL BLUE DIAMOND} **Steam3 ID:** {account.steam3_id}"
-            f"\n\N{SMALL BLUE DIAMOND} **Status:** {steam_statuses[status]}",
+            f"\n`Steam Community ID:` {account.steam_community_id}"
+            f"\n`Steam ID:` {account.steam_id}"
+            f"\n`Steam3 ID:` {account.steam3_id}"
+            f"\n`Status:` {steam_statuses[status]}",
             colour=0x555555 if status == 0 else 0x53A4C4,
         )
         embed.set_author(name=data["personaname"], url=data["profileurl"])
@@ -1240,10 +1238,9 @@ class Web(
         )
 
         embed.set_footer(
-            text=f"{LANGUAGES.get(tsl.src, '(Auto-detected)').title()} ({tsl.src}) "
-            "\N{THREE-D BOTTOM-LIGHTED RIGHTWARDS ARROWHEAD} "
-            f"{LANGUAGES.get(tsl.dest, 'Unknown').title()} ({tsl.dest}) "
-            "\N{BULLET} Powered by Google Translate"
+            text=f"{LANGUAGES.get(tsl.src, '(Auto-detected)').title()} ({tsl.src})"
+            f" \u27a3 {LANGUAGES.get(tsl.dest, 'Unknown').title()} ({tsl.dest})"
+            " \N{BULLET} Powered by Google Translate"
         )
 
         await ctx.send(embed=embed)
