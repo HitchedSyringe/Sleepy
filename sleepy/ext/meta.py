@@ -117,6 +117,10 @@ class GroupPageSource(ListPageSource):
 
         self.title: str = group.qualified_name
         self.description: str = group.description
+        self.formatted_aliases: Optional[str] = None
+
+        if isinstance(group, commands.Group):
+            self.formatted_aliases = ", ".join(group.aliases)
 
         self.cmds: List[commands.Command] = cmds
 
@@ -124,6 +128,9 @@ class GroupPageSource(ListPageSource):
         self, menu: PaginationView, cmds: List[commands.Command]
     ) -> Embed:
         embed = Embed(title=self.title, description=self.description, colour=0x2F3136)
+
+        if self.formatted_aliases is not None:
+            embed.set_footer(text=f"Aliases: {self.formatted_aliases}")
 
         for cmd in cmds:
             embed.add_field(
@@ -276,16 +283,12 @@ class SleepyHelpCommand(commands.HelpCommand):
         return "That command has no visible subcommands."
 
     def get_command_signature(self, command: commands.Command) -> str:
-        if command.aliases:
-            aliases = "|".join(command.aliases)
-            cmd_fmt = f"[{command.name}|{aliases}]"
-        else:
-            cmd_fmt = command.name
+        cmd_fmt = f"{command.name} {command.signature}"
 
         if parent := command.full_parent_name:
-            cmd_fmt = f"{parent} {cmd_fmt}"
+            return f"{parent} {cmd_fmt}"
 
-        return f"{cmd_fmt} {command.signature}"
+        return cmd_fmt
 
     async def send_bot_help(
         self, mapping: Mapping[Optional[commands.Cog], List[commands.Command]]
@@ -319,6 +322,9 @@ class SleepyHelpCommand(commands.HelpCommand):
 
     async def send_command_help(self, command: commands.Command) -> None:
         embed = Embed(colour=0x2F3136)
+
+        if command.aliases:
+            embed.set_footer(text=f"Aliases: {', '.join(command.aliases)}")
 
         self._apply_formatting(embed, command)
 
