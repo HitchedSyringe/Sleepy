@@ -11,15 +11,16 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import platform
 import textwrap
 import traceback
 from collections import Counter
 from datetime import datetime, timezone
 from os import path
-from platform import python_version
 from typing import TYPE_CHECKING, Any, Coroutine
 
 import discord
+import pkg_resources
 import psutil
 from discord import Colour, Embed
 from discord.ext import commands, tasks
@@ -108,14 +109,6 @@ class Statistics(
         self.bot: StatsSleepy = bot
         self.process: psutil.Process = psutil.Process()
 
-        # Mainly for the ``about``` command. This removes the
-        # need to iterate through guilds on each command invoke.
-        self.total_guilds: int = 0
-        self.total_members: int = 0
-        self.total_text: int = 0
-        self.total_voice: int = 0
-        self.total_stage: int = 0
-
     def cog_load(self) -> None:
         bot = self.bot
 
@@ -129,11 +122,6 @@ class Statistics(
         # not everyone would want to be forced to use this.
         type(bot).before_identify_hook = _new_before_identify_hook  # type: ignore
 
-        # This needs to be ran in a task since awaiting it would
-        # deadlock the bot on startup.
-        name = "ext-statistics-cache-bot-counts"
-        asyncio.create_task(self.cache_bot_counts(), name=name)
-
     def cog_unload(self) -> None:
         self.gw_handler.close()
         logging.getLogger("discord").removeHandler(self.gw_handler)
@@ -145,16 +133,6 @@ class Statistics(
 
         type(bot).before_identify_hook = bot._original_before_identify_hook  # type: ignore
         del bot._original_before_identify_hook
-
-    async def cache_bot_counts(self) -> None:
-        await self.bot.wait_until_ready()
-
-        for guild in self.bot.guilds:
-            self.total_guilds += 1
-            self.total_members += guild.member_count or 0
-            self.total_text += len(guild.text_channels)
-            self.total_voice += len(guild.voice_channels)
-            self.total_stage += len(guild.stage_channels)
 
     async def send_brief_guild_info(self, guild: discord.Guild, *, joined: bool) -> None:
         member_count = guild.member_count
@@ -252,22 +230,10 @@ class Statistics(
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild) -> None:
-        self.total_guilds += 1
-        self.total_members += guild.member_count or 0
-        self.total_text += len(guild.text_channels)
-        self.total_voice += len(guild.voice_channels)
-        self.total_stage += len(guild.stage_channels)
-
         await self.send_brief_guild_info(guild, joined=True)
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild: discord.Guild) -> None:
-        self.total_guilds -= 1
-        self.total_members -= guild.member_count or 0
-        self.total_text -= len(guild.text_channels)
-        self.total_voice -= len(guild.voice_channels)
-        self.total_stage -= len(guild.stage_channels)
-
         await self.send_brief_guild_info(guild, joined=False)
 
     @commands.Cog.listener()
@@ -281,45 +247,52 @@ class Statistics(
 
         (Bot Needs: Embed Links)
         """
-        embed = Embed(
-            description=ctx.bot.description or ctx.bot.application.description,  # type: ignore
-            colour=0x2F3136,
-        )
-        embed.set_author(name=ctx.me)
-        embed.set_thumbnail(url=ctx.me.display_avatar.with_format("png"))
+        bot = ctx.bot
+
+        embed = Embed(description=bot.description, colour=0x2F3136)
+        embed.set_author(name=ctx.me, icon_url=ctx.me.display_avatar)
         embed.set_footer(text="Check out our links using the buttons below!")
 
+        guilds = 0
+        members = 0
+        channels = 0
+
+        for guild in bot.guilds:
+            guilds += 1
+
+            if not guild.unavailable:
+                members += guild.member_count or 0
+                channels += len(guild.channels)
+
         embed.add_field(
-            name="About Me",
-            value=(
-                f"<:ar:862433028088135711> **Owner:** {ctx.bot.owner}"
-                f"\n<:ar:862433028088135711> **Created:** {format_dt(ctx.me.created_at, 'R')}"
-                f"\n<:ar:862433028088135711> **Booted:** {format_dt(ctx.bot.started_at, 'R')}"
-                f"\n<:ar:862433028088135711> **Servers:** {self.total_guilds:,d}"
-                "\n<:ar:862433028088135711> **Channels:**"
-                f" <:tc:828149291812913152> {self.total_text:,d}"
-                f" \N{BULLET} <:vc:828151635791839252> {self.total_voice:,d}"
-                f" \N{BULLET} <:sc:828149291750785055> {self.total_stage:,d}"
-                f"\n<:ar:862433028088135711> **Members:** {self.total_members:,d}"
-                f" ({len(ctx.bot.users):,d} unique)"
-            ),
+            name="\N{ROBOT FACE} About Me",
+            value=f"`Owner:` {bot.owner}"
+            f"\n`Created:` {format_dt(ctx.me.created_at, 'R')}"
+            f"\n`Booted:` {format_dt(bot.started_at, 'R')}"
+            f"\n`Servers:` {guilds:,d}"
+            f"\n`Channels:` {channels:,d}"
+            f"\n`Members:` {members:,d}"
+            f"\n\u2570`Unique:` {len(bot.users):,d}"
+            f"\n`Commands Used:` {sum(bot.command_uses.values()):,d}"
+            "\n||Wowee!! Another Discord bot.||",
         )
+
+        dpy_version = pkg_resources.get_distribution("discord.py").version
+
+        memory_usage = self.process.memory_full_info().uss / 1024**2
+        cpu_usage = self.process.cpu_percent() / psutil.cpu_count()
+
         embed.add_field(
-            name="Technical Information",
-            value=(
-                f"\N{CRESCENT MOON} {__version__}"
-                f" \N{BULLET} <:py:823367531724537887> {python_version()}"
-                f" \N{BULLET} <:dpy:823367531690590248> {discord.__version__}"
-                "\n<:ar:862433028088135711> **Memory Usage:**"
-                f" {self.process.memory_full_info().uss / 1024**2:.2f} MiB"
-                "\n<:ar:862433028088135711> **CPU Usage:**"
-                f" {self.process.cpu_percent() / psutil.cpu_count():.2f}%"
-                f"\n<:ar:862433028088135711> **Commands:** {len(ctx.bot.commands)}"
-                f" ({sum(ctx.bot.command_uses.values()):,d} used)"
-                f"\n<:ar:862433028088135711> **Extensions:** {len(ctx.bot.extensions)}"
-                f"\n<:ar:862433028088135711> **Shards:** {ctx.bot.shard_count or 'N/A'}"
-            ),
-            inline=False,
+            name="\N{CONTROL KNOBS} Technical Information",
+            value=f"\n`Sleepy Version:` {__version__}"
+            f"\n\u25B8 <:py:823367531724537887> {platform.python_version()}"
+            f"\n\u25B8 <:dpy:823367531690590248> {dpy_version}"
+            f"\n`Memory Usage:` {memory_usage:.2f} MiB"
+            f"\n`CPU Usage:` {cpu_usage:.2f}%"
+            f"\n`Shards:` {bot.shard_count or 'N/A'}"
+            f"\n`Loaded Extensions:` {len(bot.extensions)}"
+            f"\n`Loaded Categories:` {len(bot.cogs)}"
+            f"\n`Registered Commands:` {len(bot.commands)}",
         )
 
         await ctx.send(embed=embed, view=BotLinksView(ctx.me.id))
