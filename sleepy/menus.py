@@ -40,7 +40,7 @@ from discord.utils import MISSING, oauth_url
 from .utils import DISCORD_SERVER_URL, PERMISSIONS_VALUE, SOURCE_CODE_URL
 
 if TYPE_CHECKING:
-    from discord.ext.commands import Paginator
+    from discord.ext.commands import Context, Paginator
     from discord.ext.menus import MenuPages
     from discord.ui import Item
 
@@ -393,8 +393,8 @@ class PaginationView(BaseView):
         :class:`PageSource` classes, this view **cannot** be sent via
         :meth:`Messageable.send` as there is necessary setup that must
         be done prior. Calling either :meth:`send_to`, :meth:`attach_to`,
-        or :meth:`reply_to` is preferred as these methods will interally
-        perform this setup for you.
+        :meth:`reply_to`, or :meth:`respond_to` is preferred as these
+        methods will interally perform this setup for you.
 
     .. versionadded:: 3.2
 
@@ -438,7 +438,7 @@ class PaginationView(BaseView):
     message: Optional[:class:`discord.Message`]
         This view's cached message. May not necessarily be up to date.
         ``None`` if this wasn't initially set through either :meth:`send_to`,
-        :meth:`attach_to`, :meth:`reply_to`, or otherwise.
+        :meth:`attach_to`, :meth:`reply_to`, :meth:`respond_to`, or otherwise.
     """
 
     def __init__(
@@ -529,22 +529,26 @@ class PaginationView(BaseView):
         *,
         wait: bool,
         mention_author: Optional[bool] = None,
+        ephemeral: bool = False,
     ) -> discord.Message:
         await self._source._prepare_once()
 
         page = await self._source.get_page(0)
         kwargs = await self._get_kwargs_from_page(page)
 
-        # Message.edit doesn't take the mention_author kwarg.
+        # Message.edit doesn't take these kwargs.
         if mention_author is not None:
             kwargs["mention_author"] = mention_author
 
-        self.message = message = await action(**kwargs, view=self)
+        if ephemeral:
+            kwargs["ephemeral"] = True
+
+        self.message = await action(**kwargs, view=self)
 
         if wait:
             await self.wait()
 
-        return message
+        return self.message
 
     def _update_items(self, page_number: int) -> None:
         on_first = page_number == 0
@@ -563,29 +567,100 @@ class PaginationView(BaseView):
         self.next_page.disabled = on_last
         self.last_page.disabled = on_last
 
-    async def reply_to(
+    async def respond_to(
         self,
-        message: discord.Message,
+        interaction: discord.Interaction,
         *,
-        mention_author: Optional[bool] = None,
+        edit_message: bool = False,
+        ephemeral: bool = False,
         wait: bool = False,
     ) -> discord.Message:
         """|coro|
 
-        Sends the view as a reply to the given message.
+        Sends the view as a response to the given interaction.
+
+        If the given interaction has already been responded to,
+        then this will automatically perform a followup.
 
         This is a convenience method for doing the necessary
         setup for this view.
 
+        .. versionadded:: 3.3
+
         Parameters
         ----------
-        message: :class:`discord.Message`
-            The message to reply to.
+        interaction: :class:`discord.Interaction`
+            The interaction to respond to.
+        edit_message: :class:`bool`
+            Whether or not to edit the interaction message instead.
+            Defaults to ``False``.
+        ephemeral: :class:`bool`
+            Whether or not the response message should be ephemeral.
+            This is ignored if `edit_message` is set to ``True``.
+            Defaults to ``False``.
+        wait: :class:`bool`
+            Whether or not to wait until the view has finished
+            interacting before returning back to the caller.
+            Defaults to ``False``.
+
+        Returns
+        -------
+        :class:`discord.Message`
+            The message that was sent or edited as a response.
+        """
+        if ephemeral and not edit_message:
+            # Cannot delete ephemeral messages.
+            self._delete_message_when_stopped = False
+
+        async def _handle_response(**kwargs: Any) -> discord.Message:
+            if not interaction.response.is_done():
+                if edit_message:
+                    await interaction.response.edit_message(**kwargs)
+                else:
+                    await interaction.response.send_message(**kwargs)
+
+                return await interaction.original_response()
+
+            if edit_message:
+                return await interaction.followup.edit_message(**kwargs)
+
+            return await interaction.followup.send(**kwargs, wait=True)
+
+        return await self._start(_handle_response, wait=wait, ephemeral=ephemeral)
+
+    async def reply_to(
+        self,
+        message_or_ctx: Union[discord.Message, Context],
+        *,
+        mention_author: Optional[bool] = None,
+        ephemeral: bool = False,
+        wait: bool = False,
+    ) -> discord.Message:
+        """|coro|
+
+        Sends the view as a reply to the given message or context.
+
+        This is a convenience method for doing the necessary setup
+        for this view.
+
+        .. versionchanged:: 3.3
+            This can now take an invokation context.
+
+        Parameters
+        ----------
+        message_or_ctx: Union[:class:`discord.Message`, :class:`commands.Context`]
+            The message or context to reply to.
         mention_author: Optional[:class:`bool`]
             Whether or not to mention the replied message author.
             If not set, the defaults given by ``allowed_mentions``
             are used instead.
             Defaults to ``None``.
+        ephemeral: :class:`bool`
+            Whether or not the send the view in an ephemeral message.
+            This is only used for interaction-based contexts.
+            Defaults to ``False``.
+
+            .. versionadded:: 3.3
         wait: :class:`bool`
             Whether or not to wait until the view has finished
             interacting before returning back to the caller.
@@ -596,7 +671,12 @@ class PaginationView(BaseView):
         :class:`discord.Message`
             The message that was sent as a reply.
         """
-        return await self._start(message.reply, wait=wait, mention_author=mention_author)
+        return await self._start(
+            message_or_ctx.reply,
+            wait=wait,
+            mention_author=mention_author,
+            ephemeral=ephemeral,
+        )
 
     async def attach_to(
         self, message: discord.Message, *, wait: bool = False
@@ -625,7 +705,11 @@ class PaginationView(BaseView):
         return await self._start(message.edit, wait=wait)
 
     async def send_to(
-        self, destination: discord.abc.Messageable, *, wait: bool = False
+        self,
+        destination: discord.abc.Messageable,
+        *,
+        ephemeral: bool = False,
+        wait: bool = False,
     ) -> discord.Message:
         """|coro|
 
@@ -638,6 +722,12 @@ class PaginationView(BaseView):
         ----------
         destination: :class:`discord.abc.Messageable`
             The destination to send the view.
+        ephemeral: :class:`bool`
+            Whether or not the send the view in an ephemeral message.
+            This is only used for interaction-based contexts.
+            Defaults to ``False``.
+
+            .. versionadded:: 3.3
         wait: :class:`bool`
             Whether or not to wait until the view has finished
             interacting before returning back to the caller.
@@ -648,7 +738,7 @@ class PaginationView(BaseView):
         :class:`discord.Message`
             The message that was sent.
         """
-        return await self._start(destination.send, wait=wait)
+        return await self._start(destination.send, wait=wait, ephemeral=ephemeral)
 
     async def change_source(
         self, source: PageSource, interaction: Optional[discord.Interaction] = None

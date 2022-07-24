@@ -139,6 +139,7 @@ class Context(commands.Context["Sleepy"]):
         delete_message_when_stopped: bool = True,
         remove_view_on_timeout: bool = False,
         disable_view_on_timeout: bool = True,
+        ephemeral: bool = False,
         wait: bool = False,
         **kwargs: Any,
     ) -> discord.Message:
@@ -204,6 +205,12 @@ class Context(commands.Context["Sleepy"]):
                 ``remove_view_on_timeout`` takes priority over this setting.
 
             .. versionadded:: 3.2
+        ephemeral: :class:`bool`
+            Whether or not the send the view in an ephemeral message.
+            This is ignored if the context is not interaction-based.
+            Defaults to ``False``.
+
+            .. versionadded:: 3.3
         wait: :class:`bool`
             Whether or not to wait until the view has finished
             interacting before returning back to the caller.
@@ -229,7 +236,7 @@ class Context(commands.Context["Sleepy"]):
             **kwargs,
         )
 
-        return await view.send_to(self, wait=wait)
+        return await view.send_to(self, ephemeral=ephemeral, wait=wait)
 
     async def prompt(
         self,
@@ -348,6 +355,7 @@ class Context(commands.Context["Sleepy"]):
         formatter: Optional[Callable[[Any], str]] = None,
         *,
         timeout: Optional[float] = 30,
+        ephemeral: bool = False,
         sort: bool = True,
     ) -> Any:
         """|coro|
@@ -383,6 +391,12 @@ class Context(commands.Context["Sleepy"]):
             Defaults to ``30``.
 
             .. versionadded:: 3.0
+        ephemeral: :class:`bool`
+            Whether or not the send the view in an ephemeral message.
+            This is ignored if the context is not interaction-based.
+            Defaults to ``False``.
+
+            .. versionadded:: 3.3
         sort: :class:`bool`
             Whether or not the displayed matches should be sorted.
             Defaults to ``True``.
@@ -408,7 +422,7 @@ class Context(commands.Context["Sleepy"]):
         source = _DisambiguationSource(matches, formatter, sort=sort)
         view = _DisambiguationView(source, timeout=timeout)
 
-        await view.send_to(self, wait=True)
+        await view.send_to(self, ephemeral=ephemeral, wait=True)
 
         if view.selection is MISSING:
             raise ValueError("You took too long to respond.")
