@@ -30,7 +30,7 @@ from discord.utils import cached_property, utcnow
 from . import __version__
 from .context import Context
 from .http import HTTPRequester, HTTPRequestFailed
-from .utils import GITHUB_URL, find_extensions_in, human_join
+from .utils import SOURCE_CODE_URL, find_extensions_in, human_join
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -226,7 +226,7 @@ class Sleepy(commands.Bot):
         # --- Set up HTTP requester session. ---
 
         headers = {
-            "User-Agent": f"Sleepy-Bot/{__version__} ({GITHUB_URL})",
+            "User-Agent": f"Sleepy-Bot/{__version__} ({SOURCE_CODE_URL})",
         }
         await self.http_requester.start(headers=headers)
 

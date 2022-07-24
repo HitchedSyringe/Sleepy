@@ -11,8 +11,8 @@ from __future__ import annotations
 
 __all__ = (
     "DISCORD_SERVER_URL",
-    "GITHUB_URL",
     "PERMISSIONS_VALUE",
+    "SOURCE_CODE_URL",
     "plural",
     "bool_to_emoji",
     "find_extensions_in",
@@ -63,7 +63,7 @@ if TYPE_CHECKING:
 
 
 DISCORD_SERVER_URL: str = "https://discord.gg/xHgh2Xg"
-GITHUB_URL: str = "https://github.com/HitSyr/Sleepy"
+SOURCE_CODE_URL: str = "https://github.com/HitSyr/Sleepy"
 
 PERMISSIONS_VALUE: int = 274878295110
 

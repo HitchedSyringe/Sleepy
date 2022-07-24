@@ -37,7 +37,7 @@ from discord.ext.menus import ListPageSource, PageSource
 from discord.ui import Button, Modal, Select, TextInput, View, button, select
 from discord.utils import MISSING, oauth_url
 
-from .utils import DISCORD_SERVER_URL, GITHUB_URL, PERMISSIONS_VALUE
+from .utils import DISCORD_SERVER_URL, PERMISSIONS_VALUE, SOURCE_CODE_URL
 
 if TYPE_CHECKING:
     from discord.ext.commands import Paginator
@@ -262,7 +262,7 @@ class BotLinksView(View):
 
     * Invite URL (generated via :func:`discord.utils.oauth_url`)
     * Discord Server (returned via `~.utils.DISCORD_SERVER_URL`)
-    * GitHub Repository (returned via `~.utils.GITHUB_URL`)
+    * Source Code (returned via `~.utils.SOURCE_CODE_URL`)
 
     .. versionadded:: 3.2
 
@@ -280,9 +280,13 @@ class BotLinksView(View):
         buttons = (
             Button(label="Invite me!", emoji="\N{INBOX TRAY}", url=invite),
             Button(
-                label="Server", emoji="<:dc:871952362175086624>", url=DISCORD_SERVER_URL
+                label="Support Server",
+                emoji="<:dc:871952362175086624>",
+                url=DISCORD_SERVER_URL,
             ),
-            Button(label="GitHub", emoji="<:gh:871952362019901502>", url=GITHUB_URL),
+            Button(
+                label="Source Code", emoji="<:gh:871952362019901502>", url=SOURCE_CODE_URL
+            ),
         )
 
         for button in buttons:

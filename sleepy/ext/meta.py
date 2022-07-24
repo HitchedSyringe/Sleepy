@@ -26,7 +26,7 @@ from jishaku.paginators import WrappedPaginator
 from typing_extensions import Annotated
 
 from sleepy.menus import BotLinksView, PaginationView
-from sleepy.utils import GITHUB_URL, PERMISSIONS_VALUE, bool_to_emoji
+from sleepy.utils import PERMISSIONS_VALUE, SOURCE_CODE_URL, bool_to_emoji
 
 if TYPE_CHECKING:
     from sleepy.bot import Sleepy
@@ -670,7 +670,7 @@ class Meta(commands.Cog):
     @commands.command(aliases=("src",))
     async def source(self, ctx: SleepyContext, *, command: str = None) -> None:
         """Sends a link to my full source code or for a specific command."""
-        base = GITHUB_URL
+        base = SOURCE_CODE_URL
 
         if command is None:
             await ctx.send(f"<{base}>")
