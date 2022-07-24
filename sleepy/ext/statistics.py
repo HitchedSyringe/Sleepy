@@ -43,7 +43,6 @@ if TYPE_CHECKING:
         identifies: int
         command_uses: Counter[str]
         socket_events: Counter[str]
-        started_at: datetime
 
         _original_before_identify_hook: Coroutine[Any, Any, None]
 

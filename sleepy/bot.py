@@ -25,7 +25,7 @@ from typing import TYPE_CHECKING, Any, Generator, List, Mapping, Optional
 import discord
 from discord import Colour, Embed
 from discord.ext import commands
-from discord.utils import cached_property, utcnow
+from discord.utils import MISSING, cached_property, utcnow
 
 from . import __version__
 from .context import Context
@@ -91,9 +91,8 @@ class Sleepy(commands.Bot):
         The bot's HTTP requester client.
 
         .. versionadded:: 1.10
-    started_at: Optional[:class:`datetime.datetime`]
+    started_at: :class:`datetime.datetime`
         The bot's starting time as a UTC-aware datetime.
-        ``None`` if not logged in.
 
         .. versionadded:: 1.6
 
@@ -107,6 +106,9 @@ class Sleepy(commands.Bot):
 
         .. versionchanged:: 3.2
             This is now a UTC-aware datetime.
+
+        .. versionchanged:: 3.3
+            This now returns a :class:`datetime.datetime`.
     """
 
     def __init__(self, config: Mapping[str, Any], *args: Any, **kwargs: Any) -> None:
@@ -121,7 +123,7 @@ class Sleepy(commands.Bot):
         self.extensions_directory: Path = Path(config["extensions_directory"] or ".")
         self.http_requester: HTTPRequester = HTTPRequester(cache=kwargs.get("http_cache"))
 
-        self.started_at: Optional[datetime] = None
+        self.started_at: datetime = MISSING
 
         # Cooldown mapping for people who excessively spam commands.
         self._spam_control: commands.CooldownMapping = (
