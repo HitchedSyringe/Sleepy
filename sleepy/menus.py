@@ -958,9 +958,13 @@ class _DisambiguationView(PaginationView):
     async def dropdown(
         self, itn: discord.Interaction, select: Select["_DisambiguationView"]
     ) -> None:
+        self.stop()
+
         self.selection = self._source.entries[int(select.values[0])]
 
-        self.stop()
+        if self._page_select_modal is not None:
+            self._page_select_modal.stop()
+            self._page_select_modal = None
 
         if self.message is not None:
             try:
