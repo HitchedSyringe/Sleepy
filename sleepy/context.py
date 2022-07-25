@@ -240,7 +240,7 @@ class Context(commands.Context["Sleepy"]):
 
     async def prompt(
         self,
-        message: Union[str, discord.Message],
+        message: str,
         *,
         delete_message_on_interact: bool = True,
         remove_view_on_timeout: bool = False,
@@ -271,16 +271,16 @@ class Context(commands.Context["Sleepy"]):
 
         Parameters
         ----------
-        message: Union[:class:`str`, :class:`discord.Message`]
+        message: :class:`str`
             The prompt message.
-            If the message is a :class:`discord.Message`, then
-            this will attach the menu to that message.
 
             .. versionchanged:: 3.0
                 This is now a positional-only argument.
 
             .. versionchanged:: 3.3
-                This is no longer a positional-only argument.
+
+                * This is no longer a positional-only argument.
+                * This no longer takes a :class:`discord.Message`.
         delete_message_on_interact: :class:`bool`
             Whether or not to delete the message when the user
             interacts with the view.
@@ -326,23 +326,19 @@ class Context(commands.Context["Sleepy"]):
             timeout=timeout,
         )
 
-        if isinstance(message, discord.Message):
-            message = await message.edit(view=view)
-        else:
-            message = await self.send(message, view=view)
-
+        confirmation = await self.send(message, view=view)
         timed_out = await view.wait()
 
         try:
             if not timed_out and delete_message_on_interact:
-                await message.delete()
+                await confirmation.delete()
             elif remove_view_on_timeout:
-                await message.edit(view=None)
+                await confirmation.edit(view=None)
             elif disable_view_on_timeout and view.children:
                 for child in view.children:
                     child.disabled = True  # type: ignore
 
-                await message.edit(view=view)
+                await confirmation.edit(view=view)
         except discord.HTTPException:
             pass
 
