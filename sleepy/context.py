@@ -245,6 +245,7 @@ class Context(commands.Context["Sleepy"]):
         delete_message_on_interact: bool = True,
         remove_view_on_timeout: bool = False,
         disable_view_on_timeout: bool = True,
+        ephemeral: bool = False,
         timeout: Optional[float] = 30,
     ) -> Optional[bool]:
         """|coro|
@@ -305,6 +306,12 @@ class Context(commands.Context["Sleepy"]):
                 behaviour.
 
             .. versionadded:: 3.2
+        ephemeral: :class:`bool`
+            Whether or not the send the view in an ephemeral message.
+            This is ignored if the context is not interaction-based.
+            Defaults to ``False``.
+
+            .. versionadded:: 3.3
         timeout: Optional[:class:`float`]
             The time, in seconds, before the prompt expires.
             ``None`` denotes no timeout.
@@ -326,7 +333,7 @@ class Context(commands.Context["Sleepy"]):
             timeout=timeout,
         )
 
-        confirmation = await self.send(message, view=view)
+        confirmation = await self.send(message, view=view, ephemeral=ephemeral)
         timed_out = await view.wait()
 
         try:
