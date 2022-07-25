@@ -882,10 +882,11 @@ class PaginationView(BaseView):
             self._page_select_modal.stop()
             self._page_select_modal = None
 
-        try:
-            await self._do_items_cleanup()
-        except discord.HTTPException:
-            pass
+        if self.message is not None:
+            try:
+                await self._do_items_cleanup()
+            except discord.HTTPException:
+                pass
 
     @button(emoji="<:rrwnd:862379040802865182>")
     async def first_page(
@@ -932,15 +933,16 @@ class PaginationView(BaseView):
             self._page_select_modal.stop()
             self._page_select_modal = None
 
-        # Ensure nothing goes awry during cleanup.
-        try:
-            if self._delete_message_when_stopped:
-                await self.message.delete()  # type: ignore
-            else:
-                self._remove_view_on_timeout = True
-                await self._do_items_cleanup()
-        except discord.HTTPException:
-            pass
+        if self.message is not None:
+            # Ensure nothing goes awry during cleanup.
+            try:
+                if self._delete_message_when_stopped:
+                    await self.message.delete()
+                else:
+                    self._remove_view_on_timeout = True
+                    await self._do_items_cleanup()
+            except discord.HTTPException:
+                pass
 
 
 class _DisambiguationView(PaginationView):
@@ -960,7 +962,8 @@ class _DisambiguationView(PaginationView):
 
         self.stop()
 
-        try:
-            await self.message.delete()  # type: ignore
-        except discord.HTTPException:
-            pass
+        if self.message is not None:
+            try:
+                await self.message.delete()
+            except discord.HTTPException:
+                pass
