@@ -235,13 +235,11 @@ class BaseView(View):
         if itn.user is MISSING:
             return False
 
-        if not self.can_use_menu(itn.user):
-            await itn.response.send_message(
-                "You can't use this menu. Sorry.", ephemeral=True
-            )
-            return False
+        if self.can_use_menu(itn.user):
+            return True
 
-        return True
+        await itn.response.send_message("You can't use this menu. Sorry.", ephemeral=True)
+        return False
 
     async def on_error(
         self, itn: discord.Interaction, error: Exception, item: Item["BaseView"]
