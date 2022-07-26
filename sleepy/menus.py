@@ -808,8 +808,9 @@ class PaginationView(BaseView):
             The page number to show.
         interaction: Optional[:class:`discord.Interaction`]
             The interaction to use to edit the message, if necessary.
-            If this is ``None``, then :attr:`message` is used to edit
-            the message.
+            If this is ``None`` or the given interaction has already
+            responded, then :attr:`message` is used to edit the message
+            instead.
 
             .. versionadded:: 3.3
 
@@ -827,13 +828,14 @@ class PaginationView(BaseView):
 
         self._update_items(page_number)
 
-        if interaction is None:
-            if self.message is None:
-                raise RuntimeError("No associated message to edit.")
-
-            self.message = await self.message.edit(**kwargs, view=self)
-        else:
+        if interaction is not None and not interaction.response.is_done():
             await interaction.response.edit_message(**kwargs, view=self)
+            return
+
+        if self.message is None:
+            raise RuntimeError("No associated message to edit.")
+
+        self.message = await self.message.edit(**kwargs, view=self)
 
     async def show_checked_page(
         self, page_number: int, interaction: Optional[discord.Interaction] = None
