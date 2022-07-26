@@ -537,14 +537,14 @@ def human_number(
 
 
 @overload
-def measure_performance(func: Callable[_P, _RT]) -> Callable[_P, Tuple[_RT, float]]:
+def measure_performance(
+    func: Callable[_P, Awaitable[_RT]]
+) -> Callable[_P, Awaitable[Tuple[_RT, float]]]:
     ...
 
 
 @overload
-def measure_performance(
-    func: Callable[_P, Awaitable[_RT]]
-) -> Callable[_P, Awaitable[Tuple[_RT, float]]]:
+def measure_performance(func: Callable[_P, _RT]) -> Callable[_P, Tuple[_RT, float]]:
     ...
 
 
