@@ -236,6 +236,21 @@ class Context(commands.Context["Sleepy"]):
             **kwargs,
         )
 
+        # Don't go through the trouble of adding the view to the internal view
+        # store if the source isn't paginating (no components are shown, thus,
+        # there isn't a point). Unfortunately, we still need to construct the
+        # view because PageSource.format_page needs a menu.
+        if not source.is_paginating():
+            await source._prepare_once()
+
+            page = await source.get_page(0)
+            kwargs = await view._get_kwargs_from_page(page)
+
+            if ephemeral:
+                kwargs["ephemeral"] = True
+
+            return await self.send(**kwargs)
+
         return await view.send_to(self, ephemeral=ephemeral, wait=wait)
 
     async def prompt(
