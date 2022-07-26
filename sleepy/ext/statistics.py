@@ -106,7 +106,6 @@ class Statistics(
 
     def __init__(self, bot: StatsSleepy) -> None:
         self.bot: StatsSleepy = bot
-        self.process: psutil.Process = psutil.Process()
 
     def cog_load(self) -> None:
         bot = self.bot
@@ -278,8 +277,8 @@ class Statistics(
 
         dpy_version = pkg_resources.get_distribution("discord.py").version
 
-        memory_usage = self.process.memory_full_info().uss / 1024**2
-        cpu_usage = self.process.cpu_percent() / psutil.cpu_count()
+        memory_usage = bot.process.memory_full_info().uss / 1024**2
+        cpu_usage = bot.process.cpu_percent() / psutil.cpu_count()
 
         embed.add_field(
             name="\N{CONTROL KNOBS} Technical Information",
@@ -363,9 +362,9 @@ class Statistics(
 
         embed.description = (
             "<:ar:862433028088135711> **Memory Usage:**"
-            f" {self.process.memory_full_info().uss / 1024**2:.2f} MiB"
+            f" {ctx.bot.process.memory_full_info().uss / 1024**2:.2f} MiB"
             "\n<:ar:862433028088135711> **CPU Usage:**"
-            f" {self.process.cpu_percent() / psutil.cpu_count():.2f}%"
+            f" {ctx.bot.process.cpu_percent() / psutil.cpu_count():.2f}%"
             f"\n<:ar:862433028088135711> **Events Waiting:** {events}"
             f"\n<:ar:862433028088135711> **Internal Tasks:** {internal}"
             f"\n<:ar:862433028088135711> **Hit Global Ratelimit:** {global_rl_hit}"
