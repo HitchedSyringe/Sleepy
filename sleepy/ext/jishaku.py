@@ -105,7 +105,7 @@ class Owner(
         embed = Embed(
             description=content,
             colour=0x2F3136,
-            timestamp=ctx.message.created_at or ctx.message.edited_at,
+            timestamp=ctx.message.edited_at or ctx.message.created_at,
         )
         embed.set_author(
             name=f"{ctx.author} (ID: {ctx.author.id})", icon_url=ctx.author.display_avatar
