@@ -9,12 +9,16 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 from __future__ import annotations
 
+import asyncio
 import itertools
 import os
+import platform
 import traceback
 from typing import TYPE_CHECKING, List
 
 import discord
+import pkg_resources
+import psutil
 from braceexpand import braceexpand
 from discord import Embed
 from discord.ext import commands
@@ -27,10 +31,12 @@ from jishaku.features.management import ManagementFeature
 from jishaku.features.python import PythonFeature
 from jishaku.features.root_command import RootCommand
 from jishaku.features.shell import ShellFeature
+from jishaku.math import natural_size
 from jishaku.paginators import WrappedPaginator
 from typing_extensions import Annotated
 
-from sleepy.utils import bool_to_emoji, find_extensions_in
+from sleepy import __version__
+from sleepy.utils import bool_to_emoji, find_extensions_in, human_delta
 
 if TYPE_CHECKING:
     from sleepy.bot import Sleepy
@@ -199,6 +205,111 @@ class Owner(
         """Shuts me down."""
         await ctx.send("Just drank some anti-freeze. Now I am become dead.")
         await ctx.bot.close()
+
+    @Feature.Command(parent="jsk", name="system", aliases=("sys",))
+    @commands.bot_has_permissions(embed_links=True)
+    async def jsk_system(self, ctx: SleepyContext) -> None:
+        """Displays some brief information my system and vitals."""
+        bot = ctx.bot
+
+        gen_info = [
+            f"OS: {platform.platform()}",
+            f"Bot Version: {__version__}",
+            f"Python: {platform.python_version()}",
+        ]
+
+        gen_info.extend(
+            f"\u25B8 {p}: {pkg_resources.get_distribution(p).version}"
+            for p in ("aiohttp", "discord.py", "jishaku")
+        )
+
+        gen_info.append(f"Started: {bot.started_at}")
+        gen_info.append(f"\u25B8 Uptime: {human_delta(bot.started_at, absolute=True)}")
+
+        embed = Embed(
+            title="\N{DESKTOP COMPUTER} System Information",
+            colour=0x2F3136,
+            description="```yml\n" + "\n".join(gen_info) + "\n```",
+        )
+
+        proc_info = [
+            f"PID: {bot.process.pid}",
+        ]
+
+        try:
+            with bot.process.oneshot():
+                try:
+                    proc_info.append(f"\u25B8 Name: {bot.process.name()}")
+                except psutil.AccessDenied:
+                    pass
+
+                try:
+                    proc_info.append(f"\u25B8 Threads: {bot.process.num_threads()}")
+                except psutil.AccessDenied:
+                    pass
+
+                try:
+                    mem = bot.process.memory_full_info().uss
+                    mem_perc = mem / psutil.virtual_memory().total
+                    proc_info.append(f"RAM: {natural_size(mem)} ({mem_perc:.2%})")
+                except psutil.AccessDenied:
+                    pass
+
+                try:
+                    cpu_perc = bot.process.cpu_percent() / psutil.cpu_count()
+                    proc_info.append(f"CPU: {cpu_perc:.2f}%")
+                except psutil.AccessDenied:
+                    pass
+        except psutil.AccessDenied:
+            proc_info.append("[Failed to query more info]")
+
+        embed.add_field(
+            name="\N{GEAR} Process", value="```yml\n" + "\n".join(proc_info) + "\n```"
+        )
+
+        # From here, a lot of private methods are accessed since
+        # there's no other (much cleaner) way to get this data.
+
+        event = 0
+        inner = 0
+        bad_inner = []
+
+        dpy_tasks_dir = os.path.join("discord", "ext", "tasks", "__init__")
+        exts_dir = str(bot.extensions_directory)
+
+        for task in asyncio.all_tasks(loop=bot.loop):
+            task_repr = repr(task)
+
+            if exts_dir in task_repr or dpy_tasks_dir in task_repr:
+                inner += 1
+
+                if task.done() and task._exception is not None:
+                    bad_inner.append(task.get_name())
+                    continue
+
+            if not task.done() and "Client._run_event" in task_repr:
+                event += 1
+
+        embed.add_field(
+            name="\N{JIGSAW PUZZLE PIECE} Tasks/Events",
+            value="```yml"
+            f"\nGlobal Rate Limit: {not bot.http._global_over.is_set()}"
+            f"\nEvents Waiting: {event}"
+            f"\nInner Tasks: {inner}"
+            f"\n\u25B8 Failed: {', '.join(bad_inner) or 'None'}"
+            "\n```",
+        )
+
+        cooldown = bot._spam_control
+        spammers = ", ".join(str(e) for e, b in cooldown._cache.items() if b._tokens == 0)
+
+        embed.add_field(
+            name="\N{SPEAKER WITH CANCELLATION STROKE} Current Spammers",
+            value=spammers or "None",
+            inline=False,
+        )
+
+        await ctx.send(embed=embed)
 
     @Feature.Command(
         parent="jsk", name="unload", aliases=("u",), require_var_positional=True

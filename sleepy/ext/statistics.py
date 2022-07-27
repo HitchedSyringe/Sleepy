@@ -16,7 +16,6 @@ import textwrap
 import traceback
 from collections import Counter
 from datetime import datetime, timezone
-from os import path
 from typing import TYPE_CHECKING, Any, Coroutine
 
 import discord
@@ -294,83 +293,6 @@ class Statistics(
         )
 
         await ctx.send(embed=embed, view=BotLinksView(ctx.me.id))
-
-    @commands.command(hidden=True)
-    @commands.is_owner()
-    @commands.bot_has_permissions(embed_links=True)
-    async def bothealth(self, ctx: SleepyContext) -> None:
-        """Shows a brief summary of my current health.
-
-        This command can only be used by my higher-ups.
-        """
-        # Lots of private methods being used here since
-        # there isn't a cleaner way of doing this.
-
-        embed = Embed(
-            title="Health Diagnosis",
-            colour=Colour.green(),
-            timestamp=datetime.now(timezone.utc),
-        )
-
-        spammers = [e for e, b in ctx.bot._spam_control._cache.items() if b._tokens == 0]
-
-        if spammers:
-            embed.add_field(
-                name=f"Spammers \N{BULLET} {len(spammers)}",
-                value="\n".join(spammers) or "None",
-                inline=False,
-            )
-            embed.colour = Colour.orange()
-
-        tasks_dir = path.join("discord", "ext", "tasks", "__init__")
-        # NOTE: Tasks status tracking won't exactly work well
-        # if this extension is not in the actual configured
-        # extensions directory. Furthermore, this also wont
-        # work on any extensions outside of the directory
-        # that this extension resides in.
-        exts_dir = path.dirname(__file__)
-
-        events = 0
-        internal = 0
-        bad_internal = []
-
-        for task in asyncio.all_tasks(loop=ctx.loop):
-            task_repr = repr(task)
-
-            if exts_dir in task_repr or tasks_dir in task_repr:
-                internal += 1
-
-                if task.done() and task._exception is not None:
-                    bad_internal.append(hex(id(task)))
-                    continue
-
-            if not task.done() and "Client._run_event" in task_repr:
-                events += 1
-
-        if bad_internal:
-            embed.add_field(
-                name=f"Failed Internal Tasks \N{BULLET} {len(bad_internal)}",
-                value=', '.join(bad_internal),
-                inline=False,
-            )
-            embed.colour = Colour.orange()
-
-        global_rl_hit = not ctx.bot.http._global_over.is_set()
-
-        if global_rl_hit:
-            embed.colour = Colour.dark_red()
-
-        embed.description = (
-            "<:ar:862433028088135711> **Memory Usage:**"
-            f" {ctx.bot.process.memory_full_info().uss / 1024**2:.2f} MiB"
-            "\n<:ar:862433028088135711> **CPU Usage:**"
-            f" {ctx.bot.process.cpu_percent() / psutil.cpu_count():.2f}%"
-            f"\n<:ar:862433028088135711> **Events Waiting:** {events}"
-            f"\n<:ar:862433028088135711> **Internal Tasks:** {internal}"
-            f"\n<:ar:862433028088135711> **Hit Global Ratelimit:** {global_rl_hit}"
-        )
-
-        await ctx.send(embed=embed)
 
     @commands.command(aliases=("cs",), hidden=True)
     @commands.is_owner()
