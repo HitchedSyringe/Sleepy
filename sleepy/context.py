@@ -499,7 +499,7 @@ class Context(commands.Context["Sleepy"]):
     # Unfortunately, this has to touch a lot of private methods
     # because there isn't a better or cleaner way to do this.
     def _refund_cooldown_token(self) -> None:
-        if not self.valid:
+        if self.command is None:
             return
 
         mapping = self.command._buckets
@@ -507,14 +507,11 @@ class Context(commands.Context["Sleepy"]):
         if not mapping.valid:
             return
 
-        message = self.message
-        current = message.edited_at or message.created_at
-        bucket = mapping.get_bucket(message, current.timestamp())
+        current = self.message.edited_at or self.message.created_at
+        bucket = mapping.get_bucket(self, current.timestamp())
 
-        if bucket._tokens == bucket.rate:
-            return
-
-        bucket._tokens += 1
+        # Bucket shouldn't be None if the mapping is valid.
+        bucket._tokens = min(bucket.rate, bucket._tokens + 1)  # type: ignore
 
 
 if TYPE_CHECKING:
