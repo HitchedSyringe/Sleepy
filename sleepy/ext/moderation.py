@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     from sleepy.context import Context as SleepyContext, GuildContext
 
 
-CUSTOM_EMOJI_REGEX: re.Pattern = re.compile(r"<a?:[A-Za-z0-9_]+:[0-9]{15,20}>")
+CUSTOM_EMOJI_REGEX: re.Pattern = re.compile(r"<a?:[A-Za-z0-9_]{1,32}:[0-9]{15,20}>")
 
 
 class HierarchyError(commands.BadArgument):
