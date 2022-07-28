@@ -657,7 +657,7 @@ class Moderation(commands.Cog):
             checks.append(lambda m: bool(m.embeds))
 
         if options.has_emojis:
-            checks.append(lambda m: bool(m.emojis))
+            checks.append(lambda m: CUSTOM_EMOJI_REGEX.match(m.content) is not None)
 
         if options.has_attachments:
             checks.append(lambda m: bool(m.attachments))
