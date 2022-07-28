@@ -20,7 +20,7 @@ from sleepy.paginators import WrappedPaginator
 from sleepy.utils import plural
 
 
-CUSTOM_EMOJI_REGEX = re.compile(r"<a?:[A-Za-z0-9_]+:[0-9]+>")
+CUSTOM_EMOJI_REGEX = re.compile(r"<a?:[A-Za-z0-9_]{1,32}:[0-9]{15,20}>")
 
 
 class CannotPerformAction(commands.BadArgument):
