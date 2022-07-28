@@ -407,49 +407,45 @@ class Sleepy(commands.Bot):
         ):
             ctx._refund_cooldown_token()
 
-            msg = f"Missing required argument: `{error.param.name}`."
-            param_match = re.search(
-                fr"<{error.param.name}(?:\.{{3}})?>",
-                f"{ctx.command.qualified_name} {ctx.command.signature}",
-            )
+            param = error.param
+            msg = f"Missing required argument: `{param.name}`."
+            sig = f"{ctx.command.qualified_name} {ctx.command.signature}"
+
+            match = re.search(fr"<{param.name}(?: \(upload a file\)|\.{{3}})?>", sig)
 
             # Command signature may not be in a format we expect.
-            if param_match is not None:
-                start, end = param_match.span()
-                msg += f"\n```\n{param_match.string}\n{'^' * (end - start):>{end}}```"
+            if match is not None:
+                start, end = match.span()
+                msg += f"\n```\n{sig}\n{'^' * (end - start):>{end}}```"
 
             await ctx.send(msg)
         elif isinstance(error, commands.MissingRequiredFlag):
             ctx._refund_cooldown_token()
-            await ctx.send(f"`{error.flag.name}` is a required flag that is missing.")
+            await ctx.send(f"Missing required flag: `{error.flag.name}`.")
         elif isinstance(error, commands.MissingFlagArgument):
             ctx._refund_cooldown_token()
-            await ctx.send(f"The `{error.flag.name}` flag requires a value.")
-        elif isinstance(error, commands.TooManyFlags):
-            ctx._refund_cooldown_token()
-
-            flag = error.flag
-            await ctx.send(
-                f"The `{flag.name}` flag takes a maximum of {flag.max_args} value(s)."
-            )
+            await ctx.send(f"Flag `{error.flag.name}` requires an argument.")
         elif isinstance(error, commands.BadFlagArgument):
             ctx._refund_cooldown_token()
             await ctx.send(
-                f"Your argument for the `{error.flag.name}` flag was invalid."
-                "\nPlease double-check your input and try again."
+                f"Invalid argument(s) for flag `{error.flag.name}`."
+                "\nPlease double-check your input(s) and try again."
             )
         elif isinstance(error, (commands.BadArgument, commands.BadUnionArgument)):
             ctx._refund_cooldown_token()
-            await ctx.send(
-                "One or more of your command arguments were invalid."
-                "\nPlease double-check your input(s) and try again."
-            )
+            msg = "One or more of your command arguments were invalid."
+
+            if ctx.current_parameter is not None:
+                # This was likely raised while converting.
+                msg = f"Invalid argument(s) for `{ctx.current_parameter.name}`."
+
+            await ctx.send(f"{msg}\nPlease double-check your input(s) and try again.")
         elif isinstance(error, commands.ArgumentParsingError):
             ctx._refund_cooldown_token()
-            await ctx.send(f"An error occurred while processing your arguments: {error}")
+            await ctx.send(f"An error occurred while processing your input(s): {error}")
         elif isinstance(error, commands.CommandOnCooldown):
             await ctx.send(
-                f"You are on cooldown. Try again in **{error.retry_after:.2f}** seconds."
+                f"That command is on cooldown. Retry in **{error.retry_after:.2f}** second(s)."
             )
         elif isinstance(error, commands.MissingPermissions):
             perms = [
@@ -470,7 +466,7 @@ class Sleepy(commands.Bot):
                 f"I need the `{human_join(perms)}` permission(s) to execute that command."
             )
         elif isinstance(error, commands.NotOwner):
-            await ctx.send("Huh? You're not one of my higher-ups! Scram, skid!")
+            await ctx.send("You're not one of my higher-ups, scram!")
         elif isinstance(error, HTTPRequestFailed):
             await ctx.send(
                 f"HTTP request failed with status code {error.status} {error.reason}"
