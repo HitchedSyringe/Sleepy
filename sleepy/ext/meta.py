@@ -12,6 +12,7 @@ from __future__ import annotations
 import difflib
 import inspect
 import itertools
+import time
 from collections import Counter
 from os import path
 from typing import TYPE_CHECKING, Dict, List, Mapping, Optional, Tuple, Union
@@ -21,7 +22,7 @@ from discord import ActivityType, ChannelType, Embed, SelectOption, Status
 from discord.ext import commands
 from discord.ext.menus import ListPageSource, PageSource
 from discord.ui import Select
-from discord.utils import escape_markdown, format_dt, oauth_url, utcnow
+from discord.utils import escape_markdown, format_dt, oauth_url
 from jishaku.paginators import WrappedPaginator
 from typing_extensions import Annotated
 
@@ -478,16 +479,16 @@ class Meta(commands.Cog):
 
         As for me, I'm no better than any of you.
         """
-        # The reason this also uses edited_at is to allow this
-        # to work for those who want allow command invokations
-        # on message edits.
-        ref = ctx.message.edited_at or ctx.message.created_at
-        delta = abs(utcnow() - ref).total_seconds() * 1000
+        api_start = time.perf_counter()
+        await ctx.typing()
+        api_delta = time.perf_counter() - api_start
 
         await ctx.send(
-            "\N{TABLE TENNIS PADDLE AND BALL} **Pong!**```ldif"
-            f"\nDiscord API Latency: {ctx.bot.latency * 1000:.2f} ms"
-            f"\nCommand processing time: {delta:.2f} ms```"
+            "\N{TABLE TENNIS PADDLE AND BALL} **Pong!**"
+            "```ldif"
+            f"\nDiscord API Latency: {api_delta * 1000:.2f} ms"
+            f"\nDiscord Gateway Latency: {ctx.bot.latency * 1000:.2f} ms"
+            "```"
         )
 
     @commands.command(aliases=("perms",))
