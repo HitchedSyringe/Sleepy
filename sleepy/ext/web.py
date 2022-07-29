@@ -61,7 +61,7 @@ class RedditSubmissionURL(commands.Converter[str]):
     async def convert(self, ctx: SleepyContext, argument: str) -> str:
         try:
             url = yarl.URL(argument.strip("<>"))
-        except:
+        except Exception:
             raise commands.BadArgument("Invalid link.") from None
 
         # Need to fetch the main Reddit URL.

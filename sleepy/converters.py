@@ -237,7 +237,7 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
 
         try:
             resp = await ctx.session.head(url, raise_for_status=True)
-        except:
+        except Exception:
             raise ImageAssetConversionFailure(argument) from None
 
         size = resp.content_length
