@@ -65,8 +65,17 @@ case_insensitive_cogs: false
 # This is ignored if either the `owner_id` or `owner_ids` kwargs
 # were passed into the Sleepy bot constructor, or the respective
 # attributes were set prior to login.
-owner_ids:
-  - 12345  # Replace with your user ID.
+owner_ids: []
+
+# Whether or not to query the owner IDs from the bot's application
+# info on startup, regardless of whether ``owner_ids`` is empty.
+# If ``owner_ids`` is not empty, then the queried owner IDs will
+# be merged with the configured owner IDs.
+# This is ignored if either the `owner_id` or `owner_ids` kwargs
+# were passed into the Sleepy bot constructor, or the respective
+# attributes were set prior to logging in.
+# ~~ Added in version 3.3.
+force_querying_owner_ids: false
 
 
 # -- [Extensions Config] --

@@ -276,14 +276,16 @@ class Sleepy(commands.Bot):
         if self.owner_id is None and not self.owner_ids:
             _LOG.info("No owner IDs were passed in, auto-detecting owners...")
 
-            # Should be fetched by the time we're here.
-            app_info: AppInfo = self.application  # type: ignore
             owner_ids = set(self.config["owner_ids"])
 
-            if app_info.team is None:
-                owner_ids.add(app_info.owner.id)
-            else:
-                owner_ids.update(m.id for m in app_info.team.members)
+            if not owner_ids or config["force_querying_owner_ids"]:
+                # Should be fetched by the time we're here.
+                app_info: AppInfo = self.application  # type: ignore
+
+                if app_info.team is None:
+                    owner_ids.add(app_info.owner.id)
+                else:
+                    owner_ids.update(m.id for m in app_info.team.members)
 
             _LOG.debug("Auto-detected owner IDs: %s", owner_ids)
 
