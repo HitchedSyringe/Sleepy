@@ -333,6 +333,8 @@ class Sleepy(commands.Bot):
         ctx = await self.get_context(message, cls=Context)
 
         # Only process global cooldowns when a command is invoked.
+        # This also has the side-effect of preventing CommandNotFound
+        # from being raised.
         if not ctx.valid:
             return
 
@@ -390,18 +392,14 @@ class Sleepy(commands.Bot):
             pass
 
     async def on_command_error(self, ctx: Context, error: commands.CommandError) -> None:
-        ignored = (
-            commands.CommandNotFound,
-            commands.DisabledCommand,
-            commands.NoPrivateMessage,
-            commands.PrivateMessageOnly,
-        )
-
-        if isinstance(error, ignored) or ctx._already_handled_error:
-            return
-
         if isinstance(error, (commands.CommandInvokeError, commands.ConversionError)):
             ctx._refund_cooldown_token()
+            return
+
+        if (
+            isinstance(error, (commands.DisabledCommand, commands.NoPrivateMessage))
+            or ctx._already_handled_error
+        ):
             return
 
         if isinstance(
