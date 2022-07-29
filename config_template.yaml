@@ -49,8 +49,8 @@ prefixes:
   - $*
 
 # Whether or not the bot's mention should be a valid prefix.
-# If no prefixes are listed in `prefixes`, then mentions
-# are used regardless of this setting.
+# If ``prefixes`` is empty, then the bot's mention will be
+# used, regardless of this setting.
 mentionable: true
 
 # Whether or not the cog names are case-insensitive.
@@ -59,11 +59,12 @@ mentionable: true
 case_insensitive_cogs: false
 
 # The user IDs that own the bot.
-# These users can use any commands, including those restricted
-# to the bot owner. Additionally, these users can bypass all
-# cooldowns and every user command check. This can be used even
-# if the bot is a team app. If no owners are listed, then they
-# are fetched automatically on startup.
+# These users can use every command, as well as bypass cooldowns
+# and checks. **This is a dangerous permission to grant.**
+# If this is empty, then the owner IDs will be queried on login.
+# This is ignored if either the `owner_id` or `owner_ids` kwargs
+# were passed into the Sleepy bot constructor, or the respective
+# attributes were set prior to login.
 owner_ids:
   - 12345  # Replace with your user ID.
 
@@ -72,24 +73,24 @@ owner_ids:
 
 # Directory to the folder the extensions are stored in.
 # Folders should be separated via forward slashes (/).
-# Example: botfiles/important/extensions
+# -> Example: botfiles/important/extensions
 extensions_directory: sleepy/ext
 
 # Whether or not the bot should automatically detect and load all
-# extensions in the extensions folder upon start up.
+# extensions in the extensions folder upon startup.
 enable_autoload: true
 
 # The extensions to load when ``enable_autoload`` is ``false``.
 # This allows for finer grained control of which extensions to load
 # or ignore. Folders should be separated via forward slashes (/).
-# Example: botfiles/important/extensions
+# -> Example: botfiles/important/extensions
 # Furthermore, this configuration uses special syntax:
 # * The dollar sign ($) can prefix a directory to specify loading
 #   the extension from the configured extensions directory.
-#     Example: $/jishaku -> Load extensions_directory/jishaku
+#   -> Example: $/jishaku -> Load `extensions_directory/jishaku`.
 # * The astrisk (*) can suffix a directory to specify loading all
 #   extensions in the given directory.
-#     Example: core/* -> Load ALL extensions in `core`.
+#   -> Example: core/* -> Load ALL extensions in `core`.
 extensions_list:
   - $/jishaku
   - $/meta
