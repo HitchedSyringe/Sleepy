@@ -79,12 +79,9 @@ class Weeb(
             ctx._already_handled_error = True
 
     def cog_load(self) -> None:
-        from PIL import __version__ as pillow_version
+        from ..images.helpers import has_minimum_pillow_minor_version
 
-        # This is proofed against .dev[x] versions and release candidates.
-        major, minor, *_ = pillow_version.split(".")
-
-        if int(major) >= 9 and int(minor) >= 1:
+        if has_minimum_pillow_minor_version((9, 1)):
             # This modifies PIL's GIF loading strategy on the global level.
             # This needs to be done since `nichijou` breaks on Pillow 9.x.
             # Unfortunately, this can only be done on Pillow 9.1+. Pillow

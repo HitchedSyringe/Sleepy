@@ -483,7 +483,7 @@ def make_palette(image_buffer: io.BytesIO) -> io.BytesIO:
         colour = tuple(map(int, colour))
 
         text = "#{0:02x}{1:02x}{2:02x} ({3:.2%})".format(*colour, percent)
-        w, h = get_accurate_text_size(font, text)
+        w, h = draw.multiline_textbbox((0, 0), text, font)[2:]
 
         draw.text(
             (175 + (325 - w) // 2, 100 * i + 50 - h // 2),
@@ -633,8 +633,8 @@ def make_ship(
 
         name1_wrap = wrap_text(name1, font, width=250)
         name2_wrap = wrap_text(name2, font, width=250)
-        name1_w = get_accurate_text_size(font, name1_wrap)[0]
-        name2_w = get_accurate_text_size(font, name2_wrap)[0]
+        name1_w = max(draw.textlength(s, font) for s in name1_wrap.split("\n"))
+        name2_w = max(draw.textlength(s, font) for s in name2_wrap.split("\n"))
 
         draw.text((140 - name1_w // 2, 129), name1_wrap, font=font, align="center")
         draw.text((535 - name2_w // 2, 129), name2_wrap, font=font, align="center")
@@ -643,7 +643,7 @@ def make_ship(
         font = font.font_variant(size=22)
 
         ship_name = name1[: len(name2) // 2] + name2[len(name2) // 2 :]
-        ship_name_w = get_accurate_text_size(font, ship_name)[0]
+        ship_name_w = draw.textlength(ship_name, font)
 
         draw.text(((675 - ship_name_w) // 2, 201), ship_name, font=font, align="center")
 
@@ -658,7 +658,7 @@ def make_ship(
         draw.rounded_rectangle((140, 234, 535, 264), 10, outline="white", width=2)
 
         conf_text = f"{confidence}% confidence"
-        conf_text_w = get_accurate_text_size(font, conf_text)[0]
+        conf_text_w = draw.textlength(conf_text, font)
 
         draw.text(((675 - conf_text_w) // 2, 241), conf_text, font=font, align="center")
 
