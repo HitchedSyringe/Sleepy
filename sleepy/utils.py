@@ -241,8 +241,7 @@ def human_delta(
 
     .. versionchanged:: 3.0
 
-        * Renamed to ``human_delta``.
-        * Renamed ``duration`` argument to ``delta``.
+        * Renamed ``duration`` parameter to ``delta``.
         * Return ``"Just now"`` if the delta is 0, otherwise,
           indicate if the delta is negative or positive in the
           returned string. This behaviour can be disabled via
@@ -254,8 +253,8 @@ def human_delta(
 
     .. versionchanged:: 3.2
 
-        * Renamed `datetime1` and `datetime2` arguments to
-          `dt1` and `dt2`, respectively.
+        * Renamed ``datetime1`` and ``datetime2`` parameters to
+          ``dt1`` and ``dt2``, respectively.
         * Naive datetimes passed are now internally converted
           to be UTC-aware
 
@@ -354,26 +353,22 @@ def human_delta(
 
 
 def human_join(sequence: Sequence[Any], /, *, joiner: str = "and") -> str:
-    """Returns a human-readable, comma-separted sequence,
-    with the last element joined with a given joiner.
+    """Returns a human-readable, comma-separted sequence, with
+    the last element joined with a given joiner.
 
-    This uses an Oxford comma, because without one, the
-    output would be difficult to interpret.
+    This uses an Oxford comma, because without one, the output
+    would be difficult to interpret.
 
     .. versionadded:: 1.6
 
     .. versionchanged:: 2.0
 
-        * Renamed to ``humanise_sequence``.
-        * Raise :exc:`ValueError` if the given sequence
-          is empty.
+        * Raise :exc:`ValueError` if the given sequence is empty.
         * Processed strings now use an Oxford comma.
 
     .. versionchanged:: 3.0
 
-        * Renamed to ``human_join``.
-        * Passing empty sequences will now return an empty
-          string.
+        * Passing empty sequences will now return an empty string.
         * Allow passing sequences with non-string values.
 
     Parameters
@@ -440,9 +435,8 @@ def human_number(
 
     .. versionchanged:: 3.0
 
-        * Renamed to ``human_number``.
-        * Renamed ``precision`` argument to ``sigfigs``.
-        * Renamed ``remove_trailing_zeroes`` argument to
+        * Renamed ``precision`` parameter to ``sigfigs``.
+        * Renamed ``remove_trailing_zeroes`` parameter to
         ``strip_trailing_zeroes``.
         * Raise :exc:`ValueError` if ``suffixes`` is an empty sequence.
 
@@ -494,16 +488,16 @@ def human_number(
         from sleepy.utils import human_number
 
     .. doctest::
-        >>> human_number(1201.56, None)
-        "1.20156K"
         >>> human_number(-543210)
         "-543K"
         >>> human_number(123456789, 4)
         "123.5M"
-        >>> human_number(38000, strip_trailing_zeroes=False)
-        "38.0K"
+        >>> human_number(1201.56, None)
+        "1.20156K"
         >>> human_number(12023, 2, suffixes=("", " thousand"))
         "12 thousand"
+        >>> human_number(38000, strip_trailing_zeroes=False)
+        "38.0K"
     """
     if not suffixes:
         raise ValueError("suffixes cannot be an empty sequence.")
@@ -676,9 +670,9 @@ def progress_bar(*, progress: int, maximum: int, per: int = 1) -> str:
 
 
 def randint(a: int, b: int, *, seed: Optional[Any] = None) -> int:
-    """Similar to :func:`random.randint`, but allows
-    for setting a seed without modifying the global
-    :class:`random.Random` instance.
+    """Similar to :func:`random.randint` except allows for setting a
+    seed without having to create a :class:`random.Random` instance
+    or modify the global one.
 
     .. versionadded:: 3.1.8
 
@@ -767,8 +761,7 @@ def truncate(text: str, width: int, *, placeholder: str = "...") -> str:
 
     .. versionchanged:: 3.0
 
-        * Renamed to ``truncate``.
-        * Renamed ``max_width`` argument to ``width``.
+        * Renamed ``max_width`` parameter to ``width``.
         * Raise :exc:`ValueError` if ``width`` is less
           than the length of the placeholder.
 

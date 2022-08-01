@@ -28,8 +28,8 @@ _T = TypeVar("_T")
 
 
 class MissingAnyPermissions(commands.CheckFailure):
-    """Exception raised when the command invoker lacks
-    any of the permissions specified to run a command.
+    """Exception raised when the command invoker lacks any of the
+    permissions specified to run a command.
 
     This inherits from :exc:`commands.CheckFailure`.
 
@@ -38,9 +38,8 @@ class MissingAnyPermissions(commands.CheckFailure):
     Attributes
     -----------
     missing_permissions: list[:class:`str`]
-        The permissions that the command invoker is
-        missing. These are the parameters passed to
-        :func:`has_permissions`.
+        The permissions that the command invoker is missing.
+        These are the parameters passed to :func:`has_permissions`.
     """
 
     def __init__(self, missing_permissions: List[str], *args: Any) -> None:
@@ -64,24 +63,21 @@ def _has_any_permissions(permissions: Permissions, to_check: Dict[str, bool]) ->
 def has_permissions(
     *, check_any: bool = False, **permissions: bool
 ) -> Callable[[_T], _T]:
-    """Similar to :func:`commands.has_permissions` except
-    allows the option to check for either all or any given
-    permissions.
+    """Similar to :func:`commands.has_permissions` except this allows
+    for checking for either all or any of the given permissions.
 
-    If ``check_any`` is ``True``, then this check will only
-    succeed if the user has at least **one** of the given
-    permissions. Otherwise, :exc:`.MissingAnyPermissions`,
-    which is inherited from :exc:`commands.CheckFailure`,
-    is raised.
+    If ``check_any`` is ``True``, then this check will only succeed
+    if the user has at least **one** of the given permissions.
+    Otherwise, this raises :exc:`.MissingAnyPermissions`, a special
+    exception is inherited from :exc:`commands.CheckFailure`.
 
     .. versionchanged:: 3.0
 
-        * Replaced the `check` kwarg with `check_any`, which
-          now takes a :class:`bool` instead of a callable.
-        * Raise :exc:`.MissingAnyPermissions` instead of the
-          generic :exc:`commands.CheckFailure` if `check_any`
-          is ``True`` and the user has none of the specified
-          permissions.
+        * Replaced the `check` kwarg with `check_any`, which now
+          takes a :class:`bool` instead of a callable.
+        * Raise :exc:`.MissingAnyPermissions` instead of the generic
+          :exc:`commands.CheckFailure` if `check_any` is ``True`` and
+          the user has none of the specified permissions.
 
     .. versionchanged:: 3.2
         Raise :exc:`TypeError` for passing invalid permissions.
@@ -89,9 +85,9 @@ def has_permissions(
     Parameters
     ----------
     check_any: :class:`bool`
-        Whether or not to check if the user has **ANY** of
-        the given permissions. ``False`` denotes checking
-        for **ALL** of the given permissions.
+        Whether or not to check if the user has **ANY** of the given
+        permissions. ``False`` denotes checking for **ALL** of the
+        given permissions.
         Defaults to ``False``.
     permissions: Any
         An argument list of permissions to check for.
@@ -129,8 +125,8 @@ def has_permissions(
 def has_guild_permissions(
     *, check_any: bool = False, **permissions: bool
 ) -> Callable[[_T], _T]:
-    """Similar to :func:`has_permissions`, but operates on
-    guild-wide permissions instead of the current channel
+    """Similar to :func:`has_permissions` except this operates
+    on guild-wide permissions rather than the current channel
     permissions.
 
     .. versionchanged:: 3.0
@@ -191,9 +187,8 @@ def has_guild_permissions(
 
 
 def is_in_guilds(*guild_ids: int) -> Callable[[_T], _T]:
-    """A :func:`commands.check` that checks if the user
-    invoking this command is a member of any of the given
-    guilds.
+    """A :func:`commands.check` that checks if the user invoking
+    this command is a member of any of the given guilds.
 
     Parameters
     ----------
@@ -216,9 +211,8 @@ def is_in_guilds(*guild_ids: int) -> Callable[[_T], _T]:
 
 
 def is_in_channels(*channel_ids: int) -> Callable[[_T], _T]:
-    """Same as :func:`is_in_guilds`, except checks if
-    the user is invoking this command in any of the
-    given channels.
+    """Same as :func:`is_in_guilds`, except checks if the user
+    is invoking this command in any of the given channels.
 
     Parameters
     ----------
@@ -233,9 +227,8 @@ def is_in_channels(*channel_ids: int) -> Callable[[_T], _T]:
 
 
 def are_users(*user_ids: int) -> Callable[[_T], _T]:
-    """Same as :func:`is_in_guilds`, except checks if
-    the user invoking this command is any of the given
-    users.
+    """Same as :func:`is_in_guilds`, except checks if the user
+    invoking this command is any of the given users.
 
     Parameters
     ----------

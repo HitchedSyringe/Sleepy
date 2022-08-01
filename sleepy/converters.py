@@ -249,12 +249,12 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
 
 
 def real_float(*, max_decimal_places: Optional[int] = None) -> Callable[[str], float]:
-    """Similar to the :class:`float` converter except
-    this does not convert to NaN or Infinity and allows
-    for limiting decimal places.
+    """Similar to the :class:`float` converter except this does
+    not convert to ``nan`` or ``inf`` and allows for limiting
+    the number of decimal places.
 
-    This returns a callable that can be used as an
-    argument converter.
+    This returns a callable that can be used as an argument
+    converter.
 
     .. versionadded:: 3.0
 
@@ -264,8 +264,9 @@ def real_float(*, max_decimal_places: Optional[int] = None) -> Callable[[str], f
     Parameters
     ----------
     max_decimal_places: Optional[:class:`int`]
-        The maximum amount of decimal places to allow
-        for float values. ``None`` denotes no maximum.
+        The maximum amount of decimal places to allow for float
+        values.
+        ``None`` denotes no maximum.
         Defaults to ``None``.
 
     Returns

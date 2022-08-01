@@ -43,13 +43,8 @@ class HTTPRequestFailed(commands.CommandError):
     .. versionadded:: 1.10
 
     .. versionchanged:: 2.0
-
-        * Renamed to ``HTTPError``.
-        * This now subclasses :exc:`commands.CommandError`
-          for ease of use with command error handlers.
-
-    .. versionchanged:: 3.0
-        Renamed to ``HTTPRequestFailed``.
+        This now subclasses :exc:`commands.CommandError`
+        for ease of use with command error handlers.
 
     Attributes
     ----------
@@ -89,12 +84,7 @@ class HTTPRequester:
     .. versionadded:: 1.10
 
     .. versionchanged:: 2.0
-
-        * Renamed to ``CachedHTTPRequester``.
-        * Classes can now be manually constructed.
-
-    .. versionchanged:: 3.0
-        Renamed to ``HTTPRequester``.
+        Classes can now be manually constructed.
 
     .. versionchanged:: 3.2
         Removed the `loop` kwarg and property.
@@ -231,7 +221,7 @@ class HTTPRequester:
         Performs an HTTP request and optionally caches the response.
 
         .. versionchanged:: 3.0
-            Renamed ``cache`` argument to ``cache__``.
+            Renamed ``cache`` parameter to ``cache__``.
 
         Parameters
         ----------
@@ -254,10 +244,6 @@ class HTTPRequester:
             The remaining parameters to be passed into either the URL
             itself or the :meth:`aiohttp.ClientSession.request` method.
             For the latter case, options must be suffixed with a dunder.
-
-            .. versionchanged:: 3.3
-                Renamed to `options` and added explicit documentation.
-                In versions prior, this was only implied in a small note.
 
         Returns
         -------

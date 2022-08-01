@@ -91,7 +91,7 @@ class Context(commands.Context["Sleepy"]):
     ) -> HTTPResponseData:
         """|coro|
 
-        Similar to :meth:`request`, but slimmed down to only do GET requests.
+        Similar to :meth:`request` except slimmed down to only do GET requests.
 
         .. versionadded:: 1.10
 
@@ -105,7 +105,7 @@ class Context(commands.Context["Sleepy"]):
     ) -> HTTPResponseData:
         """|coro|
 
-        Similar to :meth:`request`, but slimmed down to only do POST requests.
+        Similar to :meth:`request` except slimmed down to only do POST requests.
 
         .. versionadded:: 1.10
 
@@ -126,15 +126,15 @@ class Context(commands.Context["Sleepy"]):
     ) -> discord.Message:
         """|coro|
 
-        Starts a new pagination menu in this context's channel.
+        Starts a new pagination menu.
 
         .. versionadded:: 2.0
 
         .. versionchanged:: 3.2
 
             * Rewrote to use Discord's interactions menus. This
-              resulted in the following kwargs being renamed to
-              keep consistency or clarify purpose:
+              resulted in the following parameters being renamed
+              to keep consistency or clarify purpose:
 
                 - ``remove_reactions_after`` -> ``remove_view_after``
                 - ``delete_message_after -> ``delete_message_when_stopped``
@@ -143,8 +143,8 @@ class Context(commands.Context["Sleepy"]):
 
         .. versionchanged:: 3.3
 
-            * Renamed ``remove_view_after`` to ``remove_view_on_timeout``.
-            * Renamed ``disable_view_after`` to ``disable_view_on_timeout``.
+            * Renamed ``remove_view_after`` parameter to ``remove_view_on_timeout``.
+            * Renamed ``disable_view_after`` parameter to ``disable_view_on_timeout``.
 
         Parameters
         ----------
@@ -216,7 +216,7 @@ class Context(commands.Context["Sleepy"]):
     ) -> Optional[bool]:
         """|coro|
 
-        Starts a new confirmation menu in this context's channel.
+        Starts a new confirmation menu.
 
         .. versionadded:: 1.7
 
@@ -225,16 +225,16 @@ class Context(commands.Context["Sleepy"]):
 
         .. versionchanged:: 3.2
             Rewrote to use Discord's interactions menus. This
-            resulted in the following kwargs being renamed to
-            keep consistency or clarify purpose:
+            resulted in the following parameters being renamed
+            to keep consistency or clarify purpose:
 
                 * ``remove_reactions_after`` -> ``remove_view_after``
                 * ``delete_message_after -> ``delete_message_on_interact``
 
         .. versionchanged:: 3.3
 
-            * Renamed ``remove_view_after`` to ``remove_view_on_timeout``.
-            * Renamed ``disable_view_after`` to ``disable_view_on_timeout``.
+            * Renamed ``remove_view_after`` parameter to ``remove_view_on_timeout``.
+            * Renamed ``disable_view_after`` parameter to ``disable_view_on_timeout``.
 
         Parameters
         ----------
@@ -335,7 +335,7 @@ class Context(commands.Context["Sleepy"]):
         .. versionadded:: 1.7
 
         .. versionchanged:: 2.0
-            Renamed ``entry`` argument to ``formatter``.
+            Renamed ``entry`` parameter to ``formatter``.
 
         Parameters
         ----------

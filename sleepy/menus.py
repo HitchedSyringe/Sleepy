@@ -55,14 +55,14 @@ class EmbedSource(ListPageSource):
     .. versionadded:: 2.0
 
     .. versionchanged:: 3.0
-        Renamed ``show_page_numbers`` argument to ``show_page_count``.
+        Renamed ``show_page_numbers`` parameter to ``show_page_count``.
 
     .. versionchanged:: 3.2
 
-        * Removed ``show_page_count`` argument. Page numbers are now
+        * Removed ``show_page_count`` parameter. Page numbers are now
           natively shown within the pagination menu.
-        * Allow ``per_page`` to be set, since bots are now allowed
-          to send multiple embeds per message.
+        * Allow ``per_page`` parameter to be set, since bots are now
+          allowed to send multiple embeds per message.
     """
 
     def __init__(self, entries: Sequence[discord.Embed], *, per_page: int = 1) -> None:
@@ -96,10 +96,10 @@ class PaginatorSource(ListPageSource):
     .. versionadded:: 3.0
 
     .. versionchanged:: 3.0
-        Renamed ``show_page_numbers`` argument to ``show_page_count``.
+        Renamed ``show_page_numbers`` parameter to ``show_page_count``.
 
     .. versionchanged:: 3.2
-        Removed ``show_page_count`` argument. Page numbers are now
+        Removed ``show_page_count`` parameter. Page numbers are now
         natively shown within the pagination menu.
 
     Parameters
@@ -287,30 +287,25 @@ class ConfirmationView(BaseView):
 class PaginationView(BaseView):
     """A view which allows for pagination of items.
 
-    This view is mostly based off of :class:`menus.MenuPages`
-    and runs similar to it, the only difference being that
-    the new interactions system is used rather than reactions.
-    This is also fully compatible with :class:`menu.PageSource`
-    instances.
+    This view is similar to :class:`menus.MenuPages` except this
+    uses message components rather than reactions. This is fully
+    compatible with :class:`menu.PageSource` instances.
 
     .. warning::
 
-        Due to implementation details regarding the :class:`View`
-        and :class:`PageSource` classes, this view **cannot** be
-        sent via :meth:`Messageable.send` as there is necessary
-        setup that must be done beforehand. Calling either the
-        :meth:`send_to`, :meth:`attach_to`, or :meth:`reply_to`
-        methods is preferred as these will interally perform the
-        setup for you.
+        Due to implementation details regarding the :class:`View` and
+        :class:`PageSource` classes, this view **cannot** be sent via
+        :meth:`Messageable.send` as there is necessary setup that must
+        be done prior. Calling either :meth:`send_to`, :meth:`attach_to`,
+        or :meth:`reply_to` is preferred as these methods will interally
+        perform this setup for you.
 
     .. versionadded:: 3.2
 
     .. versionchanged:: 3.3
 
-        * Renamed ``remove_view_after`` parameter to
-          ``remove_view_on_timeout``.
-        * Renamed ``disable_view_after`` parameter to
-          ``disable_view_on_timeout``.
+        * Renamed ``remove_view_after`` parameter to ``remove_view_on_timeout``.
+        * Renamed ``disable_view_after`` parameter to ``disable_view_on_timeout``.
 
     Parameters
     ----------
@@ -319,20 +314,18 @@ class PaginationView(BaseView):
     source: :class:`menus.PageSource`
         The page source to paginate.
     delete_message_when_stopped: :class:`bool`
-        Whether to delete the message when the stop button is
-        pressed.
+        Whether or not to delete the message once the stop button is pressed.
         Defaults to ``True``.
     remove_view_on_timeout: :class:`bool`
-        Whether to remove the view after it has timed out.
+        Whether or not to remove the view after it has timed out.
         Defaults to ``False``.
     disable_view_on_timeout: :class:`bool`
-        Whether to disable the view after it has timed out.
+        Whether or not to disable the view after it has timed out.
         Defaults to ``True``.
 
         .. note::
 
-            ``remove_view_on_timeout`` takes priority over this
-            setting.
+            ``remove_view_on_timeout`` takes priority over this setting.
 
     Attributes
     ----------
@@ -343,9 +336,8 @@ class PaginationView(BaseView):
         Zero-indexed between [0, :attr:`PageSource.max_pages`).
     message: Optional[:class:`discord.Message`]
         This view's message.
-        ``None`` if this wasn't initially set through either
-        :meth:`send_to`, :meth:`attach_to`, :meth:`reply_to`,
-        or otherwise.
+        ``None`` if this wasn't initially set through either :meth:`send_to`,
+        :meth:`attach_to`, :meth:`reply_to`, or otherwise.
     """
 
     def __init__(
@@ -654,10 +646,10 @@ class PaginationView(BaseView):
     ) -> None:
         """|coro|
 
-        Similar to :meth:`show_page`, but runs some checks
-        on the given page number before actually showing
-        the page. This does nothing if the page number is
-        invalid, i.e. doesn't point to a page.
+        Similar to :meth:`show_page` except runs some checks on the
+        given page number before actually showing the page. This does
+        nothing if the page number is invalid, i.e. doesn't point to
+        a page.
 
         .. versionchanged:: 3.3
             Raise :exc:`RuntimeError` if :attr:`message` is ``None``

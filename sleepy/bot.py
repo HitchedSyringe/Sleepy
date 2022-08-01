@@ -43,12 +43,6 @@ class Sleepy(commands.Bot):
 
     Subclasses :class:`commands.Bot`.
 
-    .. versionchanged:: 1.4
-        Renamed to ``DiscordBot``.
-
-    .. versionchanged:: 1.12.3
-        Renamed to ``Sleepy``.
-
     Parameters
     ----------
     config: Mapping[:class:`str`, Any]
@@ -99,16 +93,10 @@ class Sleepy(commands.Bot):
         .. versionadded:: 1.12
     extensions_directory: :class:`pathlib.Path`
         The directory the extensions are located in.
-
-        .. versionchanged:: 3.0
-            Renamed to ``extensions_directory``.
     http_requester: :class:`HTTPRequester`
         The bot's HTTP requester client.
 
         .. versionadded:: 1.10
-
-        .. versionchanged:: 2.0
-            Renamed to ``http_requester``.
     started_at: Optional[:class:`datetime.datetime`]
         The bot's starting time as a UTC-aware datetime.
         ``None`` if not logged in.
@@ -120,10 +108,8 @@ class Sleepy(commands.Bot):
             on initialization.
 
         .. versionchanged:: 3.0
-
-            * Renamed to ``started_at``.
-            * This is now set when logged in rather
-              than on ``ready``.
+            This is now set when logged in rather than
+            on ``ready``.
 
         .. versionchanged:: 3.2
             This is now a UTC-aware datetime.
@@ -180,13 +166,8 @@ class Sleepy(commands.Bot):
 
         .. versionadded:: 1.12
 
-        .. versionchanged:: 2.0
-            Renamed to ``app_owner``.
-
         .. versionchanged:: 3.0
-
-            * Renamed to ``owner``.
-            * :attr:`app_info` is now used as a fallback.
+            :attr:`app_info` is now used as a fallback.
         """
         if self.owner_id is not None:
             owner = self.get_user(self.owner_id)
