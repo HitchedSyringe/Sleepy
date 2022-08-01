@@ -53,13 +53,13 @@ def get_accurate_text_size(font: FreeTypeFont, text: str) -> Tuple[int, int]:
     return draw.multiline_textbbox((0, 0), text, font)[2:]
 
 
-def wrap_text(text: str, font: FreeTypeFont, *, width: int) -> str:
+def wrap_text(text: str, font: FreeTypeFont, *, width: float) -> str:
     if has_minimum_pillow_minor_version((9, 2)):
-        text_width = int(font.getlength(text))
+        text_width = font.getlength(text)
     else:
         text_width = font.getsize(text)[0]
 
-    adjusted_width = len(text) * width // text_width
+    adjusted_width = int(width * len(text) / text_width)
 
     if text_width < adjusted_width:
         return text
