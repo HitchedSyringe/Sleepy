@@ -782,20 +782,14 @@ class Web(
 
             raise
 
-        updated = datetime.fromisoformat(resp["date"]).replace(tzinfo=timezone.utc)
+        date = datetime.fromisoformat(resp["date"]).replace(tzinfo=timezone.utc)
+        rates = "\n".join(
+            f"{amount:.6f} {base} = {v * amount:.6f} {n}"
+            for n, v in resp["rates"].items()
+        )
 
-        # According to the ISO 4217 standard, currencies can
-        # have decimal precision between 0-4 places. As of
-        # writing, ECB doesn't have any currencies that exceed
-        # 2 decimal places.
         await ctx.send(
-            "**Exchange Rates** "
-            f"(Updated {format_dt(updated, 'R')})\n"
-            + "\n".join(
-                f"{amount:.2f} {base} = {v * amount:.2f} {n}"
-                for n, v in resp["rates"].items()
-            )
-            + "\n`Powered by vatcomply.com`"
+            f"**Exchange Rates - {format_dt(date)}**\n{rates}\n`Powered by vatcomply.com`"
         )
 
     @commands.command(aliases=("lyrics",))
