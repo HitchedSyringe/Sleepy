@@ -13,11 +13,9 @@ __all__ = (
     "ImageAssetConversionFailure",
     "ImageAssetConverter",
     "ImageAssetTooLarge",
-    "real_float",
 )
 
 
-import math
 from inspect import isclass
 from typing import TYPE_CHECKING, Any, Callable, Optional, Union, cast
 
@@ -251,63 +249,6 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
             raise ImageAssetTooLarge(url, size, max_size)
 
         return PartialAsset(ctx.bot._connection, url=url)
-
-
-def real_float(*, max_decimal_places: Optional[int] = None) -> Callable[[str], float]:
-    """Similar to the :class:`float` converter except this does
-    not convert to ``nan`` or ``inf`` and allows for limiting
-    the number of decimal places.
-
-    This returns a callable that can be used as an argument
-    converter.
-
-    .. versionadded:: 3.0
-
-    .. versionchanged:: 3.2
-        Allow ``None`` to be passed in ``max_decimal_places``.
-
-    Parameters
-    ----------
-    max_decimal_places: Optional[:class:`int`]
-        The maximum amount of decimal places to allow for float
-        values.
-        ``None`` denotes no maximum.
-        Defaults to ``None``.
-
-    Returns
-    -------
-    Callable[[:class:`str`], :class:`float`]
-        The converter callable.
-
-    Raises
-    ------
-    ValueError
-        An invalid ``max_decimal_places`` value was given.
-    """
-    if max_decimal_places is not None and max_decimal_places <= 0:
-        raise ValueError(
-            f"invalid max_decimal_places {max_decimal_places} (must be > 0)."
-        )
-
-    def converter(arg: str) -> float:
-        try:
-            f_arg = float(arg)
-        except ValueError:
-            raise commands.BadArgument(f'Couldn\'t convert "{arg}" to float.') from None
-
-        if not math.isfinite(f_arg):
-            raise commands.BadArgument("Float must be a real finite value.")
-
-        decimal_places = arg[::-1].find(".")
-
-        if max_decimal_places is not None and decimal_places > max_decimal_places:
-            raise commands.BadArgument(
-                f"Too many decimal places. ({decimal_places} > {max_decimal_places})"
-            )
-
-        return f_arg
-
-    return converter
 
 
 # Private since I only plan on using these for a

@@ -26,7 +26,6 @@ from jishaku.functools import executor_function
 from jishaku.paginators import WrappedPaginator
 from typing_extensions import Annotated
 
-from sleepy.converters import real_float
 from sleepy.http import HTTPRequestFailed
 from sleepy.menus import EmbedSource
 from sleepy.utils import bool_to_emoji, human_number, plural, tchart, truncate
@@ -724,7 +723,7 @@ class Web(
         self,
         ctx: SleepyContext,
         base: Annotated[str, str.upper],
-        amount: Annotated[float, Optional[real_float(max_decimal_places=4)]] = 1,  # type: ignore
+        amount: Annotated[float, Optional[float]] = 1,
         *currencies: Annotated[str, str.upper],
     ) -> None:
         """Shows the exchange rate between two or more currencies.
@@ -783,9 +782,10 @@ class Web(
             raise
 
         date = datetime.fromisoformat(resp["date"]).replace(tzinfo=timezone.utc)
+        amnt = round(amount, 6)
+
         rates = "\n".join(
-            f"{amount:.6f} {base} = {v * amount:.6f} {n}"
-            for n, v in resp["rates"].items()
+            f"{amnt:.6f} {base} = {v * amnt:.6f} {n}" for n, v in resp["rates"].items()
         )
 
         await ctx.send(
