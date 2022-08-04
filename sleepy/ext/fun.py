@@ -16,7 +16,7 @@ import random
 import re
 import unicodedata
 from collections import Counter
-from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Set, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Set, Tuple, Union
 
 import discord
 import emoji
@@ -111,30 +111,31 @@ class EmoteData:
 class PollView(View):
 
     __slots__: Tuple[str, ...] = (
-        "question",
+        "prompt",
         "starter",
         "votes",
         "_message",
         "__voted",
     )
 
-    def __init__(self, question: str, options: Iterable[str]) -> None:
+    def __init__(
+        self,
+        *,
+        starter: Union[discord.User, discord.Member],
+        prompt: str,
+        choices: Iterable[str],
+    ) -> None:
         super().__init__(timeout=60)
 
-        self.question: str = question
-        self.starter: Optional[Union[discord.User, discord.Member]] = None
+        self.prompt: str = prompt.strip()
+        self.starter: Union[discord.User, discord.Member] = starter
         self.votes: Counter[str] = Counter()
 
-        self._message: Optional[discord.Message] = None
+        self._message: discord.Message = MISSING
         self.__voted: Set[int] = set()
 
-        for option in options:
-            if not 0 < len(option) <= 100:
-                raise ValueError(
-                    "Options must be between 1 and 100 characters, inclusive."
-                )
-
-            self.vote.add_option(label=option)
+        for choice in choices:
+            self.vote.add_option(label=choice.strip())
 
     # This is overrided to remove the reset-timeout-on-interaction
     # logic, thus, forcing this view to time out in the given time.
@@ -151,24 +152,19 @@ class PollView(View):
         except Exception as e:
             return await self.on_error(itn, e, item)
 
-    async def send_to(self, ctx: SleepyContext) -> None:
-        self.starter = author = ctx.author
-
+    async def send_to(self, destination: discord.abc.Messageable) -> None:
         embed = Embed(
-            title="Everyone will be voting on:",
-            description=self.question,
-            colour=0x2F3136,
+            title="Everyone will be voting on:", description=self.prompt, colour=0x2F3136
         )
         embed.set_author(
-            name=f"{author} is calling a vote!", icon_url=author.display_avatar
+            name=f"{self.starter} is calling a vote!",
+            icon_url=self.starter.display_avatar,
         )
         embed.set_footer(
             text="Use the dropdown below to cast your vote! Voting ends in 1 minute."
         )
 
-        self._message = await ctx.send(embed=embed, view=self)
-
-        await self.wait()
+        self._message = await destination.send(embed=embed, view=self)
 
     async def interaction_check(self, itn: discord.Interaction) -> bool:
         if itn.user is MISSING:
@@ -184,12 +180,12 @@ class PollView(View):
         del self.__voted
 
         try:
-            await self._message.delete()  # type: ignore
+            await self._message.delete()
         except discord.HTTPException:
             pass
 
         votes = self.votes
-        channel = self._message.channel  # type: ignore
+        channel = self._message.channel
 
         if not votes:
             await channel.send("Nobody voted? Oh well. Better luck next time.")
@@ -202,9 +198,9 @@ class PollView(View):
         )
         embed.set_footer(
             text=f"Started by: {self.starter}",
-            icon_url=self.starter.display_avatar,  # type: ignore
+            icon_url=self.starter.display_avatar,
         )
-        embed.add_field(name="Everyone voted on:", value=self.question)
+        embed.add_field(name="Everyone voted on:", value=self.prompt)
         embed.add_field(name="Total Votes", value=format(sum(votes.values()), ","))
 
         await channel.send(embed=embed)
@@ -222,6 +218,11 @@ class PollView(View):
 class FigletFlags(commands.FlagConverter):
     font: Optional[Annotated[str, str.lower]] = None
     text: str = commands.flag(converter=commands.clean_content(fix_channel_mentions=True))
+
+
+class PollFlags(commands.FlagConverter):
+    prompt: commands.Range[str, 1, 1000]
+    choices: List[commands.Range[str, 1, 100]] = commands.flag(name="choice", max_args=15)
 
 
 class Fun(
@@ -748,56 +749,42 @@ class Fun(
         else:
             await ctx.send(f"You got **{random.randint(minimum, maximum)}**!")
 
-    @commands.command()
-    @commands.guild_only()  # Wouldn't make sense to have instances running in DMs.
+    @commands.command(usage="prompt: <prompt> <choice: <choice>...>")
+    @commands.guild_only()  # No need to have instances running in DMs.
     @commands.bot_has_permissions(embed_links=True)
-    @commands.cooldown(1, 5, commands.BucketType.member)
-    async def poll(
-        self,
-        ctx: SleepyContext,
-        question: Annotated[str, commands.clean_content],
-        *options: Annotated[str, str.strip],
-    ) -> None:
-        """Creates a quick reaction-based voting poll.
+    @commands.cooldown(1, 25, commands.BucketType.member)
+    async def poll(self, ctx: SleepyContext, *, options: PollFlags) -> None:
+        """Creates a quick dropdown-based poll.
 
-        Users will have 1 minute to cast their vote before
-        the poll closes.
+        Users will have 1 minute to vote before the poll closes.
 
-        The question cannot exceed 1000 characters and each
-        option must be less than 100 characters. Polls can
-        have up to 15 unique options. Duplicate options will
-        be automatically filtered. Quotation marks must be
-        used for values containing spaces.
+        This command's interface is similar to Discord's slash commands.
+
+        Options can be given in any order. **All options are required.**
+
+        The following options are valid:
+
+        `prompt: <prompt>`
+        > What users will be voting on, i.e. the topic.
+        > This cannot exceed 1000 characters.
+        `<choice: <choice>...>`
+        > The choices to choose from.
+        > Choices must be explicitly prefixed with `choice:`, e.g.
+        > `choice: apple choice: orange choice: None of the above.`
+        > Between 2 and 15 unique choices, inclusive, are required.
+        > Each choice must not exceed 100 characters.
+        > Duplicate choices are automatically filtered out.
 
         (Bot Needs: Embed Links)
-
-        **EXAMPLE:**
-        ```
-        poll "What colour is the sky?" blue red "What is the sky?"
-        ```
         """
-        # Since the question is a positional arg (for UX reasons)
-        # and not a kwarg, therefore, we'll have to do some input
-        # checks normally provided for kwargs manually. This just
-        # makes sure that the user didn't pass whitespace or "".
-        if not 0 < len(question) <= 1000 or question.isspace():
-            await ctx.send(
-                "The poll question must be between 1 and 1000 characters, inclusive."
-            )
-            return
+        unique = frozenset(options.choices)
 
-        unique_options = frozenset(options)
-
-        if not 2 <= len(unique_options) <= 15:
-            await ctx.send("You must have between 2 and 15 unique options, inclusive.")
-            return
-
-        try:
-            poll = PollView(question.strip(), unique_options)
-        except ValueError as exc:
-            await ctx.send(exc)  # type: ignore
-        else:
+        if len(unique) >= 2:
+            poll = PollView(starter=ctx.author, prompt=options.prompt, choices=unique)
             await poll.send_to(ctx)
+        else:
+            await ctx.send("Polls must have a minimum of 2 unique choices.")
+            ctx._refund_cooldown_token()
 
     @commands.command(aliases=("expression",))
     async def quote(self, ctx: SleepyContext) -> None:
