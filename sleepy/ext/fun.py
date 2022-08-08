@@ -726,7 +726,7 @@ class Fun(
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def poll(self, ctx, question: commands.clean_content, *options: str.strip):
-        """Creates a quick reaction-based voting poll.
+        """Creates a quick dropdown-based poll.
 
         Users will have 1 minute to cast their vote before
         the poll closes.
