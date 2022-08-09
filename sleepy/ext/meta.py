@@ -498,7 +498,9 @@ class Meta(commands.Cog):
         self,
         ctx: SleepyContext,
         user: Annotated[discord.Member, Optional[discord.Member]] = commands.Author,
-        channel: discord.abc.GuildChannel = commands.CurrentChannel,
+        channel: Union[
+            discord.abc.GuildChannel, discord.Thread
+        ] = commands.CurrentChannel,
     ) -> None:
         """Shows a user's permissions optionally in another channel.
 
