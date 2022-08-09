@@ -264,10 +264,14 @@ class Sleepy(commands.Bot):
 
             try:
                 await self.load_extension(ext)
-            except Exception as exc:
-                _LOG.warning('Failed to load extension "%s".', ext, exc_info=exc)
+            except commands.ExtensionNotFound:
+                _LOG.warning("Extension '%s' was not found.", ext)
+            except (commands.NoEntryPointError, commands.ExtensionAlreadyLoaded) as exc:
+                _LOG.warning(exc)
+            except commands.ExtensionFailed as exc:
+                _LOG.warning("Failed to load extension '%s'.", ext, exc_info=exc.original)
             else:
-                _LOG.info('Loaded extension "%s".', ext)
+                _LOG.info("Loaded extension '%s'.", ext)
                 logging.getLogger(ext).setLevel(logging.INFO)
                 loaded += 1
 

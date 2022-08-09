@@ -147,16 +147,27 @@ class Owner(
     async def jsk_load(
         self, ctx: SleepyContext, *extensions: Annotated[List[str], ExtensionConverter]
     ) -> None:
-        """Loads one or more extensions."""
+        """Loads one or more extensions.
+
+        Loaded and non-existent extensions are silently ignored.
+        """
         stats = WrappedPaginator(prefix="", suffix="", max_size=1980)
 
         for ext in itertools.chain(*extensions):
             try:
                 await ctx.bot.load_extension(ext)
-            except commands.ExtensionAlreadyLoaded:
+            except (commands.ExtensionAlreadyLoaded, commands.ExtensionNotFound):
                 pass
-            except Exception:
-                tb = traceback.format_exc()
+            except Exception as exc:
+                limit = 2
+
+                if isinstance(exc, commands.ExtensionFailed):
+                    exc = exc.original
+                    limit = 8
+
+                tb = ''.join(
+                    traceback.format_exception(type(exc), exc, exc.__traceback__, limit)
+                )
                 stats.add_line(f"<:x_:821284209792516096> `{ext}`\n```py\n{tb}```")
             else:
                 stats.add_line(f"<:check:821284209401921557> `{ext}`")
@@ -175,6 +186,7 @@ class Owner(
         """Reloads one or more extensions.
 
         If no extensions are passed, then all loaded extensions will be reloaded.
+        Unloaded and non-existent extensions are silently ignored.
         """
         to_reload = (
             itertools.chain(*extensions) if extensions else tuple(ctx.bot.extensions)
@@ -185,10 +197,18 @@ class Owner(
         for ext in to_reload:
             try:
                 await ctx.bot.reload_extension(ext)
-            except commands.ExtensionNotLoaded:
+            except (commands.ExtensionNotLoaded, commands.ExtensionNotFound):
                 pass
-            except Exception:
-                tb = traceback.format_exc()
+            except Exception as exc:
+                limit = 2
+
+                if isinstance(exc, commands.ExtensionFailed):
+                    exc = exc.original
+                    limit = 8
+
+                tb = "".join(
+                    traceback.format_exception(type(exc), exc, exc.__traceback__, limit)
+                )
                 stats.add_line(f"<:x_:821284209792516096> `{ext}`\n```py\n{tb}```")
             else:
                 stats.add_line(f"<:check:821284209401921557> `{ext}`")
@@ -317,7 +337,10 @@ class Owner(
     async def jsk_unload(
         self, ctx: SleepyContext, *extensions: Annotated[List[str], ExtensionConverter]
     ) -> None:
-        """Unloads one or more extensions."""
+        """Unloads one or more extensions.
+
+        Unloaded and non-existent extensions are silently ignored.
+        """
         stats = WrappedPaginator(prefix="", suffix="", max_size=1980)
 
         for ext in itertools.chain(*extensions):
@@ -327,11 +350,8 @@ class Owner(
 
             try:
                 await ctx.bot.unload_extension(ext)
-            except commands.ExtensionNotLoaded:
-                pass
             except Exception:
-                tb = traceback.format_exc()
-                stats.add_line(f"<:x_:821284209792516096> `{ext}`\n```py\n{tb}```")
+                pass
             else:
                 stats.add_line(f"<:check:821284209401921557> `{ext}`")
 
