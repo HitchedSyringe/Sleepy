@@ -390,9 +390,8 @@ def human_join(sequence: Sequence[Any], /, *, joiner: str = "and") -> str:
 
 def human_number(
     number: float,
-    /,
-    sigfigs: Optional[int] = 3,
     *,
+    sigfigs: Optional[int] = 3,
     strip_trailing_zeroes: bool = True,
     suffixes: Sequence[str] = "\u200bKMBTPEZY",
 ):
@@ -427,6 +426,9 @@ def human_number(
 
         .. versionchanged:: 3.1.5
             Allow passing ``None`` to denote no rounding.
+
+        .. versionchanged:: 3.3
+            This is now a keyword-only argument.
     strip_trailing_zeroes: :class:`bool`
         Whether or not to strip trailing zeroes.
         Defaults to ``True``.
@@ -459,11 +461,11 @@ def human_number(
     .. doctest::
         >>> human_number(-543210)
         "-543K"
-        >>> human_number(123456789, 4)
+        >>> human_number(123456789, sigfigs=4)
         "123.5M"
-        >>> human_number(1201.56, None)
+        >>> human_number(1201.56, sigfigs=None)
         "1.20156K"
-        >>> human_number(12023, 2, suffixes=("", " thousand"))
+        >>> human_number(12023, sigfigs=2, suffixes=("", " thousand"))
         "12 thousand"
         >>> human_number(38000, strip_trailing_zeroes=False)
         "38.0K"
