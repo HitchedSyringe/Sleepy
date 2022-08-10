@@ -420,9 +420,9 @@ def human_number(
         .. versionchanged:: 3.0
             This is now a positional-only argument.
     sigfigs: Optional[:class:`int`]
-        The number of significant figures to round to.
-        If ``None`` is passed, then the number will not
-        be rounded.
+        The number of significant figures to round to and maintain.
+        If ``None`` is passed, then the number will not be rounded
+        and all digits will be included in the result.
         Defaults to ``3``.
 
         .. versionchanged:: 3.1.5
@@ -484,10 +484,19 @@ def human_number(
         magnitude = min(len(suffixes) - 1, int(math.log10(abs(number)) / 3))
         number /= 1000**magnitude
 
-    # Normal float numbers in Python generally do not have
-    # trailing zeroes unless it's something like e.g. 1.0.
-    if strip_trailing_zeroes and isinstance(number, float) and number.is_integer():
-        return str(number).rstrip("0").rstrip(".") + suffixes[magnitude]
+    if isinstance(number, float):
+        if strip_trailing_zeroes:
+            # Python already strips trailing zeroes by default, so
+            # as long as our float isn't an integer (e.g. 1.0), we
+            # don't have to do anything more.
+            if number.is_integer():
+                number = int(number)
+        elif sigfigs is not None:
+            left, _, _ = str(number).partition(".")
+            precision = max(0, sigfigs - len(left))
+
+            # Add trailing zeroes if necessary to respect sigfig count.
+            return f"{number:.{precision}f}{suffixes[magnitude]}"
 
     return f"{number}{suffixes[magnitude]}"
 
