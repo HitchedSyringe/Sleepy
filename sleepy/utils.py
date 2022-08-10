@@ -476,12 +476,12 @@ def human_number(
             raise ValueError(f"invalid sigfigs {sigfigs} (must be > 0)")
 
         if number != 0:
-            number = round(number, sigfigs - 1 - math.floor(math.log10(abs(number))))
+            number = round(number, sigfigs - math.ceil(math.log10(abs(number))))
 
     magnitude = 0
 
-    if (absolute := abs(number)) >= 1000:
-        magnitude = min(len(suffixes) - 1, int(math.log10(absolute) / 3))
+    if number >= 1000 or number <= -1000:
+        magnitude = min(len(suffixes) - 1, int(math.log10(abs(number)) / 3))
         number /= 1000**magnitude
 
     # Normal float numbers in Python generally do not have
