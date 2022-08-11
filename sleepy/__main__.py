@@ -8,6 +8,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 
 import argparse
+import asyncio
 import logging
 from contextlib import contextmanager
 from logging.handlers import RotatingFileHandler
@@ -116,6 +117,17 @@ def _create_bot(config: Mapping[str, Any]) -> Sleepy:
     )
 
 
+def _start_bot(config: Mapping[str, Any]) -> None:
+    async def runner() -> None:
+        async with _create_bot(config) as bot:
+            await bot.start(config["discord_auth_token"])
+
+    try:
+        asyncio.run(runner())
+    except KeyboardInterrupt:
+        pass
+
+
 def _parse_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
     parser = argparse.ArgumentParser(prog=__package__)
 
@@ -140,8 +152,6 @@ def _run(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
     except (OSError, yaml.YAMLError):
         parser.error(f'Failed to read config file "{args.config_filename}".')
 
-    bot = _create_bot(config)
-
     try:
         with _setup_logging(log_filename=args.log_filename):
             # discord.py logging
@@ -159,7 +169,7 @@ def _run(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
                 uvloop.install()
                 logger.info("uvloop installed successfully.")
 
-            bot.run(config["discord_auth_token"], log_handler=None)
+            _start_bot(config)
     except OSError:
         parser.error(f'Failed to write to log file "{args.log_filename}".')
 
