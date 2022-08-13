@@ -86,9 +86,7 @@ class Images(
         error = getattr(error, "original", error)
 
         if isinstance(error, (ImageAssetConversionFailure, UnidentifiedImageError)):
-            await ctx.send(
-                "The user, custom emoji, image attachment, or image link was invalid."
-            )
+            await ctx.send("The image was either invalid or could not be read.")
             ctx._already_handled_error = True
         elif isinstance(error, ImageAssetTooLarge):
             await ctx.send(
@@ -119,9 +117,9 @@ class Images(
         version. To generate the light mode version, pass
         `-invert` before the image argument.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
         """
         async with ctx.typing():
             try:
@@ -180,9 +178,9 @@ class Images(
         Discord's rebranding. To use the new colour, pass
         `-rebranded` before the image argument.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
@@ -322,9 +320,9 @@ class Images(
     ) -> None:
         """\N{IDEOGRAPHIC NUMBER ZERO}\N{WHITE UP-POINTING TRIANGLE}\N{BALLOT BOX}
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
@@ -353,9 +351,9 @@ class Images(
     ) -> None:
         """Deep fries an image.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
@@ -435,9 +433,9 @@ class Images(
     ) -> None:
         """Inverts an image's colours.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
@@ -466,9 +464,9 @@ class Images(
     ) -> None:
         """Fits an image into an iPhone X screen.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
@@ -502,9 +500,9 @@ class Images(
         The higher the intensity, the more JPEG the image
         result becomes.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
@@ -544,9 +542,9 @@ class Images(
         with either a `0x`, `#`, or `0x#`; or CSS RGB function
         (e.g. `rgb(103, 173, 242)`).
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
@@ -585,9 +583,9 @@ class Images(
         The higher the intensity, the more warped the image
         result becomes.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
@@ -639,9 +637,9 @@ class Images(
     ) -> None:
         """Shows the five most prominent colours in an image.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
@@ -795,9 +793,9 @@ class Images(
     ) -> None:
         """Generates a consoomer soyjaks pointing meme.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
@@ -830,9 +828,9 @@ class Images(
     ) -> None:
         """Generates a stickbug meme.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
@@ -878,9 +876,9 @@ class Images(
         The higher the intensity, the more swirly the image
         result becomes.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
@@ -981,9 +979,9 @@ class Images(
     ) -> None:
         """Generates a "three threats to society" meme.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
@@ -1014,9 +1012,9 @@ class Images(
     ) -> None:
         """Generates a fake Yu-Gi-Oh! trap card.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
@@ -1046,9 +1044,9 @@ class Images(
     ) -> None:
         """Generates a live Tucker reaction meme.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """

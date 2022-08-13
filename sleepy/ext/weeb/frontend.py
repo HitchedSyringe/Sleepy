@@ -62,9 +62,7 @@ class Weeb(
         error = getattr(error, "original", error)
 
         if isinstance(error, (ImageAssetConversionFailure, UnidentifiedImageError)):
-            await ctx.send(
-                "The user, custom emoji, image attachment, or image link was invalid."
-            )
+            await ctx.send("The image was either invalid or could not be read.")
             ctx._already_handled_error = True
         elif isinstance(error, ImageAssetTooLarge):
             await ctx.send(
@@ -212,9 +210,9 @@ class Weeb(
     ) -> None:
         """Detects and highlights anime faces in an image.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
@@ -258,9 +256,9 @@ class Weeb(
     ) -> None:
         """Awooifies an image.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
@@ -289,9 +287,9 @@ class Weeb(
     ) -> None:
         """Turns an image into an anime girl eating a baguette.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
@@ -320,9 +318,9 @@ class Weeb(
     ) -> None:
         """Turns an image into an anime body pillow.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
@@ -442,9 +440,9 @@ class Weeb(
     ) -> None:
         """Submits an image to the lolice.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
@@ -588,9 +586,9 @@ class Weeb(
     ) -> None:
         """Generates a Ritsu dirt meme.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
@@ -640,9 +638,9 @@ class Weeb(
     ) -> None:
         """Generates a trash waifu meme.
 
-        Image can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """

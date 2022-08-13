@@ -89,8 +89,8 @@ class ImageAssetTooLarge(commands.BadArgument):
 
 
 class ImageAssetConverter(commands.Converter[PartialAsset]):
-    """Converts a user, custom emoji, image attachment, or image
-    URL to a :class:`PartialAsset`.
+    """Converts a user, custom emoji, sticker, image attachment,
+    or image URL to a :class:`PartialAsset`.
 
     This also allows for converting replied messages containing
     image attachments.
@@ -226,10 +226,12 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
         else:
             return PartialAsset(emoji._state, url=emoji.url)
 
-        # NOTE: Unicode emojis can't be supported here due to
-        # some ambiguities with emojis consisting of between
-        # 2-4 characters, which ord() cannot take, meaning we
-        # can't really use the twemoji cdn.
+        try:
+            sticker = await commands.GuildStickerConverter().convert(ctx, argument)
+        except commands.GuildStickerNotFound:
+            pass
+        else:
+            return PartialAsset(sticker._state, url=sticker.url)
 
         url = argument.strip("<>")
 
