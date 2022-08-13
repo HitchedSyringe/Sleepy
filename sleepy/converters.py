@@ -16,19 +16,36 @@ __all__ = (
 )
 
 
+import asyncio
 from inspect import isclass
-from typing import TYPE_CHECKING, Any, Callable, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Callable, FrozenSet, Optional, Union, cast
 
+import discord
 from discord import Attachment
 from discord.ext import commands
 from discord.ext.commands.core import _AttachmentIterator
+from yarl import URL
 
 from .mimics import PartialAsset
 
 if TYPE_CHECKING:
     from discord.state import ConnectionState
+    from typing_extensions import Protocol
 
     from .context import Context as SleepyContext
+
+    class _AttachmentLike(Protocol):
+        width: Optional[int]
+        height: Optional[int]
+
+        # These are invariant in Attachment.
+        @property
+        def url(self) -> Optional[str]:
+            ...
+
+        @property
+        def proxy_url(self) -> Optional[str]:
+            ...
 
 
 class ImageAssetConversionFailure(commands.BadArgument):
@@ -184,6 +201,15 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
         .. versionadded:: 3.0
     """
 
+    # fmt: off
+    TRUSTED_HOSTS: FrozenSet[str] = frozenset({
+        "cdn.discordapp.com",
+        "images-ext-1.discordapp.net",
+        "images-ext-2.discordapp.net",
+        "media.discordapp.net",
+    })
+    # fmt: on
+
     def __init__(self, *, max_filesize: Optional[int] = 40_000_000) -> None:
         if max_filesize is not None and max_filesize <= 0:
             raise ValueError(f"invalid max_filesize {max_filesize} (must be > 0).")
@@ -194,21 +220,40 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
     def __call__(self) -> None:
         pass
 
+    def _get_safe_url(self, attachment_like: _AttachmentLike) -> Optional[str]:
+        if not (attachment_like.width or attachment_like.height):
+            return None
+
+        # Using the source url as-is can be dangerous, thus, we choose
+        # to use Discord's cached version of the image (the proxy URL)
+        # instead, unless the source URL originates from Discord. It's
+        # worth noting that there is no 100% guarantee that the proxy
+        # URL will actually work. In this case... too bad I guess.
+
+        if (
+            attachment_like.url is not None
+            and URL(attachment_like.url).host in self.TRUSTED_HOSTS
+        ):
+            return attachment_like.url
+
+        return attachment_like.proxy_url
+
     def _convert_attachment(
         self, state: ConnectionState, attachment: Attachment
     ) -> PartialAsset:
+        url = self._get_safe_url(attachment)
         mime = attachment.content_type
 
-        if mime is None or "image/" not in mime:
-            raise ImageAssetConversionFailure(attachment.url)
+        if url is None or mime is None or "image/" not in mime:
+            raise ImageAssetConversionFailure(attachment)
 
         size = attachment.size
         max_size = self.max_filesize
 
         if max_size is not None and size > max_size:
-            raise ImageAssetTooLarge(attachment.url, size, max_size)
+            raise ImageAssetTooLarge(attachment, size, max_size)
 
-        return PartialAsset(state, url=attachment.url)
+        return PartialAsset(state, url=url)
 
     async def convert(self, ctx: SleepyContext, argument: str) -> PartialAsset:
         try:
@@ -233,7 +278,33 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
         else:
             return PartialAsset(sticker._state, url=sticker.url)
 
-        url = argument.strip("<>")
+        # If there are no message embeds, then Discord likely hasn't
+        # cached the image(s) yet. We'll have to wait for the embeds
+        # to populate before refetching the message.
+        if not (embeds := ctx.message.embeds):
+            await asyncio.sleep(1)
+
+            try:
+                message = await ctx.message.fetch()
+            except discord.HTTPException:
+                raise ImageAssetConversionFailure(argument) from None
+            else:
+                embeds = message.embeds
+
+        # In order to safely derive a PartialAsset from a string
+        # argument, we need to sift through embeds so we can get
+        # a Discord cached version of the image. This means that
+        # passing "<url>" is now an invalid argument. Also, this
+        # may not work 100% of the time. Too bad.
+        embed = discord.utils.find(lambda e: e.url == argument, embeds)
+
+        if embed is None or not (image := embed.image or embed.thumbnail):
+            raise ImageAssetConversionFailure(argument)
+
+        url = self._get_safe_url(image)
+
+        if url is None:
+            raise ImageAssetConversionFailure(argument)
 
         try:
             resp = await ctx.session.head(url, raise_for_status=True)
