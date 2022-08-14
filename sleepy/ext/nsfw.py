@@ -10,7 +10,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Iterable, Tuple
+from typing import TYPE_CHECKING, FrozenSet, Iterable
 
 from discord import Colour, Embed
 from discord.ext import commands
@@ -26,8 +26,9 @@ if TYPE_CHECKING:
     from sleepy.mimics import PartialAsset
 
 
+# fmt: off
 # These bans are mostly generalised.
-NSFW_TAG_BLOCKLIST: Tuple[str, ...] = (
+NSFW_TAG_BLOCKLIST: FrozenSet[str] = frozenset({
     "adolescent",
     "child",
     "children",
@@ -71,7 +72,8 @@ NSFW_TAG_BLOCKLIST: Tuple[str, ...] = (
     "underaged",
     "young",
     "youth",
-)
+})
+# fmt: on
 
 
 def has_any_banned_tags(tags: Iterable[str]) -> bool:
