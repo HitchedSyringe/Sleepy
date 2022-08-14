@@ -89,9 +89,9 @@ class Images(
             await ctx.send("The image was either invalid or could not be read.")
             ctx._already_handled_error = True
         elif isinstance(error, ImageAssetTooLarge):
-            await ctx.send(
-                f"Image must not exceed {error.max_filesize / 1e6:.0f} MB in size."
-            )
+            max_size_mb = error.max_filesize / 1e6
+
+            await ctx.send(f"Images cannot exceed {max_size_mb:.0f} MB in size.")
             ctx._already_handled_error = True
         elif isinstance(error, DecompressionBombError):
             await ctx.send("Go be Ted Kaczynski somewhere else.")
