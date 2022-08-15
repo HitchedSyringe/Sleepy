@@ -435,6 +435,15 @@ class Sleepy(commands.Bot):
                 f"Invalid argument(s) for flag `{error.flag.name}`."
                 "\nPlease double-check your input(s) and try again."
             )
+        elif isinstance(error, commands.TooManyFlags):
+            ctx._refund_cooldown_token()
+
+            flag = error.flag
+
+            await ctx.send(
+                f"Too many arguments for flag `{flag.name}`"
+                f" ({len(error.values)} > {flag.max_args})."
+            )
         elif isinstance(error, (commands.BadArgument, commands.BadUnionArgument)):
             ctx._refund_cooldown_token()
             msg = "One or more of your command arguments were invalid."
