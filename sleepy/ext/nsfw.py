@@ -302,11 +302,24 @@ class NSFW(
         <2> e621 feline two-tone_hair
         ```
         """
+        from sleepy import __version__
+        from sleepy.utils import SOURCE_CODE_URL
+
+        headers = {
+            # This needs to be done since the default user agent gets blocked.
+            # In this case, we strip the Python and aiohttp versions since that
+            # seems to trip the blocking mechanism.
+            "User-Agent": f"Sleepy-DiscordBot ({SOURCE_CODE_URL} {__version__})",
+        }
+
         await ctx.typing()
 
         try:
             resp = await ctx.get(
-                "https://e621.net/posts.json", cache__=True, tags=" ".join(tags)
+                "https://e621.net/posts.json",
+                headers__=headers,
+                cache__=True,
+                tags=" ".join(tags),
             )
         except HTTPRequestFailed as exc:
             # Hit the 40 tag limit.

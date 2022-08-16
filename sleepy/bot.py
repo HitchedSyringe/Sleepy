@@ -28,10 +28,9 @@ from discord.ext import commands
 from discord.utils import MISSING, cached_property, utcnow
 from psutil import Process
 
-from . import __version__
 from .context import Context
 from .http import HTTPRequester, HTTPRequestFailed
-from .utils import SOURCE_CODE_URL, find_extensions_in, human_join
+from .utils import SOURCE_CODE_URL as SRC_URL, find_extensions_in, human_join
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -226,6 +225,12 @@ class Sleepy(commands.Bot):
         return [u for i in ids if (u := self.get_user(i)) is not None]
 
     async def setup_hook(self) -> None:
+        from sys import version_info as py_ver_info
+
+        from aiohttp import __version__ as aiohttp_ver
+
+        from . import __version__
+
         # --- Populate general stuff. ---
 
         config = self.config
@@ -234,8 +239,10 @@ class Sleepy(commands.Bot):
 
         # --- Set up HTTP requester session. ---
 
+        ua = "Sleepy-DiscordBot ({0} {1}) Python/{2[0]}.{2[1]} aiohttp/{3}"
+
         headers = {
-            "User-Agent": f"Sleepy-Bot/{__version__} ({SOURCE_CODE_URL})",
+            "User-Agent": ua.format(SRC_URL, __version__, py_ver_info, aiohttp_ver)
         }
         await self.http_requester.start(headers=headers)
 
