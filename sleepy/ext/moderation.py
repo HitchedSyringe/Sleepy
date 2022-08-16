@@ -121,14 +121,22 @@ ReasonParameter = commands.parameter(
 )
 
 
+def _clean_days_flag(value: str) -> int:
+    flag, _, value = value.partition("=")
+
+    if flag != "clean" or not value:
+        raise commands.BadArgument
+
+    try:
+        return int(value)
+    except ValueError:
+        raise commands.BadArgument from None
+
+
 class MassbanFlags(commands.FlagConverter):
 
-    reason: str = commands.flag(converter=Reason, default=_no_reason)
-    delete_message_days: int = commands.flag(
-        name="delete-message-days",
-        aliases=("dmd",),  # type: ignore
-        default=0,
-    )
+    reason: Annotated[str, Reason] = commands.flag(default=_no_reason)
+    clean_days: int = commands.flag(name="clean", default=1)
 
     startswith: Optional[Tuple[str, ...]] = None
     endswith: Optional[Tuple[str, ...]] = None
@@ -241,17 +249,15 @@ class Moderation(commands.Cog):
             await ctx.send("No messages were deleted.")
 
     @staticmethod
-    async def do_multi_ban(
+    async def do_multiban(
         ctx: GuildContext,
         users: Sequence[Union[discord.Member, discord.User]],
         *,
         reason: str,
-        delete_message_days: int,
+        clean_days: int,
     ) -> None:
         total = len(users)
-        confirmed = await ctx.prompt(
-            f"This will ban **{plural(total, ',d'):user}** for:\n>>> {reason}\nAre you sure?"
-        )
+        confirmed = await ctx.prompt(f"Shall I ban **{plural(total):user}**?")
 
         if not confirmed:
             await ctx.send("Aborted.")
@@ -260,33 +266,41 @@ class Moderation(commands.Cog):
         await ctx.typing()
 
         failed = 0
+
         for user in users:
             try:
-                await ctx.guild.ban(
-                    user, reason=reason, delete_message_days=delete_message_days
-                )
+                await ctx.guild.ban(user, reason=reason, delete_message_days=clean_days)
             except discord.HTTPException:
                 failed += 1
 
-        await ctx.send(f"Banned **{total - failed}/{total} users** for:\n>>> {reason}")
+        await ctx.send(f"Banned **{total - failed}/{total} users**.")
 
-    @commands.command(aliases=("hackban",))
+    @commands.command(
+        aliases=("hackban", "multiban"), usage="<users...> [-clean=1] [reason]"
+    )
     @checks.has_guild_permissions(ban_members=True)
     @commands.bot_has_guild_permissions(ban_members=True)
     async def ban(
         self,
         ctx: GuildContext,
-        user: Annotated[Union[discord.Member, discord.User], BannableUser],
-        delete_message_days: Annotated[int, Optional[int]] = 0,
+        users: Annotated[
+            Sequence[Union[discord.Member, discord.User]], commands.Greedy[BannableUser]
+        ],
+        clean_days: Annotated[int, Optional[_clean_days_flag]] = 1,  # type: ignore
         *,
         reason: str = ReasonParameter,
     ) -> None:
-        """Bans a user, optionally deleting *x* days worth of their messages.
+        """Bans one or more users, deleting *x* days' worth of their messages.
 
-        This command works on all users, regardless of whether
-        they're a member of the server.
+        This command works on all users, regardless of whether they're
+        a member of the server. Members with a higher role than you or
+        myself are automatically excluded and ignored.
 
         User can either be a name, ID, or mention.
+
+        Number of days' worth of messages to delete must be between 0
+        and 7, inclusive. By default, this deletes 1 day's worth of
+        the specified users' messages.
 
         (Permissions Needed: Ban Members)
         (Bot Needs: Ban Members)
@@ -294,19 +308,23 @@ class Moderation(commands.Cog):
         **EXAMPLES:**
         ```bnf
         <1> ban HitchedSyringe
-        <2> ban @HitchedSyringe#0598 3
-        <3> ban 140540589329481728 5 Spamming
+        <2> ban @HitchedSyringe#0598 -clean=3
+        <3> ban 140540589329481728 -clean=5 Spamming
         ```
         """
-        if not 0 <= delete_message_days <= 7:
-            await ctx.send(
-                "Days of messages to delete must be between 1 and 7, inclusive."
-            )
+        if not 0 <= clean_days <= 7:
+            await ctx.send("Days to delete must be between 0 and 7, inclusive.")
             return
 
-        await ctx.guild.ban(user, reason=reason, delete_message_days=delete_message_days)
+        user_count = len(users)
 
-        await ctx.send("<a:sapphire_ok_hand:786093988679516160>")
+        if user_count == 0:
+            await ctx.send("You must specify at least one user to ban.")
+        elif user_count == 1:
+            await ctx.guild.ban(users[0], reason=reason, delete_message_days=clean_days)
+            await ctx.send("<a:sapphire_ok_hand:786093988679516160>")
+        else:
+            await self.do_multiban(ctx, users, reason=reason, clean_days=clean_days)
 
     @commands.command()
     @checks.has_permissions(manage_messages=True)
@@ -386,8 +404,10 @@ class Moderation(commands.Cog):
 
         `reason: <reason>`
         > The reason for the ban.
-        `[delete-message-days|dmd]: <integer>`
+        `clean: <integer>`
         > The number of days worth of a banned user's messages to delete.
+        > Must be between 1 and 7, inclusive.
+        > Defaults to `1`.
         `startswith: <prefixes...>`
         > Only target members whose usernames start with the given prefix(es).
         > Prefixes are case-sensitive.
@@ -420,10 +440,8 @@ class Moderation(commands.Cog):
         (Permissions Needed: Ban Members)
         (Bot Needs: Ban Members)
         """
-        if not 0 <= options.delete_message_days <= 7:
-            await ctx.send(
-                "Days of messages to delete must be between 0 and 7, inclusive."
-            )
+        if not 0 <= options.clean_days <= 7:
+            await ctx.send("Days to delete must be between 0 and 7, inclusive.")
             return
 
         checks = [lambda m: not m.bot and has_higher_role(ctx.author, m)]
@@ -508,54 +526,11 @@ class Moderation(commands.Cog):
             await ctx.paginate(PaginatorSource(paginator))
             return
 
-        await self.do_multi_ban(
+        await self.do_multiban(
             ctx,
             members,
             reason=options.reason,
-            delete_message_days=options.delete_message_days,
-        )
-
-    @commands.command()
-    @checks.has_guild_permissions(ban_members=True)
-    @commands.bot_has_guild_permissions(ban_members=True)
-    async def multiban(
-        self,
-        ctx: GuildContext,
-        users: Annotated[
-            Sequence[Union[discord.Member, discord.User]], commands.Greedy[BannableUser]
-        ],
-        delete_message_days: Annotated[int, Optional[int]] = 0,
-        *,
-        reason: str = ReasonParameter,
-    ) -> None:
-        """Bans multiple users, optionally deleting *x* days worth of their messages.
-
-        Users can either be a name, ID, or mention.
-
-        Passing an ID of a user not in the server will
-        ban that user anyway.
-
-        (Permissions Needed: Ban Members)
-        (Bot Needs: Ban Members)
-
-        **EXAMPLES:**
-        ```bnf
-        <1> multiban HitchedSyringe 3
-        <2> multiban @HitchedSyringe#0598 140540589329481728 5 Trolling
-        ```
-        """
-        if not 0 <= delete_message_days <= 7:
-            await ctx.send(
-                "Days of messages to delete must be between 1 and 7, inclusive."
-            )
-            return
-
-        if not users:
-            await ctx.send("You must specify at least 1 user to ban.")
-            return
-
-        await self.do_multi_ban(
-            ctx, users, reason=reason, delete_message_days=delete_message_days
+            clean_days=options.clean_days,
         )
 
     @commands.group(
@@ -717,14 +692,14 @@ class Moderation(commands.Cog):
 
         await ctx.send(f"Removed **{plural(reactions, ',d'):reaction}**.")
 
-    @commands.command()
+    @commands.command(usage="<member> [-clean=1] [reason]")
     @checks.has_guild_permissions(kick_members=True)
     @commands.bot_has_guild_permissions(ban_members=True)
     async def softban(
         self,
         ctx: GuildContext,
-        member: Annotated[Union[discord.Member, discord.User], BannableUser],
-        delete_message_days: Annotated[int, Optional[int]] = 1,
+        user: Annotated[Union[discord.Member, discord.User], BannableUser],
+        clean_days: Annotated[int, Optional[_clean_days_flag]] = 1,  # type: ignore
         *,
         reason: str = ReasonParameter,
     ) -> None:
@@ -749,20 +724,16 @@ class Moderation(commands.Cog):
         **EXAMPLES:**
         ```bnf
         <1> softban HitchedSyringe
-        <2> softban @HitchedSyringe#0598 3
-        <3> softban 140540589329481728 5 Spamming
+        <2> softban @HitchedSyringe#0598 -clean=3
+        <3> softban 140540589329481728 -clean=5 Spamming
         ```
         """
-        if not 1 <= delete_message_days <= 7:
-            await ctx.send(
-                "Days of messages to delete must be between 1 and 7, inclusive."
-            )
+        if not 1 <= clean_days <= 7:
+            await ctx.send("Days to delete must be between 1 and 7, inclusive.")
             return
 
-        await ctx.guild.ban(
-            member, reason=reason, delete_message_days=delete_message_days
-        )
-        await ctx.guild.unban(member, reason=reason)
+        await ctx.guild.ban(user, reason=reason, delete_message_days=clean_days)
+        await ctx.guild.unban(user, reason=reason)
 
         await ctx.send("<a:sapphire_ok_hand:786093988679516160>")
 
@@ -792,9 +763,12 @@ class Moderation(commands.Cog):
         """
         await ctx.guild.unban(user.user, reason=reason)
 
-        await ctx.send(
-            f"Unbanned {user.user} (ID: {user.user.id})\n>>> **Ban Reason:**\n{user.reason}"
-        )
+        msg = f"Unbanned {user.user} (ID: {user.user.id})."
+
+        if user.reason:
+            msg += f"\n>>> **Previous Ban Reason:**\n{user.reason}"
+
+        await ctx.send(msg)
 
 
 async def setup(bot: Sleepy) -> None:
