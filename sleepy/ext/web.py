@@ -723,7 +723,7 @@ class Web(
         self,
         ctx: SleepyContext,
         base: Annotated[str, str.upper],
-        amount: Annotated[float, Optional[float]] = 1,
+        amount: Annotated[float, Optional[commands.Range[float, 0, 1_000_000_000]]] = 1,
         *currencies: Annotated[str, str.upper],
     ) -> None:
         """Shows the exchange rate between two or more currencies.
@@ -749,12 +749,6 @@ class Web(
         <3> exchangerate USD 10.25 MXN CNY PHP NZD
         ```
         """
-        if not 0 < amount <= 1_000_000_000:
-            await ctx.send(
-                "Conversion amount must be greater than 0 and less than 1000000000."
-            )
-            return
-
         # Probably a niche O(n) check but it saves an HTTP request
         # that would simply include converting base -> base.
         if base in currencies:

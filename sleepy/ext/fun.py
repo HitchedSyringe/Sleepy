@@ -259,7 +259,7 @@ class Fun(
 
     @commands.command(name="8ball")
     async def _8ball(
-        self, ctx: SleepyContext, *, question: Annotated[str, commands.clean_content]
+        self, ctx: SleepyContext, *, question: commands.Range[str, 1, 1500]
     ) -> None:
         """Asks the magic 8 ball a question.
 
@@ -268,12 +268,9 @@ class Fun(
         8ball Am I the fairest of them all?
         ```
         """
-        q_length = len(question)
+        question = await commands.clean_content().convert(ctx, question)
 
-        if q_length > 1500:
-            await ctx.send(f"Your question is too long. ({q_length} > 1500)")
-        else:
-            await ctx.send(f"{question}```diff\n{random.choice(BALL_RESPONSES)}```")
+        await ctx.send(f"{question}\n```diff\n{random.choice(BALL_RESPONSES)}```")
 
     @commands.command()
     async def advice(self, ctx: SleepyContext) -> None:
@@ -361,7 +358,7 @@ class Fun(
     async def choose_bestof(
         self,
         ctx: SleepyContext,
-        times: Optional[int],
+        times: Optional[commands.Range[int, 1, 10001]],
         *choices: Annotated[str, commands.clean_content],
     ):
         """Recursively chooses between the given choices.
@@ -386,9 +383,6 @@ class Fun(
 
         if times is None:
             times = min(10001, max(1, choices_count**2))
-        elif not 0 < times <= 10001:
-            await ctx.send("Times must be between 1 and 10001, inclusive.")
-            return
 
         counter = Counter(random.choices(choices, k=times))
 
@@ -853,7 +847,9 @@ class Fun(
             await ctx.send(f"My `{bot_choice}` beats your `{choice}`, I win!")
 
     @commands.command(aliases=("rolldie",))
-    async def rolldice(self, ctx: SleepyContext, sides: int = 6) -> None:
+    async def rolldice(
+        self, ctx: SleepyContext, sides: commands.Range[int, 3, 120] = 6
+    ) -> None:
         """Rolls a die with a given amount of sides.
 
         The die must have between 3 and 120 sides, inclusive.
@@ -864,14 +860,13 @@ class Fun(
         rolldice 12
         ```
         """
-        if not 3 <= sides <= 120:
-            await ctx.send("Sides must be greater than 3 and less than 120.")
-        else:
-            await ctx.send(f"You rolled a **{random.randint(1, sides)}**!")
+        await ctx.send(f"You rolled a **{random.randint(1, sides)}**!")
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
-    async def say(self, ctx: SleepyContext, *, content: str) -> None:
+    async def say(
+        self, ctx: SleepyContext, *, content: commands.Range[str, 1, 2048]
+    ) -> None:
         """Lets me speak on your behalf.
 
         This command only accepts and displays text.
@@ -884,11 +879,6 @@ class Fun(
         say hello world!
         ```
         """
-        # Thanks Discord Nitro.
-        if len(content) > 2048:
-            await ctx.send("The message is too long to post.")
-            return
-
         embed = Embed(
             colour=0x2F3136,
             description=content,

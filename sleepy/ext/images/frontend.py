@@ -67,7 +67,7 @@ class TTIFlags(commands.FlagConverter):
         aliases=("bg-color",),  # type: ignore
         default=None,
     )
-    size: int = 35
+    size: commands.Range[int, 20, 50] = 35
 
 
 class Images(
@@ -490,7 +490,7 @@ class Images(
     async def jpeg(
         self,
         ctx: SleepyContext,
-        intensity: Annotated[int, Optional[int]] = 5,
+        intensity: Annotated[int, Optional[commands.Range[int, 1, 10]]] = 5,
         *,
         image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
     ) -> None:
@@ -506,10 +506,6 @@ class Images(
 
         (Bot Needs: Attach Files)
         """
-        if not 0 < intensity <= 10:
-            await ctx.send("Intensity value must be between 1 and 10, inclusive.")
-            return
-
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
@@ -573,7 +569,7 @@ class Images(
     async def magik(
         self,
         ctx: SleepyContext,
-        intensity: Annotated[int, Optional[int]] = 1,
+        intensity: Annotated[int, Optional[commands.Range[int, 1, 25]]] = 1,
         *,
         image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
     ) -> None:
@@ -589,13 +585,6 @@ class Images(
 
         (Bot Needs: Attach Files)
         """
-        # NOTE: Technically, NekoBot doesn't actually specify an
-        # upper limit themselves, I'm simply just adding one in
-        # for the sake of not overloading the service.
-        if not 0 < intensity <= 25:
-            await ctx.send("Intensity value must be between 1 and 25, inclusive.")
-            return
-
         async with ctx.typing():
             try:
                 resp = await ctx.get(
@@ -866,7 +855,7 @@ class Images(
     async def swirl(
         self,
         ctx: SleepyContext,
-        intensity: Annotated[int, Optional[int]] = 5,
+        intensity: Annotated[int, Optional[commands.Range[int, 1, 15]]] = 5,
         *,
         image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
     ) -> None:
@@ -882,10 +871,6 @@ class Images(
 
         (Bot Needs: Attach Files)
         """
-        if not 0 < intensity <= 15:
-            await ctx.send("Intensity value must be between 1 and 15, inclusive.")
-            return
-
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
@@ -941,10 +926,6 @@ class Images(
 
         (Bot Needs: Attach Files)
         """
-        if not 20 <= options.size <= 50:
-            await ctx.send("Text size must be between 20 and 50, inclusive.")
-            return
-
         if not options.font_path.is_relative_to(FONTS):  # type: ignore
             await ctx.send("Nice try with the path traversal, buddy.")
             return

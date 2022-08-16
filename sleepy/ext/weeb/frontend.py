@@ -105,7 +105,7 @@ class Weeb(
     @commands.command(aliases=("animesearch",))
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def anime(self, ctx: GuildContext, *, query: Annotated[str, str.lower]) -> None:
+    async def anime(self, ctx: GuildContext, *, query: commands.Range[str, 3]) -> None:
         """Searches for an anime on MyAnimeList and returns the top 10 results.
 
         The search results displayed are based on whether or not this command
@@ -116,10 +116,6 @@ class Weeb(
         anime K-ON!
         ```
         """
-        if len(query) < 3:
-            await ctx.send("Search queries must be at least 3 characters long.")
-            return
-
         search_url = "https://api.jikan.moe/v4/anime?limit=10"
 
         if ctx.guild is not None and not ctx.channel.is_nsfw():
@@ -127,7 +123,7 @@ class Weeb(
 
         await ctx.typing()
 
-        search = await ctx.get(search_url, cache__=True, q=query)
+        search = await ctx.get(search_url, cache__=True, q=query.lower())
 
         results = search["data"]
 
@@ -463,7 +459,7 @@ class Weeb(
     @commands.command(aliases=("mangasearch",))
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def manga(self, ctx: GuildContext, *, query: Annotated[str, str.lower]) -> None:
+    async def manga(self, ctx: GuildContext, *, query: commands.Range[str, 3]) -> None:
         """Searches for a manga on MyAnimeList and returns the top 10 results.
 
         The search results displayed are based on whether or not this command
@@ -474,10 +470,6 @@ class Weeb(
         manga Berserk
         ```
         """
-        if len(query) < 3:
-            await ctx.send("Search queries must be at least 3 characters long.")
-            return
-
         search_url = "https://api.jikan.moe/v4/manga?limit=10"
 
         if ctx.guild is not None and not ctx.channel.is_nsfw():
@@ -485,7 +477,7 @@ class Weeb(
 
         await ctx.typing()
 
-        search = await ctx.get(search_url, cache__=True, q=query)
+        search = await ctx.get(search_url, cache__=True, q=query.lower())
         results = search["data"]
 
         if not results:

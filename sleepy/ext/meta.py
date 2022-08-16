@@ -399,7 +399,9 @@ class Meta(commands.Cog):
 
     @commands.command(aliases=("feedback", "suggest", "complain"))
     @commands.cooldown(1, 60, commands.BucketType.user)
-    async def contact(self, ctx: SleepyContext, *, content: str) -> None:
+    async def contact(
+        self, ctx: SleepyContext, *, content: commands.Range[str, 1, 2048]
+    ) -> None:
         """Directly contacts my higher-ups.
 
         This is a quick and easy method to request features
@@ -416,11 +418,6 @@ class Meta(commands.Cog):
         contact I found a bug in one of the commands!
         ```
         """
-        # Thanks Discord Nitro.
-        if len(content) > 2048:
-            await ctx.send("The message is too long to post.")
-            return
-
         embed = Embed(
             description=content,
             colour=0x2F3136,

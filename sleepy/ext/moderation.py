@@ -121,22 +121,23 @@ ReasonParameter = commands.parameter(
 )
 
 
-def _clean_days_flag(value: str) -> int:
-    flag, _, value = value.partition("=")
+class _CleanDaysPsuedoFlag(commands.Converter[int]):
 
-    if flag != "clean" or not value:
-        raise commands.BadArgument
+    __RANGE: commands.Range = commands.Range[int, 0, 7]
 
-    try:
-        return int(value)
-    except ValueError:
-        raise commands.BadArgument from None
+    async def convert(self, ctx: SleepyContext, argument: str) -> int:
+        flag, _, argument = argument.partition("=")
+
+        if flag != "clean" or not argument:
+            raise commands.BadArgument
+
+        return await self.__RANGE.convert(ctx, argument)
 
 
 class MassbanFlags(commands.FlagConverter):
 
     reason: Annotated[str, Reason] = commands.flag(default=_no_reason)
-    clean_days: int = commands.flag(name="clean", default=1)
+    clean_days: commands.Range[int, 0, 7] = commands.flag(name="clean", default=1)
 
     startswith: Optional[Tuple[str, ...]] = None
     endswith: Optional[Tuple[str, ...]] = None
@@ -146,8 +147,8 @@ class MassbanFlags(commands.FlagConverter):
         default=None,
     )
 
-    created: Optional[int] = None
-    joined: Optional[int] = None
+    created: commands.Range[int, 1] = 0
+    joined: commands.Range[int, 1] = 0
     joined_before: discord.Member = commands.flag(name="joined-before", default=None)
     joined_after: discord.Member = commands.flag(name="joined-after", default=None)
 
@@ -226,10 +227,6 @@ class Moderation(commands.Cog):
         before: Optional[SnowflakeTime] = None,
         after: Optional[SnowflakeTime] = None,
     ) -> None:
-        if not 1 <= limit <= 2000:
-            await ctx.send("Amount must be between 1 and 2000, inclusive.")
-            return
-
         if before is None:
             before = ctx.message
 
@@ -286,7 +283,7 @@ class Moderation(commands.Cog):
         users: Annotated[
             Sequence[Union[discord.Member, discord.User]], commands.Greedy[BannableUser]
         ],
-        clean_days: Annotated[int, Optional[_clean_days_flag]] = 1,  # type: ignore
+        clean_days: Annotated[int, Optional[_CleanDaysPsuedoFlag]] = 1,
         *,
         reason: str = ReasonParameter,
     ) -> None:
@@ -312,10 +309,6 @@ class Moderation(commands.Cog):
         <3> ban 140540589329481728 -clean=5 Spamming
         ```
         """
-        if not 0 <= clean_days <= 7:
-            await ctx.send("Days to delete must be between 0 and 7, inclusive.")
-            return
-
         user_count = len(users)
 
         if user_count == 0:
@@ -328,7 +321,9 @@ class Moderation(commands.Cog):
 
     @commands.command()
     @checks.has_permissions(manage_messages=True)
-    async def cleanup(self, ctx: GuildContext, amount: int = 10) -> None:
+    async def cleanup(
+        self, ctx: GuildContext, amount: commands.Range[int, 1, 2000] = 10
+    ) -> None:
         """Deletes my messages and (if possible) any messages that look like they invoked me.
 
         Up to 2000 messages can be searched for. If no amount is specified,
@@ -440,10 +435,6 @@ class Moderation(commands.Cog):
         (Permissions Needed: Ban Members)
         (Bot Needs: Ban Members)
         """
-        if not 0 <= options.clean_days <= 7:
-            await ctx.send("Days to delete must be between 0 and 7, inclusive.")
-            return
-
         checks = [lambda m: not m.bot and has_higher_role(ctx.author, m)]
 
         if options.has_no_avatar:
@@ -472,20 +463,15 @@ class Moderation(commands.Cog):
 
         now = datetime.now(timezone.utc)
 
-        if (c_minutes := options.created) is not None:
-            if c_minutes <= 0:
-                await ctx.send("Created minutes ago must be greater than 0.")
-                return
-
-            checks.append(lambda m: m.created_at > now - timedelta(minutes=c_minutes))
-
-        if (j_minutes := options.joined) is not None:
-            if j_minutes <= 0:
-                await ctx.send("Joined minutes ago must be greater than 0.")
-                return
-
+        if options.created > 0:
             checks.append(
-                lambda m: m.joined_at and m.joined_at > now - timedelta(minutes=j_minutes)
+                lambda m: m.created_at > now - timedelta(minutes=options.created)
+            )
+
+        if options.joined > 0:
+            checks.append(
+                lambda m: m.joined_at is not None
+                and m.joined_at > now - timedelta(options.joined)
             )
 
         if options.joined_before is not None:
@@ -547,7 +533,7 @@ class Moderation(commands.Cog):
     async def purge(
         self,
         ctx: GuildContext,
-        amount: Annotated[int, Optional[int]] = 10,
+        amount: Annotated[int, Optional[commands.Range[int, 1, 2000]]] = 10,
         *,
         options: PurgeFlags,
     ) -> None:
@@ -652,10 +638,7 @@ class Moderation(commands.Cog):
                 func = any if options.logical_any else all
                 result = func(c(m) for c in checks)
 
-                if options.logical_not:
-                    return not result
-
-                return result
+                return not result if options.logical_not else result
 
         else:
             check = lambda _: True  # type: ignore
@@ -671,7 +654,9 @@ class Moderation(commands.Cog):
     @purge.command(name="reactions")
     @checks.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True, read_message_history=True)
-    async def purge_reactions(self, ctx: SleepyContext, amount: int = 10) -> None:
+    async def purge_reactions(
+        self, ctx: SleepyContext, amount: commands.Range[int, 0, 2000] = 10
+    ) -> None:
         """Removes all reactions from a specified number of messages that have them.
 
         Up to 2000 messages can be searched for. If no amount is specified,
@@ -686,9 +671,6 @@ class Moderation(commands.Cog):
         purge reactions 100
         ```
         """
-        if not 1 <= amount <= 2000:
-            await ctx.send("Amount must be between 1 and 2000, inclusive.")
-
         reactions = 0
 
         async for message in ctx.history(limit=amount, before=ctx.message):
@@ -705,7 +687,7 @@ class Moderation(commands.Cog):
         self,
         ctx: GuildContext,
         user: Annotated[Union[discord.Member, discord.User], BannableUser],
-        clean_days: Annotated[int, Optional[_clean_days_flag]] = 1,  # type: ignore
+        clean_days: Annotated[int, Optional[_CleanDaysPsuedoFlag]] = 1,
         *,
         reason: str = ReasonParameter,
     ) -> None:
@@ -734,10 +716,6 @@ class Moderation(commands.Cog):
         <3> softban 140540589329481728 -clean=5 Spamming
         ```
         """
-        if not 1 <= clean_days <= 7:
-            await ctx.send("Days to delete must be between 1 and 7, inclusive.")
-            return
-
         await ctx.guild.ban(user, reason=reason, delete_message_days=clean_days)
         await ctx.guild.unban(user, reason=reason)
 
