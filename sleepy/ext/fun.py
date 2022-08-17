@@ -217,7 +217,7 @@ class PollView(View):
 
 class FigletFlags(commands.FlagConverter):
     font: Optional[Annotated[str, str.lower]] = None
-    text: str = commands.flag(converter=commands.clean_content(fix_channel_mentions=True))
+    text: Annotated[str, commands.clean_content(fix_channel_mentions=True)]
 
 
 class PollFlags(commands.FlagConverter):

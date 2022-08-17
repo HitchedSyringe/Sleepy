@@ -51,7 +51,7 @@ def resolve_font_from_name(font_name: str) -> Path:
 
 
 class TTIFlags(commands.FlagConverter):
-    text: str = commands.flag(converter=commands.clean_content(fix_channel_mentions=True))
+    text: Annotated[str, commands.clean_content(fix_channel_mentions=True)]
     font_path: Path = commands.flag(
         name="font",
         converter=resolve_font_from_name,
@@ -107,7 +107,7 @@ class Images(
         ctx: SleepyContext,
         inverted: Annotated[bool, Optional[_positional_bool_flag("-invert")]] = False,  # type: ignore
         *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        image: Annotated["PartialAsset", ImageAssetConverter],
     ) -> None:
         """Converts an image into ASCII art.
 
@@ -170,7 +170,7 @@ class Images(
             bool, Optional[_positional_bool_flag("-rebranded")]  # type: ignore
         ] = False,
         *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        image: Annotated["PartialAsset", ImageAssetConverter],
     ) -> None:
         """Blurplefies an image.
 
@@ -225,7 +225,7 @@ class Images(
     async def captcha(
         self,
         ctx: SleepyContext,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        image: Annotated["PartialAsset", ImageAssetConverter],
         *,
         text: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
     ) -> None:
@@ -313,10 +313,7 @@ class Images(
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def dalgona(
-        self,
-        ctx: SleepyContext,
-        *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """\N{IDEOGRAPHIC NUMBER ZERO}\N{WHITE UP-POINTING TRIANGLE}\N{BALLOT BOX}
 
@@ -344,10 +341,7 @@ class Images(
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def deepfry(
-        self,
-        ctx: SleepyContext,
-        *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """Deep fries an image.
 
@@ -426,10 +420,7 @@ class Images(
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def invert(
-        self,
-        ctx: SleepyContext,
-        *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """Inverts an image's colours.
 
@@ -457,10 +448,7 @@ class Images(
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def iphonex(
-        self,
-        ctx: SleepyContext,
-        *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """Fits an image into an iPhone X screen.
 
@@ -492,7 +480,7 @@ class Images(
         ctx: SleepyContext,
         intensity: Annotated[int, Optional[commands.Range[int, 1, 10]]] = 5,
         *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        image: Annotated["PartialAsset", ImageAssetConverter],
     ) -> None:
         """JPEGifies an image to an optional intensity.
 
@@ -530,7 +518,7 @@ class Images(
         ctx: SleepyContext,
         colour: Annotated[Colour, Optional[Colour]] = Colour.red(),
         *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        image: Annotated["PartialAsset", ImageAssetConverter],
     ) -> None:
         """Places lensflares of a given colour on human eyes.
 
@@ -571,7 +559,7 @@ class Images(
         ctx: SleepyContext,
         intensity: Annotated[int, Optional[commands.Range[int, 1, 25]]] = 1,
         *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        image: Annotated["PartialAsset", ImageAssetConverter],
     ) -> None:
         """Heavily warps an image to an optional intensity.
 
@@ -619,10 +607,7 @@ class Images(
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def palette(
-        self,
-        ctx: SleepyContext,
-        *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """Shows the five most prominent colours in an image.
 
@@ -775,10 +760,7 @@ class Images(
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def soyjaks(
-        self,
-        ctx: SleepyContext,
-        *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """Generates a consoomer soyjaks pointing meme.
 
@@ -810,10 +792,7 @@ class Images(
     @commands.max_concurrency(2, commands.BucketType.guild)
     @commands.cooldown(1, 40, commands.BucketType.member)
     async def stickbug(
-        self,
-        ctx: SleepyContext,
-        *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """Generates a stickbug meme.
 
@@ -857,7 +836,7 @@ class Images(
         ctx: SleepyContext,
         intensity: Annotated[int, Optional[commands.Range[int, 1, 15]]] = 5,
         *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        image: Annotated["PartialAsset", ImageAssetConverter],
     ) -> None:
         """Swirls an image to an optional intensity.
 
@@ -953,10 +932,7 @@ class Images(
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def threats(
-        self,
-        ctx: SleepyContext,
-        *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """Generates a "three threats to society" meme.
 
@@ -987,7 +963,7 @@ class Images(
         self,
         ctx: SleepyContext,
         title: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        image: Annotated["PartialAsset", ImageAssetConverter],
         *,
         flavour_text: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
     ) -> None:
@@ -1018,10 +994,7 @@ class Images(
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     async def tucker(
-        self,
-        ctx: SleepyContext,
-        *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """Generates a live Tucker reaction meme.
 
@@ -1091,8 +1064,8 @@ class Images(
     async def whowouldwin(
         self,
         ctx: SleepyContext,
-        left_image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
-        right_image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        left_image: Annotated["PartialAsset", ImageAssetConverter],
+        right_image: Annotated["PartialAsset", ImageAssetConverter],
     ) -> None:
         """Generates a "who would win" meme.
 

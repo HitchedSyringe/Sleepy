@@ -199,10 +199,7 @@ class Weeb(
     @commands.command()
     @commands.cooldown(1, 8, commands.BucketType.member)
     async def animeface(
-        self,
-        ctx: SleepyContext,
-        *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """Detects and highlights anime faces in an image.
 
@@ -245,10 +242,7 @@ class Weeb(
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def awooify(
-        self,
-        ctx: SleepyContext,
-        *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """Awooifies an image.
 
@@ -276,10 +270,7 @@ class Weeb(
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def baguette(
-        self,
-        ctx: SleepyContext,
-        *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """Turns an image into an anime girl eating a baguette.
 
@@ -307,10 +298,7 @@ class Weeb(
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def bodypillow(
-        self,
-        ctx: SleepyContext,
-        *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """Turns an image into an anime body pillow.
 
@@ -429,10 +417,7 @@ class Weeb(
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def lolice(
-        self,
-        ctx: SleepyContext,
-        *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """Submits an image to the lolice.
 
@@ -571,10 +556,7 @@ class Weeb(
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def ritsudirt(
-        self,
-        ctx: SleepyContext,
-        *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """Generates a Ritsu dirt meme.
 
@@ -623,10 +605,7 @@ class Weeb(
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def trash(
-        self,
-        ctx: SleepyContext,
-        *,
-        image: PartialAsset = commands.parameter(converter=ImageAssetConverter),
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """Generates a trash waifu meme.
 

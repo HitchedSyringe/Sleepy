@@ -1302,10 +1302,7 @@ class Web(
     @commands.command(aliases=("vredditdownloader",))
     @commands.bot_has_permissions(attach_files=True)
     async def vreddit(
-        self,
-        ctx: SleepyContext,
-        *,
-        url: str = commands.parameter(converter=RedditSubmissionURL),
+        self, ctx: SleepyContext, *, url: Annotated[str, RedditSubmissionURL]
     ) -> None:
         """Downloads a Reddit video submission.
 

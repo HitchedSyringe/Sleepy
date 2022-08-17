@@ -486,9 +486,7 @@ class NSFW(
         self,
         ctx: SleepyContext,
         *,
-        image: PartialAsset = commands.parameter(
-            converter=ImageAssetConverter(max_filesize=20_000_000),
-        ),
+        image: Annotated["PartialAsset", ImageAssetConverter(max_filesize=20_000_000)],
     ) -> None:
         """Reverse searches an image using SauceNAO.
 

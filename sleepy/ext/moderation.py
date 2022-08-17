@@ -136,7 +136,7 @@ class _CleanDaysPsuedoFlag(commands.Converter[int]):
 
 class MassbanFlags(commands.FlagConverter):
 
-    reason: Annotated[str, Reason] = commands.flag(default=_no_reason)
+    reason: str = commands.flag(converter=Reason, default=_no_reason)
     clean_days: commands.Range[int, 0, 7] = commands.flag(name="clean", default=1)
 
     startswith: Optional[Tuple[str, ...]] = None
@@ -280,8 +280,8 @@ class Moderation(commands.Cog):
     async def ban(
         self,
         ctx: GuildContext,
-        users: Annotated[
-            Sequence[Union[discord.Member, discord.User]], commands.Greedy[BannableUser]
+        users: commands.Greedy[
+            Annotated[Union[discord.Member, discord.User], BannableUser]
         ],
         clean_days: Annotated[int, Optional[_CleanDaysPsuedoFlag]] = 1,
         *,
