@@ -88,11 +88,11 @@ class EmoteData:
         argument = await commands.clean_content().convert(ctx, argument)
 
         try:
-            emoji_name = emoji.UNICODE_EMOJI_ENGLISH[argument]
+            emoji_data = emoji.EMOJI_DATA[argument]
         except KeyError:
             pass
         else:
-            return cls(argument, emoji_name.strip(":"))
+            return cls(argument, emoji_data["en"].strip(":").replace("_", " "))
 
         if len(argument) == 1:
             return cls(argument, unicodedata.name(argument, "unknown emote"))
