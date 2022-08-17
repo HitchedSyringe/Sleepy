@@ -31,10 +31,9 @@ from ..base_session import BaseSession
 from .question import TriviaQuestion
 
 if TYPE_CHECKING:
+    from discord.abc import MessageableChannel
     from discord.ext.commands import Bot, Context
     from typing_extensions import Self
-
-    from ..base_session import DiscordTextChannel
 
 
 _TIMEOUT_MSGS_REVEAL: Tuple[str, ...] = (
@@ -85,7 +84,7 @@ class TriviaSession(BaseSession):
     def __init__(
         self,
         bot: Bot,
-        channel: DiscordTextChannel,
+        channel: MessageableChannel,
         host: Union[discord.Member, discord.User],
         questions: List[TriviaQuestion],
         **options: Any,

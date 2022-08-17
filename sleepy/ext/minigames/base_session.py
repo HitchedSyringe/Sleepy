@@ -20,14 +20,15 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, Optional, Tuple, Union
 
+from discord import User
+
 if TYPE_CHECKING:
     from collections import Counter
 
-    from discord import DMChannel, Member, TextChannel, Thread, User, VoiceChannel
+    from discord import Member
+    from discord.abc import MessageableChannel
     from discord.ext.commands import Bot, Context
     from typing_extensions import Self
-
-    DiscordTextChannel = Union[DMChannel, TextChannel, Thread, VoiceChannel]
 
 
 _LOG: logging.Logger = logging.getLogger(__name__)
@@ -72,10 +73,10 @@ class BaseSession:
     )
 
     def __init__(
-        self, bot: Bot, channel: DiscordTextChannel, host: Union[Member, User]
+        self, bot: Bot, channel: MessageableChannel, host: Union[Member, User]
     ) -> None:
         self.bot: Bot = bot
-        self.channel: DiscordTextChannel = channel
+        self.channel: MessageableChannel = channel
         self.host: Union[Member, User] = host
         self.scores: Optional[Counter[Union[Member, User]]] = None
 
@@ -87,7 +88,7 @@ class BaseSession:
     @classmethod
     def from_context(cls, ctx: Context, *args: Any, **kwargs: Any) -> Self:
         """Constructs a :class:`BaseSession` from an invokation context."""
-        return cls(ctx.bot, ctx.channel, ctx.author, *args, **kwargs)  # type: ignore
+        return cls(ctx.bot, ctx.channel, ctx.author, *args, **kwargs)
 
     def __done_callback(self, future: asyncio.Future[None]) -> None:
         try:
