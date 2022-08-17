@@ -279,7 +279,7 @@ class NSFW(
             # Have to use this instead of the more elegant
             # tag exclusions due to the fact that doing so
             # keeps throwing a 422.
-            if has_any_banned_tags(post["tags"]):
+            if has_any_banned_tags(post["tags"].split(" ")):
                 continue
 
             try:
@@ -534,7 +534,7 @@ class NSFW(
         for post in resp:
             # Same reason as danbooru/e621 but in this case,
             # I get a 500 instead.
-            if has_any_banned_tags(post["tags"]):
+            if has_any_banned_tags(post["tags"].split(" ")):
                 continue
 
             media_url = post["file_url"]
