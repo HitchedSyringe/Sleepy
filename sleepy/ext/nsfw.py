@@ -121,6 +121,7 @@ NSFW_TAG_BLOCKLIST = (
     "adolescent",
     "child",
     "children",
+    "cp",
     "cub",
     "cubs",
     "ephebophile",
