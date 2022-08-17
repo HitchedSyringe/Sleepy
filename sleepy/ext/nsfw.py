@@ -32,6 +32,7 @@ NSFW_TAG_BLOCKLIST: FrozenSet[str] = frozenset({
     "adolescent",
     "child",
     "children",
+    "cp",
     "cub",
     "cubs",
     "ephebophile",
