@@ -46,16 +46,19 @@ if TYPE_CHECKING:
     from sleepy.mimics import PartialAsset
 
 
-def resolve_font_from_name(font_name: str) -> Path:
-    return FONTS.joinpath(f"{font_name}.ttf").resolve()
+def resolve_font(name: str) -> Path:
+    path = FONTS.joinpath(f"{name}.ttf").resolve()
+
+    if not path.is_file() or not path.is_relative_to(FONTS):  # type: ignore
+        raise commands.BadArgument(f"Font '{name}' is invalid.")
+
+    return path
 
 
 class TTIFlags(commands.FlagConverter):
     text: Annotated[str, commands.clean_content(fix_channel_mentions=True)]
     font_path: Path = commands.flag(
-        name="font",
-        converter=resolve_font_from_name,
-        default=resolve_font_from_name("Arimo-Regular"),
+        name="font", converter=resolve_font, default=FONTS / "Arimo-Regular.ttf"
     )
     text_colour: Colour = commands.flag(
         name="text-colour",
@@ -905,10 +908,6 @@ class Images(
 
         (Bot Needs: Attach Files)
         """
-        if not options.font_path.is_relative_to(FONTS):  # type: ignore
-            await ctx.send("Nice try with the path traversal, buddy.")
-            return
-
         kwargs = _as_argparse_dict(options)
         kwargs["text_colour"] = kwargs["text_colour"].to_rgb()
 
@@ -919,8 +918,7 @@ class Images(
             try:
                 buffer, delta = await backend.make_text_image(**kwargs)
             except OSError:
-                # TBH ImageFont.truetype should throw FileNotFoundError instead.
-                await ctx.send("The given font was invalid.")
+                await ctx.send("Something went wrong while reading the font.")
                 return
 
         await ctx.send(
