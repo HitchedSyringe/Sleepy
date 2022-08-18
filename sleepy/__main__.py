@@ -38,6 +38,8 @@ def _setup_logging(*, log_filename: Optional[str] = None) -> Generator[None, Non
         stream_handler.setFormatter(formatter)
         root_logger.addHandler(stream_handler)
 
+        root_logger.setLevel(logging.INFO)
+
         if log_filename is not None:
             from os import makedirs, path
 
@@ -154,20 +156,16 @@ def _run(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
 
     try:
         with _setup_logging(log_filename=args.log_filename):
-            # discord.py logging
+            # Set discord.py logging level.
             logging.getLogger("discord").setLevel(logging.INFO)
-
-            # bot logging
-            logger = logging.getLogger(__package__)
-            logger.setLevel(logging.INFO)
 
             try:
                 import uvloop  # type: ignore
             except ModuleNotFoundError:
-                logger.info("uvloop not found, skipping installation.")
+                logging.info("uvloop not found, skipping installation.")
             else:
                 uvloop.install()
-                logger.info("uvloop installed successfully.")
+                logging.info("uvloop installed successfully.")
 
             _start_bot(config)
     except OSError:
