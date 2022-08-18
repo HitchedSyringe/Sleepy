@@ -499,7 +499,7 @@ class Web(
         **EXAMPLES:**
         ```bnf
         <1> calculate tangentline 2 x^2
-        <2> calculate tangentline 3 ln(x^3)
+        <2> calculate tangentline 3 (x + 3)(x - 3)
         ```
         """
         await self.do_calculation(ctx, "tangent", f"{x} | {expression}")
