@@ -298,7 +298,7 @@ class Sleepy(commands.Bot):
                 else:
                     owner_ids.update(m.id for m in app_info.team.members)
 
-            _LOG.debug("Auto-detected owner IDs: %s", owner_ids)
+            _LOG.info("Auto-detected owner IDs: %s", owner_ids)
 
             if len(owner_ids) == 1:
                 self.owner_id = owner_ids.pop()
