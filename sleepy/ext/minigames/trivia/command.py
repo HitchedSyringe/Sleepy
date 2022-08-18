@@ -17,7 +17,6 @@ __all__ = (
 
 from typing import TYPE_CHECKING, Tuple
 
-import aiofiles
 import yaml
 from discord import Embed
 from discord.ext import commands
@@ -70,8 +69,8 @@ async def trivia_command(
     async with ctx.typing():
         for category in set(options.categories):
             try:
-                async with aiofiles.open(category) as data:
-                    data = yaml.safe_load(await data.read())
+                with category.open() as data:
+                    data = yaml.safe_load(data)
             except OSError:
                 await ctx.send("Something went wrong while reading a category.")
                 return

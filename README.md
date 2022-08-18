@@ -51,7 +51,6 @@ To test your changes, please refer to the [setup instructions](#installation).
 
 ## Dependencies
 
-* [aiofiles](https://github.com/Tinche/aiofiles)
 * [cachetools](https://github.com/tkem/cachetools) (optional, but recommended)
 * [discord.py 2.0.0a](https://github.com/Rapptz/discord.py)
 * [discord-ext-menus](https://github.com/Rapptz/discord-ext-menus)
