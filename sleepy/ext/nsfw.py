@@ -146,7 +146,7 @@ class NSFW(
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
-    async def analhental(self, ctx: SleepyContext) -> None:
+    async def analhentai(self, ctx: SleepyContext) -> None:
         """Sends a random image of an4l h3nt4i.
 
         (Bot Needs: Embed Links)
