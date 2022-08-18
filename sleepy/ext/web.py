@@ -1210,6 +1210,10 @@ class Web(
                 await ctx.send("That message doesn't have any text content.")
                 return
 
+            author = replied.author
+        else:
+            author = ctx.author
+
         try:
             tsl = await self.translator.translate(text, destination, source)
         except ValueError:
@@ -1219,16 +1223,21 @@ class Web(
             await ctx.send(f"An error occurred while translating: {exc}")
             return
 
-        embed = Embed(description=truncate(tsl.text, 2048), colour=0x4285F4)
-        embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar)
+        src = LANGUAGES.get(tsl.src, "(Auto-detected)").title()
+        dest = LANGUAGES.get(tsl.dest, "Unknown").title()
+
+        embed = Embed(
+            title=f"{src} \u27a3 {dest}",
+            description=truncate(tsl.text, 2048),
+            colour=0x4285F4,
+        )
+        embed.set_author(name=author, icon_url=author.display_avatar)
         embed.set_thumbnail(
             url="https://cdn.discordapp.com/attachments/507971834570997765/861166905569050624/translate2021.png"
         )
 
         embed.set_footer(
-            text=f"{LANGUAGES.get(tsl.src, '(Auto-detected)').title()} ({tsl.src})"
-            f" \u27a3 {LANGUAGES.get(tsl.dest, 'Unknown').title()} ({tsl.dest})"
-            " \N{BULLET} Powered by Google Translate"
+            text="Powered by Google Translate\nRequested by: {ctx.author} (ID: {ctx.author.id})"
         )
 
         await ctx.send(embed=embed)
