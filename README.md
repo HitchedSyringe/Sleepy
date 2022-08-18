@@ -52,7 +52,7 @@ To test your changes, please refer to the [setup instructions](#installation).
 ## Dependencies
 
 * [cachetools](https://github.com/tkem/cachetools) (optional, but recommended)
-* [discord.py 2.0.0a](https://github.com/Rapptz/discord.py)
+* [discord.py 2.0.0](https://github.com/Rapptz/discord.py)
 * [discord-ext-menus](https://github.com/Rapptz/discord-ext-menus)
 * [emoji 1.6.0+](https://github.com/carpedm20/emoji)
 * [googletrans 4.0.0rc1+](https://github.com/ssut/py-googletrans)

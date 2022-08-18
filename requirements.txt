@@ -1,5 +1,5 @@
 cachetools
-git+https://github.com/Rapptz/discord.py@master
+discord.py>=2
 git+https://github.com/Rapptz/discord-ext-menus
 emoji>=1.6
 # See https://github.com/ssut/py-googletrans/issues/280
