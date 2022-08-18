@@ -21,6 +21,7 @@ import aiofiles
 import yaml
 from discord import Embed
 from discord.ext import commands
+from typing_extensions import Annotated
 
 from sleepy.utils import _as_argparse_dict, human_join, tchart
 
@@ -29,13 +30,24 @@ from .question import TriviaQuestion
 from .session import TriviaSession
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from sleepy.context import Context as SleepyContext
 
     from ..cog import Minigames
 
 
+def resolve_category(name: str) -> Path:
+    path = CATEGORIES.joinpath(f"{name}.yaml").resolve()
+
+    if not path.is_file() or not path.is_relative_to(CATEGORIES):  # type: ignore
+        raise commands.BadArgument(f"Category '{name}' is invalid.")
+
+    return path
+
+
 class TriviaFlags(commands.FlagConverter):
-    categories: Tuple[str, ...]
+    categories: Tuple[Annotated["Path", resolve_category], ...]
     maximum_score: commands.Range[int, 5, 30] = commands.flag(
         name="maximum-score",
         default=10,
@@ -57,28 +69,23 @@ async def trivia_command(
 
     async with ctx.typing():
         for category in set(options.categories):
-            category_path = CATEGORIES.joinpath(f"{category}.yaml").resolve()
-
-            if not category_path.is_relative_to(CATEGORIES):  # type: ignore
-                await ctx.send("Nice try with the path traversal, buddy.")
-                return
-
             try:
-                async with aiofiles.open(category_path) as data:
+                async with aiofiles.open(category) as data:
                     data = yaml.safe_load(await data.read())
-            except FileNotFoundError:
-                await ctx.send("One or more of the given categories were invalid.")
+            except OSError:
+                await ctx.send("Something went wrong while reading a category.")
                 return
 
             author = data.pop("AUTHOR", None)
+            name = category.stem
 
             if author is not None:
-                category_credits.append(f"`{category} (by {author})`")
+                category_credits.append(f"`{name} (by {author})`")
             else:
-                category_credits.append(f"`{category}`")
+                category_credits.append(f"`{name}`")
 
             questions.extend(
-                TriviaQuestion(category, q, author=author, **d) for q, d in data.items()
+                TriviaQuestion(name, q, author=author, **d) for q, d in data.items()
             )
 
     options_dict = _as_argparse_dict(options)
