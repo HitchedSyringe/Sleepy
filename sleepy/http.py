@@ -18,7 +18,7 @@ __all__ = (
 import asyncio
 import logging
 from collections.abc import MutableMapping
-from typing import TYPE_CHECKING, Any, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, Optional, Tuple, Union
 
 import aiohttp
 from discord.ext import commands
@@ -29,6 +29,23 @@ if TYPE_CHECKING:
     from yarl import URL
 
     RequestUrl = Union[str, URL]
+
+
+try:
+    import orjson
+except ModuleNotFoundError:
+    import json
+
+    def _to_json(obj: Any) -> str:
+        return json.dumps(obj, separators=(",", ":"))
+
+    _from_json = json.loads
+else:
+
+    def _to_json(obj: Any) -> str:
+        return orjson.dumps(obj).decode("utf-8")
+
+    _from_json = orjson.loads
 
 
 _LOG: logging.Logger = logging.getLogger(__name__)
@@ -98,16 +115,28 @@ class HTTPRequester:
         HTTP requests entirely.
 
         .. versionadded:: 3.0
+    json_loads: Callable[[:class:`str`], Any]
+        A callable to use for JSON deserialization.
+        By default, this is either `json.loads` or `orjson.loads`,
+        depending on whether `orjson` is installed.
+
+        .. versionadded:: 3.3
     """
 
-    __slots__: Tuple[str, ...] = ("_cache", "_lock", "__session")
+    __slots__: Tuple[str, ...] = ("_cache", "_lock", "_json_loads", "__session")
 
-    def __init__(self, *, cache: Optional[MutableMapping[str, Any]] = None) -> None:
+    def __init__(
+        self,
+        *,
+        cache: Optional[MutableMapping[str, Any]] = None,
+        json_loads: Callable[[str], Any] = _from_json,
+    ) -> None:
         if cache is not None and not isinstance(cache, MutableMapping):
             raise TypeError(f"cache must be MutableMapping, not {type(cache)!r}.")
 
         self._cache: Optional[MutableMapping[str, Any]] = cache
         self._lock: asyncio.Lock = asyncio.Lock()
+        self._json_loads: Callable[[str], Any] = json_loads
         self.__session: aiohttp.ClientSession = MISSING
 
     @property
@@ -158,6 +187,8 @@ class HTTPRequester:
         if not self.is_closed():
             raise RuntimeError("HTTP requester session is active.")
 
+        session_kwargs.setdefault("json_serialize", _to_json)
+
         self.__session = aiohttp.ClientSession(**session_kwargs)
 
         _LOG.info("New HTTP requester session started.")
@@ -191,7 +222,7 @@ class HTTPRequester:
 
         async with self.__session.request(method, url, params=params, **kwargs) as resp:
             if "application/json" in resp.content_type:
-                data = await resp.json()
+                data = await resp.json(loads=self._json_loads)
             elif "text/" in resp.content_type:
                 data = await resp.text("utf-8")
             else:
