@@ -234,7 +234,7 @@ class Fun(
         text argument.
 
         For a list of valid font names, refer to:
-        <https://artii.herokuapp.com/fonts_list>
+        <https://archive.ph/INsmY>
 
         **EXAMPLE:**
         ```bnf
