@@ -281,7 +281,7 @@ class Fun(
         > The font to render the text with.
         > If omitted, then a random font will be chosen.
         > For a list of valid font names, refer to:
-        > <https://artii.herokuapp.com/fonts_list>
+        > <https://archive.ph/INsmY>
 
         **EXAMPLES:**
         ```bnf
