@@ -220,7 +220,15 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
     def __call__(self) -> None:
         pass
 
-    def _get_safe_url(self, attachment_like: _AttachmentLike) -> Optional[str]:
+    def _is_trusted(self, url: str) -> bool:
+        try:
+            url_obj = URL(url)
+        except Exception:
+            return False
+
+        return url_obj.host in self.TRUSTED_HOSTS
+
+    def _resolve_safe_url(self, attachment_like: _AttachmentLike) -> Optional[str]:
         if not (attachment_like.width or attachment_like.height):
             return None
 
@@ -230,10 +238,7 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
         # worth noting that there is no 100% guarantee that the proxy
         # URL will actually work. In this case... too bad I guess.
 
-        if (
-            attachment_like.url is not None
-            and URL(attachment_like.url).host in self.TRUSTED_HOSTS
-        ):
+        if attachment_like.url is not None and self._is_trusted(attachment_like.url):
             return attachment_like.url
 
         return attachment_like.proxy_url
@@ -241,7 +246,7 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
     def _convert_attachment(
         self, state: ConnectionState, attachment: Attachment
     ) -> PartialAsset:
-        url = self._get_safe_url(attachment)
+        url = self._resolve_safe_url(attachment)
         mime = attachment.content_type
 
         if url is None or mime is None or "image/" not in mime:
@@ -278,33 +283,36 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
         else:
             return PartialAsset(sticker._state, url=sticker.url)
 
-        # If there are no message embeds, then Discord likely hasn't
-        # cached the image(s) yet. We'll have to wait for the embeds
-        # to populate before refetching the message.
-        if not (embeds := ctx.message.embeds):
-            await asyncio.sleep(1)
+        url = argument.strip("<>")
 
-            try:
-                message = await ctx.message.fetch()
-            except discord.HTTPException:
-                raise ImageAssetConversionFailure(argument) from None
-            else:
-                embeds = message.embeds
+        if not self._is_trusted(url):
+            # If there are no message embeds, then Discord likely hasn't
+            # cached the image(s) yet. We'll have to wait for the embeds
+            # to populate before refetching the message.
+            if not (embeds := ctx.message.embeds):
+                await asyncio.sleep(1)
 
-        # In order to safely derive a PartialAsset from a string
-        # argument, we need to sift through embeds so we can get
-        # a Discord cached version of the image. This means that
-        # passing "<url>" is now an invalid argument. Also, this
-        # may not work 100% of the time. Too bad.
-        embed = discord.utils.find(lambda e: e.url == argument, embeds)
+                try:
+                    message = await ctx.message.fetch()
+                except discord.HTTPException:
+                    raise ImageAssetConversionFailure(argument) from None
+                else:
+                    embeds = message.embeds
 
-        if embed is None or not (image := embed.image or embed.thumbnail):
-            raise ImageAssetConversionFailure(argument)
+            # In order to safely derive a PartialAsset from a string
+            # argument, we need to sift through embeds so we can get
+            # a Discord cached version of the image. This means that
+            # passing "<url>" is now an invalid argument. Also, this
+            # may not work 100% of the time. Too bad.
+            embed = discord.utils.find(lambda e: e.url == argument, embeds)
 
-        url = self._get_safe_url(image)
+            if embed is None or not (image := embed.image or embed.thumbnail):
+                raise ImageAssetConversionFailure(argument)
 
-        if url is None:
-            raise ImageAssetConversionFailure(argument)
+            url = self._resolve_safe_url(image)
+
+            if url is None:
+                raise ImageAssetConversionFailure(argument)
 
         try:
             resp = await ctx.session.head(url, raise_for_status=True)
