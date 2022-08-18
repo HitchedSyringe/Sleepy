@@ -1189,6 +1189,9 @@ class Web(
         For a list of valid languages, refer to:
         <https://cloud.google.com/translate/docs/languages>
 
+        Text to translate can be up to 1800 characters long.
+        This limit also applies to replied messages.
+
         **EXAMPLES:**
         ```bnf
         <1> translate >spanish Hello!
@@ -1202,17 +1205,24 @@ class Web(
 
             if replied is None:
                 await ctx.send("You must provide some text to translate.")
+                ctx._refund_cooldown_token()
                 return
 
             text = replied.content
 
             if not text:
                 await ctx.send("That message doesn't have any text content.")
+                ctx._refund_cooldown_token()
                 return
 
             author = replied.author
         else:
             author = ctx.author
+
+        if len(text) > 1800:
+            await ctx.send(f"Text to translate is too long ({len(text)} > 1800).")
+            ctx._refund_cooldown_token()
+            return
 
         try:
             tsl = await self.translator.translate(text, destination, source)
@@ -1226,11 +1236,7 @@ class Web(
         src = LANGUAGES.get(tsl.src, "(Auto-detected)").title()
         dest = LANGUAGES.get(tsl.dest, "Unknown").title()
 
-        embed = Embed(
-            title=f"{src} \u27a3 {dest}",
-            description=truncate(tsl.text, 2048),
-            colour=0x4285F4,
-        )
+        embed = Embed(title=f"{src} \u27a3 {dest}", description=tsl.text, colour=0x4285F4)
         embed.set_author(name=author, icon_url=author.display_avatar)
         embed.set_thumbnail(
             url="https://cdn.discordapp.com/attachments/507971834570997765/861166905569050624/translate2021.png"
