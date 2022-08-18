@@ -129,7 +129,7 @@ def _start_bot(config: Mapping[str, Any]) -> None:
 
 
 def _parse_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
-    parser = argparse.ArgumentParser(prog=__package__)
+    parser = argparse.ArgumentParser(prog="sleepy")
 
     parser.add_argument(
         "config_filename",
