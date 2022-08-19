@@ -189,8 +189,8 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
 
         .. versionadded:: 3.0
 
-        .. versionchanged::
-            Changed default value to ``40_000_000`` (40 MB).
+        .. versionchanged:: 3.3
+            Set default value to ``40_000_000`` (40 MB).
 
     Attributes
     ----------
