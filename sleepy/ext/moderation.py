@@ -283,8 +283,8 @@ class Moderation(commands.Cog):
     async def ban(
         self,
         ctx: GuildContext,
-        users: commands.Greedy[
-            Annotated[Union[discord.Member, discord.User], BannableUser]
+        users: Annotated[
+            Sequence[Union[discord.Member, discord.User]], commands.Greedy[BannableUser]
         ],
         clean_days: Annotated[int, Optional[_CleanDaysPsuedoFlag]] = 1,
         *,
