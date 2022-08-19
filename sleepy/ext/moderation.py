@@ -438,7 +438,7 @@ class Moderation(commands.Cog):
         (Permissions Needed: Ban Members)
         (Bot Needs: Ban Members)
         """
-        checks = [lambda m: not m.bot and has_higher_role(ctx.author, m)]
+        checks = [lambda m: has_higher_role(ctx.author, m)]
 
         if options.has_no_avatar:
             checks.append(lambda m: m.avatar is None)
@@ -474,7 +474,7 @@ class Moderation(commands.Cog):
         if options.joined > 0:
             checks.append(
                 lambda m: m.joined_at is not None
-                and m.joined_at > now - timedelta(options.joined)
+                and m.joined_at > now - timedelta(minutes=options.joined)
             )
 
         if options.joined_before is not None:
