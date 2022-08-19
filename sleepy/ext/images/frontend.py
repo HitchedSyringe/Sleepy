@@ -913,6 +913,9 @@ class Images(
         attachment. Links and attachments must be under 40
         MB.
 
+        If the title requires spaces, you must surround it
+        in quotation marks.
+
         (Bot Needs: Attach Files)
         """
         async with ctx.typing():
