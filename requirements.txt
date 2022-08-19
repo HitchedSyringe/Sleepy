@@ -7,7 +7,7 @@ git+https://github.com/Rapptz/discord-ext-menus
 # be safely removed if and when Sleepy updates to discord.py
 # v2.0.0a
 git+https://github.com/HitSyr/Flag-Parsing@fixes
-emoji>=1.1.0
+emoji>=1.0.0,<2.0.0
 # See https://github.com/ssut/py-googletrans/issues/280
 googletrans>=4.0.0rc1
 jishaku>=2.2.0

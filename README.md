@@ -65,7 +65,7 @@ When adding commands, look at the other commands in the category and pick which 
 * [discord-ext-menus](https://github.com/Rapptz/discord-ext-menus)
 * [discord-flags 2.1.0+](https://github.com/HitSyr/Flag-Parsing)
   * This package was originally maintained by XuaTheGrate and has since been deleted. Using `requirements.txt` will install my fork of the above repository.
-* [emoji 1.1.0+](https://github.com/carpedm20/emoji)
+* [emoji 1.x](https://github.com/carpedm20/emoji)
 * [googletrans 4.0.0rc1+](https://github.com/ssut/py-googletrans)
 * [jishaku 2.2.0+](https://github.com/Gorialis/jishaku)
 * [matplotlib](https://github.com/matplotlib/matplotlib)
