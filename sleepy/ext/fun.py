@@ -143,6 +143,8 @@ class PollView(View):
         self, item: Item["PollView"], itn: discord.Interaction
     ) -> None:
         try:
+            item._refresh_state(itn.data)  # type: ignore
+
             allow = await self.interaction_check(itn)
 
             if not allow:
@@ -206,7 +208,7 @@ class PollView(View):
         await channel.send(embed=embed)
 
     @select(placeholder="Select an option.")
-    async def vote(self, itn: discord.Interaction, select: Select) -> None:
+    async def vote(self, itn: discord.Interaction, select: Select["PollView"]) -> None:
         self.votes[select.values[0]] += 1
         self.__voted.add(itn.user.id)
 
