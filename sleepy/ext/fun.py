@@ -91,7 +91,7 @@ class resolve_emote_char(commands.Converter):
             pass
         else:
             # Assume that we can use this emoji.
-            return custom.name, str(custom)
+            return str(custom), custom.name
 
         return argument, "unknown emote"
 
