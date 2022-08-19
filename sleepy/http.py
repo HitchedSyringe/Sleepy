@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 
 
 try:
-    import orjson
+    import orjson  # type: ignore
 except ModuleNotFoundError:
     import json
 
