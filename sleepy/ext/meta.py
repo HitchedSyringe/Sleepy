@@ -45,8 +45,8 @@ CHANNEL_EMOJI: Dict[ChannelType, Tuple[str, str]] = {
     # Either has no locked icon version or has no icon at all.
     ChannelType.category:       ("",) * 2,
     ChannelType.forum:          ("<:fc:999410787540021308> ",) * 2,
-    ChannelType.public_thread:  ("<:thc:917442358377869373> ",) * 2,
-    ChannelType.private_thread: ("<:thc:917442358377869373> ",) * 2,
+    ChannelType.public_thread:  ("<:thc:1010161857409056778> ",) * 2,
+    ChannelType.private_thread: ("<:thc:1010161857409056778> ",) * 2,
 }
 
 
