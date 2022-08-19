@@ -131,7 +131,7 @@ class _CleanDaysPsuedoFlag(commands.Converter[int]):
     async def convert(self, ctx: SleepyContext, argument: str) -> int:
         flag, _, argument = argument.partition("=")
 
-        if flag != "clean" or not argument:
+        if flag != "-clean" or not argument:
             raise commands.BadArgument
 
         return await self.__RANGE.convert(ctx, argument)
