@@ -103,7 +103,7 @@ class EmoteData:
             pass
         else:
             # Assume that we can use this emoji.
-            return cls(custom.name, str(custom))
+            return cls(str(custom), custom.name)
 
         return cls(argument, "unknown emote")
 
