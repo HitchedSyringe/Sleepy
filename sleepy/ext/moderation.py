@@ -54,6 +54,9 @@ class ActionableMember(commands.Converter[discord.Member]):
     async def convert(ctx: GuildContext, argument: str) -> discord.Member:
         member = await commands.MemberConverter().convert(ctx, argument)
 
+        if member in (ctx.author, ctx.me):
+            raise HierarchyError("There will be no self-harm or coups on my watch!")
+
         if not has_higher_role(ctx.me, member):
             raise HierarchyError(
                 "I can't perform this action on that user due to role hierarchy."
