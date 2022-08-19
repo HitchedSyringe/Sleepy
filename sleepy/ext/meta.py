@@ -635,7 +635,7 @@ class Meta(commands.Cog):
             f" \N{BULLET} <:tc:828149291812913152> {channels[discord.TextChannel]}"
             f" \N{BULLET} <:vc:828151635791839252> {channels[discord.VoiceChannel]}"
             f"\n<:sc:828149291750785055> {channels[discord.StageChannel]}"
-            f" \N{BULLET} <:thc:917442358377869373> {len(guild.threads):,d}"
+            f" \N{BULLET} <:thc:1010161857409056778> {len(guild.threads):,d}"
             f" \N{BULLET} <:fc:999410787540021308> {channels[discord.ForumChannel]}"
             f"\n`Roles:` {len(guild.roles)}"
             f"\n`Emojis:` {total_emojis} / {guild.emoji_limit * 2}"
