@@ -1243,7 +1243,7 @@ class Web(
         )
 
         embed.set_footer(
-            text="Powered by Google Translate\nRequested by: {ctx.author} (ID: {ctx.author.id})"
+            text=f"Powered by Google Translate\nRequested by: {ctx.author} (ID: {ctx.author.id})"
         )
 
         await ctx.send(embed=embed)
