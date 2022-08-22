@@ -30,9 +30,6 @@ if TYPE_CHECKING:
     from sleepy.context import Context as SleepyContext, GuildContext
 
 
-CUSTOM_EMOJI_REGEX: re.Pattern = re.compile(r"<a?:[A-Za-z0-9_]{1,32}:[0-9]{15,20}>")
-
-
 class HierarchyError(commands.BadArgument):
     pass
 
@@ -618,7 +615,8 @@ class Moderation(commands.Cog):
             checks.append(lambda m: bool(m.embeds))
 
         if options.has_emojis:
-            checks.append(lambda m: CUSTOM_EMOJI_REGEX.search(m.content) is not None)
+            emoji_regex = re.compile(r"<a?:[A-Za-z0-9_]{1,32}:[0-9]{15,20}>")
+            checks.append(lambda m: emoji_regex.search(m.content) is not None)
 
         if options.has_attachments:
             checks.append(lambda m: bool(m.attachments))
