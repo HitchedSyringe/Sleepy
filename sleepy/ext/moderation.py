@@ -307,9 +307,6 @@ class Moderation(commands.Cog):
         Members are only banned **if and only if** all conditions
         are met.
 
-        **If no conditions are passed, then ALL members will be
-        selected for banning.**
-
         Members can either be a name, ID, or mention.
 
         __The following options are valid:__
@@ -407,6 +404,12 @@ class Moderation(commands.Cog):
 
         if (after := flags["joined_after"]) is not None:
             checks.append(lambda m: m.joined_at and after.joined_at and m.joined_at > after.joined_at)
+
+        # More than likely, there shouldn't be a case where
+        # `--show` or `-s` is the only flag that's passed.
+        if len(checks) == 1:
+            await ctx.send_help(ctx.command)
+            return
 
         members = [m for m in ctx.guild.members if all(c(m) for c in checks)]
         if not members:
