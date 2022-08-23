@@ -393,9 +393,6 @@ class Moderation(commands.Cog):
         Options can be given in any order and, unless otherwise stated,
         are assumed to be optional.
 
-        __**DANGER: If no conditions are given, then ALL members present
-        on the server will be banned.**__
-
         The following options are valid:
 
         `reason: <reason>`
@@ -493,6 +490,12 @@ class Moderation(commands.Cog):
                 and a_joined_at is not None
                 and m.joined_at > a_joined_at
             )
+
+        # More than likely, there shouldn't be a case where
+        # `show-users: true` is the only flag that's passed.
+        if len(checks) == 1:
+            await ctx.send_help(ctx.command)
+            return
 
         if ctx.guild.chunked:
             members = ctx.guild.members
