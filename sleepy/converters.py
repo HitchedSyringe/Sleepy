@@ -168,6 +168,7 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
           attachments via ID or URL.
         * Refactored to use discord.py's attachment conversion.
         * Added support for :class:`commands.Greedy`.
+        * Added support for guild stickers.
 
     Parameters
     ----------
@@ -187,8 +188,8 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
 
         .. note::
 
-            Users and emojis always skip this check regardless of
-            this setting.
+            Users, guild emojis, and guild stickers always skip
+            this check, regardless of this setting.
 
         .. versionadded:: 3.0
 
