@@ -273,7 +273,8 @@ class Moderation(commands.Cog):
         await ctx.send(f"Banned **{total - failed}/{total} users**.")
 
     @commands.command(
-        aliases=("hackban", "multiban"), usage="<users...> [-clean=1] [reason]"
+        aliases=("hackban", "multiban"),
+        usage="<users...> [-clean=1] [reason=<no reason>]",
     )
     @checks.has_guild_permissions(ban_members=True)
     @commands.bot_has_guild_permissions(ban_members=True)
@@ -399,6 +400,7 @@ class Moderation(commands.Cog):
 
         `reason: <reason>`
         > The reason for the ban.
+        > Defaults to `No reason given.`
         `clean: <integer>`
         > The number of days worth of a banned user's messages to delete.
         > Must be between 1 and 7, inclusive.
@@ -681,7 +683,7 @@ class Moderation(commands.Cog):
 
         await ctx.send(f"Removed **{plural(reactions, ',d'):reaction}**.")
 
-    @commands.command(usage="<member> [-clean=1] [reason]")
+    @commands.command(usage="<member> [-clean=1] [reason=<no reason>]")
     @checks.has_guild_permissions(kick_members=True)
     @commands.bot_has_guild_permissions(ban_members=True)
     async def softban(
