@@ -434,7 +434,7 @@ class Moderation(commands.Cog):
         (Permissions Needed: Ban Members)
         (Bot Needs: Ban Members)
         """
-        checks = [lambda m: has_higher_role(ctx.author, m)]
+        checks = [lambda m: not m.bot and has_higher_role(ctx.author, m)]
 
         if options.has_no_avatar:
             checks.append(lambda m: m.avatar is None)
