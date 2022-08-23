@@ -119,9 +119,11 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
         during conversion. In this case, the conversion order
         is as follows:
 
-        1) Image Attachments
-        2) Replied Messages
-        3) Command Arguments
+        1) Context Message Image Attachments
+        2) Replied Message Image Attachments
+        3) Users
+        4) Guild Emojis
+        5) Guild Stickers
 
         In the case of using :class:`commands.Greedy`, only the
         argument type with the highest precedence is converted.
@@ -393,11 +395,13 @@ async def _new_command_transform(
     # Allows passing a command argument or using a replied message
     # alongside an image attachment. Note that there is precedence
     # involved here due to an implementation detail. For reference,
-    # the following conversion order is as follows:
+    # the conversion order is as follows:
     #
-    # 1) Image Attachments
-    # 2) Replied Messages
-    # 3) Command Arguments
+    # 1) Context Message Image Attachments
+    # 2) Replied Message Image Attachments
+    # 3) Users
+    # 4) Guild Emojis
+    # 5) Guild Stickers
     #
     # Unfortunately, this also makes working with commands.Greedy
     # really hairy. In that case, only the argument type with the
