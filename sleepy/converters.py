@@ -124,6 +124,7 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
         3) Users
         4) Guild Emojis
         5) Guild Stickers
+        6) Image URLs
 
         In the case of using :class:`commands.Greedy`, only the
         argument type with the highest precedence is converted.
@@ -402,6 +403,7 @@ async def _new_command_transform(
     # 3) Users
     # 4) Guild Emojis
     # 5) Guild Stickers
+    # 6) Image URLs
     #
     # Unfortunately, this also makes working with commands.Greedy
     # really hairy. In that case, only the argument type with the
