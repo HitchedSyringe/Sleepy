@@ -281,7 +281,7 @@ class Statistics(
 
         embed.add_field(
             name="\N{CONTROL KNOBS} Technical Information",
-            value=f"\n`Sleepy Version:` {__version__}"
+            value=f"`Sleepy Version:` {__version__}"
             f"\n\u25B8 <:py:823367531724537887> {platform.python_version()}"
             f"\n\u25B8 <:dpy:823367531690590248> {dpy_version}"
             f"\n`Memory Usage:` {memory_usage:.2f} MiB"
