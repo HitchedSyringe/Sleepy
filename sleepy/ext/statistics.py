@@ -16,10 +16,10 @@ import textwrap
 import traceback
 from collections import Counter
 from datetime import datetime, timezone
+from importlib import metadata
 from typing import TYPE_CHECKING, Any, Coroutine
 
 import discord
-import pkg_resources
 import psutil
 from discord import Colour, Embed
 from discord.ext import commands, tasks
@@ -274,8 +274,6 @@ class Statistics(
             "\n||Wowee!! Another Discord bot.||",
         )
 
-        dpy_version = pkg_resources.get_distribution("discord.py").version
-
         memory_usage = bot.process.memory_full_info().uss / 1024**2
         cpu_usage = bot.process.cpu_percent() / psutil.cpu_count()
 
@@ -283,7 +281,7 @@ class Statistics(
             name="\N{CONTROL KNOBS} Technical Information",
             value=f"`Sleepy Version:` {__version__}"
             f"\n\u25B8 <:py:823367531724537887> {platform.python_version()}"
-            f"\n\u25B8 <:dpy:823367531690590248> {dpy_version}"
+            f"\n\u25B8 <:dpy:823367531690590248> {metadata.version('discord.py')}"
             f"\n`Memory Usage:` {memory_usage:.2f} MiB"
             f"\n`CPU Usage:` {cpu_usage:.2f}%"
             f"\n`Shards:` {bot.shard_count or 'N/A'}"

@@ -14,10 +14,10 @@ import itertools
 import os
 import platform
 import traceback
+from importlib import metadata
 from typing import TYPE_CHECKING, List
 
 import discord
-import pkg_resources
 import psutil
 from braceexpand import braceexpand
 from discord import Embed
@@ -239,7 +239,7 @@ class Owner(
         ]
 
         gen_info.extend(
-            f"\u25B8 {p}: {pkg_resources.get_distribution(p).version}"
+            f"\u25B8 {p}: {metadata.version(p)}"
             for p in ("aiohttp", "discord.py", "jishaku")
         )
 
