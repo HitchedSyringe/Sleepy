@@ -33,6 +33,14 @@ This project is licensed under the [Mozilla Public License, v. 2.0](https://mozi
 
 The license as of commit `6337f3cde11450b5ca637183009f91b0483b7fdb` also applies to commits prior, regardless of the license(s) stated.
 
+## Privacy Policy and Terms of Service
+
+*Last updated 7th September, 2022*
+
+This is here in case Discord requires me to make one in the future.
+
+There isn't really anything to note. The officially hosted instance does not store any personal data.
+
 ## Versioning
 
 The version number has a 3-digit format: `main.major.micro`
