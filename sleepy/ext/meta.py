@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING, Dict, List, Mapping, Optional, Tuple, Union
 
 import discord
 from discord import ActivityType, ChannelType, Embed, SelectOption, Status
+from discord.abc import GuildChannel
 from discord.ext import commands
 from discord.ext.menus import ListPageSource, PageSource
 from discord.ui import Select
@@ -35,18 +36,28 @@ if TYPE_CHECKING:
 
 
 # fmt: off
-# channel_type: (locked_emoji, unlocked_emoji)
-CHANNEL_EMOJI: Dict[ChannelType, Tuple[str, str]] = {
+# channel_type: (locked_icon, unlocked_icon)
+CHANNEL_ICON: Dict[ChannelType, Tuple[str, str]] = {
     ChannelType.text:           ("<:ltc:828149291533074544> ", "<:tc:828149291812913152> "),
     ChannelType.voice:          ("<:lvc:828149291628625960> ", "<:vc:828151635791839252> "),
     ChannelType.stage_voice:    ("<:lsc:828149291590746112> ", "<:sc:828149291750785055> "),
     ChannelType.news:           ("<:lac:828149291578556416> ", "<:ac:828419969133314098> "),
+    ChannelType.forum:          ("<:lfc:1027959771124469790> ", "<:fc:999410787540021308> "),
 
     # Either has no locked icon version or has no icon at all.
     ChannelType.category:       ("",) * 2,
-    ChannelType.forum:          ("<:fc:999410787540021308> ",) * 2,
     ChannelType.public_thread:  ("<:thc:1010161857409056778> ",) * 2,
     ChannelType.private_thread: ("<:thc:1010161857409056778> ",) * 2,
+}
+
+
+# channel_type: nsfw_icon
+CHANNEL_NSFW_ICON: Dict[ChannelType, str] = {
+    ChannelType.text:     "<:ntc:828149291683807282> ",
+    ChannelType.voice:    "<:nvc:1027959769568391320> ",
+    ChannelType.news:     "<:nac:1027959772294692895> ",
+    ChannelType.forum:    "<:nfc:1027959768867942462> ",
+    ChannelType.category: "",  # No NSFW icon, but has NSFW status.
 }
 
 
@@ -369,6 +380,29 @@ class Meta(commands.Cog):
     def cog_unload(self) -> None:
         self.bot.help_command = self.old_help_command
 
+    @staticmethod
+    def _get_channel_icon(
+        channel: Union[GuildChannel, discord.Thread],
+        permissions: Optional[discord.Permissions] = None,
+    ) -> str:
+        # This is ordered by which icon would show up on the Discord
+        # desktop client given the conditions.
+        guild = channel.guild
+
+        # Doing this eliminates a channel cache lookup as we just use
+        # the ID itself directly.
+        if channel.id == guild._rules_channel_id:
+            return "<:rc:828149291712774164> "
+
+        if hasattr(channel, "is_nsfw") and channel.is_nsfw():  # type: ignore
+            return CHANNEL_NSFW_ICON[channel.type]
+
+        if permissions is None:
+            permissions = channel.permissions_for(guild.default_role)
+
+        viewable_state = int(permissions.connect or permissions.read_messages)
+        return CHANNEL_ICON[channel.type][viewable_state]
+
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
     async def avatar(
@@ -495,9 +529,7 @@ class Meta(commands.Cog):
         self,
         ctx: SleepyContext,
         user: Annotated[discord.Member, Optional[discord.Member]] = commands.Author,
-        channel: Union[
-            discord.abc.GuildChannel, discord.Thread
-        ] = commands.CurrentChannel,
+        channel: Union[GuildChannel, discord.Thread] = commands.CurrentChannel,
     ) -> None:
         """Shows a user's permissions optionally in another channel.
 
@@ -518,11 +550,10 @@ class Meta(commands.Cog):
         ```
         """
         perms = channel.permissions_for(user)
-        type_ = int(perms.connect or perms.read_messages)
+        icon = self._get_channel_icon(channel, perms)
 
         embed = Embed(
-            description="Showing permissions in"
-            f" {CHANNEL_EMOJI[channel.type][type_]}{channel.name} (ID: {channel.id})",
+            description=f"Showing permissions in {icon}{channel.name} (ID: {channel.id})",
             colour=0x2F3136,
         )
         embed.set_author(name=f"{user} (ID: {user.id})", icon_url=user.display_avatar)
@@ -719,9 +750,6 @@ class Meta(commands.Cog):
         tree = WrappedPaginator(prefix="", suffix="")
         total = 0
 
-        default = ctx.guild.default_role
-        rules_channel = ctx.guild.rules_channel
-
         for category, channels in ctx.guild.by_category():
             if category is not None:
                 total += 1
@@ -729,15 +757,7 @@ class Meta(commands.Cog):
 
             for channel in channels:
                 total += 1
-
-                if channel == rules_channel:
-                    icon = "<:rc:828149291712774164> "
-                elif isinstance(channel, discord.TextChannel) and channel.is_nsfw():
-                    icon = "<:ntc:828149291683807282> "
-                else:
-                    perms = channel.permissions_for(default)
-                    type_ = int(perms.connect or perms.read_messages)
-                    icon = CHANNEL_EMOJI[channel.type][type_]
+                icon = self._get_channel_icon(channel)
 
                 tree.add_line(f"{icon}{channel.name}")
 
