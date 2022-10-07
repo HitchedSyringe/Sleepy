@@ -161,7 +161,7 @@ class Weeb(
 
         search_url = "https://api.jikan.moe/v4/anime?limit=1"
 
-        if not ctx.channel.is_nsfw():
+        if ctx.guild is not None and not ctx.channel.is_nsfw():
             search_url += "&genre=9,12,49&genre_exclude=1"
 
         await ctx.trigger_typing()
@@ -482,7 +482,7 @@ class Weeb(
 
         search_url = "https://api.jikan.moe/v4/manga?limit=1"
 
-        if not ctx.channel.is_nsfw():
+        if ctx.guild is not None and not ctx.channel.is_nsfw():
             search_url += "&genre=9,12,49&genre_exclude=1"
 
         await ctx.trigger_typing()
