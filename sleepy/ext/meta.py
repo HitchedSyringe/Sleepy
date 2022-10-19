@@ -628,7 +628,7 @@ class Meta(commands.Cog):
             f"\n`Upload Limit:` {guild.filesize_limit // 1e6} MB"
             f"\n`Max Bitrate:` {guild.bitrate_limit // 1e3} kbps"
             f"\n`Max Members:` {guild.max_members:,d}"
-            f"\n`Shard ID:` {guild.shard_id or 'N/A'}",
+            f"\n`Shard ID:` {'N/A' if guild.shard_id is None else guild.shard_id}",
         )
 
         if guild.chunked:

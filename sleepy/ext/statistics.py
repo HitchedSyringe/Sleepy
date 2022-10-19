@@ -141,7 +141,7 @@ class Statistics(
             f"\n`Members:` {member_count or 0:,d} ({plural(bots, ',d'):bot})"
             f"\n`Channels:` {len(guild.channels)}"
             f"\n`Created:` {format_dt(guild.created_at, 'R')}"
-            f"\n`Shard ID:` {guild.shard_id or 'N/A'}",
+            f"\n`Shard ID:` {'N/A' if guild.shard_id is None else guild.shard_id}",
             timestamp=datetime.now(timezone.utc),
         )
         embed.set_author(name=guild)
