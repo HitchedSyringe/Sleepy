@@ -494,7 +494,7 @@ def human_number(
             if number.is_integer():
                 number = int(number)
         elif sigfigs is not None:
-            left, _, _ = str(number).partition(".")
+            left, _, _ = str(abs(number)).partition(".")
             precision = max(0, sigfigs - len(left))
 
             # Add trailing zeroes if necessary to respect sigfig count.
