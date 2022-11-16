@@ -606,9 +606,6 @@ class PaginationView(BaseView):
         :class:`discord.Message`
             The message that was sent or edited as a response.
         """
-        if ephemeral and not edit_message:
-            # Cannot delete ephemeral messages.
-            self._delete_message_when_stopped = False
 
         async def _handle_response(**kwargs: Any) -> discord.Message:
             if not interaction.response.is_done():
