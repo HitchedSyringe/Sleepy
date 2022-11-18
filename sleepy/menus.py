@@ -526,21 +526,15 @@ class PaginationView(BaseView):
         action: Callable[..., Awaitable[discord.Message]],
         *,
         wait: bool,
-        mention_author: Optional[bool] = None,
-        ephemeral: bool = False,
+        **passed_kwargs: Any,
     ) -> discord.Message:
         await self._source._prepare_once()
 
         page = await self._source.get_page(0)
         kwargs = await self._get_kwargs_from_page(page)
 
-        # Message.edit doesn't take these kwargs.
-        if mention_author is not None:
-            kwargs["mention_author"] = mention_author
-
-        if ephemeral:
-            kwargs["ephemeral"] = True
-
+        # Passed kwargs will take precedence over the page kwargs.
+        kwargs.update(passed_kwargs)
         self.message = await action(**kwargs, view=self)
 
         if wait:
@@ -606,22 +600,23 @@ class PaginationView(BaseView):
         :class:`discord.Message`
             The message that was sent or edited as a response.
         """
-
-        async def _handle_response(**kwargs: Any) -> discord.Message:
-            if not interaction.response.is_done():
-                if edit_message:
-                    await interaction.response.edit_message(**kwargs)
-                else:
-                    await interaction.response.send_message(**kwargs)
-
-                return await interaction.original_response()
-
+        if interaction.response.is_done():
             if edit_message:
-                return await interaction.followup.edit_message(**kwargs)
+                return await self._start(interaction.edit_original_response, wait=wait)
 
-            return await interaction.followup.send(**kwargs, wait=True)
+            return await self._start(
+                interaction.followup.send, wait=wait, ephemeral=ephemeral
+            )
 
-        return await self._start(_handle_response, wait=wait, ephemeral=ephemeral)
+        async def _handle_responding(**kwargs: Any) -> discord.Message:
+            if edit_message:
+                await interaction.response.edit_message(**kwargs)
+            else:
+                await interaction.response.send_message(**kwargs, ephemeral=ephemeral)
+
+            return await interaction.original_response()
+
+        return await self._start(_handle_responding, wait=wait)
 
     async def reply_to(
         self,
@@ -666,6 +661,12 @@ class PaginationView(BaseView):
         :class:`discord.Message`
             The message that was sent as a reply.
         """
+        if isinstance(message_or_ctx, discord.Message):
+            # Message.reply doesn't take the ephemeral kwarg.
+            return await self._start(
+                message_or_ctx.reply, wait=wait, mention_author=mention_author
+            )
+
         return await self._start(
             message_or_ctx.reply,
             wait=wait,
