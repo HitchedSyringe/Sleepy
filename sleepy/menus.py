@@ -20,17 +20,7 @@ __all__ = (
 
 
 from collections.abc import Collection
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Awaitable,
-    Callable,
-    Dict,
-    Optional,
-    Sequence,
-    Union,
-    overload,
-)
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Sequence, Union, overload
 
 import discord
 from discord.ext.menus import ListPageSource, PageSource
@@ -521,26 +511,11 @@ class PaginationView(BaseView):
 
         self._update_items(0)
 
-    async def _start(
-        self,
-        action: Callable[..., Awaitable[discord.Message]],
-        *,
-        wait: bool,
-        **passed_kwargs: Any,
-    ) -> discord.Message:
+    async def _prepare_once(self) -> Dict[str, Any]:
         await self._source._prepare_once()
 
         page = await self._source.get_page(0)
-        kwargs = await self._get_kwargs_from_page(page)
-
-        # Passed kwargs will take precedence over the page kwargs.
-        kwargs.update(passed_kwargs)
-        self.message = await action(**kwargs, view=self)
-
-        if wait:
-            await self.wait()
-
-        return self.message
+        return await self._get_kwargs_from_page(page)
 
     def _update_items(self, page_number: int) -> None:
         on_first = page_number == 0
@@ -569,7 +544,9 @@ class PaginationView(BaseView):
     ) -> discord.Message:
         """|coro|
 
-        Sends the view as a response to the given interaction.
+        Sends the view as either a response or followup to the
+        given interaction, depending on whether the interaction
+        has been responded to already.
 
         If the given interaction has already been responded to,
         then this will automatically perform a followup.
@@ -582,13 +559,15 @@ class PaginationView(BaseView):
         Parameters
         ----------
         interaction: :class:`discord.Interaction`
-            The interaction to respond to.
+            The interaction to respond to or followup with.
         edit_message: :class:`bool`
-            Whether or not to edit the interaction message instead.
+            Whether or not to edit the original interaction message
+            instead.
             Defaults to ``False``.
         ephemeral: :class:`bool`
-            Whether or not the response message should be ephemeral.
-            This is ignored if `edit_message` is set to ``True``.
+            Whether or not the response or followup message should
+            be ephemeral. This is ignored if `edit_message` is set
+            to ``True``.
             Defaults to ``False``.
         wait: :class:`bool`
             Whether or not to wait until the view has finished
@@ -598,25 +577,27 @@ class PaginationView(BaseView):
         Returns
         -------
         :class:`discord.Message`
-            The message that was sent or edited as a response.
+            The message that was sent or edited as a response or followup.
         """
+        kwargs = await self._prepare_once()
+
         if interaction.response.is_done():
             if edit_message:
-                return await self._start(interaction.edit_original_response, wait=wait)
-
-            return await self._start(
-                interaction.followup.send, wait=wait, ephemeral=ephemeral
-            )
-
-        async def _handle_responding(**kwargs: Any) -> discord.Message:
+                message = await interaction.edit_original_response(**kwargs)
+            else:
+                message = await interaction.followup.send(**kwargs, ephemeral=ephemeral)
+        else:
             if edit_message:
                 await interaction.response.edit_message(**kwargs)
             else:
                 await interaction.response.send_message(**kwargs, ephemeral=ephemeral)
 
-            return await interaction.original_response()
+            message = await interaction.original_response()
 
-        return await self._start(_handle_responding, wait=wait)
+        if wait:
+            await self.wait()
+
+        return message
 
     async def reply_to(
         self,
@@ -661,18 +642,18 @@ class PaginationView(BaseView):
         :class:`discord.Message`
             The message that was sent as a reply.
         """
-        if isinstance(message_or_ctx, discord.Message):
-            # Message.reply doesn't take the ephemeral kwarg.
-            return await self._start(
-                message_or_ctx.reply, wait=wait, mention_author=mention_author
-            )
+        kwargs = await self._prepare_once()
 
-        return await self._start(
-            message_or_ctx.reply,
-            wait=wait,
-            mention_author=mention_author,
-            ephemeral=ephemeral,
-        )
+        # Message.reply doesn't take the ephemeral kwarg.
+        if isinstance(message_or_ctx, Context):
+            kwargs["ephemeral"] = ephemeral
+
+        message = await message_or_ctx.reply(**kwargs, mention_author=mention_author)
+
+        if wait:
+            await self.wait()
+
+        return message
 
     async def attach_to(
         self, message: discord.Message, *, wait: bool = False
@@ -698,7 +679,13 @@ class PaginationView(BaseView):
         :class:`discord.Message`
             The message that was edited.
         """
-        return await self._start(message.edit, wait=wait)
+        kwargs = await self._prepare_once()
+        message = await message.edit(**kwargs)
+
+        if wait:
+            await self.wait()
+
+        return message
 
     async def send_to(
         self,
@@ -734,7 +721,17 @@ class PaginationView(BaseView):
         :class:`discord.Message`
             The message that was sent.
         """
-        return await self._start(destination.send, wait=wait, ephemeral=ephemeral)
+        kwargs = await self._prepare_once()
+
+        if isinstance(destination, Context):
+            kwargs["ephemeral"] = ephemeral
+
+        message = await destination.send(**kwargs)
+
+        if wait:
+            await self.wait()
+
+        return message
 
     async def change_source(
         self, source: PageSource, interaction: Optional[discord.Interaction] = None
