@@ -193,7 +193,9 @@ class BaseView(View):
             raise TypeError("Both owner_ids and owner_id are set.")
 
         if owner_ids and not isinstance(owner_ids, Collection):
-            raise TypeError(f"owner_ids must be a collection, not {type(owner_ids)!r}")
+            raise TypeError(
+                f"owner_ids must be a collection, not {type(owner_ids).__name__}"
+            )
 
         self.owner_ids: Optional[Collection[int]] = owner_ids
         self.owner_id: Optional[int] = owner_id
@@ -770,7 +772,7 @@ class PaginationView(BaseView):
             was left as ``None``.
         """
         if not isinstance(source, PageSource):
-            raise TypeError(f"Expected PageSource, not {type(source)!r}.")
+            raise TypeError(f"Expected PageSource, not {type(source).__name__}.")
 
         self._source = source
         self.current_page = 0
