@@ -119,7 +119,7 @@ class HTTPRequester:
         **kwargs: Any
     ) -> None:
         if cache is not None and not isinstance(cache, MutableMapping):
-            raise TypeError(f"cache must be MutableMapping or NoneType, not {type(cache)!r}.")
+            raise TypeError(f"cache must be MutableMapping, not {type(cache).__name__}.")
 
         self._cache: Optional[MutableMapping[str, Any]] = cache
         self._request_lock: asyncio.Lock = asyncio.Lock()
@@ -138,7 +138,7 @@ class HTTPRequester:
     @cache.setter
     def cache(self, value: Optional[MutableMapping[str, Any]]) -> None:
         if value is not None and not isinstance(value, MutableMapping):
-            raise TypeError(f"cache must be MutableMapping or NoneType, not {type(value)!r}.")
+            raise TypeError(f"cache must be MutableMapping or None, not {type(value).__name__}.")
 
         self._cache = value
 

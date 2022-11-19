@@ -169,7 +169,7 @@ class BaseView(View):
             raise TypeError("Both owner_ids and owner_id are set.")
 
         if owner_ids and not isinstance(owner_ids, Collection):
-            raise TypeError(f"owner_ids must be a collection, not {type(owner_ids)!r}")
+            raise TypeError(f"owner_ids must be a collection, not {type(owner_ids).__name__}")
 
         if not (owner_id or owner_ids):
             self.owner_ids = set()
@@ -575,7 +575,7 @@ class PaginationView(BaseView):
             A :class:`menus.PageSource` was not passed.
         """
         if not isinstance(source, PageSource):
-            raise TypeError(f"Expected PageSource, not {type(source)!r}.")
+            raise TypeError(f"Expected PageSource, not {type(source).__name__}.")
 
         self._source = source
         self.current_page = 0

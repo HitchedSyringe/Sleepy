@@ -125,7 +125,7 @@ class plural:
         value_format_spec: Optional[str] = None
     ) -> None:
         if not isinstance(value, (int, float)):
-            raise TypeError(f"Expected value to be int or float, not {type(value)!r}.")
+            raise TypeError(f"Expected value to be int or float, not {type(value).__name__}.")
 
         self.__value: float = value
         self.__value_fmt: str = value_format_spec or ""
