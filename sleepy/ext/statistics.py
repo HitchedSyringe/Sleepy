@@ -141,7 +141,7 @@ class Statistics(
                 f"\n\N{BLACK DIAMOND} **Members:** {guild.member_count:,d} ({plural(bots, ',d'):bot})"
                 f"\n\N{BLACK DIAMOND} **Channels:** {len(guild.channels)}"
                 f"\n\N{BLACK DIAMOND} **Created:** {fmt_dt(guild.created_at, 'R')}"
-                f"\n\N{BLACK DIAMOND} **Shard ID:** {guild.shard_id or 'N/A'}"
+                f"\n\N{BLACK DIAMOND} **Shard ID:** {'N/A' if guild.shard_id is None else guild.shard_id}"
             ),
             timestamp=datetime.now(timezone.utc)
         )

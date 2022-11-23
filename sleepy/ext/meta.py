@@ -606,7 +606,7 @@ class Meta(commands.Cog):
                 f"\n<:ar:862433028088135711> **Locale:** {guild.preferred_locale}"
                 f"\n<:ar:862433028088135711> **Upload Limit:** {guild.filesize_limit // 1e6} MB"
                 f"\n<:ar:862433028088135711> **Bitrate Limit:** {guild.bitrate_limit // 1e3} kbps"
-                f"\n<:ar:862433028088135711> **Shard ID:** {guild.shard_id or 'N/A'}"
+                f"\n<:ar:862433028088135711> **Shard ID:** {'N/A' if guild.shard_id is None else guild.shard_id}"
             ),
             inline=False
         )
