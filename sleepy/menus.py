@@ -585,14 +585,18 @@ class PaginationView(BaseView):
 
         if interaction.response.is_done():
             if edit_message:
-                message = await interaction.edit_original_response(**kwargs)
+                message = await interaction.edit_original_response(**kwargs, view=self)
             else:
-                message = await interaction.followup.send(**kwargs, ephemeral=ephemeral)
+                message = await interaction.followup.send(
+                    **kwargs, ephemeral=ephemeral, view=self
+                )
         else:
             if edit_message:
-                await interaction.response.edit_message(**kwargs)
+                await interaction.response.edit_message(**kwargs, view=self)
             else:
-                await interaction.response.send_message(**kwargs, ephemeral=ephemeral)
+                await interaction.response.send_message(
+                    **kwargs, ephemeral=ephemeral, view=self
+                )
 
             message = await interaction.original_response()
 
@@ -650,7 +654,9 @@ class PaginationView(BaseView):
         if isinstance(message_or_ctx, Context):
             kwargs["ephemeral"] = ephemeral
 
-        message = await message_or_ctx.reply(**kwargs, mention_author=mention_author)
+        message = await message_or_ctx.reply(
+            **kwargs, mention_author=mention_author, view=self
+        )
 
         if wait:
             await self.wait()
@@ -682,7 +688,7 @@ class PaginationView(BaseView):
             The message that was edited.
         """
         kwargs = await self._prepare_once()
-        message = await message.edit(**kwargs)
+        message = await message.edit(**kwargs, view=self)
 
         if wait:
             await self.wait()
@@ -728,7 +734,7 @@ class PaginationView(BaseView):
         if isinstance(destination, Context):
             kwargs["ephemeral"] = ephemeral
 
-        message = await destination.send(**kwargs)
+        message = await destination.send(**kwargs, view=self)
 
         if wait:
             await self.wait()
