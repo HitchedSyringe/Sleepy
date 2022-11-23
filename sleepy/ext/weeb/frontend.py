@@ -77,20 +77,11 @@ class Weeb(
             ctx._already_handled_error = True
 
     def cog_load(self) -> None:
-        from ..images.helpers import has_minimum_pillow_minor_version
-
-        if has_minimum_pillow_minor_version((9, 1)):
-            # This modifies PIL's GIF loading strategy on the global level.
-            # This needs to be done since `nichijou` breaks on Pillow 9.x.
-            # Unfortunately, this can only be done on Pillow 9.1+. Pillow
-            # 9.0 people are on their own on this front, since there's no
-            # other way to modify the GIF loading strategy otherwise.
-            self._original_gif_loading_strategy = GIP.LOADING_STRATEGY  # type: ignore
-            GIP.LOADING_STRATEGY = GIP.LoadingStrategy.RGB_AFTER_DIFFERENT_PALETTE_ONLY  # type: ignore
+        self._original_gif_loading_strategy = GIP.LOADING_STRATEGY  # type: ignore
+        GIP.LOADING_STRATEGY = GIP.LoadingStrategy.RGB_AFTER_DIFFERENT_PALETTE_ONLY  # type: ignore
 
     def cog_unload(self) -> None:
-        if hasattr(self, "_original_gif_loading_strategy"):
-            GIP.LOADING_STRATEGY = self._original_gif_loading_strategy  # type: ignore
+        GIP.LOADING_STRATEGY = self._original_gif_loading_strategy  # type: ignore
 
     @staticmethod
     async def send_nekobot_image_embed(ctx: SleepyContext, *, image_type: str) -> None:

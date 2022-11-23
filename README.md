@@ -67,7 +67,7 @@ To test your changes, please refer to the [setup instructions](#installation).
 * [jishaku 2.4.0+](https://github.com/Gorialis/jishaku)
 * [matplotlib](https://github.com/matplotlib/matplotlib)
 * [opencv-python-headless](https://github.com/opencv/opencv-python)
-* [Pillow 8.x & 9.1.0+](https://github.com/python-pillow/Pillow)
+* [Pillow 9.2.0+](https://github.com/python-pillow/Pillow)
 * [psutil](https://github.com/giampaolo/psutil)
 * [pyfiglet](https://github.com/pwaller/pyfiglet)
 * [pyyaml](https://github.com/yaml/pyyaml)

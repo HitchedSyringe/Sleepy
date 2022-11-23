@@ -11,35 +11,15 @@ from __future__ import annotations
 
 __all__ = (
     "get_accurate_text_size",
-    "has_minimum_pillow_minor_version",
     "wrap_text",
 )
 
 
 import textwrap
-from typing import TYPE_CHECKING, Optional, Tuple
+from typing import TYPE_CHECKING, Tuple
 
 if TYPE_CHECKING:
     from PIL.ImageFont import FreeTypeFont
-
-
-__PILLOW_MINOR_VERSION: Optional[Tuple[int, int]] = None
-
-
-def has_minimum_pillow_minor_version(minor_version: Tuple[int, int]) -> bool:
-    from PIL import __version__ as pillow_version
-
-    global __PILLOW_MINOR_VERSION
-
-    if __PILLOW_MINOR_VERSION is None:
-        # This is proofed against .dev[x] versions and release candidates.
-        # We hopefully shouldn't have to care too much about patch levels.
-        pmajor, pminor, *_ = pillow_version.split(".")
-
-        # Cache the result so we don't have to parse every time.
-        __PILLOW_MINOR_VERSION = (int(pmajor), int(pminor))
-
-    return __PILLOW_MINOR_VERSION >= minor_version
 
 
 def get_accurate_text_size(font: FreeTypeFont, text: str) -> Tuple[int, int]:
@@ -54,11 +34,7 @@ def get_accurate_text_size(font: FreeTypeFont, text: str) -> Tuple[int, int]:
 
 
 def wrap_text(text: str, font: FreeTypeFont, *, width: float) -> str:
-    if has_minimum_pillow_minor_version((9, 2)):
-        text_width = font.getlength(text)
-    else:
-        text_width = font.getsize(text)[0]
-
+    text_width = font.getlength(text)
     adjusted_width = int(width * len(text) / text_width)
 
     if text_width < adjusted_width:
