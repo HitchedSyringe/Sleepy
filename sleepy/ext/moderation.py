@@ -647,6 +647,12 @@ class Moderation(commands.Cog):
                 return not result if options.logical_not else result
 
         else:
+            confirmed = await ctx.prompt(f"Shall I delete **{plural(amount):message}**?")
+
+            if not confirmed:
+                await ctx.send("Aborted.")
+                return
+
             check = lambda _: True  # type: ignore
 
         await self.do_purge(
