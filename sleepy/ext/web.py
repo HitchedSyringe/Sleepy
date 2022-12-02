@@ -1248,7 +1248,7 @@ class Web(
         embed = Embed(description=truncate(tsl.text, 2048), colour=0x4285F4)
         embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar)
         embed.set_thumbnail(
-            url="https://cdn.discordapp.com/attachments/507971834570997765/861166905569050624/translate2021.png"
+            url="https://cdn.discordapp.com/attachments/507971834570997765/1048289876514181231/translate2022.png"
         )
 
         embed.set_footer(
