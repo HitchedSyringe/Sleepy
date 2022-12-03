@@ -241,15 +241,8 @@ class Context(commands.Context["Sleepy"]):
         # there isn't a point). Unfortunately, we still need to construct the
         # view because PageSource.format_page needs a menu.
         if not source.is_paginating():
-            await source._prepare_once()
-
-            page = await source.get_page(0)
-            kwargs = await view._get_kwargs_from_page(page)
-
-            if ephemeral:
-                kwargs["ephemeral"] = True
-
-            return await self.send(**kwargs)
+            page_kwargs = await view._prepare_once()
+            return await self.send(**page_kwargs, ephemeral=ephemeral)
 
         return await view.send_to(self, ephemeral=ephemeral, wait=wait)
 
