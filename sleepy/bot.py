@@ -287,7 +287,7 @@ class Sleepy(commands.Bot):
         if self.owner_id is None and not self.owner_ids:
             _LOG.info("No owner IDs were passed in, auto-detecting owners...")
 
-            owner_ids = set(self.config["owner_ids"])
+            owner_ids = set(config["owner_ids"])
 
             if not owner_ids or config["force_querying_owner_ids"]:
                 # Should be fetched by the time we're here.
