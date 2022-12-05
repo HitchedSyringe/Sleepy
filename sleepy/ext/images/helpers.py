@@ -17,14 +17,19 @@ import textwrap
 
 
 def get_accurate_text_size(font, text, /):
-    # The normal getsize doesn't account for newline characters.
-    width, height = font.getsize_multiline(text)
-    return width, height + font.getmetrics()[1]
+    from PIL import Image, ImageDraw
+
+    # FreeTypeFont.getsize_multiline is deprecated as of
+    # Pillow 9.2.x and is slated to be removed by 10.0.0.
+    # This is the next best way to do this without having
+    # to duplicate a bunch of code.
+    draw = ImageDraw.Draw(Image.new("1", (0, 0)))
+    return draw.multiline_textbbox((0, 0), text, font)[2:]
 
 
 def wrap_text(text, font, /, *, width):
-    text_width = font.getsize(text)[0]
-    adjusted_width = len(text) * width // text_width
+    text_width = font.getlength(text)
+    adjusted_width = int(width * len(text) / text_width)
 
     if text_width < adjusted_width:
         return text

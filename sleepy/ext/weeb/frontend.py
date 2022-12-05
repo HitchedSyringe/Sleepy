@@ -78,19 +78,8 @@ class Weeb(
     ICON = "\N{SUSHI}"
 
     def __init__(self):
-        from PIL import __version__ as pillow_version
-
-        # This is proofed against .dev[x] versions and release candidates.
-        major, minor, *_ = pillow_version.split(".")
-
-        if int(major) >= 9 and int(minor) >= 1:
-            # This modifies PIL's GIF loading strategy on the global level.
-            # This needs to be done since `nichijou` breaks on Pillow 9.x.
-            # Unfortunately, this can only be done on Pillow 9.1+. Pillow
-            # 9.0 people are on their own on this front, since there's no
-            # other way to modify the GIF loading strategy otherwise.
-            self._original_gif_loading_strategy = GIP.LOADING_STRATEGY
-            GIP.LOADING_STRATEGY = GIP.LoadingStrategy.RGB_AFTER_DIFFERENT_PALETTE_ONLY
+        self._original_gif_loading_strategy = GIP.LOADING_STRATEGY
+        GIP.LOADING_STRATEGY = GIP.LoadingStrategy.RGB_AFTER_DIFFERENT_PALETTE_ONLY
 
         # Nekobot commands are handled this way in order to
         # allow for ease in supporting any new image endpoints.
@@ -138,8 +127,7 @@ class Weeb(
             error.handled__ = True
 
     def cog_unload(self):
-        if hasattr(self, "_original_gif_loading_strategy"):
-            GIP.LOADING_STRATEGY = self._original_gif_loading_strategy
+        GIP.LOADING_STRATEGY = self._original_gif_loading_strategy
 
     @commands.command(aliases=("animeinfo",))
     @commands.bot_has_permissions(embed_links=True)
