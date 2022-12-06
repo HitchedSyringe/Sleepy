@@ -30,7 +30,7 @@ from psutil import Process
 
 from .context import Context
 from .http import HTTPRequester, HTTPRequestFailed
-from .utils import SOURCE_CODE_URL as SRC_URL, find_extensions_in, human_join
+from .utils import SOURCE_CODE_URL, find_extensions_in, human_join
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -224,37 +224,14 @@ class Sleepy(commands.Bot):
 
         return [u for i in ids if (u := self.get_user(i)) is not None]
 
-    async def setup_hook(self) -> None:
-        from sys import version_info as py_ver_info
-
-        from aiohttp import __version__ as aiohttp_ver
-
-        from . import __version__
-
-        # --- Populate general stuff. ---
-
-        config = self.config
-        self.process = Process()
-        self.started_at = utcnow()
-
-        # --- Set up HTTP requester session. ---
-
-        ua = "Sleepy-DiscordBot ({0} {1}) Python/{2[0]}.{2[1]} aiohttp/{3}"
-
-        headers = {
-            "User-Agent": ua.format(SRC_URL, __version__, py_ver_info, aiohttp_ver)
-        }
-        await self.http_requester.start(headers=headers)
-
-        # --- Load configured extensions ---
-
-        if config["enable_autoload"]:
+    async def _init_extensions(self) -> None:
+        if self.config["enable_autoload"]:
             to_load = self.get_all_extensions()
         else:
             to_load = []
             exts_dir = "/".join(self.extensions_directory.parts)
 
-            for ext in config["extensions_list"]:
+            for ext in self.config["extensions_list"]:
                 if ext.startswith("$/"):
                     ext = ext.replace("$/", f"{exts_dir}/", 1)
 
@@ -278,35 +255,62 @@ class Sleepy(commands.Bot):
             except commands.ExtensionFailed as exc:
                 _LOG.warning("Failed to load extension '%s'.", ext, exc_info=exc.original)
             else:
-                _LOG.info("Loaded extension '%s'.", ext)
+                _LOG.debug("Loaded extension '%s'.", ext)
                 logging.getLogger(ext).setLevel(logging.INFO)
                 loaded += 1
 
-        # --- Populate owners if not initially set. ---
+        failed = total - loaded
 
-        if self.owner_id is None and not self.owner_ids:
-            _LOG.info("No owner IDs were passed in, auto-detecting owners...")
+        _LOG.info("Extensions: %s total; %s loaded; %s failed.", total, loaded, failed)
 
-            owner_ids = set(config["owner_ids"])
+    def _populate_owner_information(self) -> None:
+        owner_ids = set(self.config["owner_ids"])
 
-            if not owner_ids or config["force_querying_owner_ids"]:
-                # Should be fetched by the time we're here.
-                app_info: AppInfo = self.application  # type: ignore
+        if not owner_ids or self.config["force_querying_owner_ids"]:
+            # Should be fetched by the time we're here.
+            app_info: AppInfo = self.application  # type: ignore
 
-                if app_info.team is None:
-                    owner_ids.add(app_info.owner.id)
-                else:
-                    owner_ids.update(m.id for m in app_info.team.members)
-
-            _LOG.info("Auto-detected owner IDs: %s", owner_ids)
-
-            if len(owner_ids) == 1:
-                self.owner_id = owner_ids.pop()
+            if app_info.team is None:
+                owner_ids.add(app_info.owner.id)
             else:
-                # If there's somehow no owner IDs, then I really
-                # don't know if this is a bot we're dealing with.
-                self.owner_ids = owner_ids
+                owner_ids.update(m.id for m in app_info.team.members)
 
+        if len(owner_ids) == 1:
+            self.owner_id = owner_ids.pop()
+        else:
+            # If there's somehow no owner IDs, then I really
+            # don't know if this is a bot we're dealing with.
+            self.owner_ids = owner_ids
+
+    async def setup_hook(self) -> None:
+        from sys import version_info as python_version
+
+        from aiohttp import __version__ as aiohttp_version
+
+        from . import __version__
+
+        # --- Populate general stuff. ---
+        self.process = Process()
+        self.started_at = utcnow()
+
+        # --- Set up HTTP requester session. ---
+        global_user_agent = (
+            f"Sleepy-DiscordBot/{__version__} (+{SOURCE_CODE_URL})"
+            f" Python/{python_version[0]}.{python_version[1]}"
+            f" aiohttp/{aiohttp_version}"
+        )
+
+        await self.http_requester.start(headers={"User-Agent": global_user_agent})
+
+        # --- Load configured extensions ---
+        await self._init_extensions()
+
+        # --- Populate owners if not initially set. ---
+        if self.owner_id is None and not self.owner_ids:
+            _LOG.debug("No owner IDs passed in '__init__', auto-detecting...")
+            self._populate_owner_information()
+
+        _LOG.info("Owner ID(s): %s", self.owner_id or self.owner_ids)
         _LOG.info("Sleepy %s booted successfully. Awaiting READY event...", __version__)
 
     def get_all_extensions(self) -> Generator[str, None, None]:
