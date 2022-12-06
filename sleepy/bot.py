@@ -256,7 +256,7 @@ class Sleepy(commands.Bot):
 
             for ext in config["extensions_list"]:
                 if ext.startswith("$/"):
-                    ext = ext.replace("$", exts_dir, 1).strip("/")
+                    ext = ext.replace("$/", f"{exts_dir}/", 1)
 
                 if ext.endswith("/*"):
                     to_load.extend(find_extensions_in(Path(ext[:-1])))

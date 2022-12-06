@@ -52,7 +52,7 @@ def _new_resolve_extensions(bot: Sleepy, name: str) -> List[str]:
 
     for ext in braceexpand(name):
         if ext.startswith("$."):
-            ext = ext.replace("$", exts_dir, 1).lstrip(".")
+            ext = ext.replace("$.", f"{exts_dir}.", 1)
 
         if ext.endswith(".*"):
             exts.extend(find_extensions_in(ext[:-2].replace(".", "/")))
