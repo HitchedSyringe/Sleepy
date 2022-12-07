@@ -10,6 +10,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 import argparse
 import asyncio
 import logging
+import sys
 from contextlib import contextmanager
 from logging.handlers import RotatingFileHandler
 from typing import Any, Generator, Mapping, Optional, Tuple
@@ -159,13 +160,16 @@ def _run(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
             # Set discord.py logging level.
             logging.getLogger("discord").setLevel(logging.INFO)
 
-            try:
-                import uvloop  # type: ignore
-            except ModuleNotFoundError:
-                logging.info("uvloop not found, skipping installation.")
-            else:
-                uvloop.install()
-                logging.info("uvloop installed successfully.")
+            # Don't bother checking for uvloop on Windows since it's unsupported.
+            # See: https://github.com/MagicStack/uvloop/issues/14
+            if sys.platform not in ("win32", "cygwin", "cli"):
+                try:
+                    import uvloop  # type: ignore
+                except ModuleNotFoundError:
+                    logging.info("uvloop not found, skipping installation.")
+                else:
+                    uvloop.install()
+                    logging.info("uvloop installed successfully.")
 
             _start_bot(config)
     except OSError:
