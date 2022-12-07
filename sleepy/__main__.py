@@ -87,16 +87,19 @@ else:
     # 64 items with TTL of 4 hours (14400 seconds).
     http_cache = TTLCache(64, 14400)
 
-# This does setup for uvloop for those who wish to gain the
-# potential performance benefit. This is left as optional
-# since some either might not want to use it or this code
-# is running on Windows, which uvloop doesn't support.
-try:
-    import uvloop  # type: ignore
-except ModuleNotFoundError:
-    pass
-else:
-    uvloop.install()
+
+# Don't bother checking for uvloop on Windows since it's unsupported.
+# See: https://github.com/MagicStack/uvloop/issues/14
+if sys.platform not in ("win32", "cygwin", "cli"):
+    # This does setup for uvloop for those who wish to gain the
+    # potential performance benefit. This is left as optional
+    # since some people may not want to use it.
+    try:
+        import uvloop  # type: ignore
+    except ModuleNotFoundError:
+        pass
+    else:
+        uvloop.install()
 
 bot = Sleepy(
     config,
