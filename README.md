@@ -59,7 +59,6 @@ To test your changes, please refer to the [setup instructions](#installation).
 
 ## Dependencies
 
-* [cachetools](https://github.com/tkem/cachetools) (optional, but recommended)
 * [discord.py 2.0.0+](https://github.com/Rapptz/discord.py)
 * [discord-ext-menus](https://github.com/Rapptz/discord-ext-menus)
 * [emoji 1.6.0+](https://github.com/carpedm20/emoji)
@@ -73,6 +72,14 @@ To test your changes, please refer to the [setup instructions](#installation).
 * [pyyaml](https://github.com/yaml/pyyaml)
 * [scikit-image](https://github.com/scikit-image/scikit-image)
 * [typing_extensions 4.x](https://github.com/python/typing_extensions)
+
+## Optional Dependencies
+
+Dependencies used in the bot for the purposes of convenience or speed. While not required to run the bot normally, these are recommended for the sake of the above.
+
+* [cachetools](https://github.com/tkem/cachetools)
+* [orjson](https://github.com/ijl/orjson)
+* [uvloop](https://github.com/MagicStack/uvloop) (**not supported on Windows**)
 
 ## Installation
 
@@ -109,4 +116,6 @@ To test your changes, please refer to the [setup instructions](#installation).
   * If `enable_autoload` is set to `true`, the loader will assume that **ANY** existing Python files or modules in the extensions directory are valid extensions and will attempt to load them on startup.
   * If `enable_autoload` is set to `false`, any valid extensions not listed under `extensions_list` in your config will be ignored on startup.
 * As of `v3.2.0`, the bot will utilize `uvloop` if it is installed.
-* As of `v3.3.0`, the bot includes a proper command-line interface. For usage information, use `python -m sleepy --help`.
+* As of `v3.3.0`:
+    * The bot includes a proper command-line interface. For usage information, use `python -m sleepy --help`.
+    * The bot will utilize `orjson` for deserializing and serializing JSON in its HTTP requester.
