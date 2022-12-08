@@ -23,6 +23,7 @@ from collections.abc import Collection
 from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Sequence, Union, overload
 
 import discord
+from discord.ext.commands import Context
 from discord.ext.menus import ListPageSource, PageSource
 from discord.ui import Button, Modal, Select, TextInput, View, button, select
 from discord.utils import MISSING, oauth_url
@@ -30,7 +31,7 @@ from discord.utils import MISSING, oauth_url
 from .utils import DISCORD_SERVER_URL, PERMISSIONS_VALUE, SOURCE_CODE_URL
 
 if TYPE_CHECKING:
-    from discord.ext.commands import Context, Paginator
+    from discord.ext.commands import Paginator
     from discord.ext.menus import MenuPages
     from discord.ui import Item
 
