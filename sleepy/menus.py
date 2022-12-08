@@ -650,7 +650,6 @@ class PaginationView(BaseView):
         """
         kwargs = await self._prepare_once()
 
-        # Message.reply doesn't take the ephemeral kwarg.
         if isinstance(message_or_ctx, Context):
             kwargs["ephemeral"] = ephemeral
 
