@@ -601,6 +601,8 @@ class PaginationView(BaseView):
 
             message = await interaction.original_response()
 
+        self.message = message
+
         if wait:
             await self.wait()
 
@@ -654,7 +656,7 @@ class PaginationView(BaseView):
         if isinstance(message_or_ctx, Context):
             kwargs["ephemeral"] = ephemeral
 
-        message = await message_or_ctx.reply(
+        self.message = message = await message_or_ctx.reply(
             **kwargs, mention_author=mention_author, view=self
         )
 
@@ -688,7 +690,7 @@ class PaginationView(BaseView):
             The message that was edited.
         """
         kwargs = await self._prepare_once()
-        message = await message.edit(**kwargs, view=self)
+        self.message = message = await message.edit(**kwargs, view=self)
 
         if wait:
             await self.wait()
@@ -734,7 +736,7 @@ class PaginationView(BaseView):
         if isinstance(destination, Context):
             kwargs["ephemeral"] = ephemeral
 
-        message = await destination.send(**kwargs, view=self)
+        self.message = message = await destination.send(**kwargs, view=self)
 
         if wait:
             await self.wait()
