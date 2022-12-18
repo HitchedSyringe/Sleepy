@@ -41,7 +41,7 @@ saucenao_api_key: your_saucenao_api_key_here
 # The bot's description.
 description: |-
   A Discord bot for those who like to sleep.
-  This bot is running an instance of Sleepy (<https://github.com/HitSyr/Sleepy>).
+  This bot is running an instance of Sleepy (<https://github.com/HitchedSyringe/Sleepy>).
 
 # The bot's command prefixes.
 # Users will have to prefix commands with these.

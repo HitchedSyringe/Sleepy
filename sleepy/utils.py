@@ -66,7 +66,7 @@ if TYPE_CHECKING:
 
 
 DISCORD_SERVER_URL: str = "https://discord.gg/xHgh2Xg"
-GITHUB_URL: str = "https://github.com/HitSyr/Sleepy"
+GITHUB_URL: str = "https://github.com/HitchedSyringe/Sleepy"
 
 PERMISSIONS_VALUE: int = 309238033478
 
