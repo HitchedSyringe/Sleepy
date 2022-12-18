@@ -2,11 +2,11 @@
 
 <div align="center">
 
-[sleepy]: https://github.com/HitSyr/Sleepy
-[sleepy-s]: https://img.shields.io/github/v/release/HitSyr/Sleepy?color=FDC86F&label=version
+[sleepy]: https://github.com/HitchedSyringe/Sleepy
+[sleepy-s]: https://img.shields.io/github/v/release/HitchedSyringe/Sleepy?color=FDC86F&label=version
 [python]: https://python.org
 [python-s]: https://img.shields.io/badge/python-3.8%2b-blue?logo=python
-[license]: https://github.com/HitSyr/Sleepy/blob/master/LICENSE
+[license]: https://github.com/HitchedSyringe/Sleepy/blob/master/LICENSE
 <!-- Hard-coded because GitHub can't identify the license due to the inclusion of other licenses in the file. -->
 [license-s]: https://img.shields.io/badge/license-MPL--2.0-orange
 [discord]: https://discord.com/invite/xHgh2Xg
@@ -93,7 +93,7 @@ Dependencies used in the bot for the purposes of convenience or speed. While not
 
 3. **Configure the bot.**
 
-    The next step is to set the configuration variables found in the `config_template.yaml` file. If necessary, a raw copy/paste-able version can be found [here](https://raw.githubusercontent.com/HitSyr/Sleepy/master/config_template.yaml).
+    The next step is to set the configuration variables found in the `config_template.yaml` file. If necessary, a raw copy/paste-able version can be found [here](https://raw.githubusercontent.com/HitchedSyringe/Sleepy/master/config_template.yaml).
     * Set the variables as desired. Descriptions for each variable are provided in the file.
         * In order to run the bot, `discord_auth_token` must have a valid bot token. You can acquire one from Discord's [developer portal](https://discord.com/developers).
         * `id` and `token` under `discord_webhook` must also have a valid webhook ID and token, respectively. Read Discord's [support article](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) on webhooks for more information.
