@@ -4,7 +4,7 @@ Sleepy Discord Bot
 A Discord bot for those who like to sleep.
 
 :copyright: (c) 2018-present HitchedSyringe
-:license: MPL-2.0, see LICENSE for more information.
+:license: AGPL-3.0, see LICENSE for more information.
 
 """
 
@@ -12,7 +12,7 @@ A Discord bot for those who like to sleep.
 __title__ = "sleepy"
 __author__ = "HitchedSyringe"
 __copyright__ = "Copyright (c) 2018-present HitchedSyringe"
-__license__ = "MPL-2.0"
+__license__ = "AGPL-3.0"
 __version__ = "4.0.0a"
 
 

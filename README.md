@@ -8,7 +8,7 @@
 [python-s]: https://img.shields.io/badge/python-3.8%2b-blue?logo=python
 [license]: https://github.com/HitchedSyringe/Sleepy/blob/master/LICENSE
 <!-- Hard-coded because GitHub can't identify the license due to the inclusion of other licenses in the file. -->
-[license-s]: https://img.shields.io/badge/license-MPL--2.0-orange
+[license-s]: https://img.shields.io/badge/license-AGPL--3.0-orange
 [discord]: https://discord.com/invite/xHgh2Xg
 [discord-s]: https://discord.com/api/guilds/495593721371295755/widget.png?style=shield
 
@@ -31,9 +31,9 @@ If you wish to have an instance of this bot running in your server, feel free to
 
 ## License
 
-This project is licensed under the [Mozilla Public License, v. 2.0](https://mozilla.org/en-US/MPL/2.0/). See [LICENSE][license] for more information.
+This project is licensed under the [GNU Affero General Public License v3.0](https://www.gnu.org/licenses/agpl-3.0.en.html). See [LICENSE][license] for more information.
 
-The license as of commit `6337f3cde11450b5ca637183009f91b0483b7fdb` also applies to commits prior, regardless of the license(s) stated.
+This license does not grant any rights, either expressly or implicitly, to use any contributer or licensor's trademarks, service marks, or logos except as required for the purposes of attribution.
 
 ## Versioning
 
