@@ -605,7 +605,7 @@ class Meta(commands.Cog):
     @commands.command()
     async def source(self, ctx, *, command=None):
         """Sends a link to my full source code or for a specific command."""
-        base = "https://github.com/HitSyr/Sleepy"
+        base = "https://github.com/HitchedSyringe/Sleepy"
 
         if command is None:
             await ctx.send(f"<{base}>")

@@ -263,7 +263,7 @@ class Statistics(
             value=(
                 "[Support Server](https://discord.gg/xHgh2Xg) "
                 f" \N{BULLET} [Invite]({oauth_url(ctx.bot.app_info.id, discord.Permissions(388166))})"
-                f" \N{BULLET} [GitHub](https://github.com/HitSyr/Sleepy)"
+                f" \N{BULLET} [GitHub](https://github.com/HitchedSyringe/Sleepy)"
                 f"\n<:ar:862433028088135711> **Owner:** {ctx.bot.owner}"
                 f"\n<:ar:862433028088135711> **Created:** {human_ts(ctx.me.created_at, 'R')}"
                 f"\n<:ar:862433028088135711> **Booted:** {human_ts(ctx.bot.started_at, 'R')}"

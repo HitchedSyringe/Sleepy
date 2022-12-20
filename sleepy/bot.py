@@ -127,7 +127,7 @@ class Sleepy(commands.Bot):
         self.extensions_directory = exts_dir = Path(config["extensions_directory"] or ".")
         self.http_requester = HTTPRequester(
             cache=kwargs.get("http_cache"),
-            headers={"User-Agent": f"Sleepy-Discord-Bot/{__version__} (https://github.com/HitSyr/Sleepy)"}
+            headers={"User-Agent": f"Sleepy-Discord-Bot/{__version__} (https://github.com/HitchedSyringe/Sleepy)"}
         )
         self.started_at = None
 
