@@ -235,13 +235,6 @@ def make_nichijou_gif_meme(text: str) -> io.BytesIO:
                     stroke_width=2,
                 )
 
-            # NOTE: Due to Pillow 9.x's changes in GIF loading, the loading
-            # strategy needs to be set to `RGB_AFTER_DIFFERENT_PALETTE_ONLY`
-            # for this to work properly. This is automatically set when the
-            # cog loads in the interest of preserving performance. If doing
-            # the above isn't desired (or you're a Pillow 9.0 user), this
-            # line can alternatively be changed to the following:
-            # frames.append(frame.convert("RGBA"))
             frames.append(frame.convert("P"))
 
     buffer = io.BytesIO()
