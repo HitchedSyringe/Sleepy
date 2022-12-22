@@ -770,7 +770,8 @@ def truncate(text: str, width: int, *, placeholder: str = "...") -> str:
     Raises
     ------
     ValueError
-        An invalid ``width`` was given.
+        Either an invalid ``width`` value was given, or the given
+        placeholder is too long for the given ``width`` value.
 
     Examples
     --------
@@ -783,6 +784,9 @@ def truncate(text: str, width: int, *, placeholder: str = "...") -> str:
         >>> truncate("This is also an extremely long sentence.", 16, placeholder=" [...]")
         "This is also an [...]"
     """
+    if width <= 0:
+        raise ValueError(f"invalid width {width} (must be > 0)")
+
     placeholder_length = len(placeholder)
 
     if placeholder_length > width:
