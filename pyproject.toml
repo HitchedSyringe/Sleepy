@@ -2,6 +2,17 @@
 line-length = 90
 skip-string-normalization = true
 
+[tool.coverage.run]
+omit = [
+    "sleepy/__main__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "@overload",
+]
+
 [tool.isort]
 profile = "black"
 line_length = 90
@@ -21,3 +32,6 @@ exclude = [
 reportUnnecessaryTypeIgnoreComment = "warning"
 reportUnusedImport = "error"
 strictParameterNoneValue = false
+
+[tool.pytest.ini_options]
+asyncio_mode = "strict"
