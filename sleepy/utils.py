@@ -493,7 +493,8 @@ def human_number(
     Raises
     ------
     ValueError
-        ``suffixes`` was an empty sequence.
+        Either an invalid ``sigfigs`` value was given, or ``suffixes``
+        was given an empty sequence.
 
     Examples
     --------
