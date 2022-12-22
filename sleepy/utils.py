@@ -69,14 +69,14 @@ PERMISSIONS_VALUE: int = 274878295110
 
 
 class plural:
-    """A formatting helper class that pluralises a string
-    based on the given numerical value.
+    """A formatting helper class that pluralises a string based on the
+    given numerical value.
 
     .. versionadded:: 1.7
 
     .. versionchanged:: 3.0
-        Raise :exc:`TypeError` if passed ``value`` is
-        not a :class:`int` or :class:`float`.
+        Raise :exc:`TypeError` if passed ``value`` is not a :class:`int`
+        or :class:`float`.
 
     Parameters
     ----------
@@ -86,31 +86,31 @@ class plural:
         .. versionchanged:: 3.0
             This is now a positional-only argument.
     value_format_spec: Optional[:class:`str`]
-        The formatting spec for the numerical value
-        itself.
+        The format spec for the numerical value itself.
 
         .. versionadded:: 3.0
 
     Examples
     --------
-    .. testsetup::
-        from sleepy.utils import plural
+    .. code-block:: python3
 
-    .. doctest::
         >>> format(plural(1), "tree")
         "1 tree"
-        >>> format(plural(10), "car")
-        "10 cars"
-        >>> format(plural(10000, ",d"), "foot|feet")
-        "10,000 feet"
-        >>> f"There are {plural(7):bird} in the nest."
-        "There are 7 birds in the nest."
-        >>> f"I see {plural(4):goose|geese} on the lake."
-        "I see 4 geese on the lake."
-        >>> f"Mount Everest is {plural(29032, ',d'):foot|feet} tall!"
-        "Mount Everest is 29,032 feet tall!"
-        >>> f"It is {plural(-3.6213, '.2f'):degree} Celcius outside."
-        "It is -3.62 degrees Celcius outside."
+
+        >>> format(plural(10), "tree")
+        "10 trees"
+
+        >>> format(plural(1), "foot|feet")
+        "1 foot"
+
+        >>> format(plural(10), "foot|feet")
+        "10 feet"
+
+        >>> format(plural(0.375), "metre")
+        "0.375 metres"
+
+        >>> format(plural(0.375, ".2f"), "metre")
+        "0.38 metres"
     """
 
     __slots__: Tuple[str, ...] = ("__value", "__value_fmt")
@@ -169,8 +169,8 @@ def bool_to_emoji(value: Optional[Any]) -> str:
 
 
 def find_extensions_in(path: Union[str, Path]) -> Generator[str, None, None]:
-    """Returns a generator with the names of every
-    recognized extension in the given path.
+    """Returns a generator with the names of every recognized extension
+    in the given path.
 
     .. versionadded:: 3.0
 
@@ -213,48 +213,47 @@ def human_delta(
     .. versionchanged:: 3.0
 
         * Renamed ``duration`` parameter to ``delta``.
-        * Return ``"Just now"`` if the delta is 0, otherwise,
-          indicate if the delta is negative or positive in the
-          returned string. This behaviour can be disabled via
-          passing ``absolute=True``.
+        * Return ``"Just now"`` if the delta is 0, otherwise, indicate if
+          the delta is negative or positive in the returned string. This
+          behaviour can be disabled by passing ``absolute=True``.
 
     .. versionchanged:: 3.1
-        Replaced ``delta`` argument with the ``datetime1``
-        and ``datetime2`` arguments.
+        Replaced ``delta`` argument with the ``datetime1`` and ``datetime2``
+        arguments.
 
     .. versionchanged:: 3.2
 
-        * Renamed ``datetime1`` and ``datetime2`` parameters to
-          ``dt1`` and ``dt2``, respectively.
-        * Naive datetimes passed are now internally converted
-          to be UTC-aware
+        * Renamed ``datetime1`` and ``datetime2`` parameters to ``dt1`` and
+          ``dt2``, respectively.
+        * Naive datetimes are now automatically converted to be UTC-aware.
 
     Parameters
     ----------
     dt1: :class:`datetime.datetime`
     dt2: Optional[:class:`datetime.datetime`]
         The datetimes to humanize the delta of.
-        This delta is calculated via `dt2 - dt1`.
-        If not given, then the second datetime defaults to
-        the current time as a UTC-aware datetime.
+        This delta is calculated via ``dt2 - dt1``.
+        If ``dt2`` is not given, then default to the current time as a
+        UTC-aware datetime.
 
         .. note::
 
-            Naive datetimes are automatically converted to
-            be UTC-aware. Additionally, microseconds are
-            disregarded internally when calculating.
+            Naive datetimes are automatically converted to be UTC-aware.
+            Additionally, microseconds are disregarded during calculations.
 
         .. versionchanged:: 3.3
             This is no longer a positional-only argument.
     brief: :class:`bool`
-        Whether or not to only return the first component of
-        the humanised delta.
+        Whether or not to only return the first component of the
+        humanised delta (e.g. return "1 year" instead of returning
+        "1 year, 3 weeks, and 1 day").
         Defaults to ``False``.
 
         .. versionadded:: 2.0
     absolute: :class:`bool`
-        Whether or not to return the humanised delta only,
-        without indicating whether it is past or future tense.
+        Whether or not to exclude past or future tense indicators
+        from the humanised delta (e.g. return "1 year" instead of
+        returning "1 year ago" or "In 1 year").
         Defaults to ``False``.
 
         .. versionadded:: 3.0
@@ -263,21 +262,6 @@ def human_delta(
     -------
     :class:`str`
         The human-readable delta.
-
-    Examples
-    --------
-    .. testsetup::
-        from sleepy.utils import human_delta
-
-    .. doctest::
-        >>> human_delta(datetime.datetime(2019, 1, 1), datetime.datetime(2020, 1, 1))
-        "1 year ago"
-        >>> human_delta(datetime.datetime(2020, 4, 20), datetime.datetime(2010, 3, 15))
-        "In 10 years, 1 month, and 5 days"
-        >>> human_delta(datetime.datetime(2024, 2, 29), datetime.datetime(2020, 3, 10), absolute=True)
-        "3 years, 11 months, 2 weeks, and 19 days"
-        >>> human_delta(datetime.datetime(2024, 2, 29), datetime.datetime(2022, 1, 11), brief=True)
-        "In 2 years"
     """
     dt1 = dt1.replace(microsecond=0)
 
@@ -358,23 +342,6 @@ def human_join(sequence: Sequence[Any], /, *, joiner: str = "and") -> str:
     -------
     :class:`str`
         The human-readable list.
-
-    Examples
-    --------
-    .. testsetup::
-        from sleepy.utils import human_join
-
-    .. doctest::
-        >>> human_join(["one"])
-        "one"
-        >>> human_join(["one", "two"])
-        "one and two"
-        >>> human_join(["one", "two", "three"])
-        "one, two, and three"
-        >>> human_join(["yes", "no"], joiner="or")
-        "yes or no"
-        >>> human_join([1, 2, 3, 4, 5], joiner="or")
-        "1, 2, 3, 4, or 5"
     """
     if not sequence:
         return ""
@@ -407,7 +374,7 @@ def human_number(
 
         * Renamed ``precision`` parameter to ``sigfigs``.
         * Renamed ``remove_trailing_zeroes`` parameter to
-        ``strip_trailing_zeroes``.
+          ``strip_trailing_zeroes``.
         * Raise :exc:`ValueError` if ``suffixes`` is an empty sequence.
 
     .. versionchanged:: 3.1.5
@@ -455,23 +422,6 @@ def human_number(
     ValueError
         Either an invalid ``sigfigs`` value was given, or ``suffixes``
         was given an empty sequence.
-
-    Examples
-    --------
-    .. testsetup::
-        from sleepy.utils import human_number
-
-    .. doctest::
-        >>> human_number(-543210)
-        "-543K"
-        >>> human_number(123456789, sigfigs=4)
-        "123.5M"
-        >>> human_number(1201.56, sigfigs=None)
-        "1.20156K"
-        >>> human_number(12023, sigfigs=2, suffixes=("", " thousand"))
-        "12 thousand"
-        >>> human_number(38000, strip_trailing_zeroes=False)
-        "38.0K"
     """
     if not suffixes:
         raise ValueError("suffixes cannot be an empty sequence.")
@@ -580,8 +530,6 @@ def progress_bar(*, progress: int, maximum: int, per: int = 1) -> str:
 
     .. versionchanged:: 3.0
 
-        * Re-ordered the arguments to ``progress``, ``maximum``,
-        and ``per``.
         * Raise :exc:`ValueError` if any of the following apply:
 
             * ``maximum`` is negative or 0.
@@ -724,11 +672,10 @@ def tchart(
 def truncate(text: str, width: int, *, placeholder: str = "...") -> str:
     """Truncates a long string to the given width.
 
-    If the string does not exceed the given width,
-    then the string is returned as is. Otherwise,
-    enough characters are truncated so that both
-    the output text and the ``placeholder`` fit
-    within the given width.
+    If the string does not exceed the given ``width``, then the string
+    is returned as-is. Otherwise, enough characters are truncated such
+    that both the output text and the given ``placeholder`` value fits
+    within the given ``width``.
 
     .. versionadded:: 1.6
 
@@ -743,8 +690,8 @@ def truncate(text: str, width: int, *, placeholder: str = "...") -> str:
     .. versionchanged:: 3.0
 
         * Renamed ``max_width`` parameter to ``width``.
-        * Raise :exc:`ValueError` if ``width`` is less
-          than the length of the placeholder.
+        * Raise :exc:`ValueError` if ``width`` is less than the length
+          of the placeholder.
 
     Parameters
     ----------
@@ -759,8 +706,8 @@ def truncate(text: str, width: int, *, placeholder: str = "...") -> str:
     width: :class:`int`
         The maximum length of the string.
     placeholder: :class:`str`
-        String that will appear at the end of the
-        output text if it has been truncated.
+        String that will appear at the end of the truncated output text.
+        The length of this must be less than the given ``width`` value.
         Defaults to ``"..."``.
 
     Returns
@@ -773,17 +720,6 @@ def truncate(text: str, width: int, *, placeholder: str = "...") -> str:
     ValueError
         Either an invalid ``width`` value was given, or the given
         placeholder is too long for the given ``width`` value.
-
-    Examples
-    --------
-    .. testsetup::
-        from sleepy.utils import truncate
-
-    .. doctest::
-        >>> truncate("This is an extremely long sentence.", 20)
-        "This is an extremely..."
-        >>> truncate("This is also an extremely long sentence.", 16, placeholder=" [...]")
-        "This is also an [...]"
     """
     if width <= 0:
         raise ValueError(f"invalid width {width} (must be > 0)")
