@@ -375,7 +375,9 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 
 Portions of this software may also be licensed under:
 
-    MIT LICENSE
+    MIT LICENSE ~ jishaku
+    ----------------------
+    Source: https://github.com/Gorialis/jishaku
 
     Copyright (c) 2021 Devon (Gorialis) R
 
@@ -398,7 +400,9 @@ Portions of this software may also be licensed under:
     SOFTWARE.
 
 
-    MOZILLA PUBLIC LICENSE VERSION 2.0
+    MOZILLA PUBLIC LICENSE VERSION 2.0 ~ RoboDanny
+    -----------------------------------------------
+    Source: https://github.com/Rapptz/RoboDanny
 
     Copyright (c) 2015 Rapptz
 
@@ -407,7 +411,9 @@ Portions of this software may also be licensed under:
     file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-    MIT LICENSE
+    MIT LICENSE ~ discord-ext-menus
+    --------------------------------
+    Source: https://github.com/Rapptz/discord-ext-menus
 
     Copyright (c) 2015-2020 Danny Y. (Rapptz)
 
