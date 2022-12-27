@@ -589,7 +589,7 @@ class PaginationView(BaseView):
                 message = await interaction.edit_original_response(**kwargs, view=self)
             else:
                 message = await interaction.followup.send(
-                    **kwargs, ephemeral=ephemeral, view=self
+                    **kwargs, ephemeral=ephemeral, view=self, wait=True
                 )
         else:
             if edit_message:
