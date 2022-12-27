@@ -222,7 +222,7 @@ class BotLinksView(View):
 
     * Invite URL (generated via :func:`discord.utils.oauth_url`)
     * [Discord Server](https://discord.gg/xHgh2Xg)
-    * [GitHub Repository](https://github.com/HitSyr/Sleepy)
+    * [GitHub Repository](https://github.com/HitchedSyringe/Sleepy)
 
     .. versionadded:: 3.2
 
