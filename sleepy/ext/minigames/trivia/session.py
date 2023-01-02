@@ -31,7 +31,7 @@ from ..base_session import BaseSession
 from .question import TriviaQuestion
 
 if TYPE_CHECKING:
-    from discord.abc import MessageableChannel
+    from discord.abc import MessageableChannel, User as BaseUser
     from discord.ext.commands import Bot, Context
     from typing_extensions import Self
 
@@ -94,7 +94,7 @@ class TriviaSession(BaseSession):
         random.shuffle(questions)
 
         self.questions: List[TriviaQuestion] = questions
-        self.scores: Counter[Union[discord.Member, discord.User]] = Counter()
+        self.scores: Counter[BaseUser] = Counter()
 
         self.maximum_score: int = options.get("maximum_score", 10)
         self.question_time_limit: int = options.get("question_time_limit", 20)

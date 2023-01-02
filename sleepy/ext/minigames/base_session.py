@@ -20,13 +20,11 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, Optional, Tuple, Union
 
-from discord import User
-
 if TYPE_CHECKING:
     from collections import Counter
 
-    from discord import Member
-    from discord.abc import MessageableChannel
+    from discord import Member, User
+    from discord.abc import MessageableChannel, User as BaseUser
     from discord.ext.commands import Bot, Context
     from typing_extensions import Self
 
@@ -78,7 +76,7 @@ class BaseSession:
         self.bot: Bot = bot
         self.channel: MessageableChannel = channel
         self.host: Union[Member, User] = host
-        self.scores: Optional[Counter[Union[Member, User]]] = None
+        self.scores: Optional[Counter[BaseUser]] = None
 
         self.__task: Optional[asyncio.Task] = None
 
@@ -101,7 +99,7 @@ class BaseSession:
 
             self.bot.dispatch("minigame_session_error", self, exc)
 
-    def is_manager(self, user: Union[Member, User]) -> bool:
+    def is_manager(self, user: BaseUser) -> bool:
         """:class:`bool`: Indicates whether the given user can
         manage this session.
 
@@ -110,10 +108,12 @@ class BaseSession:
         """
         ids = {self.host.id, self.bot.owner_id, *self.bot.owner_ids}  # type: ignore
 
-        if isinstance(user, User):
-            return user.id in ids
+        if isinstance(user, Member):
+            return user.id in ids or self.channel.permissions_for(user).manage_messages
 
-        return user.id in ids or self.channel.permissions_for(user).manage_messages
+        # Can't really get permissions for a :class:`discord.User`.
+        # In this case, we just check if their ID is in the ids set.
+        return user.id in ids
 
     def is_stopped(self) -> bool:
         """:class:`bool`: Indicates whether this session has been stopped."""

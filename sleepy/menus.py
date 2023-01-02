@@ -205,7 +205,7 @@ class BaseView(View):
         """Resets this view's timeout. Does nothing if no timeout was set."""
         super()._refresh_timeout()
 
-    def can_use_menu(self, user: Union[discord.User, discord.Member]) -> bool:
+    def can_use_menu(self, user: discord.abc.User) -> bool:
         """:class:`bool`: Indicates whether a given user can use this menu.
 
         This **always** returns ``True`` if neither :attr:`owner_id` nor
