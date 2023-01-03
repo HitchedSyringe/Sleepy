@@ -155,6 +155,8 @@ def test_human_join(sequence: Sequence[Any], joiner: str, expected: str) -> None
         (-12700, 2, "-13K"),
         (1235000, 5, "1.235M"),
         (-1235000, 5, "-1.235M"),
+        (21_024_800, None, "21.0248M"),
+        (-21_024_800, None, "-21.0248M"),
     ],
 )
 def test_human_number_strip_trailing_zeroes(
@@ -186,6 +188,8 @@ def test_human_number_strip_trailing_zeroes(
         (-12700, 2, "-13K"),
         (1235000, 5, "1.2350M"),
         (-1235000, 5, "-1.2350M"),
+        (21_024_800, None, "21.024800M"),
+        (-21_024_800, None, "-21.024800M"),
     ],
 )
 def test_human_number_not_strip_trailing_zeroes(
