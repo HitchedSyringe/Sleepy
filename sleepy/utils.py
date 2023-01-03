@@ -426,34 +426,46 @@ def human_number(
     if not suffixes:
         raise ValueError("suffixes cannot be an empty sequence.")
 
-    if sigfigs is not None:
+    sign = 1
+
+    if number == 0:
+        # On some platforms, -0.0 is allowed, so doing this is
+        # necessary to prevent a potential result of "-0.0".
+        number = 0.0
+    elif number < 0:
+        sign = -1
+        number = -number
+
+    if sigfigs is None:
+        # Doing this approach is necessary since there's no other way
+        # to handle formatting later without dealing with the immense
+        # intricacies of floating point values.
+        from decimal import Decimal
+
+        sigfigs = len(Decimal(str(number)).as_tuple().digits)
+    else:
         if sigfigs <= 0:
             raise ValueError(f"invalid sigfigs {sigfigs} (must be > 0)")
 
-        if number != 0:
-            number = round(number, sigfigs - math.ceil(math.log10(abs(number))))
+        if number > 0:
+            number = round(number, sigfigs - math.ceil(math.log10(number)))
 
     magnitude = 0
 
-    if number >= 1000 or number <= -1000:
-        magnitude = min(len(suffixes) - 1, int(math.log10(abs(number)) / 3))
+    if number >= 1000:
+        magnitude = min(len(suffixes) - 1, int(math.log10(number) / 3))
         number /= 1000**magnitude
 
-    if isinstance(number, float):
-        if strip_trailing_zeroes:
-            # Python already strips trailing zeroes by default, so
-            # as long as our float isn't an integer (e.g. 1.0), we
-            # don't have to do anything more.
-            if number.is_integer():
-                number = int(number)
-        elif sigfigs is not None:
-            left, _, _ = str(abs(number)).partition(".")
-            precision = max(0, sigfigs - len(left))
+    if strip_trailing_zeroes:
+        # Need to have a minimum precision of 3 so the number isn't
+        # formatted into scientific form, which occurs when sigfigs
+        # is less than the number of sigfigs in the number.
+        spec = f".{max(sigfigs, 3)}g"
+    else:
+        left, _, _ = str(number).partition(".")
+        spec = f".{max(0, sigfigs - len(left))}f"
 
-            # Add trailing zeroes if necessary to respect sigfig count.
-            return f"{number:.{precision}f}{suffixes[magnitude]}"
-
-    return f"{number}{suffixes[magnitude]}"
+    return f"{sign * number:{spec}}{suffixes[magnitude]}"
 
 
 @overload
