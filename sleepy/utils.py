@@ -464,9 +464,9 @@ def human_number(
         .. versionchanged:: 3.0
             This is now a positional-only argument.
     sigfigs: Optional[:class:`int`]
-        The number of significant figures to round to.
-        If ``None`` is passed, then the number will not
-        be rounded.
+        The number of significant figures to round to and maintain.
+        If ``None`` is passed, then the number will not be rounded
+        and all digits will be included in the result.
         Defaults to ``3``.
 
         .. versionchanged:: 3.1.5
@@ -516,25 +516,46 @@ def human_number(
     if not suffixes:
         raise ValueError("suffixes cannot be an empty sequence.")
 
-    if sigfigs is not None:
+    sign = 1
+
+    if number == 0:
+        # On some platforms, -0.0 is allowed, so doing this is
+        # necessary to prevent a potential result of "-0.0".
+        number = 0.0
+    elif number < 0:
+        sign = -1
+        number = -number
+
+    if sigfigs is None:
+        # Doing this approach is necessary since there's no other way
+        # to handle formatting later without dealing with the immense
+        # intricacies of floating point values.
+        from decimal import Decimal
+
+        sigfigs = len(Decimal(str(number)).as_tuple().digits)
+    else:
         if sigfigs <= 0:
             raise ValueError(f"invalid sigfigs {sigfigs} (must be > 0)")
 
-        if number != 0:
-            number = round(number, sigfigs - 1 - math.floor(math.log10(abs(number))))
+        if number > 0:
+            number = round(number, sigfigs - math.ceil(math.log10(number)))
 
     magnitude = 0
 
-    if (absolute := abs(number)) >= 1000:
-        magnitude = min(len(suffixes) - 1, int(math.log10(absolute) / 3))
+    if number >= 1000:
+        magnitude = min(len(suffixes) - 1, int(math.log10(number) / 3))
         number /= 1000**magnitude
 
-    # Normal float numbers in Python generally do not have
-    # trailing zeroes unless it's something like e.g. 1.0.
-    if strip_trailing_zeroes and isinstance(number, float) and number.is_integer():
-        return str(number).rstrip("0").rstrip(".") + suffixes[magnitude]
+    if strip_trailing_zeroes:
+        # Need to have a minimum precision of 3 so the number isn't
+        # formatted into scientific form, which occurs when sigfigs
+        # is less than the number of sigfigs in the number.
+        spec = f".{max(sigfigs, 3)}g"
+    else:
+        left, _, _ = str(number).partition(".")
+        spec = f".{max(0, sigfigs - len(left))}f"
 
-    return f"{number}{suffixes[magnitude]}"
+    return f"{sign * number:{spec}}{suffixes[magnitude]}"
 
 
 @overload
