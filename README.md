@@ -37,11 +37,26 @@ The license as of commit `6337f3cde11450b5ca637183009f91b0483b7fdb` also applies
 
 ## Versioning
 
-The version number has a 3-digit format: `main.major.micro`
+As of v4.0, this project follows the [semantic versioning principle](https://semver.org/).
 
-* `main` updates are rare and only used for massive rewrites affecting huge parts of the bot.
-* `major` updates are any breaking or backwards incompatible change to the bot. This is usually a feature addition, removal, or extension; or the removal or renaming of classes, methods, attributes, and/or commands.
-* `micro` updates are any backwards compatible changes. This is usually an important bug fix (or a bunch of smaller ones) or minor adjustment to a current feature.
+In this case, `major` versions are updated every time there is an incompatible change to the bot's publicly documented API or commands. Breaking changes do not apply to any private classes, attributes, methods, or functions which start with an underscore or are undocumented.
+
+Shown below are some non-exhaustive examples of breaking and non-breaking changes.
+
+### Examples of Breaking Changes
+
+* Changing the default value of a parameter in a command or function to something else.
+* Renaming a attribute, function, or command without including its old name as an alias.
+* Removing a attribute, function, or command.
+* Adding or removing required parameters in a command or function.
+
+### Examples of Non-Breaking Changes
+
+* Adding or removing private attributes or functions.
+* Changes in the behaviour of a command or function to fix a bug.
+* Changes in the typing behaviour of the bot API.
+* Changes in the documentation.
+* Upgrading the dependencies to a newer version, major or otherwise.
 
 ## Contributing
 
