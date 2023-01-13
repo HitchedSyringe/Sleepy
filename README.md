@@ -82,9 +82,9 @@ To test your changes, please refer to the [setup instructions](#installation).
 * [scikit-image](https://github.com/scikit-image/scikit-image)
 * [typing_extensions 4.x](https://github.com/python/typing_extensions)
 
-## Optional Dependencies
+### Optional
 
-Dependencies used in the bot for the purposes of convenience or speed. While not required to run the bot normally, these are recommended for the sake of the above.
+Dependencies that are used in the bot for the purposes of convenience or speed. While not required to run the bot normally, these are recommended for the sake of the above.
 
 * [cachetools](https://github.com/tkem/cachetools)
 * [orjson](https://github.com/ijl/orjson)
