@@ -19,27 +19,21 @@
 
 </div>
 
-[invite]: https://discord.com/oauth2/authorize?client_id=507754861585235978&scope=bot&permissions=274878295110
-
 A Discord bot with server moderation, fun commands, image manipulation, and much more, all designed with user-friendliness and simplicity in mind.
 
-To invite my bot, either use the `invite` command in a server the bot is in, or [click here][invite]. For more information, feel free to check out the bot's [support server][discord]!
+For more information, feel free to check out the bot's [support server][discord].
 
-I would prefer that you don't run an instance of my bot. The source code here is provided for both transparency reasons and educational purposes for discord.py. Just use the instance that I'm hosting. Nevertheless, the instructions to set up the bot are located [here](#installation).
+## NOTICE - 17th February 2023
+
+Due to personal reasons, I will no longer be hosting an official public instance as of today. Therefore, effective immediately, the existing public instance will become private and leave every server it has been added to. That being said, the codebase and support server will continue to be maintained and remain public.
+
+If you wish to have an instance of this bot running in your server, feel free to follow the [setup instructions](#installation). Note that if you choose to invite any third-party hosted instances of this bot, you assume all risks that come with doing so.
 
 ## License
 
 This project is licensed under the [Mozilla Public License, v. 2.0](https://mozilla.org/en-US/MPL/2.0/). See [LICENSE][license] for more information.
 
 The license as of commit `6337f3cde11450b5ca637183009f91b0483b7fdb` also applies to commits prior, regardless of the license(s) stated.
-
-## Privacy Policy and Terms of Service
-
-*Last updated 7th September, 2022*
-
-This is here in case Discord requires me to make one in the future.
-
-There isn't really anything to note. The officially hosted instance does not store any personal data.
 
 ## Versioning
 
