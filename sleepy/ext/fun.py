@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import colorsys
 import io
-import json
 import random
 import re
 import unicodedata
@@ -284,14 +283,6 @@ class Fun(
 
         await ctx.send(f"{question}\n```diff\n{random.choice(BALL_RESPONSES)}```")
 
-    @commands.command()
-    async def advice(self, ctx: SleepyContext) -> None:
-        """Gives some advice."""
-        resp = await ctx.get("https://api.adviceslip.com/advice")
-        data = json.loads(resp)
-
-        await ctx.send(f"{data['slip']['advice']}\n`Powered by adviceslip.com`")
-
     @commands.command(aliases=("asskeyart", "figlet"), usage="text: <text> [options...]")
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def asciiart(self, ctx: SleepyContext, *, options: FigletFlags) -> None:
@@ -408,13 +399,6 @@ class Fun(
         else:
             await ctx.send("The result is too long to post.")
 
-    @commands.command(aliases=("cnorris",))
-    async def chucknorris(self, ctx: SleepyContext) -> None:
-        """Tells a Chuck Norris joke/fact."""
-        resp = await ctx.get("https://api.icndb.com/jokes/random?escape=javascript")
-
-        await ctx.send(f"{resp['value']['joke']}\n`Powered by icndb.com`")
-
     @commands.command()
     async def clap(
         self, ctx: SleepyContext, *, text: Annotated[str, commands.clean_content]
@@ -484,39 +468,6 @@ class Fun(
 
         await ctx.send(embed=embed, file=File(colour_preview, "preview.png"))
 
-    @commands.command()
-    @commands.guild_only()
-    async def compliment(self, ctx: SleepyContext, *, user: discord.Member) -> None:
-        """Compliments a user.
-
-        User can either be a name, ID, or mention.
-
-        **EXAMPLES:**
-        ```bnf
-        <1> compliment HitchedSyringe
-        <2> compliment hitchedsyringe
-        <3> compliment 140540589329481728
-        ```
-        """
-        if user == ctx.me:
-            await ctx.send("I know I'm perfection! Compliment someone who needs it!")
-        else:
-            resp = await ctx.get("https://complimentr.com/api")
-
-            await ctx.send(
-                f"{user.mention} {resp['compliment']}.\n`Powered by complimentr.com`",
-                allowed_mentions=discord.AllowedMentions(users=False),
-            )
-
-    @commands.command(aliases=("pun",))
-    async def dadjoke(self, ctx: SleepyContext) -> None:
-        """Tells a dad joke (or a pun, whatever you want to call it.)"""
-        resp = await ctx.get(
-            "https://icanhazdadjoke.com/", headers__={"Accept": "application/json"}
-        )
-
-        await ctx.send(f"{resp['joke']}\n`Powered by icanhazdadjoke.com`")
-
     @commands.command(aliases=("emojidick", "emojidong", "emojipp"))
     async def emojipenis(self, ctx: SleepyContext, *, emote: EmoteData) -> None:
         """ "___\\_\\_\\_ penis"
@@ -570,88 +521,11 @@ class Fun(
         else:
             await ctx.send("The result is too long to post.")
 
-    @commands.command(aliases=("fite", "1v1"))
-    @commands.guild_only()
-    async def fight(self, ctx: SleepyContext, *, user: discord.Member) -> None:
-        """Fights someone.
-
-        User can either be a name, ID, or mention.
-
-        **EXAMPLES:**
-        ```bnf
-        <1> fight HitchedSyringe
-        <2> fight hitchedsyringe
-        <3> fight 140540589329481728
-        ```
-        """
-        if user == ctx.author:
-            await ctx.send("You look stupid trying to fight yourself.")
-        elif await ctx.bot.is_owner(user) or user == ctx.me:
-            await ctx.send(
-                f"You fought {user.mention} and got erased from existence.",
-                allowed_mentions=discord.AllowedMentions(users=False),
-            )
-        elif random.random() < 0.5:
-            await ctx.send(
-                f"You fought {user.mention} and whooped them.",
-                allowed_mentions=discord.AllowedMentions(users=False),
-            )
-        else:
-            await ctx.send(
-                f"You fought {user.mention} and got your nose bloodied.\nGo see a doctor.",
-                allowed_mentions=discord.AllowedMentions(users=False),
-            )
-
     @commands.command()
     async def flipcoin(self, ctx: SleepyContext):
         """Flips a coin."""
         flip = "Heads" if random.random() < 0.5 else "Tails"
         await ctx.send(f"You flipped **{flip}**!")
-
-    @commands.command(aliases=("bored", "boredidea"))
-    @commands.bot_has_permissions(embed_links=True)
-    async def idea(self, ctx: SleepyContext) -> None:
-        """Gives you something to do for when you're bored."""
-        data = await ctx.get("http://boredapi.com/api/activity/")
-
-        await ctx.send(data["activity"] + ".\n`Powered by boredapi.com`")
-
-    @commands.command(aliases=("roast",))
-    @commands.guild_only()
-    async def insult(self, ctx: SleepyContext, *, user: discord.Member) -> None:
-        """Insults someone.
-
-        User can either be a name, ID, or mention.
-
-        **Disclaimer:** This command was made for entertainment
-        purposes only. __Do not use this to harass others.__
-
-        **EXAMPLES:**
-        ```bnf
-        <1> insult HitchedSyringe
-        <2> insult hitchedsyringe
-        <3> insult 140540589329481728
-        ```
-        """
-        if user == ctx.author:
-            await ctx.send(
-                "Self-deprecation isn't cool.\nInsult somebody besides yourself."
-            )
-        elif user == ctx.me:
-            await ctx.send(
-                "How original. No one else had thought of trying to get me to insult myself."
-                " I applaud your creativity. \N{YAWNING FACE}\nPerhaps the reason you have"
-                " no friends is that you add nothing new to any conversation. You are more"
-                " of a bot than I, giving predictable answers and being absolutely dull to"
-                " have an actual conversation with."
-            )
-        else:
-            insult = await ctx.get("https://evilinsult.com/generate_insult.php?lang=en")
-
-            await ctx.send(
-                f"{user.mention} {insult}\n`Powered by evilinsult.com`",
-                allowed_mentions=discord.AllowedMentions(users=False),
-            )
 
     @commands.command()
     @commands.guild_only()
@@ -734,27 +608,6 @@ class Fun(
                 allowed_mentions=discord.AllowedMentions(users=False),
             )
 
-    @commands.command()
-    async def picknumber(
-        self,
-        ctx: SleepyContext,
-        minimum: commands.Range[int, -1_000_000_000],
-        maximum: commands.Range[int, None, 1_000_000_000],
-    ) -> None:
-        """Picks a random number between a given minimum and maximum, inclusive.
-
-        The widest possible range is ±1000000000, inclusive.
-
-        **EXAMPLE:**
-        ```
-        picknumber 1 10
-        ```
-        """
-        if minimum >= maximum:
-            await ctx.send("The maximum value must be greater than the minimum value.")
-        else:
-            await ctx.send(f"You got **{random.randint(minimum, maximum)}**!")
-
     @commands.command(usage="prompt: <prompt> <choice: <choice>...>")
     @commands.guild_only()  # No need to have instances running in DMs.
     @commands.bot_has_permissions(embed_links=True)
@@ -791,46 +644,6 @@ class Fun(
         else:
             await ctx.send("Polls must have a minimum of 2 unique choices.")
             ctx._refund_cooldown_token()
-
-    @commands.command(aliases=("expression",))
-    async def quote(self, ctx: SleepyContext) -> None:
-        """Shows a random inspiring expression/quote."""
-        data = await ctx.get(
-            "https://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en"
-        )
-
-        await ctx.send(
-            f"> {data['quoteText']}\n- {data['quoteAuthor'] or 'Unknown'}"
-            "\n`Powered by forismatic.com`"
-        )
-
-    @commands.command()
-    @commands.guild_only()
-    async def rate(
-        self, ctx: SleepyContext, *, user: discord.Member = commands.Author
-    ) -> None:
-        """Rates a user out of 10. 100% accurate or your money back.
-
-        User can either be a name, ID, or mention.
-
-        If no user is specified, then you will be rated instead.
-
-        **EXAMPLES:**
-        ```bnf
-        <1> rate HitchedSyringe
-        <2> rate hitchedsyringe
-        <3> rate 140540589329481728
-        ```
-        """
-        if await ctx.bot.is_owner(user) or user == ctx.me:
-            rate = 10
-        else:
-            rate = randint(0, 10, seed=user.id)
-
-        await ctx.send(
-            f"I would give {user.mention} a **{rate}/10**!",
-            allowed_mentions=discord.AllowedMentions(users=False),
-        )
 
     @commands.command(aliases=("rps",))
     async def rockpaperscissors(
@@ -938,47 +751,6 @@ class Fun(
             await ctx.send(content)
         else:
             await ctx.send("The result is too long to post.")
-
-    @commands.command()
-    async def uselessfact(self, ctx: SleepyContext) -> None:
-        """Gives an utterly useless and pointless fact."""
-        resp = await ctx.get("https://useless-facts.sameerkumar.website/api")
-
-        await ctx.send(f"{resp['data']}\n`Powered by sameerkumar.website`")
-
-    @commands.command(aliases=("yomama",))
-    @commands.guild_only()
-    async def yomomma(self, ctx: SleepyContext, *, user: discord.Member) -> None:
-        """Makes an insulting joke about a user's mom.
-
-        It literally just tells a yo momma joke.
-
-        User can either be a name, ID, or mention.
-
-        **Disclaimer:** This command was made for entertainment
-        purposes only. __Do not use this to harass others.__
-
-        **EXAMPLES:**
-        ```bnf
-        <1> yomomma HitchedSyringe
-        <2> yomomma hitchedsyringe
-        <3> yomomma 140540589329481728
-        ```
-        """
-        if user == ctx.author:
-            await ctx.send("Hey! Don't make fun of your own mom!")
-        elif user == ctx.me:
-            await ctx.send(
-                "How original, trying to make me insult my own mom. "
-                "You really must be some kind of comedic genius."
-            )
-        else:
-            resp = await ctx.get("https://api.yomomma.info/")
-
-            await ctx.send(
-                f"{user.mention} {resp['joke']}\n`Powered by yomomma.info`",
-                allowed_mentions=discord.AllowedMentions(users=False),
-            )
 
 
 async def setup(bot: Sleepy) -> None:
