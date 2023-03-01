@@ -35,6 +35,8 @@ This project is licensed under the [GNU Affero General Public License v3.0](http
 
 This license does not grant any rights, either expressly or implicitly, to use any contributer or licensor's trademarks, service marks, or logos except as required for the purposes of attribution.
 
+Commits prior to `e23c157b003ef877a2a785c6431bea61dd770eac` are licensed under the [Mozilla Public License, v. 2.0](https://mozilla.org/en-US/MPL/2.0/). This includes versions `2.x` to `3.3.x`. See the `LICENSE` file included in these commits/versions for more information.
+
 ## Versioning
 
 As of v4.0, this project follows the [semantic versioning principle](https://semver.org/).
