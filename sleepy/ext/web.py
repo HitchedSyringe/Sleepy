@@ -28,7 +28,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Mapping, Optional, Tuple
 from urllib.parse import quote
 
 import yarl
-from discord import Embed, File
+from discord import Colour, Embed, File
 from discord.ext import commands
 from discord.utils import format_dt
 from googletrans import LANGUAGES, Translator
@@ -606,7 +606,7 @@ class Web(
             f"\n`IOC Code:` {data.get('cioc', 'N/A')}"
             f"\n`Gini Index:` {data.get('gini', 'N/A')}"
             f"\n`Top Level Domains:` {', '.join(data['topLevelDomain'])}",
-            colour=0x2F3136,
+            colour=Colour.dark_embed(),
         )
         embed.set_footer(text="Powered by restcountries.com")
         embed.set_thumbnail(url=data["flags"]["png"])
@@ -928,7 +928,7 @@ class Web(
         embed = Embed(
             title=data["username"],
             description=f"**[Skin]({textures['skin']['url']})**",
-            colour=0x2F3136,
+            colour=Colour.dark_embed(),
         )
         embed.set_thumbnail(url=f"https://crafatar.com/renders/body/{data['uuid']}")
 

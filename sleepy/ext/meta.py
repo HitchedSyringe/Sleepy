@@ -28,7 +28,7 @@ from os import path
 from typing import TYPE_CHECKING, Dict, List, Mapping, Optional, Tuple, Union
 
 import discord
-from discord import ActivityType, ChannelType, Embed, SelectOption, Status
+from discord import ActivityType, ChannelType, Colour, Embed, SelectOption, Status
 from discord.abc import GuildChannel
 from discord.ext import commands
 from discord.ext.menus import ListPageSource, PageSource
@@ -99,7 +99,7 @@ class HomePageSource(PageSource):
             f" Alternatively, you can also use `{self.prefix}help"
             " <command|category>` to view more information about"
             " a command or category.",
-            colour=0x2F3136,
+            colour=Colour.dark_embed(),
         )
         embed.set_footer(text="Check out our links using the buttons below!")
 
@@ -149,7 +149,9 @@ class GroupPageSource(ListPageSource):
     async def format_page(
         self, menu: PaginationView, cmds: List[commands.Command]
     ) -> Embed:
-        embed = Embed(title=self.title, description=self.description, colour=0x2F3136)
+        embed = Embed(
+            title=self.title, description=self.description, colour=Colour.dark_embed()
+        )
 
         if self.formatted_aliases is not None:
             embed.set_footer(text=f"Aliases: {self.formatted_aliases}")
@@ -343,7 +345,7 @@ class SleepyHelpCommand(commands.HelpCommand):
         await ctx.paginate(GroupPageSource(cog, cmds))
 
     async def send_command_help(self, command: commands.Command) -> None:
-        embed = Embed(colour=0x2F3136)
+        embed = Embed(colour=Colour.dark_embed())
 
         if command.aliases:
             embed.set_footer(text=f"Aliases: {', '.join(command.aliases)}")
@@ -435,7 +437,7 @@ class Meta(commands.Cog):
         """
         url = user.display_avatar.with_static_format("png")
 
-        embed = Embed(colour=0x2F3136, description=f"**[Avatar Link]({url})**")
+        embed = Embed(colour=Colour.dark_embed(), description=f"**[Avatar Link]({url})**")
         embed.set_author(name=user)
         embed.set_image(url=url)
 
@@ -464,7 +466,7 @@ class Meta(commands.Cog):
         """
         embed = Embed(
             description=content,
-            colour=0x2F3136,
+            colour=Colour.dark_embed(),
             timestamp=ctx.message.created_at or ctx.message.edited_at,
         )
         embed.set_author(
@@ -562,7 +564,7 @@ class Meta(commands.Cog):
 
         embed = Embed(
             description=f"Showing permissions in {icon}{channel.name} (ID: {channel.id})",
-            colour=0x2F3136,
+            colour=Colour.dark_embed(),
         )
         embed.set_author(name=f"{user} (ID: {user.id})", icon_url=user.display_avatar)
 
@@ -614,7 +616,7 @@ class Meta(commands.Cog):
         else:
             guild = ctx.guild
 
-        embed = Embed(colour=0x2F3136, description=guild.description)
+        embed = Embed(colour=Colour.dark_embed(), description=guild.description)
         embed.set_author(name=guild.name)
 
         if guild.icon is not None:
@@ -770,7 +772,7 @@ class Meta(commands.Cog):
                 tree.add_line(f"{icon}{channel.name}")
 
         for page in tree.pages:
-            embed = Embed(description=page, colour=0x2F3136)
+            embed = Embed(description=page, colour=Colour.dark_embed())
             embed.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon)
             embed.set_footer(text=f"{total} total channels.")
 
@@ -821,10 +823,10 @@ class Meta(commands.Cog):
         )
 
         if isinstance(user, discord.User):
-            embed.colour = 0x2F3136
+            embed.colour = Colour.dark_embed()
             embed.set_footer(text="This user is not a member of this server.")
         else:
-            embed.colour = user.colour.value or 0x2F3136
+            embed.colour = user.colour.value or Colour.dark_embed()
 
             embed.add_field(
                 name="\N{BUST IN SILHOUETTE} Member Information",

@@ -133,7 +133,7 @@ class TriviaSession(BaseSession):
 
             category, text, answers, image_url, author = question
 
-            embed = discord.Embed(description=text, colour=0x2F3136)
+            embed = discord.Embed(description=text, colour=discord.Colour.dark_embed())
             embed.set_image(url=image_url)
 
             embed.add_field(name="Category", value=category)

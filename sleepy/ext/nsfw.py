@@ -533,7 +533,7 @@ class NSFW(
         for result in results:
             meta = result["header"]
 
-            embed = Embed(title=meta["index_name"], colour=0x2F3136)
+            embed = Embed(title=meta["index_name"], colour=Colour.dark_embed())
             # For some reason, thumbnail URLs sometimes have spaces in them.
             embed.set_image(url=meta["thumbnail"].replace(" ", "%20"))
             embed.set_footer(

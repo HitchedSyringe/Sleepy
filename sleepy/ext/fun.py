@@ -30,7 +30,7 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Set, Tupl
 import discord
 import emoji
 import pyfiglet
-from discord import Embed, File
+from discord import Colour, Embed, File
 from discord.ext import commands
 from discord.ui import View, select
 from discord.utils import MISSING, escape_markdown
@@ -165,7 +165,9 @@ class PollView(View):
 
     async def send_to(self, destination: discord.abc.Messageable) -> None:
         embed = Embed(
-            title="Everyone will be voting on:", description=self.prompt, colour=0x2F3136
+            title="Everyone will be voting on:",
+            description=self.prompt,
+            colour=Colour.dark_embed(),
         )
         embed.set_author(
             name=f"{self.starter} is calling a vote!",
@@ -205,7 +207,7 @@ class PollView(View):
         embed = Embed(
             title="Voting has ended and the results are in!",
             description=f"```\n{tchart(dict(votes.most_common()))}```",
-            colour=0x2F3136,
+            colour=Colour.dark_embed(),
         )
         embed.set_footer(
             text=f"Started by: {self.starter}",
@@ -440,7 +442,7 @@ class Fun(
         **EXAMPLES:**
         ```bnf
         <1> colour red
-        <2> colour #2F3136
+        <2> colour #2B2D31
         <2> colour 0x32A852
         <2> colour 0x#FA9C69
         <3> colour rgb(106, 63, 227)
@@ -705,7 +707,7 @@ class Fun(
         ```
         """
         embed = Embed(
-            colour=0x2F3136,
+            colour=Colour.dark_embed(),
             description=content,
             timestamp=ctx.message.created_at or ctx.message.edited_at,
         )

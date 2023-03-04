@@ -256,7 +256,7 @@ class Statistics(
         """
         bot = ctx.bot
 
-        embed = Embed(description=bot.description, colour=0x2F3136)
+        embed = Embed(description=bot.description, colour=Colour.dark_embed())
         embed.set_author(name=ctx.me, icon_url=ctx.me.display_avatar)
         embed.set_footer(text="Check out our links using the buttons below!")
 

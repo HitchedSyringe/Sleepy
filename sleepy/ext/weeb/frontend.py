@@ -138,7 +138,9 @@ class Weeb(
             id_ = item["mal_id"]
 
             embed = Embed(
-                title=f"`{id_}` - {item['title']}", colour=0x2F3136, url=item["url"]
+                title=f"`{id_}` - {item['title']}",
+                colour=Colour.dark_embed(),
+                url=item["url"],
             )
             embed.set_thumbnail(url=item["images"]["webp"]["large_image_url"])
             embed.set_footer(text="Powered by jikan.moe")
@@ -339,7 +341,7 @@ class Weeb(
     #     """
     #     resp = await ctx.get("https://miku-for.us/api/v2/random")
 
-    #     embed = Embed(colour=0x2F3136)
+    #     embed = Embed(colour=Colour.dark_embed())
     #     embed.set_image(url=resp["url"])
     #     embed.set_footer(text="Powered by miku-for.us")
 
@@ -476,7 +478,9 @@ class Weeb(
             id_ = item["mal_id"]
 
             embed = Embed(
-                title=f"`{id_}` - {item['title']}", colour=0x2F3136, url=item["url"]
+                title=f"`{id_}` - {item['title']}",
+                colour=Colour.dark_embed(),
+                url=item["url"],
             )
             embed.set_thumbnail(url=item["images"]["webp"]["large_image_url"])
             embed.set_footer(text="Powered by jikan.moe")

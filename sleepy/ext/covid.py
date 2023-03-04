@@ -24,7 +24,7 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Dict, Optional
 from urllib.parse import quote
 
-from discord import Embed, File
+from discord import Colour, Embed, File
 from discord.ext import commands
 from jishaku.functools import executor_function
 from matplotlib import pyplot as plt, use as matplotlib_use
@@ -103,10 +103,12 @@ class Covid(
         # active = cases - deaths - recoveries
         a_counts = [c - d - r for c, d, r in zip(c_counts, d_counts, r_counts)]
 
+        dark_embed = str(Colour.dark_embed())
+
         # Have to use to figure object directly since pyplot
         # uses tkinter internally, which doesn't play nice
         # when async gets involed.
-        fig = Figure(facecolor="#2F3136")
+        fig = Figure(facecolor=dark_embed)
 
         fig.text(
             0.13,
@@ -125,7 +127,7 @@ class Covid(
             ha="right",
         )
 
-        axes = fig.subplots(subplot_kw={"axisbelow": True, "facecolor": "#2F3136"})
+        axes = fig.subplots(subplot_kw={"axisbelow": True, "facecolor": dark_embed})
 
         axes.xaxis.grid(color="#4F545C", linestyle="--", alpha=0.75)
 
@@ -262,7 +264,7 @@ class Covid(
 
         embed = Embed(
             title="COVID-19 Statistics",
-            colour=0x2F3136,
+            colour=Colour.dark_embed(),
             timestamp=datetime.fromtimestamp(latest["updated"] / 1000, timezone.utc),
         )
         embed.set_footer(text=f"Powered by disease.sh \N{BULLET} Took {delta:.2f} ms.")
@@ -375,7 +377,7 @@ class Covid(
 
         embed = Embed(
             title="COVID-19 Statistics",
-            colour=0x2F3136,
+            colour=Colour.dark_embed(),
             timestamp=datetime.fromtimestamp(latest["updated"] / 1000, timezone.utc),
         )
         embed.set_author(name=latest["country"], icon_url=latest["countryInfo"]["flag"])
@@ -462,7 +464,7 @@ class Covid(
 
         embed = Embed(
             title="COVID-19 Statistics",
-            colour=0x2F3136,
+            colour=Colour.dark_embed(),
             timestamp=datetime.fromtimestamp(latest["updated"] / 1000, timezone.utc),
         )
         embed.set_footer(text="Powered by disease.sh")

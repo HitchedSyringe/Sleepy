@@ -30,7 +30,7 @@ from typing import TYPE_CHECKING, List
 import discord
 import psutil
 from braceexpand import braceexpand
-from discord import Embed
+from discord import Colour, Embed
 from discord.ext import commands
 from jishaku import modules
 from jishaku.features.baseclass import Feature
@@ -114,7 +114,7 @@ class Owner(
         """
         embed = Embed(
             description=content,
-            colour=0x2F3136,
+            colour=Colour.dark_embed(),
             timestamp=ctx.message.edited_at or ctx.message.created_at,
         )
         embed.set_author(
@@ -258,7 +258,7 @@ class Owner(
 
         embed = Embed(
             title="\N{DESKTOP COMPUTER} System Information",
-            colour=0x2F3136,
+            colour=Colour.dark_embed(),
             description="```yml\n" + "\n".join(gen_info) + "\n```",
         )
 

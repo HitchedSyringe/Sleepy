@@ -224,7 +224,7 @@ class Images(
         cats = await ctx.get("https://api.thecatapi.com/v1/images/search?limit=50")
 
         embeds = [
-            Embed(title="\N{CAT FACE}", colour=0x2F3136)
+            Embed(title="\N{CAT FACE}", colour=Colour.dark_embed())
             .set_footer(text="Powered by thecatapi.com")
             .set_image(url=c["url"])
             for c in cats
@@ -316,7 +316,7 @@ class Images(
         """Sends a random image of coffee."""
         coffee = await ctx.get("https://coffee.alexflipnote.dev/random.json")
 
-        embed = Embed(title="\N{HOT BEVERAGE}", colour=0x2F3136)
+        embed = Embed(title="\N{HOT BEVERAGE}", colour=Colour.dark_embed())
         embed.set_image(url=coffee["file"])
         embed.set_footer(text="Powered by alexflipnote.dev")
 
@@ -389,7 +389,7 @@ class Images(
         dogs = await ctx.get("https://dog.ceo/api/breeds/image/random/50")
 
         embeds = [
-            Embed(title="\N{DOG FACE}", colour=0x2F3136)
+            Embed(title="\N{DOG FACE}", colour=Colour.dark_embed())
             .set_footer(text="Powered by dog.ceo")
             .set_image(url=d)
             for d in dogs["message"]
@@ -407,7 +407,7 @@ class Images(
         """
         duck = await ctx.get("https://random-d.uk/api/random")
 
-        embed = Embed(title="\N{DUCK}", colour=0x2F3136)
+        embed = Embed(title="\N{DUCK}", colour=Colour.dark_embed())
         embed.set_image(url=duck["url"])
         embed.set_footer(text="Powered by random-d.uk")
 
@@ -423,7 +423,7 @@ class Images(
         """
         fox = await ctx.get("https://randomfox.ca/floof/")
 
-        embed = Embed(title="\N{FOX FACE}", colour=0x2F3136)
+        embed = Embed(title="\N{FOX FACE}", colour=Colour.dark_embed())
         embed.set_image(url=fox["image"])
         embed.set_footer(text="Powered by randomfox.ca")
 

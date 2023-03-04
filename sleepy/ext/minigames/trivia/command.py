@@ -28,7 +28,7 @@ __all__ = (
 from typing import TYPE_CHECKING, Tuple
 
 import yaml
-from discord import Embed
+from discord import Colour, Embed
 from discord.ext import commands
 from typing_extensions import Annotated
 
@@ -100,7 +100,7 @@ async def trivia_command(
     options_dict = _as_argparse_dict(options)
     del options_dict["categories"]
 
-    embed = Embed(title="A new trivia session is starting!", colour=0x2F3136)
+    embed = Embed(title="A new trivia session is starting!", colour=Colour.dark_embed())
     embed.set_footer(text=f"Started by {ctx.author}")
 
     embed.add_field(name="Categories", value=human_join(category_credits), inline=False)
