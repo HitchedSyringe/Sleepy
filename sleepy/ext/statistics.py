@@ -273,7 +273,7 @@ class Statistics(
 
         embed.add_field(
             name="\N{ROBOT FACE} About Me",
-            value=f"`Owner:` {bot.owner}"
+            value=f"`Owners:` {', '.join(map(str, bot.owners))}"
             f"\n`Created:` {format_dt(ctx.me.created_at, 'R')}"
             f"\n`Booted:` {format_dt(bot.started_at, 'R')}"
             f"\n`Servers:` {guilds:,d}"

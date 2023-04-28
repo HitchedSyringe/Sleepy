@@ -30,7 +30,7 @@ import logging
 import re
 import traceback
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Generator, List, Mapping, Optional
+from typing import TYPE_CHECKING, Any, Generator, List, Mapping
 
 import discord
 from discord import Colour, Embed
@@ -163,46 +163,6 @@ class Sleepy(commands.Bot):
 
         session = self.http_requester.session
         return discord.Webhook.partial(**self.config["discord_webhook"], session=session)
-
-    @property
-    def owner(self) -> Optional[discord.User]:
-        """Optional[:class:`discord.User`]: The bot's owner.
-
-        This first attempts to resolve the user using the owner IDs.
-        If either the resolution attempt fails or no owner IDs were
-        set, then the application information is used as a fallback.
-
-        ``None`` is returned if both resolution attempts fail.
-
-        .. versionadded:: 1.12
-
-        .. versionchanged:: 3.0
-            The bot's application info is now used as a fallback.
-        """
-        # We assume that one or the other is set, as enforced in __init__.
-        if self.owner_id is not None:
-            owner = self.get_user(self.owner_id)
-        elif self.owner_ids and len(self.owner_ids) == 1:
-            owner = self.get_user(next(iter(self.owner_ids)))
-        else:
-            owner = None
-
-        if owner is None:
-            app_info = self.application
-
-            if app_info is not None:
-                if app_info.team is None:
-                    owner = app_info.owner
-                else:
-                    # :attr:`AppInfo.owner` is the team itself, so this
-                    # is the only way of getting the application owner.
-                    # We use :meth:`Bot.get_user` here for two reasons:
-                    # * Consistency (i.e. returning :class:`discord.User`
-                    #   instead of :class:`discord.TeamMember`)
-                    # * :attr:`Team.owner` is O(n); this is O(1).
-                    owner = self.get_user(app_info.team.owner_id)  # type: ignore
-
-        return owner
 
     @property
     def owners(self) -> List[discord.User]:
