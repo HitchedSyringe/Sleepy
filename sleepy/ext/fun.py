@@ -38,7 +38,7 @@ from jishaku.functools import executor_function
 from PIL import Image, ImageDraw
 from typing_extensions import Annotated
 
-from sleepy.utils import measure_performance, plural, randint, tchart
+from sleepy.utils import measure_performance, plural, tchart
 
 if TYPE_CHECKING:
     from discord.ui import Item, Select
@@ -552,7 +552,8 @@ class Fun(
         if await ctx.bot.is_owner(user) or user == ctx.me:
             iq = 1000
         else:
-            iq = randint(0, 1000, seed=user.id)
+            seeded_random = random.Random(user.id)
+            iq = seeded_random.randint(0, 1000)
 
         await ctx.send(
             f"{user.mention} has at least **{iq}** IQ.",
@@ -603,7 +604,8 @@ class Fun(
             # haha guys i'm so funny and original i should really be a comedian.
             await ctx.send("The result is too long to post.")
         else:
-            shaft = "=" * randint(0, 40, seed=user.id)
+            seeded_random = random.Random(user.id)
+            shaft = "=" * seeded_random.randint(0, 40)
 
             await ctx.send(
                 f"{user.mention}'s penis length: `8{shaft}D`",

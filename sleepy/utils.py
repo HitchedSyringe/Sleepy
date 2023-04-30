@@ -37,7 +37,6 @@ __all__ = (
 
 
 import math
-import random
 import time
 from asyncio import iscoroutinefunction
 from datetime import datetime, timezone
@@ -618,36 +617,6 @@ def progress_bar(*, progress: int, maximum: int, per: int = 1) -> str:
         return ER + EB * (total - 2) + EL
 
     return FR + FB * (filled - 1) + EB * (total - filled - 1) + EL
-
-
-def randint(a: int, b: int, *, seed: Optional[Any] = None) -> int:
-    """Similar to :func:`random.randint` except allows for setting a
-    seed without having to create a :class:`random.Random` instance
-    or modify the global one.
-
-    .. versionadded:: 3.1.8
-
-    Parameters
-    ----------
-    a: :class:`int`
-        The lower limit of the range.
-
-        .. versionchanged:: 3.3
-            This is no longer a positional-only argument.
-    b: :class:`int`
-        The upper limit of the range.
-
-        .. versionchanged:: 3.3
-            This is no longer a positional-only argument.
-    seed: Optional[Any]
-        The seed for randomisation.
-
-    Returns
-    -------
-    :class:`int`
-        The randomly generated integer.
-    """
-    return random.Random(seed).randint(a, b)
 
 
 def tchart(

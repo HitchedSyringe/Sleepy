@@ -48,6 +48,7 @@ __all__ = (
 
 
 import io
+import random
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Optional, Tuple, Union
 
@@ -58,7 +59,7 @@ from jishaku.functools import executor_function
 from PIL import Image, ImageDraw, ImageEnhance, ImageFont, ImageOps, ImageSequence
 from skimage import transform
 
-from sleepy.utils import measure_performance, randint
+from sleepy.utils import measure_performance
 
 from .fonts import FONTS
 from .helpers import get_accurate_text_size, wrap_text
@@ -660,7 +661,8 @@ def make_ship(
         # Confidence meter
         font = font.font_variant(size=16)
 
-        confidence = randint(0, 100, seed=seed)
+        seeded_random = random.Random(seed)
+        confidence = seeded_random.randint(0, 100)
 
         if (fill := confidence // 10) != 0:
             draw.rounded_rectangle((140, 234, 140 + 40 * fill, 264), 10, (221, 61, 72))
