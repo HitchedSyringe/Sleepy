@@ -36,7 +36,6 @@ import discord
 from discord import Colour, Embed
 from discord.ext import commands
 from discord.utils import MISSING, cached_property, utcnow
-from psutil import Process
 
 from .context import Context
 from .http import HTTPRequester, HTTPRequestFailed
@@ -119,10 +118,6 @@ class Sleepy(commands.Bot):
 
         .. versionchanged:: 3.3
             This now returns a :class:`datetime.datetime`.
-    process: :class:`psutil.Process`
-        The bot's OS process.
-
-        .. versionadded:: 3.3
     """
 
     def __init__(self, config: Mapping[str, Any], *args: Any, **kwargs: Any) -> None:
@@ -137,7 +132,6 @@ class Sleepy(commands.Bot):
         self.extensions_directory: Path = Path(config["extensions_directory"] or ".")
         self.http_requester: HTTPRequester = HTTPRequester(cache=kwargs.get("http_cache"))
 
-        self.process: Process = MISSING
         self.started_at: datetime = MISSING
 
         # Cooldown mapping for people who excessively spam commands.
@@ -260,7 +254,6 @@ class Sleepy(commands.Bot):
         from . import __version__
 
         # --- Populate general stuff. ---
-        self.process = Process()
         self.started_at = utcnow()
 
         # --- Set up HTTP requester session. ---

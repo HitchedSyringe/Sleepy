@@ -284,8 +284,9 @@ class Statistics(
             "\n||Wowee!! Another Discord bot.||",
         )
 
-        memory_usage = bot.process.memory_full_info().uss / 1024**2
-        cpu_usage = bot.process.cpu_percent() / psutil.cpu_count()
+        process = psutil.Process()
+        memory_usage = process.memory_full_info().uss / 1024**2
+        cpu_usage = process.cpu_percent() / psutil.cpu_count()
 
         embed.add_field(
             name="\N{CONTROL KNOBS} Technical Information",

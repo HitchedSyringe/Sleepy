@@ -241,6 +241,7 @@ class Owner(
     async def jsk_system(self, ctx: SleepyContext) -> None:
         """Displays some brief information my system and vitals."""
         bot = ctx.bot
+        process = psutil.Process()
 
         gen_info = [
             f"OS: {platform.platform()}",
@@ -263,30 +264,30 @@ class Owner(
         )
 
         proc_info = [
-            f"PID: {bot.process.pid}",
+            f"PID: {process.pid}",
         ]
 
         try:
-            with bot.process.oneshot():
+            with process.oneshot():
                 try:
-                    proc_info.append(f"\u25B8 Name: {bot.process.name()}")
+                    proc_info.append(f"\u25B8 Name: {process.name()}")
                 except psutil.AccessDenied:
                     pass
 
                 try:
-                    proc_info.append(f"\u25B8 Threads: {bot.process.num_threads()}")
+                    proc_info.append(f"\u25B8 Threads: {process.num_threads()}")
                 except psutil.AccessDenied:
                     pass
 
                 try:
-                    mem = bot.process.memory_full_info().uss
+                    mem = process.memory_full_info().uss
                     mem_perc = mem / psutil.virtual_memory().total
                     proc_info.append(f"RAM: {natural_size(mem)} ({mem_perc:.2%})")
                 except psutil.AccessDenied:
                     pass
 
                 try:
-                    cpu_perc = bot.process.cpu_percent() / psutil.cpu_count()
+                    cpu_perc = process.cpu_percent() / psutil.cpu_count()
                     proc_info.append(f"CPU: {cpu_perc:.2f}%")
                 except psutil.AccessDenied:
                     pass
