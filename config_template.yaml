@@ -1,5 +1,5 @@
 # --- Sleepy Configuration ---
-# This configuration file is compatible for versions 3.x or higher.
+# This configuration file is compatible with versions 4.x or higher.
 
 
 # -- [Secrets] --
@@ -9,11 +9,9 @@
 discord_auth_token: your_discord_bot_token_here
 
 # The bot's Discord webhook for statistics and logging. (required)
-# With the webhook URL, the ID and token can be taken like so:
-# https://discord.com/api/webhooks/<id>/<token>
-discord_webhook:
-  id: 12345  # Replace with your Discord webhook ID.
-  token: your_discord_webhook_token_here
+# Get one from Edit Channel > Integrations > Webhooks
+# Example URL: https://discord.com/api/webhooks/<id>/<token>
+discord_webhook_url: your_discord_webhook_url_here
 
 # The API key to interact with Google's APIs.
 # Get one from: https://console.cloud.google.com/apis

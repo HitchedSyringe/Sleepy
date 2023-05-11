@@ -107,7 +107,7 @@ Dependencies that are used in the bot for the purposes of convenience or speed. 
     The next step is to set the configuration variables found in the `config_template.yaml` file. If necessary, a raw copy/paste-able version can be found [here](https://raw.githubusercontent.com/HitchedSyringe/Sleepy/master/config_template.yaml).
     * Set the variables as desired. Descriptions for each variable are provided in the file.
         * In order to run the bot, `discord_auth_token` must have a valid bot token. You can acquire one from Discord's [developer portal](https://discord.com/developers).
-        * `id` and `token` under `discord_webhook` must also have a valid webhook ID and token, respectively. Read Discord's [support article](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) on webhooks for more information.
+        * `discord_webhook_url` must also have a valid webhook URL. You can acquire one by going into `Edit Channel > Integrations > Webhooks`. Read Discord's [support article](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) on webhooks for more information.
     * When finished, rename `config_template.yaml` to `config.yaml`.
         * You may also rename this file to whatever you like, however, you must follow the special running instructions specified below in the next step.
 

@@ -156,7 +156,7 @@ class Sleepy(commands.Bot):
             raise RuntimeError("HTTP requester session is closed.")
 
         session = self.http_requester.session
-        return discord.Webhook.partial(**self.config["discord_webhook"], session=session)
+        return discord.Webhook.from_url(self.config["discord_webhook_url"], session=session)
 
     @property
     def owners(self) -> List[discord.User]:
