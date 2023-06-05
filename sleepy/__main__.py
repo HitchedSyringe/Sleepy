@@ -48,7 +48,8 @@ def _setup_logging(*, log_filename: Optional[str] = None) -> Generator[None, Non
             # non-existant parent directory. Logically, this should
             # be silently handled from a user standpoint. This only
             # fails on Windows if we exceed the nested path limit.
-            if log_parent := path.dirname(log_filename):
+            log_parent = path.dirname(log_filename)
+            if not path.isdir(log_parent):
                 makedirs(log_parent, exist_ok=True)
 
             file_handler = RotatingFileHandler(
