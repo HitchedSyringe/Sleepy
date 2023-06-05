@@ -94,7 +94,7 @@ def _create_bot(config: Mapping[str, Any]) -> Sleepy:
 
     activity = Streaming(
         name=f"{prefix}help \N{BULLET} Sleepy v{__version__}",
-        url="https://youtube.com/watch?v=PobQzVsj7GE",
+        url="https://youtube.com/watch?v=488YxXFIpz8",
     )
 
     intents = Intents(
