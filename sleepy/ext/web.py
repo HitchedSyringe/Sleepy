@@ -208,7 +208,7 @@ class SteamAccountMeta:
 # all types of URLs to be recognized, including the
 # variant of /c which is no /c.
 YOUTUBE_URL: re.Pattern = re.compile(
-    r"youtube\.com(?:\/c|\/user|\/channel)?\/([A-Za-z0-9_\-]+)$"
+    r"youtube\.com\/(?:c\/|user\/|channel\/|@)?([A-Za-z0-9_\-]+)$"
 )
 
 
@@ -221,7 +221,10 @@ def youtube_channel_kwargs(value: str) -> Dict[str, str]:
     if re.fullmatch(r"UC[A-Za-z0-9_-]{21}[AQgw]", value) is not None:
         return {"id": value}
 
-    return {"forUsername": value.lower()}
+    # Currently, it seems that this parameter relates to the legacy
+    # vanity usernames (e.g. /c/username or /user/username) and not
+    # the new "@" username, which is contrary to what the docs allude.
+    return {"forUsername": value.replace("@", "", 1).lower()}
 
 
 class Web(
@@ -1561,12 +1564,14 @@ class Web(
 
         **EXAMPLES:**
         ```bnf
-        <1> youtubeinfo https://youtube.com/channel/UC57ZBb_D-YRsCxnsdHGSxSQ
-        <2> youtubeinfo https://youtube.com/user/SomeReallyCoolVanityHere
-        <3> youtubeinfo https://youtube.com/c/SomeReallyCoolVanityHere
-        <4> youtubeinfo https://youtube.com/SomeReallyCoolVanityHere
-        <5> youtubeinfo UC57ZBb_D-YRsCxnsdHGSxSQ
-        <6> youtubeinfo SomeReallyCoolVanityHere
+        <1> youtubeinfo https://youtube.com/channel/UCBR8-60-B28hp2BmDPdntcQ
+        <2> youtubeinfo https://youtube.com/user/youtube
+        <3> youtubeinfo https://youtube.com/c/youtube
+        <4> youtubeinfo https://youtube.com/youtube
+        <5> youtubeinfo https://youtube.com/@youtube
+        <6> youtubeinfo UCBR8-60-B28hp2BmDPdntcQ
+        <7> youtubeinfo @youtube
+        <8> youtubeinfo youtube
         ```
         """
         resp = await ctx.get(
