@@ -333,16 +333,11 @@ class Sleepy(commands.Bot):
             ctx.command.reset_cooldown(ctx)
 
     async def on_error(self, event_method: str, *args: Any, **kwargs: Any) -> None:
-        p_args = "\n".join(f"[{i}] {a}" for i, a in enumerate(args)) or "N/A"
-        k_args = "\n".join(f"{k}: {v}" for k, v in kwargs.items()) or "N/A"
+        fmt_args = "\n".join(f"[{i}] {a}" for i, a in enumerate(args)) or "N/A"
+        fmt_kwargs = "\n".join(f"{k}: {v}" for k, v in kwargs.items()) or "N/A"
 
-        fmt = (
-            'Unhandled exception in event handler "%s":'
-            "\nPositional Arguments: --\n%s"
-            "\nKeyword Arguments: --\n%s"
-        )
-
-        _LOG.exception(fmt, event_method, p_args, k_args)
+        fmt = "Unhandled exception in event '%s':\n*args: --\n%s\n**kwargs: --\n%s"
+        _LOG.exception(fmt, event_method, fmt_args, fmt_kwargs)
 
         embed = Embed(
             title="Event Handler Error",
@@ -351,13 +346,8 @@ class Sleepy(commands.Bot):
         )
         embed.set_author(name=event_method)
 
-        embed.add_field(
-            name="Positional Arguments", value=f"```py\n{p_args}```", inline=False
-        )
-
-        embed.add_field(
-            name="Keyword Arguments", value=f"```py\n{k_args}```", inline=False
-        )
+        embed.add_field(name="*args", value=f"```py\n{fmt_args}```", inline=False)
+        embed.add_field(name="**kwargs", value=f"```py\n{fmt_kwargs}```", inline=False)
 
         try:
             await self.webhook.send(embed=embed)
