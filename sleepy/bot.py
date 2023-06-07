@@ -309,33 +309,28 @@ class Sleepy(commands.Bot):
             return
 
         ctx = await self.get_context(message, cls=Context)
+        is_owner = await self.is_owner(author)
 
-        # Only process global cooldowns when a command is invoked.
-        # This also has the side-effect of preventing CommandNotFound
-        # from being raised.
-        if not ctx.valid:
-            return
-
-        if await self.is_owner(author):
-            await self.invoke(ctx)
-            ctx.command.reset_cooldown(ctx)
-            return
-
-        current = message.edited_at or message.created_at
-        retry_after = self._spam_control.update_rate_limit(message, current.timestamp())
-
-        if retry_after is not None:
-            _LOG.warning(
-                "%s (ID %s) is spamming in %s (ID: %s), retry_after: %.2fs",
-                author,
-                author.id,
-                message.channel,
-                message.channel.id,
-                retry_after,
+        # Global cooldowns are only processed when a command is attempted
+        # to be invoked. This is so non-command spam doesn't get blocked.
+        if not is_owner and ctx.valid:
+            current = message.edited_at or message.created_at
+            retry_after = self._spam_control.update_rate_limit(
+                message, current.timestamp()
             )
-            return
+
+            if retry_after:  # Avoids "Ratelimited ... for 0.00s" message.
+                guild_name = getattr(message.guild, "name", "DMs")
+                guild_id = getattr(message.guild, "id", "N/A")
+
+                fmt = "Ratelimited spammer %s (ID: %s) in guild %s (ID: %s) for %.2fs."
+                _LOG.warning(fmt, author, author.id, guild_name, guild_id, retry_after)
+                return
 
         await self.invoke(ctx)
+
+        if is_owner and ctx.command is not None:
+            ctx.command.reset_cooldown(ctx)
 
     async def on_error(self, event_method: str, *args: Any, **kwargs: Any) -> None:
         p_args = "\n".join(f"[{i}] {a}" for i, a in enumerate(args)) or "N/A"
