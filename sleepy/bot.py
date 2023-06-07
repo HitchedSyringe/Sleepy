@@ -44,8 +44,6 @@ from .utils import SOURCE_CODE_URL, find_extensions_in, human_join
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from discord import AppInfo
-
 
 _LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -232,7 +230,7 @@ class Sleepy(commands.Bot):
 
         if not owner_ids or self.config["force_querying_owner_ids"]:
             # Should be fetched by the time we're here.
-            app_info: AppInfo = self.application  # type: ignore
+            app_info: discord.AppInfo = self.application  # type: ignore
 
             if app_info.team is None:
                 owner_ids.add(app_info.owner.id)
