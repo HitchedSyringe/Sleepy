@@ -306,7 +306,7 @@ class Moderation(commands.Cog):
         **EXAMPLES:**
         ```bnf
         <1> ban HitchedSyringe
-        <2> ban @HitchedSyringe#0598 -clean=3
+        <2> ban hitchedsyringe -clean=3
         <3> ban 140540589329481728 -clean=5 Spamming
         ```
         """
@@ -370,7 +370,7 @@ class Moderation(commands.Cog):
         **EXAMPLES:**
         ```bnf
         <1> kick HitchedSyringe
-        <2> kick @HitchedSyringe#0598 Spamming
+        <2> kick hitchedsyringe Spamming
         <3> kick 140540589329481728 Being annoying
         ```
         """
@@ -724,7 +724,7 @@ class Moderation(commands.Cog):
         **EXAMPLES:**
         ```bnf
         <1> softban HitchedSyringe
-        <2> softban @HitchedSyringe#0598 -clean=3
+        <2> softban hitchedsyringe -clean=3
         <3> softban 140540589329481728 -clean=5 Spamming
         ```
         """
@@ -753,7 +753,7 @@ class Moderation(commands.Cog):
 
         **EXAMPLES:**
         ```bnf
-        <1> unban HitchedSyringe#0598
+        <1> unban hitchedsyringe
         <2> unban 140540589329481728 Appealed
         ```
         """

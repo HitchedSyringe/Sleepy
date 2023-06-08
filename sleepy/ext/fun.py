@@ -484,7 +484,7 @@ class Fun(
         **EXAMPLES:**
         ```bnf
         <1> compliment HitchedSyringe
-        <2> compliment @HitchedSyringe#0598
+        <2> compliment hitchedsyringe
         <3> compliment 140540589329481728
         ```
         """
@@ -570,7 +570,7 @@ class Fun(
         **EXAMPLES:**
         ```bnf
         <1> fight HitchedSyringe
-        <2> fight @HitchedSyringe#0598
+        <2> fight hitchedsyringe
         <3> fight 140540589329481728
         ```
         """
@@ -619,7 +619,7 @@ class Fun(
         **EXAMPLES:**
         ```bnf
         <1> insult HitchedSyringe
-        <2> insult @HitchedSyringe#0598
+        <2> insult hitchedsyringe
         <3> insult 140540589329481728
         ```
         """
@@ -659,7 +659,7 @@ class Fun(
         **EXAMPLES:**
         ```bnf
         <1> rate HitchedSyringe
-        <2> rate @HitchedSyringe#0598
+        <2> rate hitchedsyringe
         <3> rate 140540589329481728
         ```
         """
@@ -709,7 +709,7 @@ class Fun(
         **EXAMPLES:**
         ```bnf
         <1> penissize HitchedSyringe
-        <2> penissize @HitchedSyringe#0598
+        <2> penissize hitchedsyringe
         <3> penissize 140540589329481728
         ```
         """
@@ -808,7 +808,7 @@ class Fun(
         **EXAMPLES:**
         ```bnf
         <1> rate HitchedSyringe
-        <2> rate @HitchedSyringe#0598
+        <2> rate hitchedsyringe
         <3> rate 140540589329481728
         ```
         """
@@ -951,7 +951,7 @@ class Fun(
         **EXAMPLES:**
         ```bnf
         <1> yomomma HitchedSyringe
-        <2> yomomma @HitchedSyringe#0598
+        <2> yomomma hitchedsyringe
         <3> yomomma 140540589329481728
         ```
         """

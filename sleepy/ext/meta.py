@@ -418,7 +418,7 @@ class Meta(commands.Cog):
 
         **EXAMPLES:**
         ```bnf
-        <1> avatar @HitchedSyringe#0598
+        <1> avatar hitchedsyringe
         <2> avatar 140540589329481728
         <3> avatar HitchedSyringe
         ```
@@ -473,7 +473,7 @@ class Meta(commands.Cog):
     async def hello(self, ctx: SleepyContext) -> None:
         """Shows my brief introduction."""
         await ctx.send(
-            "Hello! \N{WAVING HAND SIGN} I am a bot made by HitchedSyringe#0598."
+            "Hello! \N{WAVING HAND SIGN} I am a bot made by hitchedsyringe."
         )
 
     @commands.command()
@@ -545,7 +545,7 @@ class Meta(commands.Cog):
         **EXAMPLES:**
         ```bnf
         <1> permissions HitchedSyringe
-        <2> permissions @HitchedSyringe#0598
+        <2> permissions hitchedsyringe
         <3> permissions 140540589329481728 #general
         ```
         """
@@ -784,7 +784,7 @@ class Meta(commands.Cog):
 
         **EXAMPLES:**
         ```bnf
-        <1> userinfo @HitchedSyringe#0598
+        <1> userinfo hitchedsyringe
         <2> userinfo 140540589329481728
         <3> userinfo HitchedSyringe
         ```

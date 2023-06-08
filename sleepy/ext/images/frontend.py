@@ -653,7 +653,7 @@ class Images(
 
         **EXAMPLE:**
         ```
-        pornhubcomment @HitchedSyringe#0598 This isn't free Discord Nitro.
+        pornhubcomment hitchedsyringe This isn't free Discord Nitro.
         ```
         """
         async with ctx.typing():
@@ -690,7 +690,7 @@ class Images(
 
         **EXAMPLE:**
         ```
-        robloxcancel @HitchedSyringe#0598
+        robloxcancel hitchedsyringe
         ```
         """
         async with ctx.typing():
@@ -730,8 +730,8 @@ class Images(
 
         **EXAMPLES:**
         ```bnf
-        <1> ship HitchedSyringe#0598
-        <2> ship HitchedSyringe#0598 @Sleepy#5396
+        <1> ship hitchedsyringe
+        <2> ship hitchedsyringe Sleepy#5396
         ```
         """
         if first_user == second_user:
@@ -1039,7 +1039,7 @@ class Images(
 
         **EXAMPLE:**
         ```
-        tweet @HitchedSyringe#0598 Twitter for Sleepy
+        tweet hitchedsyringe Twitter for Sleepy
         ```
         """
         async with ctx.typing():
@@ -1112,7 +1112,7 @@ class Images(
 
         **EXAMPLE:**
         ```
-        youtubecomment @HitchedSyringe#0598 Epic video.
+        youtubecomment hitchedsyringe Epic video.
         ```
         """
         async with ctx.typing():
