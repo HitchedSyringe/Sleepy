@@ -472,9 +472,7 @@ class Meta(commands.Cog):
     @commands.command(aliases=("hi",))
     async def hello(self, ctx: SleepyContext) -> None:
         """Shows my brief introduction."""
-        await ctx.send(
-            "Hello! \N{WAVING HAND SIGN} I am a bot made by hitchedsyringe."
-        )
+        await ctx.send("Hello! \N{WAVING HAND SIGN} I am a bot made by hitchedsyringe.")
 
     @commands.command()
     async def invite(self, ctx: SleepyContext) -> None:
