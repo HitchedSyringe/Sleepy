@@ -43,7 +43,7 @@ def clean_input(value: str) -> str:
             "commas are not allowed in your input."
         )
 
-    return value
+    return quote(value)
 
 
 class Covid(
@@ -251,13 +251,13 @@ class Covid(
             )
 
         embed = Embed(
-            title="Global COVID-19 Statistics",
+            title="COVID-19 Statistics",
             colour=0x2F3136,
             timestamp=datetime.fromtimestamp(latest["updated"] / 1000, timezone.utc),
         )
         embed.set_footer(text=f"Powered by disease.sh \N{BULLET} Took {delta:.2f} ms.")
         embed.set_image(url="attachment://covid19_graph.png")
-        embed.set_thumbnail(url="http://tny.im/nDe")
+        embed.set_author(name="World", icon_url="http://tny.im/nDe")
 
         new_cases = latest["todayCases"]
         new_dead = latest["todayDeaths"]
@@ -326,9 +326,7 @@ class Covid(
         """
         async with ctx.typing():
             try:
-                latest = await ctx.get(
-                    f"{self.BASE}/countries/{quote(country)}", cache__=True
-                )
+                latest = await ctx.get(f"{self.BASE}/countries/{country}", cache__=True)
             except HTTPRequestFailed as exc:
                 if exc.status == 404:
                     await ctx.send(exc.data["message"])
@@ -368,11 +366,11 @@ class Covid(
                 )
 
         embed = Embed(
-            title=f"{country} COVID-19 Statistics",
+            title="COVID-19 Statistics",
             colour=0x2F3136,
             timestamp=datetime.fromtimestamp(latest["updated"] / 1000, timezone.utc),
         )
-        embed.set_thumbnail(url=latest["countryInfo"]["flag"])
+        embed.set_author(name=latest["country"], icon_url=latest["countryInfo"]["flag"])
 
         new_cases = latest["todayCases"]
         new_dead = latest["todayDeaths"]
@@ -446,7 +444,7 @@ class Covid(
         ```
         """
         try:
-            latest = await ctx.get(f"{self.BASE}/states/{quote(state)}", cache__=True)
+            latest = await ctx.get(f"{self.BASE}/states/{state}", cache__=True)
         except HTTPRequestFailed as exc:
             if exc.status == 404:
                 await ctx.send(exc.data["message"])
