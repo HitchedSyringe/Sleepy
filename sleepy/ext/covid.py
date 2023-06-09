@@ -458,17 +458,7 @@ class Covid(
             timestamp=datetime.fromtimestamp(latest["updated"] / 1000, timezone.utc),
         )
         embed.set_footer(text="Powered by disease.sh")
-
-        name = latest["state"]
-        name_url = name.lower().replace(" ", "-")
-
-        embed.set_author(
-            name=name,
-            icon_url=f"https://cdn.civil.services/us-states/flags/{name_url}-large.png",
-        )
-        embed.set_thumbnail(
-            url=f"https://cdn.civil.services/us-states/seals/{name_url}-large.png"
-        )
+        embed.set_author(name=latest["state"])
 
         new_cases = latest["todayCases"]
         new_dead = latest["todayDeaths"]
