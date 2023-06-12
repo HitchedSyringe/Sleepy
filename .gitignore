@@ -1,6 +1,8 @@
+# Linter/Tests/Environment
 __pycache__/
-/.coverage
-.venv
-venv
+.venv/*
+venv/*
+.coverage
 
+# Secrets
 config.yaml
