@@ -163,13 +163,13 @@ class Covid(
             axes.yaxis.set_major_formatter(human_number_formatter)
 
             if vaccines is not None:
-                # The cases data would get squashed if the vaccine
                 # Plotting the vaccine data linearly as-is without
                 # scaling it relative to the other data squashes
-                # the since the doses counts are far greater than
-                # the cases counts. Also, the data starts in Dec
-                # 2020. To work around this, use twinx to make the
-                # y axes independent, then plot the data.
+                # the graph since the doses counts are far greater
+                # than the cases counts. Also, the vaccine data is
+                # recorded starting in Dec 2020. To work around this,
+                # use twinx to make the y axes independent, then plot
+                # the data.
                 v_axes = axes.twinx()
 
                 v_axes.set_frame_on(False)
