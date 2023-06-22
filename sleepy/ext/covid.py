@@ -109,7 +109,7 @@ class Covid(
         fig.text(
             0.895,
             -0.01,
-            "\N{COPYRIGHT SIGN} Sleepy 2020-2022",
+            "\N{COPYRIGHT SIGN} Sleepy 2020-present",
             fontsize=7,
             color="#99AAB5",
             ha="right",
