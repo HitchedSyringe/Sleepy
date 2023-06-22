@@ -21,9 +21,10 @@ from __future__ import annotations
 
 import io
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Dict, Optional, Tuple
 from urllib.parse import quote
 
+import numpy as np
 from discord import Colour, Embed, File
 from discord.ext import commands
 from jishaku.functools import executor_function
@@ -37,12 +38,18 @@ from sleepy.http import HTTPRequestFailed
 from sleepy.utils import human_number, measure_performance
 
 if TYPE_CHECKING:
+    from matplotlib.axes import Axes
+
     from sleepy.bot import Sleepy
     from sleepy.context import Context as SleepyContext
 
 
 # We don't need any GUI elements since all plots are static.
 matplotlib_use("agg")
+
+
+# The COVID-19 historical plot's length & width in inches.
+FIGSIZE_INCHES: Tuple[int, int] = (8, 6)
 
 
 # disease.sh API takes comma-separated arguments to denote
@@ -82,150 +89,183 @@ class Covid(
             await ctx.send(error)  # type: ignore
             ctx._already_handled_error = True
 
-    @staticmethod
     @executor_function
     @measure_performance
     def plot_historical_data(
-        cases: Dict[str, Any],
-        deaths: Dict[str, Any],
-        recovered: Dict[str, Any],
-        vaccines: Optional[Dict[str, Any]] = None,
+        self,
+        country: str,
+        cases: Dict[str, int],
+        deaths: Dict[str, int],
+        recovered: Dict[str, int],
+        vaccines: Optional[Dict[str, int]] = None,
         *,
-        logarithmic: bool = False,
+        logarithmic: bool,
     ) -> io.BytesIO:
-        timeline = datestr2num(tuple(cases))
+        # For reference, dates are in MM/DD/YYYY format, where MM and DD
+        # do not always have a leading zero, e.g. dates can be 1/1/2023.
+        timeline = datestr2num(np.fromiter(cases.keys(), dtype="U10"))
 
-        c_counts = cases.values()
-        d_counts = deaths.values()
-        r_counts = recovered.values()
-        # For reference, the equation to estimate
-        # the number of active cases:
+        c_counts = np.fromiter(cases.values(), dtype=int)
+        d_counts = np.fromiter(deaths.values(), dtype=int)
+        r_counts = np.fromiter(recovered.values(), dtype=int)
+        # Equation for estimating the number of active cases:
         # active = cases - deaths - recoveries
-        a_counts = [c - d - r for c, d, r in zip(c_counts, d_counts, r_counts)]
+        a_counts = c_counts - d_counts - r_counts
 
         dark_embed = str(Colour.dark_embed())
 
-        # Have to use to figure object directly since pyplot
-        # uses tkinter internally, which doesn't play nice
-        # when async gets involed.
-        fig = Figure(facecolor=dark_embed)
+        # Have to use object-oriented interface since pyplot isn't threadsafe.
+        fig = Figure(figsize=FIGSIZE_INCHES, facecolor=dark_embed)
 
-        fig.text(
-            0.13,
-            -0.01,
-            "*Estimated based on given numbers of cases, deaths, and recoveries.",
-            fontsize=7,
-            color="#99AAB5",
-        )
+        sp_kw = {"facecolor": dark_embed, "axisbelow": True}
+        # Calculating margins is faster than saving with bbox_inches="tight".
+        # For reference, the values below are in inches.
+        # fmt: off
+        gs_kw = {
+            "left":   0.575 / FIGSIZE_INCHES[0],
+            "right":  1 - 0.175 / FIGSIZE_INCHES[0],
+            "top":    1 - 0.55 / FIGSIZE_INCHES[1],
+            "bottom": 1.285 / FIGSIZE_INCHES[1],
+        }
+        # fmt: on
 
-        fig.text(
-            0.895,
-            -0.01,
-            "\N{COPYRIGHT SIGN} Sleepy 2020-present",
-            fontsize=7,
-            color="#99AAB5",
-            ha="right",
-        )
+        if vaccines is None:
+            axes: Axes = fig.subplots(subplot_kw=sp_kw, gridspec_kw=gs_kw)  # type: ignore
+            axes.set_title("COVID-19 Cases & Outcomes", color="lightgrey", loc="left")
+            axes.spines[["top", "bottom"]].set_color("white")
 
-        axes = fig.subplots(subplot_kw={"axisbelow": True, "facecolor": dark_embed})
+            # Hardcoded since there's no way to determine these dynamically.
+            # These are ultimately arbitrary values based on looks alone.
+            # fmt: off
+            suptitle_y   = 1.117
+            footnotes_y  = -0.225
+            copyrights_y = -0.29
+            legend_y     = -0.15
+            # fmt: on
+        else:
+            gs_kw["hspace"] = 0
+            axes, v_axes = fig.subplots(
+                2, sharex=True, subplot_kw=sp_kw, gridspec_kw=gs_kw
+            )
 
-        axes.xaxis.grid(color="#4F545C", linestyle="--", alpha=0.75)
+            axes.set_title(
+                "COVID-19 Cases & Outcomes, and Vaccinations",
+                color="lightgrey",
+                loc="left",
+            )
+            axes.spines.top.set_color("white")
 
-        axes.spines["top"].set_visible(False)
-        axes.spines[["left", "right", "bottom"]].set_color("#565C65")
+            self._apply_axes_style(v_axes, logarithmic=logarithmic)
+            v_axes.spines.top.set_color("grey")
+            v_axes.spines.bottom.set_color("white")
 
-        axes.set_xlabel("Timeline", color="white")
-        axes.set_ylabel("Amount", color="white")
-        axes.tick_params(colors="white", labelsize="small")
+            v_axes.plot(
+                datestr2num(np.fromiter(vaccines.keys(), dtype="U10")),
+                np.fromiter(vaccines.values(), dtype=np.int64),
+                "--",
+                color="#FFDC82",
+                label="Vaccinations",
+                dashes=(6, 2),
+            )
+
+            # fmt: off
+            suptitle_y   = 1.235
+            footnotes_y  = -1.45
+            copyrights_y = -1.58
+            legend_y     = -1.3
+            # fmt: on
+
+        self._apply_axes_style(axes, logarithmic=logarithmic)
+        axes.spines.top.set_linewidth(1.5)
 
         axes.plot(timeline, a_counts, ":", color="aqua", label="Active*")
-        axes.plot(timeline, r_counts, "-.", color="#65B558", label="Recovered")
+        axes.plot(timeline, r_counts, "-.", color="#65B558", label="Recoveries**")
         axes.plot(timeline, d_counts, "--", color="#ED7734", label="Deaths")
         axes.plot(timeline, c_counts, "-", color="#1F94E2", label="Cases")
 
-        axes.fill_between(timeline, c_counts, r_counts, color="#0D87D8", alpha=0.5)
-        axes.fill_between(timeline, r_counts, d_counts, color="#52A046", alpha=0.5)
+        axes.fill_between(timeline, c_counts, r_counts, color="#0D87D8", alpha=0.5)  # type: ignore
+        axes.fill_between(timeline, r_counts, d_counts, color="#52A046", alpha=0.5)  # type: ignore
         axes.fill_between(timeline, d_counts, color="#FF5E00", alpha=0.5)
 
-        axes.xaxis.set_major_locator(AutoDateLocator(maxticks=8))
-        axes.xaxis.set_major_formatter(DateFormatter("%b %Y"))
+        fig.suptitle(
+            country,
+            x=0,
+            y=suptitle_y,
+            transform=axes.transAxes,
+            ha="left",
+            color="white",
+            fontsize="xx-large",
+            fontweight="bold",
+        )
 
-        def human_number_formatter(x: float, _) -> str:
-            return human_number(x)
+        footnotes = (
+            "*Estimated from data on cases, deaths, and recoveries."
+            "\n**As of 21st July, 2021, maintenance of recovery data has ceased."
+            "\n***As of 10th March, 2023, maintenance of all historical data has ceased."
+        )
+        fig.text(
+            0,
+            footnotes_y,
+            footnotes,
+            transform=axes.transAxes,
+            fontsize=8,
+            color="lightgrey",
+        )
 
-        handles = None
+        copyrights = (
+            "\N{COPYRIGHT SIGN} Sleepy 2020-present"
+            "\nSource(s): John Hopkins University"
+            " and the Regulatory Affairs Professional Society (RAPS)."
+        )
+        fig.text(
+            0.5,
+            copyrights_y,
+            copyrights,
+            transform=axes.transAxes,
+            fontsize=8,
+            color="darkgrey",
+            ha="center",
+        )
 
-        if logarithmic:
-            axes.set_title("COVID-19 Historical Statistics (Logarithmic)", color="white")
-            axes.set_yscale("symlog")
-
-            axes.yaxis.set_major_formatter(human_number_formatter)
-
-            if vaccines is not None:
-                axes.plot(
-                    datestr2num(tuple(vaccines)),
-                    vaccines.values(),
-                    "--",
-                    color="#FFDC82",
-                    label="Vaccine Doses",
-                    dashes=(6, 2),
-                )
-        else:
-            axes.set_title("COVID-19 Historical Statistics (Linear)", color="white")
-            axes.yaxis.set_major_formatter(human_number_formatter)
-
-            if vaccines is not None:
-                # Plotting the vaccine data linearly as-is without
-                # scaling it relative to the other data squashes
-                # the graph since the doses counts are far greater
-                # than the cases counts. Also, the vaccine data is
-                # recorded starting in Dec 2020. To work around this,
-                # use twinx to make the y axes independent, then plot
-                # the data.
-                v_axes = axes.twinx()
-
-                v_axes.set_frame_on(False)
-                v_axes.set_ylabel(
-                    "Vaccine Doses", color="#FFDC82", rotation=270, va="bottom"
-                )
-
-                v_axes.tick_params(axis="y", colors="#FFDC82", labelsize="small")
-                v_axes.yaxis.set_major_formatter(human_number_formatter)
-
-                handles, _ = axes.get_legend_handles_labels()
-
-                handles += v_axes.plot(
-                    datestr2num(tuple(vaccines)),
-                    vaccines.values(),
-                    "--",
-                    color="#FFDC82",
-                    label="Vaccine Doses",
-                    dashes=(6, 2),
-                )
-
-                # Unfortunately, shadowing the original axes object,
-                # while normally a bad idea, is necessary since the
-                # legend must be drawn using v_axes, otherwise it is
-                # drawn under v_axes, which also comes with problems
-                # when using loc="best" (the default).
-                axes = v_axes
-
-        axes.legend(
-            handles=handles,
+        fig.legend(
             labelcolor="white",
-            facecolor="0.1",
+            facecolor="0.125",
             edgecolor="none",
-            fancybox=False,
+            ncol=5,
+            loc="lower left",
+            bbox_transform=axes.transAxes,
+            bbox_to_anchor=(-0.015, legend_y, 1.03, 0),
+            mode="expand",
         )
 
         buffer = io.BytesIO()
 
-        fig.savefig(buffer, format="png", bbox_inches="tight")
+        fig.savefig(buffer, format="png")
         plt.close(fig)
 
         buffer.seek(0)
 
         return buffer
+
+    @staticmethod
+    def _apply_axes_style(axes: Axes, *, logarithmic: bool) -> None:
+        axes.spines[["right", "left"]].set_visible(False)
+
+        axes.yaxis.grid(color="dimgrey", alpha=0.25)
+
+        axes.tick_params(colors="white", labelsize="medium")
+
+        axes.xaxis.set_major_locator(AutoDateLocator(minticks=3, maxticks=8))
+        axes.xaxis.set_major_formatter(DateFormatter("%b %Y"))
+
+        if logarithmic:
+            # We use symlog here so zeroes are plotted, since log(0) = -inf,
+            # which matplotlib doesn't plot. This is more straight forward
+            # than having to keep track of an arbitrary offset.
+            axes.set_yscale("symlog", linthresh=1)  # type: ignore
+
+        axes.yaxis.set_tick_params(which="both", left=False)
+        axes.yaxis.set_major_formatter(lambda x, _: human_number(x))
 
     # The alternative to type ignoring the logarithmic parameter is
     # to wrap it twice in Annotated, which is much more convoluted.
@@ -259,7 +299,7 @@ class Covid(
             )
 
             buffer, delta = await self.plot_historical_data(
-                **hist, logarithmic=logarithmic
+                "World", **hist, logarithmic=logarithmic
             )
 
         embed = Embed(
@@ -372,7 +412,7 @@ class Covid(
                     hist["vaccines"] = v_hist["timeline"]
 
                 buffer, delta = await self.plot_historical_data(
-                    **hist, logarithmic=logarithmic
+                    latest["country"], **hist, logarithmic=logarithmic
                 )
 
         embed = Embed(
