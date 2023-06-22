@@ -17,7 +17,7 @@ from urllib.parse import quote
 from discord import Embed, File
 from discord.ext import commands
 from jishaku.functools import executor_function
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt, use as matplotlib_use
 from matplotlib.dates import AutoDateLocator, DateFormatter, datestr2num
 from matplotlib.figure import Figure
 from typing_extensions import Annotated
@@ -29,6 +29,10 @@ from sleepy.utils import human_number, measure_performance
 if TYPE_CHECKING:
     from sleepy.bot import Sleepy
     from sleepy.context import Context as SleepyContext
+
+
+# We don't need any GUI elements since all plots are static.
+matplotlib_use("agg")
 
 
 # disease.sh API takes comma-separated arguments to denote
