@@ -115,17 +115,13 @@ class Covid(
             ha="right",
         )
 
-        axes = fig.subplots()
+        axes = fig.subplots(subplot_kw={"axisbelow": True, "facecolor": "#2F3136"})
 
-        axes.set_axisbelow(True)
         axes.xaxis.grid(color="#4F545C", linestyle="--", alpha=0.75)
 
         axes.spines["top"].set_visible(False)
+        axes.spines[["left", "right", "bottom"]].set_color("#565C65")
 
-        for name in ("left", "right", "bottom"):
-            axes.spines[name].set_color("#565C65")
-
-        axes.set_facecolor("#2F3136")
         axes.set_xlabel("Timeline", color="white")
         axes.set_ylabel("Amount", color="white")
         axes.tick_params(colors="white", labelsize="small")
