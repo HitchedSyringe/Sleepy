@@ -334,8 +334,6 @@ class Covid(
 
                 raise
 
-            country = latest["country"]
-
             try:
                 hist = await ctx.get(
                     f"{self.BASE}/historical/{country}?lastdays=all", cache__=True
