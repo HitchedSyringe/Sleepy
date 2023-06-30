@@ -10,7 +10,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, FrozenSet, Iterable
+from typing import TYPE_CHECKING, FrozenSet
 
 from discord import Colour, Embed
 from discord.ext import commands
@@ -77,10 +77,6 @@ NSFW_TAG_BLOCKLIST: FrozenSet[str] = frozenset({
 # fmt: on
 
 
-def has_any_banned_tags(tags: Iterable[str]) -> bool:
-    return any(t in NSFW_TAG_BLOCKLIST for t in tags)
-
-
 def ensure_safe_tags(value: str) -> str:
     value = value.lower()
 
@@ -88,7 +84,7 @@ def ensure_safe_tags(value: str) -> str:
     # just by passing in something like "banned_tag tag".
     # This also allows people to use quotes without any
     # trouble.
-    if has_any_banned_tags(value.split()):
+    if NSFW_TAG_BLOCKLIST.isdisjoint(value.split()):
         raise commands.BadArgument("One or more tags involve banned content on Discord.")
 
     return value
@@ -252,7 +248,7 @@ class NSFW(
             # Have to use this instead of the more elegant
             # tag exclusions due to the fact that doing so
             # keeps throwing a 422.
-            if has_any_banned_tags(post["tags"].split(" ")):
+            if NSFW_TAG_BLOCKLIST.isdisjoint(post["tags"].split(" ")):
                 continue
 
             try:
@@ -339,7 +335,7 @@ class NSFW(
         embeds = []
 
         for post in results:
-            if has_any_banned_tags(post["tags"]["general"]):
+            if NSFW_TAG_BLOCKLIST.isdisjoint(post["tags"]["general"]):
                 continue
 
             url = post["file"]["url"]
@@ -615,7 +611,7 @@ class NSFW(
         for post in resp:
             # Same reason as danbooru/e621 but in this case,
             # I get a 500 instead.
-            if has_any_banned_tags(post["tags"].split(" ")):
+            if NSFW_TAG_BLOCKLIST.isdisjoint(post["tags"].split(" ")):
                 continue
 
             media_url = post["file_url"]
