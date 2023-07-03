@@ -84,7 +84,7 @@ def ensure_safe_tags(value: str) -> str:
     # just by passing in something like "banned_tag tag".
     # This also allows people to use quotes without any
     # trouble.
-    if NSFW_TAG_BLOCKLIST.isdisjoint(value.split()):
+    if not NSFW_TAG_BLOCKLIST.isdisjoint(value.split()):
         raise commands.BadArgument("One or more tags involve banned content on Discord.")
 
     return value
@@ -248,7 +248,7 @@ class NSFW(
             # Have to use this instead of the more elegant
             # tag exclusions due to the fact that doing so
             # keeps throwing a 422.
-            if NSFW_TAG_BLOCKLIST.isdisjoint(post["tags"].split(" ")):
+            if not NSFW_TAG_BLOCKLIST.isdisjoint(post["tags"].split(" ")):
                 continue
 
             try:
@@ -335,7 +335,7 @@ class NSFW(
         embeds = []
 
         for post in results:
-            if NSFW_TAG_BLOCKLIST.isdisjoint(post["tags"]["general"]):
+            if not NSFW_TAG_BLOCKLIST.isdisjoint(post["tags"]["general"]):
                 continue
 
             url = post["file"]["url"]
@@ -611,7 +611,7 @@ class NSFW(
         for post in resp:
             # Same reason as danbooru/e621 but in this case,
             # I get a 500 instead.
-            if NSFW_TAG_BLOCKLIST.isdisjoint(post["tags"].split(" ")):
+            if not NSFW_TAG_BLOCKLIST.isdisjoint(post["tags"].split(" ")):
                 continue
 
             media_url = post["file_url"]
