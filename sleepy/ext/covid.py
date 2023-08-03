@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import io
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Dict, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, Literal, Optional, Tuple, Union
 from urllib.parse import quote
 
 import numpy as np
@@ -38,10 +38,19 @@ from sleepy.http import HTTPRequestFailed
 from sleepy.utils import human_number, measure_performance
 
 if TYPE_CHECKING:
+    from typing import TypedDict
+
     from matplotlib.axes import Axes
 
     from sleepy.bot import Sleepy
     from sleepy.context import Context as SleepyContext
+
+    class CovidHistoryData(TypedDict):
+        country: str
+        cases: Dict[str, int]
+        deaths: Dict[str, int]
+        recovered: Dict[str, int]
+        vaccines: Optional[Dict[str, int]]
 
 
 # We don't need any GUI elements since all plots are static.
@@ -267,6 +276,53 @@ class Covid(
         axes.yaxis.set_tick_params(which="both", left=False)
         axes.yaxis.set_major_formatter(lambda x, _: human_number(x))
 
+    async def _get_world_history_data(
+        self, ctx: SleepyContext, *, lastdays: Union[Literal["all"], int] = "all"
+    ) -> CovidHistoryData:
+        hist_url = f"{self.BASE}/historical/all"
+        vaxx_url = f"{self.BASE}/vaccine/coverage"
+
+        data = await ctx.get(hist_url, cache__=True, lastdays=lastdays)
+        data["vaccines"] = await ctx.get(vaxx_url, cache__=True, lastdays=lastdays)
+        data["country"] = "World"
+
+        return data
+
+    async def _get_country_history_data(
+        self,
+        ctx: SleepyContext,
+        country: str,
+        *,
+        lastdays: Union[Literal["all"], int] = "all",
+    ) -> Optional[CovidHistoryData]:
+        hist_url = f"{self.BASE}/historical/{country}"
+
+        try:
+            hist = await ctx.get(hist_url, cache__=True, lastdays=lastdays)
+        except HTTPRequestFailed:
+            # Either worldometers has data on a country that jhucsse
+            # historical doesn't, or the "country" is actually considered
+            # a province on jhucsse's end. Either way, there's nothing we
+            # can really do without overcomplicating things.
+            return None
+
+        data = hist["timeline"]
+        # This needs to be done because some country spellings that are
+        # valid when fetching general history aren't valid when fetching
+        # vaccine history (e.g. "United States" is invalid whereas "USA"
+        # is valid in this case).
+        data["country"] = valid_country = hist["country"]
+        vaxx_url = f"{self.BASE}/vaccine/coverage/countries/{valid_country}"
+
+        try:
+            vaxx = await ctx.get(vaxx_url, cache__=True, lastdays=lastdays)
+        except HTTPRequestFailed:
+            pass
+        else:
+            data["vaccines"] = vaxx["timeline"]
+
+        return data
+
     # The alternative to type ignoring the logarithmic parameter is
     # to wrap it twice in Annotated, which is much more convoluted.
     # Same reasoning goes for `covid19 country`.
@@ -291,15 +347,10 @@ class Covid(
         """
         async with ctx.typing():
             latest = await ctx.get(f"{self.BASE}/all", cache__=True)
-
-            hist = await ctx.get(f"{self.BASE}/historical/all?lastdays=all", cache__=True)
-
-            hist["vaccines"] = await ctx.get(
-                f"{self.BASE}/vaccine/coverage?lastdays=all", cache__=True
-            )
+            hist = await self._get_world_history_data(ctx)
 
             buffer, delta = await self.plot_historical_data(
-                "World", **hist, logarithmic=logarithmic
+                **hist, logarithmic=logarithmic
             )
 
         embed = Embed(
@@ -386,33 +437,13 @@ class Covid(
 
                 raise
 
-            try:
-                hist = await ctx.get(
-                    f"{self.BASE}/historical/{country}?lastdays=all", cache__=True
-                )
-            except HTTPRequestFailed:
-                # Either worldometers has data on a country that jhucsse
-                # historical doesn't, or the "country" is actually considered
-                # a province on jhucsse's end. Either way, there's nothing we
-                # can really do without overcomplicating things.
+            hist = await self._get_country_history_data(ctx, country)
+
+            if hist is None:
                 buffer = None
             else:
-                hist = hist["timeline"]
-
-                # I absolutely hate this level of nesting, but unfortunately,
-                # there isn't a better or cleaner way of doing this.
-                try:
-                    v_hist = await ctx.get(
-                        f"{self.BASE}/vaccine/coverage/countries/{country}?lastdays=all",
-                        cache__=True,
-                    )
-                except HTTPRequestFailed:
-                    pass
-                else:
-                    hist["vaccines"] = v_hist["timeline"]
-
                 buffer, delta = await self.plot_historical_data(
-                    latest["country"], **hist, logarithmic=logarithmic
+                    **hist, logarithmic=logarithmic
                 )
 
         embed = Embed(
