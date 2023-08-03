@@ -77,11 +77,11 @@ class Weeb(
             ctx._already_handled_error = True
 
     def cog_load(self) -> None:
-        self._original_gif_loading_strategy = GIP.LOADING_STRATEGY  # type: ignore
-        GIP.LOADING_STRATEGY = GIP.LoadingStrategy.RGB_AFTER_DIFFERENT_PALETTE_ONLY  # type: ignore
+        self._original_gif_loading_strategy = GIP.LOADING_STRATEGY
+        GIP.LOADING_STRATEGY = GIP.LoadingStrategy.RGB_AFTER_DIFFERENT_PALETTE_ONLY
 
     def cog_unload(self) -> None:
-        GIP.LOADING_STRATEGY = self._original_gif_loading_strategy  # type: ignore
+        GIP.LOADING_STRATEGY = self._original_gif_loading_strategy
 
     @staticmethod
     async def send_nekobot_image_embed(ctx: SleepyContext, *, image_type: str) -> None:
