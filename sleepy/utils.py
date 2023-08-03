@@ -21,6 +21,7 @@ __all__ = (
     "human_number",
     "measure_performance",
     "progress_bar",
+    "randint",
     "tchart",
     "truncate",
 )
