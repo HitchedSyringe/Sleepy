@@ -207,7 +207,7 @@ class PollView(View):
 
         await channel.send(embed=embed)
 
-    @select(placeholder="Select an option.")
+    @select(placeholder="Select an option.")  # type: ignore
     async def vote(self, itn: discord.Interaction, select: Select["PollView"]) -> None:
         self.votes[select.values[0]] += 1
         self.__voted.add(itn.user.id)

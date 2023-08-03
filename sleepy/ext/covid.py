@@ -27,6 +27,8 @@ from sleepy.http import HTTPRequestFailed
 from sleepy.utils import human_number, measure_performance
 
 if TYPE_CHECKING:
+    from matplotlib.axes import Axes
+
     from sleepy.bot import Sleepy
     from sleepy.context import Context as SleepyContext
 
@@ -115,7 +117,7 @@ class Covid(
             ha="right",
         )
 
-        axes = fig.subplots(subplot_kw={"axisbelow": True, "facecolor": "#2F3136"})
+        axes: Axes = fig.subplots(subplot_kw={"axisbelow": True, "facecolor": "#2F3136"})  # type: ignore
 
         axes.xaxis.grid(color="#4F545C", linestyle="--", alpha=0.75)
 
@@ -131,8 +133,8 @@ class Covid(
         axes.plot(timeline, d_counts, "--", color="#ED7734", label="Deaths")
         axes.plot(timeline, c_counts, "-", color="#1F94E2", label="Cases")
 
-        axes.fill_between(timeline, c_counts, r_counts, color="#0D87D8", alpha=0.5)
-        axes.fill_between(timeline, r_counts, d_counts, color="#52A046", alpha=0.5)
+        axes.fill_between(timeline, c_counts, r_counts, color="#0D87D8", alpha=0.5)  # type: ignore
+        axes.fill_between(timeline, r_counts, d_counts, color="#52A046", alpha=0.5)  # type: ignore
         axes.fill_between(timeline, d_counts, color="#FF5E00", alpha=0.5)
 
         axes.xaxis.set_major_locator(AutoDateLocator(maxticks=8))
@@ -145,7 +147,7 @@ class Covid(
 
         if logarithmic:
             axes.set_title("COVID-19 Historical Statistics (Logarithmic)", color="white")
-            axes.set_yscale("symlog")
+            axes.set_yscale("symlog")  # type: ignore
 
             axes.yaxis.set_major_formatter(human_number_formatter)
 
