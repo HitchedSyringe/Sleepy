@@ -158,7 +158,7 @@ def do_invert(image_buffer: io.BytesIO) -> io.BytesIO:
             img = np.dstack((img, alpha))  # type: ignore
             cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA, img)
 
-    return io.BytesIO(cv2.imencode(".png", img)[1])
+    return io.BytesIO(cv2.imencode(".png", img)[1].tobytes())
 
 
 @executor_function
@@ -227,7 +227,7 @@ def do_swirl(image_buffer: io.BytesIO, *, intensity: float = 1) -> io.BytesIO:
 
     cv2.cvtColor(image, cv2.COLOR_RGBA2BGRA, image)
 
-    return io.BytesIO(cv2.imencode(".png", image)[1])
+    return io.BytesIO(cv2.imencode(".png", image)[1].tobytes())
 
 
 @executor_function
