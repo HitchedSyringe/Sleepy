@@ -352,8 +352,10 @@ class Covid(
                 # I absolutely hate this level of nesting, but unfortunately,
                 # there isn't a better or cleaner way of doing this.
                 try:
+                    # This needs to be done since some country spellings are valid when
+                    # fetching general history data, but not vaccinations history data.
                     v_hist = await ctx.get(
-                        f"{self.BASE}/vaccine/coverage/countries/{country}?lastdays=all",
+                        f"{self.BASE}/vaccine/coverage/countries/{latest['country']}?lastdays=all",
                         cache__=True,
                     )
                 except HTTPRequestFailed:
