@@ -7,8 +7,7 @@
 [python]: https://python.org
 [python-s]: https://img.shields.io/badge/python-3.8%2b-blue?logo=python
 [license]: https://github.com/HitchedSyringe/Sleepy/blob/master/LICENSE
-<!-- Hard-coded because GitHub can't identify the license due to the inclusion of other licenses in the file. -->
-[license-s]: https://img.shields.io/badge/license-AGPL--3.0-orange
+[license-s]: https://img.shields.io/github/license/HitchedSyringe/Sleepy
 [discord]: https://discord.com/invite/xHgh2Xg
 [discord-s]: https://discord.com/api/guilds/495593721371295755/widget.png?style=shield
 
