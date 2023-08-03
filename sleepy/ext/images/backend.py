@@ -573,7 +573,7 @@ def make_roblox_cancel_meme(
         username_font = ImageFont.truetype(str(FONTS / "Catamaran-ExtraBold.ttf"), 18)
         draw.text((25, 215), username, "white", username_font)
         draw.text(
-            (25 + username_font.getsize(username)[0], 219),
+            (25 + username_font.getlength(username), 219),
             f"#{discriminator}",
             (185, 187, 190),
             ImageFont.truetype(str(FONTS / "Catamaran-Regular.ttf"), 14),
@@ -831,7 +831,7 @@ def make_youtube_comment(
         )
         draw.text(
             # Arbitrary positioning of comment timestamp.
-            (username_font.getsize(username)[0] + 94, 25),
+            (username_font.getlength(username) + 94, 25),
             "1 week ago",
             (96, 96, 96),
             text_font,

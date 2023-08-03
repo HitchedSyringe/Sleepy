@@ -145,7 +145,7 @@ def make_hifumi_fact_meme(text: str) -> io.BytesIO:
     with Image.open(TEMPLATES / "hifumi_fact.png") as template:
         font = ImageFont.truetype(str(FONTS / "Arimo-Regular.ttf"), 28)
         text = wrap_text(text, font, width=290)
-        text_w, text_h = font.getsize_multiline(text)
+        text_w, text_h = get_accurate_text_size(font, text)
 
         # Draw the text centered on the poster.
         ImageDraw.Draw(template).text(
