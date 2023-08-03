@@ -79,7 +79,7 @@ def detect_anime_faces(image_buffer: io.BytesIO) -> Tuple[int, io.BytesIO]:
     for x, y, w, h in faces:
         image = cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255, 255), 2)
 
-    return count, io.BytesIO(cv2.imencode(".png", image)[1])
+    return count, io.BytesIO(cv2.imencode(".png", image)[1].tobytes())
 
 
 @executor_function
