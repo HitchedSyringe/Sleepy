@@ -349,7 +349,7 @@ class _PageSelectModal(Modal, title="Jump to page"):
 
         # Doing this will fail if the view source changes while this
         # modal is active. I doubt this will happen, however.
-        self._source_max_pages: int = max_pages
+        self._source_max_pages: int = max_pages  # type: ignore -- see above
 
         super().__init__()
 
@@ -474,7 +474,7 @@ class PaginationView(BaseView):
         return self._source
 
     async def _get_kwargs_from_page(self, page: int) -> Dict[str, Any]:
-        data = await discord.utils.maybe_coroutine(self._source.format_page, self, page)  # type: ignore
+        data = await discord.utils.maybe_coroutine(self._source.format_page, self, page)
 
         if isinstance(data, dict):
             return data
@@ -667,7 +667,7 @@ class PaginationView(BaseView):
             kwargs["ephemeral"] = ephemeral
 
         self.message = message = await message_or_ctx.reply(
-            **kwargs, mention_author=mention_author, view=self
+            **kwargs, mention_author=mention_author, view=self  # type: ignore
         )
 
         if wait:
@@ -936,7 +936,7 @@ class PaginationView(BaseView):
     ) -> None:
         # This call is safe since the button itself is already
         # handled initially when the view starts.
-        await self.show_page(self._source.get_max_pages() - 1, itn)
+        await self.show_page(self._source.get_max_pages() - 1, itn)  # type: ignore
 
     @button(emoji="\N{OCTAGONAL SIGN}", label="Stop", style=discord.ButtonStyle.danger)
     async def stop_menu(
@@ -961,6 +961,9 @@ class PaginationView(BaseView):
 
 
 class _DisambiguationView(PaginationView):
+
+    _source: _DisambiguationSource
+
     def __init__(
         self, source: _DisambiguationSource, *, timeout: Optional[float] = None
     ) -> None:
@@ -969,7 +972,7 @@ class _DisambiguationView(PaginationView):
         super().__init__(source, enable_stop_button=False, timeout=timeout)
         self.add_item(self.dropdown)
 
-    @select(placeholder="Select which option you meant.")
+    @select(placeholder="Select which option you meant.")  # type: ignore
     async def dropdown(
         self, itn: discord.Interaction, select: Select["_DisambiguationView"]
     ) -> None:

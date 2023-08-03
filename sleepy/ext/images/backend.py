@@ -230,8 +230,8 @@ def do_swirl(image_buffer: io.BytesIO, *, intensity: float = 1) -> io.BytesIO:
     with Image.open(image_buffer) as image:
         image = transform.swirl(
             np.asarray(image.convert("RGBA")),
-            strength=intensity,
-            radius=image.height / 2,
+            strength=intensity,  # type: ignore -- documented compatible with floats
+            radius=image.height / 2,  # type: ignore -- "
             preserve_range=True,
         ).astype(np.uint8)
 

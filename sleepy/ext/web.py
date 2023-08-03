@@ -262,7 +262,7 @@ class Web(
         self.google_search_engine_id: str = config["google_search_engine_id"]
 
         self.translator = translator = Translator()
-        translator.translate = executor_function(translator.translate)
+        self._do_translation = executor_function(translator.translate)
 
     @staticmethod
     async def do_calculation(ctx: SleepyContext, route: str, expr: str) -> None:
@@ -1238,7 +1238,7 @@ class Web(
             return
 
         try:
-            tsl = await self.translator.translate(text, destination, source)
+            tsl = await self._do_translation(text, destination, source)
         except ValueError:
             await ctx.send("Invalid source or destination language.")
             return
