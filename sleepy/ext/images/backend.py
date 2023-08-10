@@ -338,13 +338,13 @@ def make_dalgona(image_buffer: io.BytesIO) -> io.BytesIO:
     # image to a zeros array twice since the array is
     # modified internally by the following two draw
     # operations for whatever reason.
-    edges = cv2.drawContours(np.zeros_like(grey), contours, -1, 255, 2, cv2.LINE_AA)
+    edges = cv2.drawContours(np.zeros_like(grey), contours, -1, 255, 2, cv2.LINE_AA)  # type: ignore
 
     # Desired coordinates and axes for the ellipses.
     mid = (size[0] // 2, size[1] // 2)
     axes = (mid[0] - 2, mid[1] - 2)
 
-    mask = cv2.ellipse(np.zeros_like(grey), mid, axes, 0, 0, 360, 255, -1)
+    mask = cv2.ellipse(np.zeros_like(grey), mid, axes, 0, 0, 360, 255, -1)  # type: ignore
 
     outline = cv2.bitwise_and(edges, edges, mask=mask)
 
@@ -352,7 +352,7 @@ def make_dalgona(image_buffer: io.BytesIO) -> io.BytesIO:
     # the result look somewhat decent since there isn't
     # really anything I can do about stray lines that
     # come up during the canny process.
-    cv2.ellipse(outline, mid, axes, 0, 0, 360, 255, 2, cv2.LINE_AA)
+    cv2.ellipse(outline, mid, axes, 0, 0, 360, 255, 2, cv2.LINE_AA)  # type: ignore
 
     image = Image.new("RGB", size, (145, 129, 76))
     image.putalpha(Image.fromarray(outline))
@@ -433,9 +433,9 @@ def make_palette(image_buffer: io.BytesIO) -> io.BytesIO:
         thumb.thumbnail((300, 300))
 
     _, labels, centroids = cv2.kmeans(
-        np.asarray(thumb).astype(np.float32).reshape((-1, 3)),
+        np.asarray(thumb).astype(np.float32).reshape((-1, 3)),  # type: ignore
         5,
-        None,
+        None,  # type: ignore
         (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0),
         10,
         cv2.KMEANS_RANDOM_CENTERS,
