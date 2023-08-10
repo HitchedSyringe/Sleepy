@@ -260,27 +260,6 @@ class Images(
             file=File(buffer, "captcha.png"),
         )
 
-    @commands.command(aliases=("cmm",))
-    @commands.bot_has_permissions(attach_files=True)
-    @commands.max_concurrency(5, commands.BucketType.guild)
-    async def changemymind(
-        self,
-        ctx: SleepyContext,
-        *,
-        text: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
-    ) -> None:
-        """Generates a "change my mind" meme.
-
-        (Bot Needs: Attach Files)
-        """
-        async with ctx.typing():
-            buffer, delta = await backend.make_change_my_mind_meme(text)
-
-        await ctx.send(
-            f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "change_my_mind.png"),
-        )
-
     @commands.command(usage="[-rebranded] <text>")
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)

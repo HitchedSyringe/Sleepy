@@ -29,7 +29,6 @@ __all__ = (
     "do_swirl",
     "make_axios_interview_meme",
     "make_captcha",
-    "make_change_my_mind_meme",
     "make_clyde_message",
     "make_dalgona",
     "make_iphone_x",
@@ -288,35 +287,6 @@ def make_captcha(image_buffer: io.BytesIO, text: str) -> io.BytesIO:
     buffer = io.BytesIO()
 
     binder.save(buffer, "png")
-
-    buffer.seek(0)
-
-    return buffer
-
-
-@executor_function
-@measure_performance
-def make_change_my_mind_meme(text: str) -> io.BytesIO:
-    with Image.open(TEMPLATES / "change_my_mind.png") as template:
-        font = ImageFont.truetype(str(FONTS / "Arimo-Regular.ttf"), 50)
-
-        text = wrap_text(text, font, width=620)
-        text_layer = Image.new("LA", get_accurate_text_size(font, text))
-
-        ImageDraw.Draw(text_layer).text((0, 0), text, "black", font, align="center")
-
-        text_layer = text_layer.rotate(22.5, expand=True)
-
-        # For reference, the desired point to center the text around is (1250, 980).
-        template.paste(
-            text_layer,
-            (1255 - text_layer.width // 2, 980 - text_layer.height // 2),
-            text_layer,
-        )
-
-        buffer = io.BytesIO()
-
-        template.save(buffer, "png")
 
     buffer.seek(0)
 
