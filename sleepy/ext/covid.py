@@ -223,8 +223,7 @@ class Covid(
 
         copyrights = (
             "\N{COPYRIGHT SIGN} Sleepy 2020-present"
-            "\nSource(s): John Hopkins University"
-            " and the Regulatory Affairs Professional Society (RAPS)."
+            "\nSource(s): John Hopkins University and Our World in Data."
         )
         fig.text(
             0.5,
