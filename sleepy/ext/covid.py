@@ -210,7 +210,7 @@ class Covid(
         footnotes = (
             "*Estimated from data on cases, deaths, and recoveries."
             "\n**As of 21st July, 2021, maintenance of recovery data has ceased."
-            "\n***As of 10th March, 2023, maintenance of all historical data has ceased."
+            "\n***As of 10th March, 2023, maintenance of cases and deaths data has ceased."
         )
         fig.text(
             0,
