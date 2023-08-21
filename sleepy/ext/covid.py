@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import io
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Dict, Literal, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, Literal, Optional, Tuple, Union, cast
 from urllib.parse import quote
 
 import numpy as np
@@ -33,7 +33,6 @@ from matplotlib.dates import AutoDateLocator, DateFormatter, datestr2num
 from matplotlib.figure import Figure
 from typing_extensions import Annotated
 
-from sleepy.converters import _positional_bool_flag
 from sleepy.http import HTTPRequestFailed
 from sleepy.utils import human_number, measure_performance
 
@@ -52,6 +51,27 @@ if TYPE_CHECKING:
         recovered: Dict[str, int]
         vaccines: Optional[Dict[str, int]]
 
+    class PartialCovidStatsData(TypedDict):
+        updated: int
+        cases: int
+        todayCases: int
+        casesPerOneMillion: int
+        deaths: int
+        todayDeaths: int
+        deathsPerOneMillion: int
+        recovered: int
+        active: int
+        tests: int
+        testsPerOneMillion: int
+        population: int
+
+    class CovidStatsData(PartialCovidStatsData):
+        todayRecovered: int
+        recoveredPerOneMillion: int
+        activePerOneMillion: int
+        critical: int
+        criticalPerOneMillion: int
+
 
 # We don't need any GUI elements since all plots are static.
 matplotlib_use("agg")
@@ -66,25 +86,31 @@ FIGSIZE_INCHES: Tuple[int, int] = (8, 6)
 # are not designed to handle this functionality, therefore,
 # this pseudo-converter scrubs end-user input to prevent
 # the API from returning data for multiple sources.
-def clean_input(value: str) -> str:
+def _sanitized_input(value: str, /) -> str:
     if "," in value:
-        raise commands.BadArgument(
-            "Due to the way my data source processes arguments, "
-            "commas are not allowed in your input."
-        )
+        raise commands.BadArgument("Your input cannot contain commas.")
 
     return quote(value)
 
 
-class Covid(
-    commands.Cog,
-    name="COVID-19",
-    command_attrs={
-        "cooldown": commands.CooldownMapping.from_cooldown(
-            1, 5, commands.BucketType.member
-        ),
-    },
-):
+class CovidGeneralPlotFlags(commands.FlagConverter):
+    log: bool = commands.flag(
+        description="Whether to plot on a logarithmic scale. (Default: False)",
+        default=False,
+    )
+    # TODO: Add lastdays compatibility.
+    # lastdays: Union[Literal["all"], int] = commands.flag(
+    #     default="all",
+    #     converter=commands.Range[int, 30],
+    #     description="The past days' worth of data to plot. (Default: all)",
+    # )
+
+
+class CovidCountryPlotFlags(CovidGeneralPlotFlags):
+    country: Annotated[str, _sanitized_input]
+
+
+class Covid(commands.Cog, name="COVID-19"):
     """Commands related to the COVID-19 pandemic."""
 
     ICON: str = "\N{MICROBE}"
@@ -275,6 +301,98 @@ class Covid(
         axes.yaxis.set_tick_params(which="both", left=False)
         axes.yaxis.set_major_formatter(lambda x, _: human_number(x))
 
+    @staticmethod
+    def _get_formatted_stats(
+        data: PartialCovidStatsData, *, handle_as_state: bool = False
+    ) -> Embed:
+        population = data["population"]
+        cases = data["cases"]
+        deaths = data["deaths"]
+        today_cases = data["todayCases"]
+        today_deaths = data["todayDeaths"]
+
+        embed = Embed(
+            title="Current COVID-19 Statistics",
+            description=f"{population:,d} Total Population",
+            colour=Colour.dark_embed(),
+            timestamp=datetime.fromtimestamp(data["updated"] / 1000, timezone.utc),
+        )
+        embed.set_footer(text="Powered by disease.sh \N{BULLET} Source: Worldometer")
+
+        embed.add_field(
+            name=f"Cases \N{BULLET} {cases:,d}",
+            value="```diff"
+            f"\n{today_cases:{'+' if today_cases > 0 else ''},d} today"
+            f"\n~{data['casesPerOneMillion']:,.0f}/1M persons"
+            "\n```",
+        )
+        embed.add_field(
+            name=f"Deaths \N{BULLET} {deaths:,d}",
+            value="```diff"
+            f"\n{today_deaths:{'+' if today_deaths > 0 else ''},d} today"
+            f"\n~{data['deathsPerOneMillion']:,.0f}/1M persons"
+            "\n```",
+        )
+
+        if handle_as_state:
+            # U.S. state data doesn't provide as much information as country
+            # data, but we can infer some of the missing information from the
+            # given information.
+
+            active = data["active"]
+            recovered = data["recovered"]
+
+            # disease.sh doesn't seem to properly scrape recoveries sometimes.
+            if recovered > 0:
+                recoveries_field_name = f"Recoveries \N{BULLET} {recovered:,d}"
+            else:
+                recovered = (cases - deaths - active) if active > 0 else 0
+                recoveries_field_name = f"Est. Recoveries \N{BULLET} {recovered:,d}"
+
+            # Some entities can have a population of 0 for some reason.
+            # At that point, we really can't infer anything else.
+            pop_ratio = 1_000_000 / population if population > 0 else 0
+
+            embed.add_field(
+                name=recoveries_field_name,
+                value=f"```diff\n~{pop_ratio * recovered:,.0f}/1M persons\n```",
+            )
+            embed.add_field(
+                name=f"Active Cases \N{BULLET} {active:,d}",
+                value=f"```diff\n~{pop_ratio * active:,.0f}/1M persons\n```",
+            )
+        else:
+            data = cast("CovidStatsData", data)  # So Pyright is happy.
+
+            today_recovered = data["todayRecovered"]
+            today_active = today_cases - today_deaths - today_recovered
+
+            embed.add_field(
+                name=f"Recoveries \N{BULLET} {data['recovered']:,d}",
+                value="```diff"
+                f"\n{today_recovered:{'+' if today_recovered > 0 else ''},d} today"
+                f"\n~{data['recoveredPerOneMillion']:,.0f}/1M persons"
+                "\n```",
+            )
+            embed.add_field(
+                name=f"Active Cases \N{BULLET} {data['active']:,d}",
+                value="```diff\n"
+                f"{today_active:{'+' if today_active > 0 else ''},d} est. today"
+                f"\n~{data['activePerOneMillion']:,.0f}/1M persons"
+                "\n```",
+            )
+            embed.add_field(
+                name=f"Critical Cases \N{BULLET} {data['critical']:,d}",
+                value=f"```\n~{data['criticalPerOneMillion']:,.0f}/1M persons\n```",
+            )
+
+        embed.add_field(
+            name=f"Tests \N{BULLET} {data['tests']:,d}",
+            value=f"```\n~{data['testsPerOneMillion']:,.0f}/1M persons\n```",
+        )
+
+        return embed
+
     async def _get_world_history_data(
         self, ctx: SleepyContext, *, lastdays: Union[Literal["all"], int] = "all"
     ) -> CovidHistoryData:
@@ -323,249 +441,148 @@ class Covid(
 
         return data
 
-    # The alternative to type ignoring the logarithmic parameter is
-    # to wrap it twice in Annotated, which is much more convoluted.
-    # Same reasoning goes for `covid19 country`.
-    @commands.group(
-        invoke_without_command=True,
-        aliases=("covid", "coronavirus", "corona"),
-        usage="[-log]",
-    )
-    @commands.bot_has_permissions(embed_links=True, attach_files=True)
-    @commands.max_concurrency(5, commands.BucketType.guild)
-    async def covid19(
-        self,
-        ctx: SleepyContext,
-        logarithmic: Annotated[bool, Optional[_positional_bool_flag("-log")]] = False,  # type: ignore
-    ) -> None:
-        """Shows detailed global COVID-19 statistics.
+    @commands.hybrid_group()
+    async def covid19(self, ctx: SleepyContext) -> None:
+        """COVID-19 commands."""
+        await ctx.send_help(ctx.command)
 
-        By default, this graphs the historical data linearly.
-        To graph the data logarithmically, pass `-log`.
-
-        (Bot Needs: Embed Links and Attach Files)
-        """
-        async with ctx.typing():
-            latest = await ctx.get(f"{self.BASE}/all", cache__=True)
-            hist = await self._get_world_history_data(ctx)
-
-            buffer, delta = await self.plot_historical_data(
-                **hist, logarithmic=logarithmic
-            )
-
-        embed = Embed(
-            title="COVID-19 Statistics",
-            colour=Colour.dark_embed(),
-            timestamp=datetime.fromtimestamp(latest["updated"] / 1000, timezone.utc),
-        )
-        embed.set_footer(text=f"Powered by disease.sh \N{BULLET} Took {delta:.2f} ms.")
-        embed.set_image(url="attachment://covid19_graph.png")
-        embed.set_author(name="World", icon_url="http://tny.im/nDe")
-
-        new_cases = latest["todayCases"]
-        new_dead = latest["todayDeaths"]
-        new_recover = latest["todayRecovered"]
-
-        embed.add_field(
-            name="Cases",
-            value=f"{latest['cases']:,d} {f'({new_cases:+,d})' if new_cases != 0 else ''}",
-        )
-        embed.add_field(name="Tests", value=f"{latest['tests']:,d}")
-        embed.add_field(
-            name="Deaths",
-            value=f"{latest['deaths']:,d} {f'({new_dead:+,d})' if new_dead != 0 else ''}",
-        )
-        embed.add_field(
-            name="Cases Per Million", value=f"{latest['casesPerOneMillion']:,.2f}"
-        )
-        embed.add_field(
-            name="Tests Per Million", value=f"{latest['testsPerOneMillion']:,.2f}"
-        )
-        embed.add_field(
-            name="Deaths Per Million", value=f"{latest['deathsPerOneMillion']:,.2f}"
-        )
-        embed.add_field(
-            name="Recovered",
-            value=f"{latest['recovered']:,d} {f'({new_recover:+,d})' if new_recover != 0 else ''}",
-        )
-        embed.add_field(name="Active Cases", value=f"{latest['active']:,d}")
-        embed.add_field(name="Critical Cases", value=f"{latest['critical']:,d}")
-        embed.add_field(
-            name="Recovered Per Million", value=f"{latest['recoveredPerOneMillion']:,.2f}"
-        )
-        embed.add_field(
-            name="Active Per Million", value=f"{latest['activePerOneMillion']:,.2f}"
-        )
-        embed.add_field(
-            name="Critical Per Million", value=f"{latest['criticalPerOneMillion']:,.2f}"
-        )
-        embed.add_field(name="Population", value=f"{latest['population']:,d}")
-        embed.add_field(name="Affected Countries", value=latest['affectedCountries'])
-
-        await ctx.send(embed=embed, file=File(buffer, "covid19_graph.png"))
-
-    @covid19.command(name="country", usage="[-log] <country>")
-    @commands.max_concurrency(5, commands.BucketType.guild)
-    async def covid19_country(
-        self,
-        ctx: SleepyContext,
-        logarithmic: Annotated[bool, Optional[_positional_bool_flag("-log")]] = False,  # type: ignore
-        *,
-        country: Annotated[str, clean_input],
-    ) -> None:
-        """Shows detailed COVID-19 statistics for a country.
-
-        By default, this graphs the historical data linearly.
-        To graph the data logarithmically, pass `-log` before
-        the country argument.
-
-        (Bot Needs: Embed Links and Attach Files)
-
-        **EXAMPLES:**
-        ```bnf
-        <1> covid19 country USA
-        <2> covid19 country -log USA
-        ```
-        """
-        async with ctx.typing():
-            try:
-                latest = await ctx.get(f"{self.BASE}/countries/{country}", cache__=True)
-            except HTTPRequestFailed as exc:
-                if exc.status == 404:
-                    await ctx.send(exc.data["message"])
-                    return
-
-                raise
-
-            hist = await self._get_country_history_data(ctx, country)
-
-            if hist is None:
-                buffer = None
-            else:
-                buffer, delta = await self.plot_historical_data(
-                    **hist, logarithmic=logarithmic
-                )
-
-        embed = Embed(
-            title="COVID-19 Statistics",
-            colour=Colour.dark_embed(),
-            timestamp=datetime.fromtimestamp(latest["updated"] / 1000, timezone.utc),
-        )
-        embed.set_author(name=latest["country"], icon_url=latest["countryInfo"]["flag"])
-
-        new_cases = latest["todayCases"]
-        new_dead = latest["todayDeaths"]
-        new_recover = latest["todayRecovered"]
-
-        embed.add_field(
-            name="Cases",
-            value=f"{latest['cases']:,d} {f'({new_cases:+,d})' if new_cases != 0 else ''}",
-        )
-        embed.add_field(name="Tests", value=f"{latest['tests']:,d}")
-        embed.add_field(
-            name="Deaths",
-            value=f"{latest['deaths']:,d} {f'({new_dead:+,d})' if new_dead != 0 else ''}",
-        )
-        embed.add_field(
-            name="Cases Per Million", value=f"{latest['casesPerOneMillion']:,.2f}"
-        )
-        embed.add_field(
-            name="Tests Per Million", value=f"{latest['testsPerOneMillion']:,.2f}"
-        )
-        embed.add_field(
-            name="Deaths Per Million", value=f"{latest['deathsPerOneMillion']:,.2f}"
-        )
-        embed.add_field(
-            name="Recovered",
-            value=f"{latest['recovered']:,d} {f'({new_recover:+,d})' if new_recover != 0 else ''}",
-        )
-        embed.add_field(name="Active Cases", value=f"{latest['active']:,d}")
-        embed.add_field(name="Critical Cases", value=f"{latest['critical']:,d}")
-        embed.add_field(
-            name="Recovered Per Million", value=f"{latest['recoveredPerOneMillion']:,.2f}"
-        )
-        embed.add_field(
-            name="Active Per Million", value=f"{latest['activePerOneMillion']:,.2f}"
-        )
-        embed.add_field(
-            name="Critical Per Million", value=f"{latest['criticalPerOneMillion']:,.2f}"
-        )
-        embed.add_field(name="Population", value=f"{latest['population']:,d}")
-        embed.add_field(name="Continent", value=latest['continent'] or "N/A")
-
-        if buffer is not None:
-            # delta isn't unbound if the buffer isn't None.
-            embed.set_footer(
-                text=f"Powered by disease.sh \N{BULLET} Took {delta:.2f} ms."  # type: ignore
-            )
-            embed.set_image(url="attachment://covid19_graph.png")
-            await ctx.send(embed=embed, file=File(buffer, filename="covid19_graph.png"))
-        else:
-            embed.set_footer(text="Powered by disease.sh")
-            embed.description = "Historical data is unavailable for this location."
-            await ctx.send(embed=embed)
-
-    @covid19.command(name="unitedstates", aliases=("us", "usa"))
+    @covid19.group(name="current")
     @commands.bot_has_permissions(embed_links=True)
-    @commands.cooldown(2, 5, commands.BucketType.member)
-    async def covid19_unitedstates(
-        self, ctx: SleepyContext, *, state: Annotated[str, clean_input]
-    ) -> None:
-        """Shows detailed COVID-19 statistics for a U.S. entity.
+    async def covid19_current(self, ctx: SleepyContext) -> None:
+        """Current COVID-19 statistics commands."""
+        await ctx.send_help(ctx.command)
 
-        This includes statistics from states, territories, repatriated
-        citizens, veteran affairs, federal prisons, the U.S. military,
-        and the Navajo Nation.
+    @covid19_current.command(name="world")
+    async def covid19_current_world(self, ctx: SleepyContext) -> None:
+        """Shows current COVID-19 statistics for the world.
+
+        (Bot Needs: Embed Links)
+        """
+        data = await ctx.get(f"{self.BASE}/all", cache__=True)
+
+        embed = self._get_formatted_stats(data)
+        embed.description += f" \N{BULLET} {data['affectedCountries']} Affected Countries"  # type: ignore
+        embed.set_author(name="The World", icon_url="http://tny.im/nDe")
+        await ctx.send(embed=embed)
+
+    @covid19_current.command(name="country")
+    async def covid19_current_country(
+        self, ctx: SleepyContext, *, country: Annotated[str, _sanitized_input]
+    ) -> None:
+        """Shows current COVID-19 statistics for a given country.
 
         (Bot Needs: Embed Links)
 
         **EXAMPLE:**
         ```
-        covid19 unitedstates New York
+        covid19 current country USA
         ```
         """
         try:
-            latest = await ctx.get(f"{self.BASE}/states/{state}", cache__=True)
+            data = await ctx.get(f"{self.BASE}/countries/{country}", cache__=True)
         except HTTPRequestFailed as exc:
             if exc.status == 404:
-                await ctx.send(exc.data["message"])
+                await ctx.send(exc.data["message"], ephemeral=True)
                 return
-
             raise
 
-        embed = Embed(
-            title="COVID-19 Statistics",
-            colour=Colour.dark_embed(),
-            timestamp=datetime.fromtimestamp(latest["updated"] / 1000, timezone.utc),
-        )
-        embed.set_footer(text="Powered by disease.sh")
-        embed.set_author(name=latest["state"])
-
-        new_cases = latest["todayCases"]
-        new_dead = latest["todayDeaths"]
-
-        embed.add_field(
-            name="Cases",
-            value=f"{latest['cases']:,d} {f'({new_cases:+,d})' if new_cases != 0 else ''}",
-        )
-        embed.add_field(name="Tests", value=f"{latest['tests']:,d}")
-        embed.add_field(
-            name="Deaths",
-            value=f"{latest['deaths']:,d} {f'({new_dead:+,d})' if new_dead != 0 else ''}",
-        )
-        embed.add_field(
-            name="Cases Per Million", value=f"{latest['casesPerOneMillion']:,.2f}"
-        )
-        embed.add_field(
-            name="Tests Per Million", value=f"{latest['testsPerOneMillion']:,.2f}"
-        )
-        embed.add_field(
-            name="Deaths Per Million", value=f"{latest['deathsPerOneMillion']:,.2f}"
-        )
-        embed.add_field(name="Recovered", value=f"{latest['recovered']:,d}")
-        embed.add_field(name="Active Cases", value=f"{latest['active']:,d}")
-
+        embed = self._get_formatted_stats(data)
+        embed.set_author(name=data["country"], icon_url=data["countryInfo"]["flag"])
         await ctx.send(embed=embed)
+
+    @covid19_current.command(name="states")
+    async def covid19_current_states(
+        self, ctx: SleepyContext, *, state: Annotated[str, _sanitized_input]
+    ) -> None:
+        """Shows current COVID-19 statistics for a given U.S. state, territory, or entity.
+
+        (Bot Needs: Embed Links)
+
+        **EXAMPLE:**
+        ```
+        covid19 current states New York
+        ```
+        """
+        try:
+            data = await ctx.get(f"{self.BASE}/states/{state}", cache__=True)
+        except HTTPRequestFailed as exc:
+            if exc.status == 404:
+                await ctx.send(exc.data["message"], ephemeral=True)
+                return
+            raise
+
+        embed = self._get_formatted_stats(data, handle_as_state=True)
+        embed.set_author(name=data["state"])
+        await ctx.send(embed=embed)
+
+    @covid19.group(name="graph")
+    @commands.bot_has_permissions(attach_files=True)
+    @commands.cooldown(1, 8, commands.BucketType.member)
+    @commands.max_concurrency(5, commands.BucketType.guild)
+    async def covid19_graph(self, ctx: SleepyContext) -> None:
+        """COVID-19 historical data graph commands."""
+        await ctx.send_help(ctx.command)
+
+    @covid19_graph.command(name="world", usage="[options...]")
+    async def covid19_graph_world(
+        self, ctx: SleepyContext, *, options: CovidGeneralPlotFlags
+    ) -> None:
+        """Shows a graph of the world's COVID-19 historical data.
+
+        The following options are valid:
+
+        `log: <True|False>`
+        > Whether to plot the data on a logarithmic scale.
+        > Defaults to `False` if omitted.
+
+        (Bot Needs: Attach Files)
+        """
+        async with ctx.typing():
+            hist = await self._get_world_history_data(ctx)
+            buf, dt = await self.plot_historical_data(**hist, logarithmic=options.log)
+
+        await ctx.send(
+            f"Powered by disease.sh \N{BULLET} Took {dt:.2f} ms.",
+            file=File(buf, "covid19_history_plot.png"),
+        )
+
+    @covid19_graph.command(name="country", usage="country: <country> [options...]")
+    async def covid19_graph_country(
+        self, ctx: SleepyContext, *, options: CovidCountryPlotFlags
+    ) -> None:
+        """Shows a graph of a given country's COVID-19 historical data.
+        By default, the data is plotted linearly.
+
+        The following options are valid:
+
+        `country: <country>` **Required**
+        > The country to plot historical data for.
+        `log: <True|False>`
+        > Whether to plot the data on a logarithmic scale.
+        > Defaults to `False` if omitted.
+
+        (Bot Needs: Attach Files)
+
+        **EXAMPLES:**
+        ```bnf
+        <1> covid19 graph country country: USA
+        <2> covid19 graph country country: USA logarithmic: true
+        ```
+        """
+        async with ctx.typing():
+            hist = await self._get_country_history_data(ctx, options.country)
+            if hist is None:
+                await ctx.send("Historical data is unavailable for that country.")
+                return
+
+            buf, dt = await self.plot_historical_data(**hist, logarithmic=options.log)
+
+        await ctx.send(
+            f"Powered by disease.sh \N{BULLET} Took {dt:.2f} ms.",
+            file=File(buf, "covid19_history_plot.png"),
+        )
+
+    # TODO: Add U.S. state historical data plot command.
 
 
 async def setup(bot: Sleepy) -> None:
