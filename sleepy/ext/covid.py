@@ -298,12 +298,11 @@ class Covid(
 
         try:
             hist = await ctx.get(hist_url, cache__=True, lastdays=lastdays)
-        except HTTPRequestFailed:
-            # Either worldometers has data on a country that jhucsse
-            # historical doesn't, or the "country" is actually considered
-            # a province on jhucsse's end. Either way, there's nothing we
-            # can really do without overcomplicating things.
-            return None
+        except HTTPRequestFailed as exc:
+            # disease.sh tends to 502 sometimes (rather quite often).
+            if exc.status == 404:
+                return None
+            raise
 
         data = hist["timeline"]
         # This needs to be done because some country spellings that are
@@ -316,6 +315,8 @@ class Covid(
         try:
             vaxx = await ctx.get(vaxx_url, cache__=True, lastdays=lastdays)
         except HTTPRequestFailed:
+            # XXX: Don't know whether to fail here on a non 404 status.
+            # For now, just ignore any errors coming from this.
             pass
         else:
             data["vaccines"] = vaxx["timeline"]
