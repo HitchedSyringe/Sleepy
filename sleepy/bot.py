@@ -30,19 +30,22 @@ import logging
 import re
 import traceback
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Generator, List, Mapping
+from typing import TYPE_CHECKING, Any, Generator, List, Mapping, Type, Union
 
 import discord
 from discord import Colour, Embed
 from discord.ext import commands
 from discord.utils import MISSING, cached_property, utcnow
 
-from .context import Context
+from .context import Context as SleepyContext
 from .http import HTTPRequester, HTTPRequestFailed
 from .utils import SOURCE_CODE_URL, find_extensions_in, human_join
 
 if TYPE_CHECKING:
     from datetime import datetime
+
+    from discord.ext.commands import Context
+    from typing_extensions import Self
 
 
 _LOG: logging.Logger = logging.getLogger(__name__)
@@ -302,13 +305,23 @@ class Sleepy(commands.Bot):
     async def on_resumed(self) -> None:
         _LOG.info("Received a RESUME event.")
 
+    # Needs to be here for app commands.
+    async def get_context(
+        self,
+        origin: Union[discord.Message, discord.Interaction],
+        /,
+        *,
+        cls: Type[Context[Self]] = SleepyContext,
+    ) -> Any:
+        return await super().get_context(origin, cls=cls)
+
     async def process_commands(self, message: discord.Message) -> None:
         author = message.author
 
         if author.bot:
             return
 
-        ctx = await self.get_context(message, cls=Context)
+        ctx = await self.get_context(message)
         is_owner = await self.is_owner(author)
 
         # Global cooldowns are only processed when a command is attempted
@@ -354,7 +367,9 @@ class Sleepy(commands.Bot):
         except discord.HTTPException:
             pass
 
-    async def on_command_error(self, ctx: Context, error: commands.CommandError) -> None:
+    async def on_command_error(
+        self, ctx: SleepyContext, error: commands.CommandError
+    ) -> None:
         if isinstance(error, (commands.CommandInvokeError, commands.ConversionError)):
             ctx._refund_cooldown_token()
             return
