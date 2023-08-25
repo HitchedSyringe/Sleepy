@@ -93,16 +93,6 @@ class Weeb(
     def cog_unload(self) -> None:
         GIP.LOADING_STRATEGY = self._original_gif_loading_strategy
 
-    @staticmethod
-    async def send_nekobot_image_embed(ctx: SleepyContext, *, image_type: str) -> None:
-        resp = await ctx.get("https://nekobot.xyz/api/image", type=image_type)
-
-        embed = Embed(colour=Colour(resp["color"]))
-        embed.set_image(url=resp["message"])
-        embed.set_footer(text="Powered by nekobot.xyz")
-
-        await ctx.send(embed=embed)
-
     @commands.command(aliases=("animesearch",))
     @commands.bot_has_permissions(embed_links=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
@@ -191,15 +181,6 @@ class Weeb(
         await ctx.paginate(EmbedSource(embeds))
 
     @commands.command()
-    @commands.bot_has_permissions(embed_links=True)
-    async def animecoffee(self, ctx: SleepyContext) -> None:
-        """Sends a random image of an anime girl drinking coffee.
-
-        (Bot Needs: Embed Links)
-        """
-        await self.send_nekobot_image_embed(ctx, image_type="coffee")
-
-    @commands.command()
     @commands.cooldown(1, 8, commands.BucketType.member)
     async def animeface(
         self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
@@ -231,15 +212,6 @@ class Weeb(
             f"\nRequested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
             file=File(buffer, "highlighted_anime_faces.png"),
         )
-
-    @commands.command()
-    @commands.bot_has_permissions(embed_links=True)
-    async def animefood(self, ctx: SleepyContext) -> None:
-        """Sends a random image of anime food.
-
-        (Bot Needs: Embed Links)
-        """
-        await self.send_nekobot_image_embed(ctx, image_type="food")
 
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
@@ -325,28 +297,6 @@ class Weeb(
             file=File(buffer, "bodypillow.png"),
         )
 
-    # Commented out because the API this is powered by is
-    # currently on hiatus until v3 is completed, in an
-    # effort to respect content creators and their work,
-    # since the API provided these images uncredited.
-    # This will be uncommented when the API comes back,
-    # and I'll make sure to include the credits the API
-    # provides in the resulting embed.
-    # @commands.command(aliases=("hatsunemiku",))
-    # @commands.bot_has_permissions(embed_links=True)
-    # async def miku(self, ctx: SleepyContext) -> None:
-    #     """Shows a random image of Hatsune Miku.
-
-    #     (Bot Needs: Embed Links)
-    #     """
-    #     resp = await ctx.get("https://miku-for.us/api/v2/random")
-
-    #     embed = Embed(colour=Colour.dark_embed())
-    #     embed.set_image(url=resp["url"])
-    #     embed.set_footer(text="Powered by miku-for.us")
-
-    #     await ctx.send(embed=embed)
-
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
@@ -369,24 +319,6 @@ class Weeb(
         )
 
     @commands.command()
-    @commands.bot_has_permissions(embed_links=True)
-    async def holo(self, ctx: SleepyContext) -> None:
-        """Sends a random image of Holo from *Spice and Wolf*.
-
-        (Bot Needs: Embed Links)
-        """
-        await self.send_nekobot_image_embed(ctx, image_type="holo")
-
-    @commands.command()
-    @commands.bot_has_permissions(embed_links=True)
-    async def kanna(self, ctx: SleepyContext) -> None:
-        """Sends a random image of Kanna from *Miss Kobayashi's Dragon Maid*.
-
-        (Bot Needs: Embed Links)
-        """
-        await self.send_nekobot_image_embed(ctx, image_type="kanna")
-
-    @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def kannafact(
@@ -406,15 +338,6 @@ class Weeb(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms",
             file=File(buffer, "kanna_fact.png"),
         )
-
-    @commands.command(aliases=("kemo",))
-    @commands.bot_has_permissions(embed_links=True)
-    async def kemonomimi(self, ctx: SleepyContext) -> None:
-        """Sends a random image of a kemonomimi character.
-
-        (Bot Needs: Embed Links)
-        """
-        await self.send_nekobot_image_embed(ctx, image_type="kemonomimi")
 
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
@@ -526,15 +449,6 @@ class Weeb(
             embeds.append(embed)
 
         await ctx.paginate(EmbedSource(embeds))
-
-    @commands.command(aliases=("catgirl", "nekomimi"))
-    @commands.bot_has_permissions(embed_links=True)
-    async def neko(self, ctx: SleepyContext) -> None:
-        """Sends a random image of a catgirl.
-
-        (Bot Needs: Embed Links)
-        """
-        await self.send_nekobot_image_embed(ctx, image_type="neko")
 
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
