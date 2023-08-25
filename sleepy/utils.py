@@ -555,11 +555,11 @@ def progress_bar(*, progress: int, maximum: int, per: int = 1) -> str:
 
             * ``maximum`` is negative or 0.
             * ``per`` is negative, 0, or greater than ``maximum``.
-            * ``progress`` is less than maximum.
+            * ``progress`` is less than ``maximum``.
 
     Parameters
     ----------
-    progress: :class:`float`
+    progress: :class:`int`
         The value the progress bar is currently at.
 
         .. versionchanged:: 3.0
