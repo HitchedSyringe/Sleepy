@@ -248,7 +248,7 @@ class Sleepy(commands.Bot):
 
             try:
                 await self.load_extension(ext)
-            except commands.ExtensionNotFound:
+            except (commands.ExtensionNotFound, ModuleNotFoundError):
                 _LOG.warning("Extension '%s' was not found.", ext)
             except (commands.NoEntryPointError, commands.ExtensionAlreadyLoaded) as exc:
                 _LOG.warning(exc)
