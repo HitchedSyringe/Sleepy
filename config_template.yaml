@@ -73,8 +73,6 @@ force_querying_owner_ids: false
 
 # The extensions to load.
 # Folders and files should be separated via periods (.).
-# Although forward (/) and back (\) slashes work as well
-# due to an implementation detail, periods are preferred.
 # DO NOT include the '.py' file extension in the entry.
 # -> Example: my.important.extension
 # This also uses wildcard syntax to specify loading all
