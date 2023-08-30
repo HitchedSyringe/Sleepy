@@ -85,11 +85,10 @@ force_querying_owner_ids: false
 # -> Example 2: my.extensions.{extension{1..5}}
 # -> ...among other things.
 # NOTE: It is recommended that extension names refrain
-# from using any aforementioned separator characters to
-# avoid ambiguity when loading. For instance, the name
-# `my.period.separated` could either mean the extension
-# `my/period.separated` or the extension `separated` in
-# directory `my/period`).
+# from using periods to avoid ambiguity when loading.
+# For instance, the name `my.period.separated` could
+# either mean the extension `my/period.separated` or
+# `my/period/separated`.
 # ~~ Changed in version 4.0:
 #    Bring extension syntax to parity with `jishaku`'s.
 extensions_list:
