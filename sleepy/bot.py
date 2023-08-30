@@ -217,20 +217,21 @@ class Sleepy(commands.Bot):
                 extensions = braceexpand(entry)
             except UnbalancedBracesError:
                 # This name is likely valid on UNIX platforms.
-                extensions = (entry,)
+                yield entry
+                continue
 
             for extension in extensions:
+                if not extension.endswith(".*"):
+                    yield extension
+                    continue
+
                 extension = Path(*extension.split("."))
+                if extension.is_dir() or extension.with_suffix(".py").is_file():
+                    # This case applies to UNIX platforms. Fail here since
+                    # there's no reasonable or sensible way to handle this.
+                    raise RuntimeError("'*' cannot be used as an extension name.")
 
-                if extension.name == "*":
-                    if extension.is_dir() or extension.with_suffix(".py").is_file():
-                        # This case applies to UNIX platforms. Fail here since
-                        # there's no reasonable or sensible way to handle this.
-                        raise RuntimeError("'*' cannot be used as an extension name.")
-
-                    yield from find_extensions_in(extension.parent)
-                else:
-                    yield ".".join(extension.parts)
+                yield from find_extensions_in(extension.parent)
 
     def _populate_owner_information(self) -> None:
         owner_ids = set(self.config["owner_ids"])
