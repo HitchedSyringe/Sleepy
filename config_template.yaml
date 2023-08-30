@@ -71,30 +71,30 @@ owner_ids: []
 # ~~ Added in version 3.3.
 force_querying_owner_ids: false
 
-
-# -- [Extensions Config] --
-
-# Directory to the folder the extensions are stored in.
-# Folders should be separated via forward slashes (/).
-# -> Example: botfiles/important/extensions
-extensions_directory: sleepy/ext
-
-# Whether or not the bot should automatically detect and load all
-# extensions in the extensions folder upon startup.
-enable_autoload: true
-
-# The extensions to load when ``enable_autoload`` is ``false``.
-# This allows for finer grained control of which extensions to load
-# or ignore. Folders should be separated via forward slashes (/).
-# -> Example: botfiles/important/extensions
-# Furthermore, this configuration uses special syntax:
-# * The dollar sign ($) can prefix a directory to specify loading
-#   the extension from the configured extensions directory.
-#   -> Example: $/jishaku -> Load `extensions_directory/jishaku`.
-# * The astrisk (*) can suffix a directory to specify loading all
-#   extensions in the given directory.
-#   -> Example: core/* -> Load ALL extensions in `core`.
+# The extensions to load.
+# Folders and files should be separated via periods (.).
+# Although forward (/) and back (\) slashes work as well
+# due to an implementation detail, periods are preferred.
+# DO NOT include the '.py' file extension in the entry.
+# -> Example: my.important.extension
+# This also uses wildcard syntax to specify loading all
+# extensions in the given directory.
+# -> Example: my.core.*
+# Additionally, this also uses `braceexpand` syntax for
+# granularity in selecting extensions to load. For more
+# information, refer to the `braceexpand` documentation.
+# -> Example 1: my.extensions.{this,that}
+# -> Example 2: my.extensions.{extension{1..5}}
+# -> ...among other things.
+# NOTE: It is recommended that extension names refrain
+# from using any aforementioned separator characters to
+# avoid ambiguity when loading. For instance, the name
+# `my.period.separated` could either mean the extension
+# `my/period.separated` or the extension `separated` in
+# directory `my/period`).
+# ~~ Changed in version 4.0:
+#    Bring extension syntax to parity with `jishaku`'s.
 extensions_list:
-  - $/jishaku
-  - $/meta
-  - $/statistics
+  - sleepy.ext.jishaku
+  - sleepy.ext.meta
+  - sleepy.ext.statistics

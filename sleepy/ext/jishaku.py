@@ -25,14 +25,13 @@ import os
 import platform
 import traceback
 from importlib import metadata
+from os import path
 from typing import TYPE_CHECKING, List
 
 import discord
 import psutil
-from braceexpand import braceexpand
 from discord import Colour, Embed
 from discord.ext import commands
-from jishaku import modules
 from jishaku.features.baseclass import Feature
 from jishaku.features.filesystem import FilesystemFeature
 from jishaku.features.guild import GuildFeature
@@ -42,36 +41,16 @@ from jishaku.features.python import PythonFeature
 from jishaku.features.root_command import RootCommand
 from jishaku.features.shell import ShellFeature
 from jishaku.math import natural_size
+from jishaku.modules import ExtensionConverter
 from jishaku.paginators import WrappedPaginator
 from typing_extensions import Annotated
 
 from sleepy import __version__
-from sleepy.utils import bool_to_emoji, find_extensions_in, human_delta
+from sleepy.utils import bool_to_emoji, human_delta
 
 if TYPE_CHECKING:
     from sleepy.bot import Sleepy
     from sleepy.context import Context as SleepyContext
-
-
-ExtensionConverter = modules.ExtensionConverter
-
-
-def _new_resolve_extensions(bot: Sleepy, name: str) -> List[str]:
-    exts = []
-    exts_dir = ".".join(bot.extensions_directory.parts)
-
-    for ext in braceexpand(name):
-        if ext.startswith("$."):
-            ext = ext.replace("$.", f"{exts_dir}.", 1)
-
-        if ext.endswith(".*"):
-            exts.extend(find_extensions_in(ext[:-2].replace(".", "/")))
-        elif ext == "~":
-            exts.append(__name__)
-        else:
-            exts.append(ext)
-
-    return exts
 
 
 class Owner(
@@ -90,19 +69,6 @@ class Owner(
     """
 
     ICON: str = "\N{MAGNET}"
-
-    def cog_load(self) -> None:
-        self._original_resolve_extensions = modules.resolve_extensions
-
-        # Inject the custom extension resolving behaviour.
-        # I figured this was the best way to do it rather
-        # than writing my own extensions converter, which
-        # would probably just end up copying the original.
-        modules.resolve_extensions = _new_resolve_extensions
-
-    def cog_unload(self) -> None:
-        # Restore the original functionality.
-        modules.resolve_extensions = self._original_resolve_extensions
 
     @Feature.Command(aliases=("pm",))
     async def dm(self, ctx: SleepyContext, user: discord.User, *, content: str) -> None:
@@ -139,13 +105,18 @@ class Owner(
 
     @Feature.Command(parent="jsk", name="extensions", aliases=("exts",))
     async def jsk_extensions(self, ctx: SleepyContext) -> None:
-        """Shows the loaded and unloaded extensions.
+        """Shows the loaded and unloaded configured extensions.
 
-        This doesn't include extensions in any subsequent folders.
+        Any duplicate entries or non-existent extensions are ignored.
         """
         stats = commands.Paginator(None, None, 1980)
 
-        for ext in ctx.bot.get_all_extensions():
+        unique_entries = frozenset(ctx.bot._get_configured_extensions())
+        for ext in unique_entries:
+            ext_path = path.join(*ext.split("."))
+            if not (path.isdir(ext_path) or path.isfile(ext_path + ".py")):
+                continue
+
             stats.add_line(f"{bool_to_emoji(ext in ctx.bot.extensions)} `{ext}`")
 
         for page in stats.pages:
@@ -305,13 +276,12 @@ class Owner(
         inner = 0
         bad_inner = []
 
-        dpy_tasks_dir = os.path.join("discord", "ext", "tasks", "__init__")
-        exts_dir = str(bot.extensions_directory)
+        dpy_tasks_dir = path.join("discord", "ext", "tasks", "__init__")
 
         for task in asyncio.all_tasks(loop=bot.loop):
             task_repr = repr(task)
 
-            if exts_dir in task_repr or dpy_tasks_dir in task_repr:
+            if dpy_tasks_dir in task_repr:
                 inner += 1
 
                 if task.done() and task._exception is not None:

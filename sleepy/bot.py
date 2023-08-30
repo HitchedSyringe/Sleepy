@@ -33,6 +33,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Generator, List, Mapping, Type, Union
 
 import discord
+from braceexpand import UnbalancedBracesError, braceexpand  # type: ignore -- pyright moment
 from discord import Colour, Embed
 from discord.ext import commands
 from discord.utils import MISSING, cached_property, utcnow
@@ -95,8 +96,6 @@ class Sleepy(commands.Bot):
         The bot's configuration values.
 
         .. versionadded:: 1.12
-    extensions_directory: :class:`pathlib.Path`
-        The directory the extensions are located in.
     http_requester: :class:`HTTPRequester`
         The bot's HTTP requester client.
 
@@ -130,7 +129,6 @@ class Sleepy(commands.Bot):
             self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 
         self.config: Mapping[str, Any] = config
-        self.extensions_directory: Path = Path(config["extensions_directory"] or ".")
         self.http_requester: HTTPRequester = HTTPRequester(cache=kwargs.get("http_cache"))
 
         self.started_at: datetime = MISSING
@@ -192,43 +190,47 @@ class Sleepy(commands.Bot):
         return [u for i in ids if (u := self.get_user(i)) is not None]
 
     async def _init_extensions(self) -> None:
-        if self.config["enable_autoload"]:
-            to_load = self.get_all_extensions()
-        else:
-            to_load = []
-            exts_dir = "/".join(self.extensions_directory.parts)
-
-            for ext in self.config["extensions_list"]:
-                if ext.startswith("$/"):
-                    ext = ext.replace("$/", f"{exts_dir}/", 1)
-
-                if ext.endswith("/*"):
-                    to_load.extend(find_extensions_in(Path(ext[:-1])))
-                else:
-                    to_load.append(".".join(ext.split("/")))
-
         total = 0
         loaded = 0
 
-        for ext in to_load:
+        for ext in self._get_configured_extensions():
             total += 1
 
             try:
                 await self.load_extension(ext)
-            except commands.ExtensionNotFound:
-                _LOG.warning("Extension '%s' was not found.", ext)
-            except (commands.NoEntryPointError, commands.ExtensionAlreadyLoaded) as exc:
-                _LOG.warning(exc)
+            except (commands.ExtensionNotFound, ModuleNotFoundError):
+                _LOG.warning("Extension %r was not found.", ext)
             except commands.ExtensionFailed as exc:
-                _LOG.warning("Failed to load extension '%s'.", ext, exc_info=exc.original)
+                _LOG.error("Loading extension %r failed.", ext, exc_info=exc.original)
+            except commands.ExtensionError as exc:
+                _LOG.warning(exc)
             else:
-                _LOG.debug("Loaded extension '%s'.", ext)
+                _LOG.debug("Loaded extension %r.", ext)
                 logging.getLogger(ext).setLevel(logging.INFO)
                 loaded += 1
 
-        failed = total - loaded
+        _LOG.info("Extensions: %d loaded / %d configured", loaded, total)
 
-        _LOG.info("Extensions: %s total; %s loaded; %s failed.", total, loaded, failed)
+    def _get_configured_extensions(self) -> Generator[str, None, None]:
+        for entry in self.config["extensions_list"]:
+            try:
+                extensions = braceexpand(entry)
+            except UnbalancedBracesError:
+                # This name is likely valid on UNIX platforms.
+                extensions = (entry,)
+
+            for extension in extensions:
+                extension = Path(*extension.split("."))
+
+                if extension.name == "*":
+                    if extension.is_dir() or extension.with_suffix(".py").is_file():
+                        # This case applies to UNIX platforms. Fail here since
+                        # there's no reasonable or sensible way to handle this.
+                        raise RuntimeError("'*' cannot be used as an extension name.")
+
+                    yield from find_extensions_in(extension.parent)
+                else:
+                    yield ".".join(extension.parts)
 
     def _populate_owner_information(self) -> None:
         owner_ids = set(self.config["owner_ids"])
@@ -278,22 +280,6 @@ class Sleepy(commands.Bot):
 
         _LOG.info("Owner ID(s): %s", self.owner_id or self.owner_ids)
         _LOG.info("Sleepy %s booted successfully. Awaiting READY event...", __version__)
-
-    def get_all_extensions(self) -> Generator[str, None, None]:
-        """Returns a generator with the names of every recognized
-        extension in the configured extensions directory.
-
-        This is equivalent to passing :attr:`extensions_directory`
-        in `.utils.find_extensions_in`.
-
-        .. versionadded:: 3.0
-
-        Yields
-        ------
-        :class:`str`
-            The name of the recognized extension.
-        """
-        return find_extensions_in(self.extensions_directory)
 
     async def close(self) -> None:
         await self.http_requester.close()
