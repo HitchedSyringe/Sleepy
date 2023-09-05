@@ -277,11 +277,12 @@ class Owner(
         bad_inner = []
 
         dpy_tasks_dir = path.join("discord", "ext", "tasks", "__init__")
+        ext_dirs = [path.join(*e.split(".")) for e in bot.extensions]
 
         for task in asyncio.all_tasks(loop=bot.loop):
             task_repr = repr(task)
 
-            if dpy_tasks_dir in task_repr:
+            if dpy_tasks_dir in task_repr or any(d in task_repr for d in ext_dirs):
                 inner += 1
 
                 if task.done() and task._exception is not None:
