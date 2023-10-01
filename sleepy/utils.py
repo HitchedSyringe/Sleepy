@@ -21,7 +21,7 @@ from __future__ import annotations
 
 __all__ = (
     "DISCORD_SERVER_URL",
-    "PERMISSIONS_VALUE",
+    "INVITE_PERMISSIONS",
     "SOURCE_CODE_URL",
     "plural",
     "bool_to_emoji",
@@ -74,7 +74,7 @@ if TYPE_CHECKING:
 DISCORD_SERVER_URL: str = "https://discord.gg/xHgh2Xg"
 SOURCE_CODE_URL: str = "https://github.com/HitchedSyringe/Sleepy"
 
-PERMISSIONS_VALUE: int = 274878295110
+INVITE_PERMISSIONS: int = 0b0000_0000_0000_0000_0000_0000_0100_0000_0000_0000_0000_0101_1110_1100_0100_0110
 
 
 class plural:

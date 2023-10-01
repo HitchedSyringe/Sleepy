@@ -38,7 +38,7 @@ from jishaku.paginators import WrappedPaginator
 from typing_extensions import Annotated
 
 from sleepy.menus import BotLinksView, PaginationView
-from sleepy.utils import PERMISSIONS_VALUE, SOURCE_CODE_URL, bool_to_emoji
+from sleepy.utils import INVITE_PERMISSIONS, SOURCE_CODE_URL, bool_to_emoji
 
 if TYPE_CHECKING:
     from sleepy.bot import Sleepy
@@ -489,7 +489,7 @@ class Meta(commands.Cog):
     @commands.command()
     async def invite(self, ctx: SleepyContext) -> None:
         """Gives you the invite link to join me to your server."""
-        permissions = discord.Permissions(PERMISSIONS_VALUE)
+        permissions = discord.Permissions(INVITE_PERMISSIONS)
         await ctx.send(f"<{oauth_url(ctx.bot.application_id, permissions=permissions)}>")  # type: ignore
 
     @commands.command()

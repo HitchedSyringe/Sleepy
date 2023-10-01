@@ -38,7 +38,7 @@ from discord.ext.menus import ListPageSource, PageSource
 from discord.ui import Button, Modal, Select, TextInput, View, button, select
 from discord.utils import MISSING, oauth_url
 
-from .utils import DISCORD_SERVER_URL, PERMISSIONS_VALUE, SOURCE_CODE_URL
+from .utils import DISCORD_SERVER_URL, INVITE_PERMISSIONS, SOURCE_CODE_URL
 
 if TYPE_CHECKING:
     from discord.ext.commands import Paginator
@@ -276,7 +276,7 @@ class BotLinksView(View):
     def __init__(self, client_id: int) -> None:
         super().__init__(timeout=None)
 
-        invite = oauth_url(client_id, permissions=discord.Permissions(PERMISSIONS_VALUE))
+        invite = oauth_url(client_id, permissions=discord.Permissions(INVITE_PERMISSIONS))
 
         buttons = (
             Button(label="Invite me!", emoji="\N{INBOX TRAY}", url=invite),
