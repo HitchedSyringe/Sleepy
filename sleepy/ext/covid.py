@@ -181,7 +181,7 @@ class Covid(commands.Cog, name="COVID-19"):
             gs_kw["hspace"] = 0
             axes, v_axes = fig.subplots(
                 2, sharex=True, subplot_kw=sp_kw, gridspec_kw=gs_kw
-            )
+            )  # type: ignore
 
             axes.set_title(
                 "COVID-19 Cases & Outcomes, and Vaccinations",
