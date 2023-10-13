@@ -54,9 +54,9 @@ def test_plural(
 @pytest.mark.parametrize(
     ("value", "expected"),
     [
-        (None, "<:slash:821284209763024896>"),
-        (True, "<:check:821284209401921557>"),
-        (False, "<:x_:821284209792516096>"),
+        (None, SLASHMARK_EMOJI),
+        (True, CHECKMARK_EMOJI),
+        (False, XMARK_EMOJI),
     ],
 )
 def test_bool_to_emoji(value: Optional[Any], expected: str) -> None:
@@ -252,8 +252,14 @@ def test_measure_performance_sync(
     assert inspect.signature(sync_test) == inspect.signature(sync_wrap)
     assert inspect.signature(sync_test) == inspect.signature(sync_deco)
 
-    assert sync_deco(*args, **kwargs)[0] == expected
-    assert sync_wrap(*args, **kwargs)[0] == expected
+    call_results = [
+        sync_deco(*args, **kwargs),
+        sync_wrap(*args, **kwargs),
+    ]
+
+    for (return_value, delta) in call_results:
+        assert return_value == expected
+        assert isinstance(delta, float)
 
 
 @pytest.mark.parametrize(
@@ -284,8 +290,14 @@ async def test_measure_performance_async(
     assert inspect.signature(async_test) == inspect.signature(async_wrap)
     assert inspect.signature(async_test) == inspect.signature(async_deco)
 
-    assert (await async_wrap(*args, **kwargs))[0] == expected
-    assert (await async_deco(*args, **kwargs))[0] == expected
+    call_results = [
+        await async_wrap(*args, **kwargs),
+        await async_deco(*args, **kwargs),
+    ]
+
+    for (return_value, delta) in call_results:
+        assert return_value == expected
+        assert isinstance(delta, float)
 
 
 @pytest.mark.parametrize(
