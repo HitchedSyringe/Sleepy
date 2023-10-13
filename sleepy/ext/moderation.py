@@ -31,7 +31,7 @@ from typing_extensions import Annotated
 
 from sleepy import checks
 from sleepy.menus import PaginatorSource
-from sleepy.utils import plural
+from sleepy.utils import OK_HAND_EMOJI, plural
 
 if TYPE_CHECKING:
     from discord.abc import SnowflakeTime
@@ -326,7 +326,7 @@ class Moderation(commands.Cog):
             await ctx.send("You must specify at least one user to ban.")
         elif user_count == 1:
             await ctx.guild.ban(users[0], reason=reason, delete_message_days=clean_days)
-            await ctx.send("<a:sapphire_ok_hand:786093988679516160>")
+            await ctx.send(OK_HAND_EMOJI)
         else:
             await self.do_multiban(ctx, users, reason=reason, clean_days=clean_days)
 
@@ -385,7 +385,7 @@ class Moderation(commands.Cog):
         ```
         """
         await member.kick(reason=reason)
-        await ctx.send("<a:sapphire_ok_hand:786093988679516160>")
+        await ctx.send(OK_HAND_EMOJI)
 
     @commands.command(usage="[options...]")
     @checks.has_guild_permissions(ban_members=True)
@@ -741,7 +741,7 @@ class Moderation(commands.Cog):
         await ctx.guild.ban(user, reason=reason, delete_message_days=clean_days)
         await ctx.guild.unban(user, reason=reason)
 
-        await ctx.send("<a:sapphire_ok_hand:786093988679516160>")
+        await ctx.send(OK_HAND_EMOJI)
 
     @commands.command(aliases=("pardon",))
     @checks.has_guild_permissions(ban_members=True)

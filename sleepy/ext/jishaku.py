@@ -46,7 +46,7 @@ from jishaku.paginators import WrappedPaginator
 from typing_extensions import Annotated
 
 from sleepy import __version__
-from sleepy.utils import bool_to_emoji, human_delta
+from sleepy.utils import CHECKMARK_EMOJI, XMARK_EMOJI, bool_to_emoji, human_delta
 
 if TYPE_CHECKING:
     from sleepy.bot import Sleepy
@@ -149,9 +149,9 @@ class Owner(
                 tb = ''.join(
                     traceback.format_exception(type(exc), exc, exc.__traceback__, limit)
                 )
-                stats.add_line(f"<:x_:821284209792516096> `{ext}`\n```py\n{tb}```")
+                stats.add_line(f"{XMARK_EMOJI} `{ext}`\n```py\n{tb}```")
             else:
-                stats.add_line(f"<:check:821284209401921557> `{ext}`")
+                stats.add_line(f"{CHECKMARK_EMOJI} `{ext}`")
 
         if not stats.pages:
             await ctx.send("No action was taken on the given extension(s).")
@@ -190,9 +190,9 @@ class Owner(
                 tb = "".join(
                     traceback.format_exception(type(exc), exc, exc.__traceback__, limit)
                 )
-                stats.add_line(f"<:x_:821284209792516096> `{ext}`\n```py\n{tb}```")
+                stats.add_line(f"{XMARK_EMOJI} `{ext}`\n```py\n{tb}```")
             else:
-                stats.add_line(f"<:check:821284209401921557> `{ext}`")
+                stats.add_line(f"{CHECKMARK_EMOJI} `{ext}`")
 
         if not stats.pages:
             await ctx.send("No action was taken on the given extension(s).")
@@ -327,7 +327,7 @@ class Owner(
 
         for ext in itertools.chain(*extensions):
             if ext == __name__:
-                stats.add_line(f"<:x_:821284209792516096> `{ext}` (Can't be unloaded)")
+                stats.add_line(f"{XMARK_EMOJI} `{ext}` (Can't be unloaded)")
                 continue
 
             try:
@@ -335,7 +335,7 @@ class Owner(
             except Exception:
                 pass
             else:
-                stats.add_line(f"<:check:821284209401921557> `{ext}`")
+                stats.add_line(f"{CHECKMARK_EMOJI} `{ext}`")
 
         if not stats.pages:
             await ctx.send("No action was taken on the given extension(s).")

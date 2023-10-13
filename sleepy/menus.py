@@ -38,7 +38,13 @@ from discord.ext.menus import ListPageSource, PageSource
 from discord.ui import Button, Modal, Select, TextInput, View, button, select
 from discord.utils import MISSING, oauth_url
 
-from .utils import DISCORD_SERVER_URL, INVITE_PERMISSIONS, SOURCE_CODE_URL
+from .utils import (
+    CHECKMARK_EMOJI,
+    DISCORD_SERVER_URL,
+    INVITE_PERMISSIONS,
+    SOURCE_CODE_URL,
+    XMARK_EMOJI,
+)
 
 if TYPE_CHECKING:
     from discord.ext.commands import Paginator
@@ -314,14 +320,14 @@ class ConfirmationView(BaseView):
 
         self.result: Optional[bool] = None
 
-    @button(emoji="<:check:821284209401921557>", style=discord.ButtonStyle.green)
+    @button(emoji=CHECKMARK_EMOJI, style=discord.ButtonStyle.green)
     async def confirm(
         self, itn: discord.Interaction, button: Button["ConfirmationView"]
     ) -> None:
         self.result = True
         self.stop()
 
-    @button(emoji="<:x_:821284209792516096>", style=discord.ButtonStyle.red)
+    @button(emoji=XMARK_EMOJI, style=discord.ButtonStyle.red)
     async def deny(
         self, itn: discord.Interaction, button: Button["ConfirmationView"]
     ) -> None:
@@ -442,6 +448,15 @@ class PaginationView(BaseView):
         :meth:`attach_to`, :meth:`reply_to`, :meth:`respond_to`, or otherwise.
     """
 
+    # fmt: off
+    FIRST_PAGE_BUTTON_EMOJI:    str = "<:rrwnd:862379040802865182>"
+    PREVIOUS_PAGE_BUTTON_EMOJI: str = "<:back:862407042172715038>"
+    PAGE_SELECT_BUTTON_EMOJI:   str = "\N{INPUT SYMBOL FOR NUMBERS}"
+    NEXT_PAGE_BUTTON_EMOJI:     str = "<:fwd:862407042114125845>"
+    LAST_PAGE_BUTTON_EMOJI:     str = "<:ffwd:862378579794460723>"
+    STOP_BUTTON_EMOJI:          str = "\N{OCTAGONAL SIGN}"
+    # fmt: on
+
     def __init__(
         self,
         source: PageSource,
@@ -506,7 +521,7 @@ class PaginationView(BaseView):
         if more_than_two:
             self.add_item(self.first_page)
 
-            self.page_number.emoji = "\N{INPUT SYMBOL FOR NUMBERS}"
+            self.page_number.emoji = self.PAGE_SELECT_BUTTON_EMOJI
             self.page_number.disabled = False
         else:
             self.page_number.emoji = None
@@ -903,13 +918,13 @@ class PaginationView(BaseView):
             except discord.HTTPException:
                 pass
 
-    @button(emoji="<:rrwnd:862379040802865182>")
+    @button(emoji=FIRST_PAGE_BUTTON_EMOJI)
     async def first_page(
         self, itn: discord.Interaction, button: Button["PaginationView"]
     ) -> None:
         await self.show_page(0, itn)
 
-    @button(emoji="<:back:862407042172715038>")
+    @button(emoji=PREVIOUS_PAGE_BUTTON_EMOJI)
     async def previous_page(
         self, itn: discord.Interaction, button: Button["PaginationView"]
     ) -> None:
@@ -924,13 +939,13 @@ class PaginationView(BaseView):
 
         await itn.response.send_modal(self._page_select_modal)
 
-    @button(emoji="<:fwd:862407042114125845>")
+    @button(emoji=NEXT_PAGE_BUTTON_EMOJI)
     async def next_page(
         self, itn: discord.Interaction, button: Button["PaginationView"]
     ) -> None:
         await self.show_checked_page(self.current_page + 1, itn)
 
-    @button(emoji="<:ffwd:862378579794460723>")
+    @button(emoji=LAST_PAGE_BUTTON_EMOJI)
     async def last_page(
         self, itn: discord.Interaction, button: Button["PaginationView"]
     ) -> None:
@@ -938,7 +953,7 @@ class PaginationView(BaseView):
         # handled initially when the view starts.
         await self.show_page(self._source.get_max_pages() - 1, itn)  # type: ignore
 
-    @button(emoji="\N{OCTAGONAL SIGN}", label="Stop", style=discord.ButtonStyle.danger)
+    @button(emoji=STOP_BUTTON_EMOJI, label="Stop", style=discord.ButtonStyle.danger)
     async def stop_menu(
         self, itn: discord.Interaction, button: Button["PaginationView"]
     ) -> None:

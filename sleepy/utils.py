@@ -20,9 +20,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 __all__ = (
+    "CHECKMARK_EMOJI",
     "DISCORD_SERVER_URL",
     "INVITE_PERMISSIONS",
+    "OK_HAND_EMOJI",
+    "SLASHMARK_EMOJI",
     "SOURCE_CODE_URL",
+    "XMARK_EMOJI",
     "plural",
     "bool_to_emoji",
     "find_extensions_in",
@@ -72,12 +76,24 @@ if TYPE_CHECKING:
 
 
 # fmt: off
-
 DISCORD_SERVER_URL: str = "https://discord.gg/xHgh2Xg"
 SOURCE_CODE_URL:    str = "https://github.com/HitchedSyringe/Sleepy"
 
 INVITE_PERMISSIONS: int = 0b0000_0000_0000_0000_0000_0000_0100_0000_0000_0000_0000_0101_1110_1100_0100_0110
 
+# General-use Emojis
+CHECKMARK_EMOJI: str = "<:check:821284209401921557>"
+OK_HAND_EMOJI:   str = "<a:sapphire_ok_hand:786093988679516160>"
+SLASHMARK_EMOJI: str = "<:slash:821284209763024896>"
+XMARK_EMOJI:     str = "<:x_:821284209792516096>"
+
+# Progress Bar Emojis
+_F_START: str = "<:pb_r_f:786093987336421376>"
+_F_BODY:  str = "<:pb_b_f:786093986703605830>"
+_F_END:   str = "<:pb_l_f:786093987076374548>"
+_E_START: str = "<:pb_r_e:786093986838347836>"
+_E_BODY:  str = "<:pb_b_e:786093986233188363>"
+_E_END:   str = "<:pb_l_e:786093986745942037>"
 # fmt: on
 
 
@@ -159,9 +175,9 @@ def bool_to_emoji(value: Optional[Any]) -> str:
 
     This returns one of the following:
 
-    * `<:check:821284209401921557>` if `value` evaluates to `True`.
-    * `<:x_:821284209792516096>` if `value` evaluates to `False`.
-    * `<:slash:821284209763024896>` if `value` is `None`.
+    * `~.utils.CHECKMARK_EMOJI` if `value` evaluates to `True`.
+    * `~.utils.XMARK_EMOJI` if `value` evaluates to `False`.
+    * `~.utils.SLASHMARK_EMOJI` if `value` is `None`.
 
     .. versionadded:: 3.0
 
@@ -176,9 +192,9 @@ def bool_to_emoji(value: Optional[Any]) -> str:
         The emoji result.
     """
     if value is None:
-        return "<:slash:821284209763024896>"
+        return SLASHMARK_EMOJI
 
-    return "<:check:821284209401921557>" if value else "<:x_:821284209792516096>"
+    return CHECKMARK_EMOJI if value else XMARK_EMOJI
 
 
 def find_extensions_in(path: Union[str, Path]) -> Generator[str, None, None]:
@@ -607,20 +623,14 @@ def progress_bar(*, progress: int, maximum: int, per: int = 1) -> str:
     # the edge pieces, since we're doing the simple-but-
     # not-so-simple approach of calculating the body.
 
-    FR = "<:pb_r_f:786093987336421376>"
-    EL = "<:pb_l_e:786093986745942037>"
-    FB = "<:pb_b_f:786093986703605830>"
-    EB = "<:pb_b_e:786093986233188363>"
-
     if filled == total:
-        FL = "<:pb_l_f:786093987076374548>"
-        return FR + FB * (total - 2) + FL
+        return _F_START + _F_BODY * (total - 2) + _F_END
 
     if filled == 0:
-        ER = "<:pb_r_e:786093986838347836>"
-        return ER + EB * (total - 2) + EL
+        return _E_START + _E_BODY * (total - 2) + _E_END
 
-    return FR + FB * (filled - 1) + EB * (total - filled - 1) + EL
+    empty = total - filled
+    return _F_START + _F_BODY * (filled - 1) + _E_BODY * (empty - 1) + _E_END
 
 
 def tchart(
