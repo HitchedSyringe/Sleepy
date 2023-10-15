@@ -16,7 +16,7 @@ __license__ = "AGPL-3.0"
 __version__ = "4.0.0a"
 
 
-from . import mimics as mimics, utils as utils
+from . import utils as utils
 from .bot import *
 from .checks import *
 from .context import *

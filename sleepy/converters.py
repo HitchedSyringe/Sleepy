@@ -20,199 +20,160 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 __all__ = (
-    "ImageAssetConversionFailure",
-    "ImageAssetConverter",
-    "ImageAssetTooLarge",
+    "BadImageArgument",
+    "ImageAttachment",
+    "ImageTooLarge",
+    "ImageResourceConverter",
 )
 
 
 import asyncio
-from inspect import isclass
-from typing import TYPE_CHECKING, Any, Callable, FrozenSet, Optional, Union, cast
+import inspect
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    ClassVar,
+    FrozenSet,
+    Optional,
+    Tuple,
+    Union,
+    cast,
+)
 
 import discord
-from discord import Attachment
+import yarl
+from discord import AppCommandOptionType, Attachment, Interaction, app_commands
+from discord.asset import AssetMixin
 from discord.ext import commands
 from discord.ext.commands.core import _AttachmentIterator
-from yarl import URL
-
-from .mimics import PartialAsset
 
 if TYPE_CHECKING:
-    from discord.state import ConnectionState
-    from typing_extensions import Protocol
+    from discord.asset import _State
 
     from .context import Context as SleepyContext
 
-    class _AttachmentLike(Protocol):
-        width: Optional[int]
-        height: Optional[int]
-
-        # These are invariant in Attachment.
-        @property
-        def url(self) -> Optional[str]:
-            ...
-
-        @property
-        def proxy_url(self) -> Optional[str]:
-            ...
+    AssetLike = Union[
+        discord.Asset,
+        discord.PartialEmoji,
+        discord.GuildSticker,
+        "DiscordMediaURL",
+    ]
 
 
-class ImageAssetConversionFailure(commands.BadArgument):
-    """Exception raised when the argument provided fails to convert
-    to a :class:`PartialAsset`.
+class DiscordMediaURL(AssetMixin):
+
+    __slots__: Tuple[str, ...] = ("_state", "_url", "_size", "_content_type")
+
+    def __init__(self, state: _State, url: str, size: int, content_type: str) -> None:
+        self._state: _State = state
+        self._url: str = url
+        self._size: int = size
+        self._content_type: str = content_type
+
+    def __str__(self) -> str:
+        return self._url
+
+    def __len__(self) -> int:
+        return len(self._url)
+
+    def __repr__(self) -> str:
+        return f"<DiscordMediaURL url={self._url!r}>"
+
+    def __eq__(self, other: "DiscordMediaURL") -> bool:
+        return isinstance(other, DiscordMediaURL) and self._url == other.url
+
+    def __hash__(self) -> int:
+        return hash(self._url)
+
+    @property
+    def url(self) -> str:
+        return self._url
+
+    @property
+    def size(self) -> int:
+        return self._size
+
+    @property
+    def content_type(self) -> str:
+        return self._content_type
+
+
+class BadImageArgument(commands.BadArgument):
+    """Exception raised when the image is not valid.
 
     This inherits from :exc:`commands.BadArgument`.
 
-    .. versionadded:: 3.0
-
-    .. versionchanged:: 3.3
-        Argument can now be a :class:`discord.Attachment`.
+    .. versionadded:: 4.0
 
     Attributes
-    ----------
+    -----------
     argument: Union[:class:`str`, :class:`discord.Attachment`]
-        The argument supplied by the caller that could not be converted.
+        The image supplied by the caller that was not valid.
     """
 
     def __init__(self, argument: Union[str, Attachment]) -> None:
         self.argument: Union[str, Attachment] = argument
 
-        super().__init__(f'Couldn\'t convert "{argument}" to PartialAsset.')
+        super().__init__(f'Image "{argument}" is invalid.')
 
 
-class ImageAssetTooLarge(commands.BadArgument):
-    """Exception raised when the argument provided exceeds the maximum
-    conversion filesize.
+class ImageTooLarge(commands.BadArgument):
+    """Exception raised when the image is too large.
 
     This inherits from :exc:`commands.BadArgument`.
 
-    .. versionadded:: 3.0
-
-    .. versionchanged:: 3.3
-        Argument can now be a :class:`discord.Attachment`.
+    .. versionadded:: 4.0
 
     Attributes
-    ----------
+    -----------
     argument: Union[:class:`str`, :class:`discord.Attachment`]
-        The argument supplied by the caller that exceeded the maximum
-        conversion filesize.
-    filesize: :class:`int`
-        The argument's filesize in bytes.
-    max_filesize: :class:`int`
-        The converter's maximum filesize in bytes.
+        The image supplied by the caller that was too large.
+    max_size: :class:`int`
+        The maximum filesize, in bytes, allowed for images.
     """
 
-    def __init__(
-        self, argument: Union[str, Attachment], filesize: int, max_filesize: int
-    ) -> None:
+    def __init__(self, argument: Union[str, Attachment], max_size: int) -> None:
         self.argument: Union[str, Attachment] = argument
-        self.filesize: int = filesize
-        self.max_filesize: int = max_filesize
+        self.max_size: int = max_size
 
-        super().__init__(
-            f'"{argument}" exceeds the maximum filesize. ({filesize}/{max_filesize} B)'
-        )
+        super().__init__(f'Image "{argument}" exceeds {max_size:,d} B in size.')
 
 
-class ImageAssetConverter(commands.Converter[PartialAsset]):
-    """Converts a user, custom emoji, sticker, image attachment,
-    or image URL to a :class:`PartialAsset`.
+class ImageResourceConverter(commands.Converter["AssetLike"]):
+    """Converts to a :class:`discord.Asset`-like object.
 
-    This also allows for converting replied messages containing
-    image attachments.
+    This will convert the following (in order):
 
-    .. warning::
-
-        Due to an implementation detail, image attachments take
-        precedence over command arguments and replied messages
-        during conversion. In this case, the conversion order
-        is as follows:
-
-        1) Context Message Image Attachments
-        2) Replied Message Image Attachments
-        3) Users
-        4) Guild Emojis
-        5) Guild Stickers
-        6) Image URLs
-
-        In the case of using :class:`commands.Greedy`, only the
-        argument type with the highest precedence is converted.
-        For example, if both image attachments and image URLs are
-        passed, then only the former will be converted, while the
-        latter is completely ignored and discarded.
-
-        Furthermore, conversion of image attachments and replied
-        messages are **not** supported with :class:`typing.Union`.
+    1. Users (returns the display avatar)
+    2. Guild Emojis (returns a :class:`discord.PartialEmoji`)
+    3. Guild Stickers (returns a :class:`discord.GuildSticker`)
+    4. Image URLs (returns a :class:`DiscordMediaURL` denoting contents)
+        a. The returned object is similar to a :class:`discord.Asset`,
+           but only exposes the size and content type (via the `size`
+           and `content_type` properties) of the image.
 
     .. warning::
 
-        Due to limitations with the checks, attachments and URLs
-        are not guaranteed to be valid images.
+        Due to limitations with the checks, passed URLs are not 100%
+        guaranteed to link to valid images. Callers are responsible
+        for checking validity via an image processing library.
 
-    .. versionadded:: 2.0
-
-    .. versionchanged:: 3.0
-
-        * Raise :exc:`.ImageAssetConversionFailure` or
-          :exc:`.ImageAssetTooLarge` instead of generic
-          :exc:`commands.BadArgument`.
-        * Raise :exc:`commands.TooManyArguments` if
-          :attr:`Command.ignore_extra` is ``False`` and
-          more than one attachment is supplied.
-        * Added support for converting custom emojis.
-        * Attachments and URLs are now checked for their
-          filesize.
-
-    .. versionchanged:: 3.2
-
-        * Added support for replying to a message with image
-          attachments.
-        * Added support for resolving a message with image
-          attachments via ID or URL.
-        * This now returns :class:`PartialAsset` instances.
-
-    .. versionchanged:: 3.3
-
-        * Removed support for resolving a message with image
-          attachments via ID or URL.
-        * Refactored to use discord.py's attachment conversion.
-        * Added support for :class:`commands.Greedy`.
-        * Added support for guild stickers.
+    .. versionadded:: 4.0
 
     Parameters
     ----------
-    max_filesize: Optional[:class:`int`]
-        The maximum filesize, in bytes, an attachment or URL
-        can be. This will raise :exc:`.ImageAssetTooLarge` if
-        an attachment or URL exceeds this filesize limit.
-        ``None`` denotes disabling filesize checking.
-        Defaults to ``40_000_000`` (40 MB).
+    max_size: Optional[:class:`int`]
+        The maximum acceptable size in bytes a passed image URL can be.
+        If the image URL exceeds this value, then :exc:`.ImageTooLarge`
+        will be raised. If this is ``None``, then size checking will be
+        disabled. Defaults to `40_000_000` (40 MB).
 
         .. warning::
 
-            Disabling filesize checking leaves you vulnerable to
-            a denial-of-service attack. Unless you are doing your
-            own internal checks, it is **highly recommended** to
-            set a maximum filesize.
-
-        .. note::
-
-            Users, guild emojis, and guild stickers always skip
-            this check, regardless of this setting.
-
-        .. versionadded:: 3.0
-
-        .. versionchanged:: 3.3
-            Set default value to ``40_000_000`` (40 MB).
-
-    Attributes
-    ----------
-    max_filesize: Optional[:class:`int`]
-        The maximum conversion filesize in bytes.
-        ``None`` if filesize checking is disabled.
-
-        .. versionadded:: 3.0
+            Disabling size checking leaves you vulnerable to denial of
+            service attacks. Unless you are performing your own internal
+            checks, it is **highly recommended** to pass a maximum size.
     """
 
     # fmt: off
@@ -224,126 +185,191 @@ class ImageAssetConverter(commands.Converter[PartialAsset]):
     })
     # fmt: on
 
-    def __init__(self, *, max_filesize: Optional[int] = 40_000_000) -> None:
-        if max_filesize is not None and max_filesize <= 0:
-            raise ValueError(f"invalid max_filesize {max_filesize} (must be > 0).")
+    def __init__(self, *, max_size: Optional[int] = 40_000_000) -> None:
+        self._max_size: Optional[int] = None
+        self.max_size = max_size
 
-        self.max_filesize: Optional[int] = max_filesize
+    @property
+    def max_size(self) -> Optional[int]:
+        """Optional[:class:`int`]: The maximum acceptable size in bytes a passed
+        image URL can be. ``None`` if size checking is disabled.
+        """
+        return self._max_size
+
+    @max_size.setter
+    def max_size(self, value: Optional[int]) -> None:
+        if value is not None and value <= 0:
+            raise ValueError(f"invalid max_size {value} (must be > 0).")
+
+        self._max_size = value
 
     # Trick to allow instances of this inside Optional and Union.
     def __call__(self) -> None:
         pass
 
-    def _is_trusted(self, url: str) -> bool:
+    def _is_trusted_url(self, url: str) -> bool:
         try:
-            url_obj = URL(url)
+            url_obj = yarl.URL(url)
         except Exception:
             return False
 
         return url_obj.host in self.TRUSTED_HOSTS
 
-    def _resolve_safe_url(self, attachment_like: _AttachmentLike) -> Optional[str]:
-        if not (attachment_like.width or attachment_like.height):
+    async def _resolve_trusted_url(
+        self, message: discord.Message, argument: str
+    ) -> Optional[str]:
+        embeds = message.embeds
+
+        # If there are no message embed(s), then Discord likely hasn't
+        # proxied the image(s) yet. We'll have to wait for the embeds
+        # to populate before refetching the message.
+        if not embeds:
+            await asyncio.sleep(1)
+
+            try:
+                message = await message.fetch()
+            except discord.HTTPException:
+                return None
+
+            embeds = message.embeds
+
+        # In order to derive a safe URL from a string argument, we sift
+        # through embeds to get a Discord proxied version of the image.
+        # This means that "<url>" is essentially an invalid argument.
+        # Also, this may not work 100% of the time... Too bad!
+        embed = discord.utils.find(lambda e: e.url == argument, embeds)
+        if embed is None:
             return None
 
-        # Using the source url as-is can be dangerous, thus, we choose
-        # to use Discord's cached version of the image (the proxy URL)
-        # instead, unless the source URL originates from Discord. It's
-        # worth noting that there is no 100% guarantee that the proxy
-        # URL will actually work. In this case... too bad I guess.
+        im = embed.image or embed.thumbnail
+        if im is None or not (im.width or im.height):
+            return None
 
-        if attachment_like.url is not None and self._is_trusted(attachment_like.url):
-            return attachment_like.url
+        return im.url if im.url and self._is_trusted_url(im.url) else im.proxy_url
 
-        return attachment_like.proxy_url
-
-    def _convert_attachment(
-        self, state: ConnectionState, attachment: Attachment
-    ) -> PartialAsset:
-        url = self._resolve_safe_url(attachment)
-        mime = attachment.content_type
-
-        if url is None or mime is None or "image/" not in mime:
-            raise ImageAssetConversionFailure(attachment)
-
-        size = attachment.size
-        max_size = self.max_filesize
-
-        if max_size is not None and size > max_size:
-            raise ImageAssetTooLarge(attachment, size, max_size)
-
-        return PartialAsset(state, url=url)
-
-    async def convert(self, ctx: SleepyContext, argument: str) -> PartialAsset:
+    async def convert(self, ctx: SleepyContext, argument: str) -> AssetLike:
         try:
             user = await commands.UserConverter().convert(ctx, argument)
         except commands.UserNotFound:
             pass
         else:
-            avatar = user.display_avatar.with_static_format("png")
-            return PartialAsset(avatar._state, url=avatar.url)
+            return user.display_avatar
 
         try:
-            emoji = await commands.PartialEmojiConverter().convert(ctx, argument)
+            return await commands.PartialEmojiConverter().convert(ctx, argument)
         except commands.PartialEmojiConversionFailure:
             pass
-        else:
-            return PartialAsset(emoji._state, url=emoji.url)
 
         try:
-            sticker = await commands.GuildStickerConverter().convert(ctx, argument)
+            return await commands.GuildStickerConverter().convert(ctx, argument)
         except commands.GuildStickerNotFound:
             pass
-        else:
-            return PartialAsset(sticker._state, url=sticker.url)
 
         url = argument.strip("<>")
 
-        if not self._is_trusted(url):
-            # If there are no message embeds, then Discord likely hasn't
-            # cached the image(s) yet. We'll have to wait for the embeds
-            # to populate before refetching the message.
-            if not (embeds := ctx.message.embeds):
-                await asyncio.sleep(1)
+        if not self._is_trusted_url(argument):
+            if ctx.interaction is not None:
+                raise BadImageArgument(argument)
 
-                try:
-                    message = await ctx.message.fetch()
-                except discord.HTTPException:
-                    raise ImageAssetConversionFailure(argument) from None
-                else:
-                    embeds = message.embeds
-
-            # In order to safely derive a PartialAsset from a string
-            # argument, we need to sift through embeds so we can get
-            # a Discord cached version of the image. This means that
-            # passing "<url>" is now an invalid argument. Also, this
-            # may not work 100% of the time. Too bad.
-            embed = discord.utils.find(lambda e: e.url == argument, embeds)
-
-            if embed is None or not (image := embed.image or embed.thumbnail):
-                raise ImageAssetConversionFailure(argument)
-
-            url = self._resolve_safe_url(image)
-
-            if url is None:
-                raise ImageAssetConversionFailure(argument)
+            url = await self._resolve_trusted_url(ctx.message, argument)
+            if not url:
+                raise BadImageArgument(argument)
 
         try:
-            resp = await ctx.session.head(url, raise_for_status=True)
+            async with ctx.session.head(url, raise_for_status=True) as r:
+                size = r.content_length
+                mime = r.content_type
         except Exception:
-            raise ImageAssetConversionFailure(argument) from None
+            raise BadImageArgument(argument) from None
 
-        size = resp.content_length
+        if size is None or "image/" not in mime:
+            raise BadImageArgument(argument)
 
-        if size is None or "image/" not in resp.content_type:
-            raise ImageAssetConversionFailure(argument)
-
-        max_size = self.max_filesize
-
+        max_size = self._max_size
         if max_size is not None and size > max_size:
-            raise ImageAssetTooLarge(url, size, max_size)
+            raise ImageTooLarge(argument, max_size)
 
-        return PartialAsset(ctx.bot._connection, url=url)
+        return DiscordMediaURL(ctx._state, url, size, mime)
+
+
+class ImageAttachment(app_commands.Transformer):
+    """Converts to an image attachment.
+
+    This is similar in behaviour to :class:`discord.Attachment`, but does extra
+    checking to ensure the attachment passed is an image attachment. This also
+    allows for converting a replied message's attachments.
+
+    .. note::
+
+        The context message's image attachments **always** takes precedance over
+        a replied message's image attachments when converting.
+
+    .. note::
+
+        Due to a Discord limitation, use of this converter in `commands.Greedy`
+        is **not supported** in hybrid commands.
+
+    .. warning::
+
+        Due to limitations with the checks, passed attachments are not 100%
+        guaranteed to be valid images. Callers are responsible for checking
+        validity via an image processing library.
+
+    .. versionadded:: 4.0
+
+    Parameters
+    ----------
+    max_size: Optional[:class:`int`]
+        The maximum acceptable size in bytes a passed image attachment can be.
+        If the image attachment exceeds this value, then :exc:`.ImageTooLarge`
+        will be raised. If this is ``None``, then size checking will be disabled.
+        Defaults to `40_000_000` (40 MB).
+
+        .. warning::
+
+            Disabling size checking leaves you vulnerable to denial of service
+            attacks. Unless you are performing your own internal checks, it is
+            **highly recommended** to pass a maximum size.
+    """
+
+    __sleepy_converters_is_image_attachment__: ClassVar[bool] = True
+
+    def __init__(self, *, max_size: Optional[int] = 40_000_000) -> None:
+        self._max_size: Optional[int] = None
+        self.max_size = max_size
+
+    @property
+    def max_size(self) -> Optional[int]:
+        """Optional[:class:`int`]: The maximum acceptable size in bytes a passed
+        image attachment can be. ``None`` if size checking is disabled.
+        """
+        return self._max_size
+
+    @max_size.setter
+    def max_size(self, value: Optional[int]) -> None:
+        if value is not None and value <= 0:
+            raise ValueError(f"invalid max_size {value} (must be > 0).")
+
+        self._max_size = value
+
+    @property
+    def type(self) -> AppCommandOptionType:
+        return AppCommandOptionType.attachment
+
+    def _validate_image_attachment(self, attachment: Attachment) -> Attachment:
+        mime = attachment.content_type
+        if mime is None or "image/" not in mime:
+            raise BadImageArgument(attachment)
+
+        size = attachment.size
+        max_size = self._max_size
+        if max_size is not None and size > max_size:
+            raise ImageTooLarge(attachment, max_size)
+
+        return attachment
+
+    async def transform(self, itn: Interaction, value: Any, /) -> Attachment:
+        return self._validate_image_attachment(value)
 
 
 # Private since I only plan on using these for a
@@ -364,25 +390,6 @@ def _positional_bool_flag(*names: str) -> Callable[[str], bool]:
 _original_command_transform = commands.Command.transform
 
 
-async def _iac_transform(
-    converter: ImageAssetConverter,
-    command: commands.Command,
-    ctx: SleepyContext,
-    param: commands.Parameter,
-    attachments: _AttachmentIterator,
-) -> Any:
-    value = await _original_command_transform(command, ctx, param, attachments)
-
-    if isinstance(value, Attachment):
-        return converter._convert_attachment(ctx.bot._connection, value)
-
-    if isinstance(value, list):
-        state = ctx.bot._connection
-        return [converter._convert_attachment(state, a) for a in value]
-
-    return value
-
-
 async def _new_command_transform(
     self: commands.Command,
     ctx: commands.Context,
@@ -399,28 +406,12 @@ async def _new_command_transform(
     # reason we don't overwrite the passed attachments is
     # to preserve the original :class:`discord.Attachment`
     # conversion behaviour.
-    if not attachments.data and replied is not None:
+    if attachments.is_empty() and replied is not None:
         to_handle = _AttachmentIterator(replied.attachments)
     else:
         to_handle = attachments
 
-    # Allows passing a command argument or using a replied message
-    # alongside an image attachment. Note that there is precedence
-    # involved here due to an implementation detail. For reference,
-    # the conversion order is as follows:
-    #
-    # 1) Context Message Image Attachments
-    # 2) Replied Message Image Attachments
-    # 3) Users
-    # 4) Guild Emojis
-    # 5) Guild Stickers
-    # 6) Image URLs
-    #
-    # Unfortunately, this also makes working with commands.Greedy
-    # really hairy. In that case, only the argument type with the
-    # highest precedence is converted. Everything below is quietly
-    # ignored and (eventually) discarded.
-    if to_handle.index < len(to_handle.data):
+    if not to_handle.is_empty():
         converter = param.converter
 
         # Attempt to resolve the converter itself and spoof the
@@ -436,12 +427,18 @@ async def _new_command_transform(
         else:
             new_param = param.replace(annotation=Attachment)
 
-        if isclass(converter) and issubclass(converter, ImageAssetConverter):
-            converter = converter()
-            return await _iac_transform(converter, self, ctx, new_param, to_handle)
+        if hasattr(converter, "__sleepy_converters_is_image_attachment__"):
+            res = await _original_command_transform(self, ctx, new_param, to_handle)
 
-        if isinstance(converter, ImageAssetConverter):
-            return await _iac_transform(converter, self, ctx, new_param, to_handle)
+            if inspect.isclass(converter):
+                converter = converter()
+
+            if isinstance(res, list):
+                return [converter._validate_image_attachment(a) for a in res]
+
+            return converter._validate_image_attachment(res)
+
+    del to_handle
 
     return await _original_command_transform(self, ctx, param, attachments)
 
