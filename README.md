@@ -18,6 +18,8 @@
 
 </div>
 
+⚠️ **WARNING:** This version of the bot is currently work in progress and is highly unstable. Please check the releases or other branches for stable versions. ⚠️
+
 A Discord bot with server moderation, fun commands, image manipulation, and much more, all designed with user-friendliness and simplicity in mind.
 
 For more information, feel free to check out the bot's [support server][discord].
@@ -32,7 +34,7 @@ If you wish to have an instance of this bot running in your server, feel free to
 
 This project is licensed under the [GNU Affero General Public License v3.0](https://www.gnu.org/licenses/agpl-3.0.en.html). See [LICENSE][license] for more information.
 
-This license does not grant any rights, either expressly or implicitly, to use any contributer or licensor's trademarks, service marks, or logos except as required for the purposes of attribution.
+This license does not grant you any rights to use any contributor or licensor's name, logo, or trademarks, and you must not in any way indicate you are authorised to speak on behalf of any licensor or contributor.
 
 Commits prior to `e23c157b003ef877a2a785c6431bea61dd770eac` are licensed under the [Mozilla Public License, v. 2.0](https://mozilla.org/en-US/MPL/2.0/). This includes versions `2.x` to `3.3.x`. See the `LICENSE` file included in these commits/versions for more information.
 
