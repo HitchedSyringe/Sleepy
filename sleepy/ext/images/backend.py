@@ -27,21 +27,17 @@ __all__ = (
     "do_jpegify",
     "do_lensflare_eyes",
     "do_swirl",
-    "make_axios_interview_meme",
     "make_captcha",
     "make_clyde_message",
     "make_dalgona",
-    "make_iphone_x",
     "make_live_tucker_reaction_meme",
     "make_pointing_soyjaks_meme",
     "make_pornhub_comment",
     "make_roblox_cancel_meme",
     "make_ship",
     "make_text_image",
-    "make_threats_meme",
     "make_trapcard",
     "make_tweet",
-    "make_who_would_win_meme",
     "make_youtube_comment",
 )
 
@@ -242,36 +238,6 @@ def do_swirl(image_buffer: io.BytesIO, *, intensity: float = 1) -> io.BytesIO:
 
 @executor_function
 @measure_performance
-def make_axios_interview_meme(text: str) -> io.BytesIO:
-    with Image.open(TEMPLATES / "axios_interview.jpg") as template:
-        font = ImageFont.truetype(str(FONTS / "Arimo-Regular.ttf"), 60)
-
-        text = wrap_text(text, font, width=650)
-        text_layer = Image.new("LA", get_accurate_text_size(font, text))
-
-        ImageDraw.Draw(text_layer).text((0, 0), text, "black", font, align="center")
-
-        text_layer = text_layer.rotate(-12.5, expand=True)
-
-        # For reference, the desired point to center the
-        # text around is (530, 1000).
-        template.paste(
-            text_layer,
-            (530 - text_layer.width // 2, 1000 - text_layer.height // 2),
-            text_layer,
-        )
-
-        buffer = io.BytesIO()
-
-        template.save(buffer, "png")
-
-    buffer.seek(0)
-
-    return buffer
-
-
-@executor_function
-@measure_performance
 def make_captcha(image_buffer: io.BytesIO, text: str) -> io.BytesIO:
     with Image.open(TEMPLATES / "captcha.png") as template:
         with Image.open(image_buffer) as image:
@@ -363,25 +329,6 @@ def make_dalgona(image_buffer: io.BytesIO) -> io.BytesIO:
     buffer = io.BytesIO()
 
     template.save(buffer, "png")
-
-    buffer.seek(0)
-
-    return buffer
-
-
-@executor_function
-@measure_performance
-def make_iphone_x(image_buffer: io.BytesIO) -> io.BytesIO:
-    with Image.open(TEMPLATES / "iphonex.png") as template:
-        with Image.open(image_buffer) as image:
-            binder = Image.new("RGBA", template.size)
-            binder.paste(image.convert("RGB").resize((242, 524)), (19, 18))
-
-        binder.alpha_composite(template)
-
-    buffer = io.BytesIO()
-
-    binder.save(buffer, "png")
 
     buffer.seek(0)
 
@@ -680,22 +627,6 @@ def make_text_image(
 
 @executor_function
 @measure_performance
-def make_threats_meme(image_buffer: io.BytesIO) -> io.BytesIO:
-    with Image.open(TEMPLATES / "threats.png") as template:
-        with Image.open(image_buffer) as image:
-            template.paste(image.convert("RGB").resize((330, 230)), (735, 125))
-
-        buffer = io.BytesIO()
-
-        template.save(buffer, "png")
-
-    buffer.seek(0)
-
-    return buffer
-
-
-@executor_function
-@measure_performance
 def make_trapcard(title: str, flavour_text: str, image_buffer: io.BytesIO) -> io.BytesIO:
     with Image.open(TEMPLATES / "trapcard.png") as template:
         with Image.open(image_buffer) as image:
@@ -759,27 +690,6 @@ def make_tweet(
             small_text_font,
         )
         draw.text((72, 33), f"@{handle}", (110, 118, 125), small_text_font)
-
-        buffer = io.BytesIO()
-
-        template.save(buffer, "png")
-
-    buffer.seek(0)
-
-    return buffer
-
-
-@executor_function
-@measure_performance
-def make_who_would_win_meme(
-    left_image_buffer: io.BytesIO, right_image_buffer: io.BytesIO
-) -> io.BytesIO:
-    with Image.open(TEMPLATES / "who_would_win.png") as template:
-        with Image.open(left_image_buffer) as left_image:
-            template.paste(left_image.convert("RGB").resize((1024, 1220)), (85, 380))
-
-        with Image.open(right_image_buffer) as right_image:
-            template.paste(right_image.convert("RGB").resize((992, 1220)), (1138, 380))
 
         buffer = io.BytesIO()
 

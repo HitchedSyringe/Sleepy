@@ -148,28 +148,6 @@ class Images(
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms\n```\n{art}```"
         )
-
-    @commands.command(aliases=("axios", "axiosinterview", "trumpinterview"))
-    @commands.bot_has_permissions(attach_files=True)
-    @commands.max_concurrency(5, commands.BucketType.guild)
-    async def axiostrumpinterview(
-        self,
-        ctx: SleepyContext,
-        *,
-        text: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
-    ) -> None:
-        """Generates an Axios interview with Trump meme.
-
-        (Bot Needs: Attach Files)
-        """
-        async with ctx.typing():
-            buffer, delta = await backend.make_axios_interview_meme(text)
-
-        await ctx.send(
-            f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "axios_trump_interview.png"),
-        )
-
     # No, this wasn't made because of Project Blurple.
     @commands.command(
         aliases=("blurpify", "bpify", "discordify"), usage="[-rebranded] <image>"
@@ -434,34 +412,6 @@ class Images(
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
             file=File(buffer, "inverted.png"),
-        )
-
-    @commands.command(aliases=("iphone10",))
-    @commands.bot_has_permissions(attach_files=True)
-    @commands.max_concurrency(5, commands.BucketType.guild)
-    async def iphonex(
-        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
-    ) -> None:
-        """Fits an image into an iPhone X screen.
-
-        Image can either be a user, custom emoji, sticker,
-        link, or attachment. Links and attachments must be
-        under 40 MB.
-
-        (Bot Needs: Attach Files)
-        """
-        async with ctx.typing():
-            try:
-                image_bytes = await image.read()
-            except discord.HTTPException:
-                await ctx.send("Downloading the image failed. Try again later?")
-                return
-
-            buffer, delta = await backend.make_iphone_x(io.BytesIO(image_bytes))
-
-        await ctx.send(
-            f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "iphone_x.png"),
         )
 
     @commands.command(aliases=("needsmorejpeg", "jpegify"))
@@ -918,34 +868,6 @@ class Images(
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
-    async def threats(
-        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
-    ) -> None:
-        """Generates a "three threats to society" meme.
-
-        Image can either be a user, custom emoji, sticker,
-        link, or attachment. Links and attachments must be
-        under 40 MB.
-
-        (Bot Needs: Attach Files)
-        """
-        async with ctx.typing():
-            try:
-                image_bytes = await image.read()
-            except discord.HTTPException:
-                await ctx.send("Downloading the image failed. Try again later?")
-                return
-
-            buffer, delta = await backend.make_threats_meme(io.BytesIO(image_bytes))
-
-        await ctx.send(
-            f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "threats.png"),
-        )
-
-    @commands.command()
-    @commands.bot_has_permissions(attach_files=True)
-    @commands.max_concurrency(5, commands.BucketType.guild)
     async def trapcard(
         self,
         ctx: SleepyContext,
@@ -1045,41 +967,6 @@ class Images(
         await ctx.send(
             f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
             file=File(buffer, "tweet.png"),
-        )
-
-    @commands.command(aliases=("www",))
-    @commands.guild_only()
-    @commands.bot_has_permissions(attach_files=True)
-    @commands.max_concurrency(5, commands.BucketType.guild)
-    async def whowouldwin(
-        self,
-        ctx: SleepyContext,
-        left_image: Annotated["PartialAsset", ImageAssetConverter],
-        right_image: Annotated["PartialAsset", ImageAssetConverter],
-    ) -> None:
-        """Generates a "who would win" meme.
-
-        Images can either be a user, custom emoji, link, or
-        attachment. Links and attachments must be under 40
-        MB.
-
-        (Bot Needs: Attach Files)
-        """
-        async with ctx.typing():
-            try:
-                left_bytes = await left_image.read()
-                right_bytes = await right_image.read()
-            except discord.HTTPException:
-                await ctx.send("Downloading the images failed. Try again later?")
-                return
-
-            buffer, delta = await backend.make_who_would_win_meme(
-                io.BytesIO(left_bytes), io.BytesIO(right_bytes)
-            )
-
-        await ctx.send(
-            f"Requested by: {ctx.author} \N{BULLET} Took {delta:.2f} ms.",
-            file=File(buffer, "who_would_win.png"),
         )
 
     @commands.command(aliases=("ytcomment", "ytc"))
