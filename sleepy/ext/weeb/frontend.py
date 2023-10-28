@@ -38,9 +38,10 @@ from PIL.Image import DecompressionBombError
 from typing_extensions import Annotated
 
 from sleepy.converters import (
-    ImageAssetConversionFailure,
-    ImageAssetConverter,
-    ImageAssetTooLarge,
+    BadImageArgument,
+    ImageAttachment,
+    ImageResourceConverter,
+    ImageTooLarge,
 )
 from sleepy.menus import EmbedSource
 from sleepy.utils import plural
@@ -48,8 +49,10 @@ from sleepy.utils import plural
 from . import backend
 
 if TYPE_CHECKING:
+    from discord import Attachment
+
     from sleepy.context import Context as SleepyContext, GuildContext
-    from sleepy.mimics import PartialAsset
+    from sleepy.converters import AssetLike
 
 
 # ネックビアードコグ
@@ -71,11 +74,11 @@ class Weeb(
     async def cog_command_error(self, ctx: SleepyContext, error: Exception) -> None:
         error = getattr(error, "original", error)
 
-        if isinstance(error, (ImageAssetConversionFailure, UnidentifiedImageError)):
+        if isinstance(error, (BadImageArgument, UnidentifiedImageError)):
             await ctx.send("The image was either invalid or could not be read.")
             ctx._already_handled_error = True
-        elif isinstance(error, ImageAssetTooLarge):
-            max_size_mb = error.max_filesize / 1e6
+        elif isinstance(error, ImageTooLarge):
+            max_size_mb = error.max_size / 1e6
 
             await ctx.send(f"Images cannot exceed {max_size_mb:.0f} MB in size.")
             ctx._already_handled_error = True
@@ -183,16 +186,22 @@ class Weeb(
     @commands.command()
     @commands.cooldown(1, 8, commands.BucketType.member)
     async def animeface(
-        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
+        self,
+        ctx: SleepyContext,
+        attachment: Annotated["Attachment", ImageAttachment] = None,
+        url: Annotated["AssetLike", ImageResourceConverter] = None,
     ) -> None:
         """Detects and highlights anime faces in an image.
 
-        Image can either be a user, custom emoji, sticker,
-        link, or attachment. Links and attachments must be
-        under 40 MB.
+        Image can either be a user, server emoji, server sticker, link,
+        or attachment, with the latter always taking precedence over the
+        other image types. Links and attachments must be under 40 MB. If
+        no image is given, then your display avatar will be used instead.
 
         (Bot Needs: Attach Files)
         """
+        image = attachment or url or ctx.author.display_avatar
+
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
@@ -217,16 +226,22 @@ class Weeb(
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def awooify(
-        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
+        self,
+        ctx: SleepyContext,
+        attachment: Annotated["Attachment", ImageAttachment] = None,
+        url: Annotated["AssetLike", ImageResourceConverter] = None,
     ) -> None:
         """Awooifies an image.
 
-        Image can either be a user, custom emoji, sticker,
-        link, or attachment. Links and attachments must be
-        under 40 MB.
+        Image can either be a user, server emoji, server sticker, link,
+        or attachment, with the latter always taking precedence over the
+        other image types. Links and attachments must be under 40 MB. If
+        no image is given, then your display avatar will be used instead.
 
         (Bot Needs: Attach Files)
         """
+        image = attachment or url or ctx.author.display_avatar
+
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
@@ -245,16 +260,22 @@ class Weeb(
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def baguette(
-        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
+        self,
+        ctx: SleepyContext,
+        attachment: Annotated["Attachment", ImageAttachment] = None,
+        url: Annotated["AssetLike", ImageResourceConverter] = None,
     ) -> None:
         """Turns an image into an anime girl eating a baguette.
 
-        Image can either be a user, custom emoji, sticker,
-        link, or attachment. Links and attachments must be
-        under 40 MB.
+        Image can either be a user, server emoji, server sticker, link,
+        or attachment, with the latter always taking precedence over the
+        other image types. Links and attachments must be under 40 MB. If
+        no image is given, then your display avatar will be used instead.
 
         (Bot Needs: Attach Files)
         """
+        image = attachment or url or ctx.author.display_avatar
+
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
@@ -273,16 +294,22 @@ class Weeb(
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def bodypillow(
-        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
+        self,
+        ctx: SleepyContext,
+        attachment: Annotated["Attachment", ImageAttachment] = None,
+        url: Annotated["AssetLike", ImageResourceConverter] = None,
     ) -> None:
         """Turns an image into an anime body pillow.
 
-        Image can either be a user, custom emoji, sticker,
-        link, or attachment. Links and attachments must be
-        under 40 MB.
+        Image can either be a user, server emoji, server sticker, link,
+        or attachment, with the latter always taking precedence over the
+        other image types. Links and attachments must be under 40 MB. If
+        no image is given, then your display avatar will be used instead.
 
         (Bot Needs: Attach Files)
         """
+        image = attachment or url or ctx.author.display_avatar
+
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
@@ -343,16 +370,22 @@ class Weeb(
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def lolice(
-        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
+        self,
+        ctx: SleepyContext,
+        attachment: Annotated["Attachment", ImageAttachment] = None,
+        url: Annotated["AssetLike", ImageResourceConverter] = None,
     ) -> None:
         """Submits an image to the lolice.
 
-        Image can either be a user, custom emoji, sticker,
-        link, or attachment. Links and attachments must be
-        under 40 MB.
+        Image can either be a user, server emoji, server sticker, link,
+        or attachment, with the latter always taking precedence over the
+        other image types. Links and attachments must be under 40 MB. If
+        no image is given, then your display avatar will be used instead.
 
         (Bot Needs: Attach Files)
         """
+        image = attachment or url or ctx.author.display_avatar
+
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
@@ -475,16 +508,22 @@ class Weeb(
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def ritsudirt(
-        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
+        self,
+        ctx: SleepyContext,
+        attachment: Annotated["Attachment", ImageAttachment] = None,
+        url: Annotated["AssetLike", ImageResourceConverter] = None,
     ) -> None:
         """Generates a Ritsu dirt meme.
 
-        Image can either be a user, custom emoji, sticker,
-        link, or attachment. Links and attachments must be
-        under 40 MB.
+        Image can either be a user, server emoji, server sticker, link,
+        or attachment, with the latter always taking precedence over the
+        other image types. Links and attachments must be under 40 MB. If
+        no image is given, then your display avatar will be used instead.
 
         (Bot Needs: Attach Files)
         """
+        image = attachment or url or ctx.author.display_avatar
+
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
@@ -524,16 +563,22 @@ class Weeb(
     @commands.bot_has_permissions(attach_files=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def trash(
-        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
+        self,
+        ctx: SleepyContext,
+        attachment: Annotated["Attachment", ImageAttachment] = None,
+        url: Annotated["AssetLike", ImageResourceConverter] = None,
     ) -> None:
         """Generates a trash waifu meme.
 
-        Image can either be a user, custom emoji, sticker,
-        link, or attachment. Links and attachments must be
-        under 40 MB.
+        Image can either be a user, server emoji, server sticker, link,
+        or attachment, with the latter always taking precedence over the
+        other image types. Links and attachments must be under 40 MB. If
+        no image is given, then your display avatar will be used instead.
 
         (Bot Needs: Attach Files)
         """
+        image = attachment or url or ctx.author.display_avatar
+
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
