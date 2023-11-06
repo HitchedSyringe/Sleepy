@@ -37,10 +37,9 @@ from PIL.Image import DecompressionBombError
 from typing_extensions import Annotated
 
 from sleepy.converters import (
-    BadImageArgument,
-    ImageAttachment,
-    ImageResourceConverter,
-    ImageTooLarge,
+    ImageAssetConversionFailure,
+    ImageAssetConverter,
+    ImageAssetTooLarge,
     _positional_bool_flag,
 )
 from sleepy.http import HTTPRequestFailed
@@ -53,10 +52,8 @@ from .fonts import FONTS
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from discord import Attachment
-
     from sleepy.context import Context as SleepyContext
-    from sleepy.converters import AssetLike
+    from sleepy.mimics import PartialAsset
 
 
 def resolve_font(name: str) -> Path:
@@ -66,11 +63,6 @@ def resolve_font(name: str) -> Path:
         raise commands.BadArgument(f"Font '{name}' is invalid.")
 
     return path
-
-
-class TrapcardFlags(commands.FlagConverter):
-    title: Annotated[str, commands.clean_content(fix_channel_mentions=True)]
-    flavour_text: Annotated[str, commands.clean_content(fix_channel_mentions=True)]
 
 
 class TTIFlags(commands.FlagConverter):
@@ -95,7 +87,7 @@ class Images(
     commands.Cog,
     command_attrs={
         "cooldown": commands.CooldownMapping.from_cooldown(
-            1, 5, commands.BucketType.member
+            1, 10, commands.BucketType.member
         ),
     },
 ):
@@ -106,11 +98,11 @@ class Images(
     async def cog_command_error(self, ctx: SleepyContext, error: Exception) -> None:
         error = getattr(error, "original", error)
 
-        if isinstance(error, (BadImageArgument, UnidentifiedImageError)):
+        if isinstance(error, (ImageAssetConversionFailure, UnidentifiedImageError)):
             await ctx.send("The image was either invalid or could not be read.")
             ctx._already_handled_error = True
-        elif isinstance(error, ImageTooLarge):
-            max_size_mb = error.max_size / 1e6
+        elif isinstance(error, ImageAssetTooLarge):
+            max_size_mb = error.max_filesize / 1e6
 
             await ctx.send(f"Images cannot exceed {max_size_mb:.0f} MB in size.")
             ctx._already_handled_error = True
@@ -127,22 +119,21 @@ class Images(
         self,
         ctx: SleepyContext,
         inverted: Annotated[bool, Optional[_positional_bool_flag("-invert")]] = False,  # type: ignore
-        attachment: Annotated["Attachment", ImageAttachment] = None,
-        url: Annotated["AssetLike", ImageResourceConverter] = None,
+        *,
+        image: Annotated["PartialAsset", ImageAssetConverter],
     ) -> None:
-        """Converts an image into ASCII art. Best viewed on desktop.
+        """Converts an image into ASCII art.
 
-        By default, this generates the dark mode friendly version.
-        To generate the light mode version, pass `-invert` before
-        the image argument.
+        This is best viewed on desktop.
 
-        Image can either be a user, server emoji, server sticker, link,
-        or attachment, with the latter always taking precedence over the
-        other image types. Links and attachments must be under 40 MB. If
-        no image is given, then your display avatar will be used instead.
+        By default, this generates the dark mode friendly
+        version. To generate the light mode version, pass
+        `-invert` before the image argument.
+
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
         """
-        image = attachment or url or ctx.author.display_avatar
-
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
@@ -170,24 +161,21 @@ class Images(
         use_rebrand: Annotated[
             bool, Optional[_positional_bool_flag("-rebranded")]  # type: ignore
         ] = False,
-        attachment: Annotated["Attachment", ImageAttachment] = None,
-        url: Annotated["AssetLike", ImageResourceConverter] = None,
+        *,
+        image: Annotated["PartialAsset", ImageAssetConverter],
     ) -> None:
         """Blurplefies an image.
 
-        By default, this uses the blurple colour prior to Discord's
-        rebranding. To use the new colour, pass `-rebranded` before
-        the image argument.
+        By default, this uses the blurple colour prior to
+        Discord's rebranding. To use the new colour, pass
+        `-rebranded` before the image argument.
 
-        Image can either be a user, server emoji, server sticker, link,
-        or attachment, with the latter always taking precedence over the
-        other image types. Links and attachments must be under 40 MB. If
-        no image is given, then your display avatar will be used instead.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
-        image = attachment or url or ctx.author.display_avatar
-
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
@@ -229,22 +217,14 @@ class Images(
     async def captcha(
         self,
         ctx: SleepyContext,
-        attachment: Annotated["Attachment", ImageAttachment] = None,
-        url: Annotated["AssetLike", ImageResourceConverter] = None,
+        image: Annotated["PartialAsset", ImageAssetConverter],
         *,
         text: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
     ) -> None:
         """Generates a fake Google image captcha.
 
-        Image can either be a user, server emoji, server sticker, link,
-        or attachment, with the latter always taking precedence over the
-        other image types. Links and attachments must be under 40 MB. If
-        no image is given, then your display avatar will be used instead.
-
         (Bot Needs: Attach Files)
         """
-        image = attachment or url or ctx.author.display_avatar
-
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
@@ -304,22 +284,16 @@ class Images(
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def dalgona(
-        self,
-        ctx: SleepyContext,
-        attachment: Annotated["Attachment", ImageAttachment] = None,
-        url: Annotated["AssetLike", ImageResourceConverter] = None,
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """\N{IDEOGRAPHIC NUMBER ZERO}\N{WHITE UP-POINTING TRIANGLE}\N{BALLOT BOX}
 
-        Image can either be a user, server emoji, server sticker, link,
-        or attachment, with the latter always taking precedence over the
-        other image types. Links and attachments must be under 40 MB. If
-        no image is given, then your display avatar will be used instead.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
-        image = attachment or url or ctx.author.display_avatar
-
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
@@ -338,22 +312,16 @@ class Images(
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def deepfry(
-        self,
-        ctx: SleepyContext,
-        attachment: Annotated["Attachment", ImageAttachment] = None,
-        url: Annotated["AssetLike", ImageResourceConverter] = None,
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """Deep fries an image.
 
-        Image can either be a user, server emoji, server sticker, link,
-        or attachment, with the latter always taking precedence over the
-        other image types. Links and attachments must be under 40 MB. If
-        no image is given, then your display avatar will be used instead.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
-        image = attachment or url or ctx.author.display_avatar
-
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
@@ -423,22 +391,16 @@ class Images(
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def invert(
-        self,
-        ctx: SleepyContext,
-        attachment: Annotated["Attachment", ImageAttachment] = None,
-        url: Annotated["AssetLike", ImageResourceConverter] = None,
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """Inverts an image's colours.
 
-        Image can either be a user, server emoji, server sticker, link,
-        or attachment, with the latter always taking precedence over the
-        other image types. Links and attachments must be under 40 MB. If
-        no image is given, then your display avatar will be used instead.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
-        image = attachment or url or ctx.author.display_avatar
-
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
@@ -460,23 +422,21 @@ class Images(
         self,
         ctx: SleepyContext,
         intensity: Annotated[int, Optional[commands.Range[int, 1, 10]]] = 5,
-        attachment: Annotated["Attachment", ImageAttachment] = None,
-        url: Annotated["AssetLike", ImageResourceConverter] = None,
+        *,
+        image: Annotated["PartialAsset", ImageAssetConverter],
     ) -> None:
         """JPEGifies an image to an optional intensity.
 
-        Intensity value must be between 1 and 10, inclusive. The higher
-        the intensity, the more JPEG the resulting image becomes.
+        Intensity value must be between 1 and 10, inclusive.
+        The higher the intensity, the more JPEG the image
+        result becomes.
 
-        Image can either be a user, server emoji, server sticker, link,
-        or attachment, with the latter always taking precedence over the
-        other image types. Links and attachments must be under 40 MB. If
-        no image is given, then your display avatar will be used instead.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
-        image = attachment or url or ctx.author.display_avatar
-
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
@@ -500,8 +460,8 @@ class Images(
         self,
         ctx: SleepyContext,
         colour: Annotated[Colour, Optional[Colour]] = Colour.red(),
-        attachment: Annotated["Attachment", ImageAttachment] = None,
-        url: Annotated["AssetLike", ImageResourceConverter] = None,
+        *,
+        image: Annotated["PartialAsset", ImageAssetConverter],
     ) -> None:
         """Places lensflares of a given colour on human eyes.
 
@@ -509,15 +469,12 @@ class Images(
         with either a `0x`, `#`, or `0x#`; or CSS RGB function
         (e.g. `rgb(103, 173, 242)`).
 
-        Image can either be a user, server emoji, server sticker, link,
-        or attachment, with the latter always taking precedence over the
-        other image types. Links and attachments must be under 40 MB. If
-        no image is given, then your display avatar will be used instead.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
-        image = attachment or url or ctx.author.display_avatar
-
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
@@ -544,29 +501,25 @@ class Images(
         self,
         ctx: SleepyContext,
         intensity: Annotated[int, Optional[commands.Range[int, 1, 25]]] = 1,
-        attachment: Annotated["Attachment", ImageAttachment] = None,
-        url: Annotated["AssetLike", ImageResourceConverter] = None,
+        *,
+        image: Annotated["PartialAsset", ImageAssetConverter],
     ) -> None:
         """Heavily warps an image to an optional intensity.
 
-        Intensity value must be between 1 and 25, inclusive. The higher
-        the intensity, the more warped the resulting image becomes.
+        Intensity value must be between 1 and 25, inclusive.
+        The higher the intensity, the more warped the image
+        result becomes.
 
-        Image can either be a user, server emoji, server sticker, link,
-        or attachment, with the latter always taking precedence over the
-        other image types. Links and attachments must be under 40 MB. If
-        no image is given, then your display avatar will be used instead.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
-        image = attachment or url or ctx.author.display_avatar
-
         async with ctx.typing():
             try:
                 resp = await ctx.get(
-                    "https://nekobot.xyz/api/imagegen",
-                    type="magik",
-                    raw=1,
+                    "https://nekobot.xyz/api/imagegen?type=magik&raw=1",
                     image=str(image),
                     intensity=intensity,
                 )
@@ -597,22 +550,16 @@ class Images(
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def palette(
-        self,
-        ctx: SleepyContext,
-        attachment: Annotated["Attachment", ImageAttachment] = None,
-        url: Annotated["AssetLike", ImageResourceConverter] = None,
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """Shows the five most prominent colours in an image.
 
-        Image can either be a user, server emoji, server sticker, link,
-        or attachment, with the latter always taking precedence over the
-        other image types. Links and attachments must be under 40 MB. If
-        no image is given, then your display avatar will be used instead.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
-        image = attachment or url or ctx.author.display_avatar
-
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
@@ -756,22 +703,16 @@ class Images(
     @commands.bot_has_permissions(attach_files=True)
     @commands.max_concurrency(5, commands.BucketType.guild)
     async def soyjaks(
-        self,
-        ctx: SleepyContext,
-        attachment: Annotated["Attachment", ImageAttachment] = None,
-        url: Annotated["AssetLike", ImageResourceConverter] = None,
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """Generates a consoomer soyjaks pointing meme.
 
-        Image can either be a user, server emoji, server sticker, link,
-        or attachment, with the latter always taking precedence over the
-        other image types. Links and attachments must be under 40 MB. If
-        no image is given, then your display avatar will be used instead.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
-        image = attachment or url or ctx.author.display_avatar
-
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
@@ -794,22 +735,16 @@ class Images(
     @commands.max_concurrency(2, commands.BucketType.guild)
     @commands.cooldown(1, 40, commands.BucketType.member)
     async def stickbug(
-        self,
-        ctx: SleepyContext,
-        attachment: Annotated["Attachment", ImageAttachment] = None,
-        url: Annotated["AssetLike", ImageResourceConverter] = None,
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """Generates a stickbug meme.
 
-        Image can either be a user, server emoji, server sticker, link,
-        or attachment, with the latter always taking precedence over the
-        other image types. Links and attachments must be under 40 MB. If
-        no image is given, then your display avatar will be used instead.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
-        image = attachment or url or ctx.author.display_avatar
-
         async with ctx.typing():
             try:
                 resp = await ctx.get(
@@ -843,23 +778,21 @@ class Images(
         self,
         ctx: SleepyContext,
         intensity: Annotated[int, Optional[commands.Range[int, 1, 15]]] = 5,
-        attachment: Annotated["Attachment", ImageAttachment] = None,
-        url: Annotated["AssetLike", ImageResourceConverter] = None,
+        *,
+        image: Annotated["PartialAsset", ImageAssetConverter],
     ) -> None:
         """Swirls an image to an optional intensity.
 
-        Intensity value must be between 1 and 15, inclusive. The higher
-        the intensity, the more swirly the resulting image becomes.
+        Intensity value must be between 1 and 15, inclusive.
+        The higher the intensity, the more swirly the image
+        result becomes.
 
-        Image can either be a user, server emoji, server sticker, link,
-        or attachment, with the latter always taking precedence over the
-        other image types. Links and attachments must be under 40 MB. If
-        no image is given, then your display avatar will be used instead.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
-        image = attachment or url or ctx.author.display_avatar
-
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
@@ -939,22 +872,22 @@ class Images(
     async def trapcard(
         self,
         ctx: SleepyContext,
-        attachment: Annotated["Attachment", ImageAttachment] = None,
-        url: Annotated["AssetLike", ImageResourceConverter] = None,
+        title: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
+        image: Annotated["PartialAsset", ImageAssetConverter],
         *,
-        options: TrapcardFlags,
+        flavour_text: Annotated[str, commands.clean_content(fix_channel_mentions=True)],
     ) -> None:
         """Generates a fake Yu-Gi-Oh! trap card.
 
-        Image can either be a user, server emoji, server sticker, link,
-        or attachment, with the latter always taking precedence over the
-        other image types. Links and attachments must be under 40 MB. If
-        no image is given, then your display avatar will be used instead.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
+
+        If the title requires spaces, you must surround it
+        in quotation marks.
 
         (Bot Needs: Attach Files)
         """
-        image = attachment or url or ctx.author.display_avatar
-
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
@@ -963,7 +896,7 @@ class Images(
                 return
 
             buffer, delta = await backend.make_trapcard(
-                options.title, options.flavour_text, io.BytesIO(image_bytes)
+                title, flavour_text, io.BytesIO(image_bytes)
             )
 
         await ctx.send(
@@ -974,22 +907,16 @@ class Images(
     @commands.command()
     @commands.bot_has_permissions(attach_files=True)
     async def tucker(
-        self,
-        ctx: SleepyContext,
-        attachment: Annotated["Attachment", ImageAttachment] = None,
-        url: Annotated["AssetLike", ImageResourceConverter] = None,
+        self, ctx: SleepyContext, *, image: Annotated["PartialAsset", ImageAssetConverter]
     ) -> None:
         """Generates a live Tucker reaction meme.
 
-        Image can either be a user, server emoji, server sticker, link,
-        or attachment, with the latter always taking precedence over the
-        other image types. Links and attachments must be under 40 MB. If
-        no image is given, then your display avatar will be used instead.
+        Image can either be a user, custom emoji, sticker,
+        link, or attachment. Links and attachments must be
+        under 40 MB.
 
         (Bot Needs: Attach Files)
         """
-        image = attachment or url or ctx.author.display_avatar
-
         async with ctx.typing():
             try:
                 image_bytes = await image.read()
