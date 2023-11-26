@@ -83,14 +83,14 @@ def _setup_logging(*, log_filename: Optional[str] = None) -> Generator[None, Non
 def _create_bot(config: Mapping[str, Any]) -> Sleepy:
     prefixes = config["prefixes"]
 
-    if not prefixes:
+    if prefixes:
+        prefix = prefixes[0]
+
+        if config["mentionable"]:
+            prefixes = commands.when_mentioned_or(*prefixes)
+    else:
         prefix = "@mention "
         prefixes = commands.when_mentioned
-    elif config["mentionable"]:
-        prefix = prefixes[0]
-        prefixes = commands.when_mentioned_or(*prefixes)
-    else:
-        prefix = prefixes[0]
 
     activity = Streaming(
         name=f"{prefix}help \N{BULLET} Sleepy v{__version__}",
