@@ -559,18 +559,14 @@ class Meta(commands.Cog):
         <3> permissions 140540589329481728 #general
         ```
         """
-        perms = channel.permissions_for(user)
-        icon = self._get_channel_icon(channel, perms)
-
         embed = Embed(
-            description=f"Showing permissions in {icon}{channel.name} (ID: {channel.id})",
-            colour=Colour.dark_embed(),
+            title=f"Permissions for {channel.mention}", colour=Colour.dark_embed()
         )
         embed.set_author(name=f"{user} (ID: {user.id})", icon_url=user.display_avatar)
 
         perms_readable = [
             f"{bool_to_emoji(v)} {p.replace('_', ' ').replace('guild', 'server').title()}"
-            for p, v in perms
+            for p, v in channel.permissions_for(user)
         ]
 
         # Do "ceiling division" (or just reverse floor division)
