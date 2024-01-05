@@ -226,12 +226,10 @@ class BotHelpView(PaginationView):
         super().__init__(
             source,
             owner_ids={ctx.author.id, bot.owner_id, *bot.owner_ids},  # type: ignore
-            enable_stop_button=False,
         )
 
     def _do_items_setup(self) -> None:
         self.add_item(CategorySelect(self.bot, self.mapping))
-        super()._do_items_setup()
 
         if self._use_home_page_layout:
             bot_links = BotLinksView(self.bot.application_id)  # type: ignore
@@ -241,7 +239,7 @@ class BotHelpView(PaginationView):
 
             self._use_home_page_layout = False
 
-        self.add_item(self.stop_menu)
+        super()._do_items_setup()
 
 
 class SleepyHelpCommand(commands.HelpCommand):

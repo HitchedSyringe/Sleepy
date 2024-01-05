@@ -512,32 +512,30 @@ class PaginationView(BaseView):
             await self.message.edit(view=self)  # type: ignore
 
     def _do_items_setup(self) -> None:
-        if not self._source.is_paginating():
-            return
+        if self._source.is_paginating():
+            max_pages = self._source.get_max_pages()
+            more_than_two = max_pages is not None and max_pages > 2
 
-        max_pages = self._source.get_max_pages()
-        more_than_two = max_pages is not None and max_pages > 2
+            if more_than_two:
+                self.add_item(self.first_page)
 
-        if more_than_two:
-            self.add_item(self.first_page)
+                self.page_number.emoji = self.PAGE_SELECT_BUTTON_EMOJI
+                self.page_number.disabled = False
+            else:
+                self.page_number.emoji = None
+                self.page_number.disabled = True
 
-            self.page_number.emoji = self.PAGE_SELECT_BUTTON_EMOJI
-            self.page_number.disabled = False
-        else:
-            self.page_number.emoji = None
-            self.page_number.disabled = True
+            self.add_item(self.previous_page)
+            self.add_item(self.page_number)
+            self.add_item(self.next_page)
 
-        self.add_item(self.previous_page)
-        self.add_item(self.page_number)
-        self.add_item(self.next_page)
+            if more_than_two:
+                self.add_item(self.last_page)
 
-        if more_than_two:
-            self.add_item(self.last_page)
+            self._update_items(0)
 
         if self._enable_stop_button:
             self.add_item(self.stop_menu)
-
-        self._update_items(0)
 
     async def _prepare_once(self) -> Dict[str, Any]:
         await self._source._prepare_once()
