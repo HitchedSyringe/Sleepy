@@ -264,7 +264,7 @@ class SleepyHelpCommand(commands.HelpCommand):
             embed_like.description = command.help or "No help given."
 
     async def command_not_found(self, string: str) -> str:
-        cmds = await self.filter_commands(self.context.bot.commands, sort=True)
+        cmds = await self.filter_commands(self.context.bot.commands)
         close = difflib.get_close_matches(string, (c.name for c in cmds))
 
         if not close:
@@ -280,7 +280,7 @@ class SleepyHelpCommand(commands.HelpCommand):
         if not isinstance(command, commands.Group):
             return "That command isn't a group command."
 
-        if subcmds := await self.filter_commands(command.commands, sort=True):
+        if subcmds := await self.filter_commands(command.commands):
             close = difflib.get_close_matches(string, (c.name for c in subcmds))
 
             if not close:
