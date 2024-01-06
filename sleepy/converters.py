@@ -21,9 +21,9 @@ from __future__ import annotations
 
 __all__ = (
     "BadImageArgument",
-    "ImageAttachment",
+    "ImageAttachmentTransformer",
     "ImageTooLarge",
-    "ImageResourceConverter",
+    "ImageConverter",
 )
 
 
@@ -146,7 +146,7 @@ class ImageTooLarge(commands.BadArgument):
         super().__init__(f'Image "{argument}" exceeds {max_size:,d} B in size.')
 
 
-class ImageResourceConverter(commands.Converter["DiscordImage"]):
+class ImageConverter(commands.Converter["DiscordImage"]):
     """Converts to either a :class:`discord.Asset`-like object or
     :class:`discord.Attachment`.
 
@@ -163,7 +163,7 @@ class ImageResourceConverter(commands.Converter["DiscordImage"]):
         c. Due to a Discord limitation, the functionalities described
            in (a) and (b) are **not** present when using this converter
            in app commands. The former can be implemented through using
-           :class:`ImageAttachment` along with this converter.
+           :class:`ImageAttachmentTransformer` along with this converter.
     2. Users (returns the display avatar)
     3. Guild Emojis (returns a :class:`discord.PartialEmoji`)
     4. Guild Stickers (returns a :class:`discord.GuildSticker`)
@@ -313,7 +313,7 @@ class ImageResourceConverter(commands.Converter["DiscordImage"]):
         return DiscordMediaURL(ctx._state, url, size, mime)
 
 
-class ImageAttachment(app_commands.Transformer):
+class ImageAttachmentTransformer(app_commands.Transformer):
     """Transforms to an image attachment.
 
     This behaves similarly to the :class:`discord.Attachment` special
