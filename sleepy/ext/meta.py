@@ -26,10 +26,10 @@ import re
 import time
 from collections import Counter
 from os import path
-from typing import TYPE_CHECKING, Dict, List, Mapping, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Mapping, Optional, Union
 
 import discord
-from discord import ActivityType, ChannelType, Colour, Embed, SelectOption, Status
+from discord import Colour, Embed, SelectOption
 from discord.abc import GuildChannel
 from discord.ext import commands
 from discord.ext.menus import ListPageSource, PageSource
@@ -47,28 +47,16 @@ if TYPE_CHECKING:
 
 
 # fmt: off
-# channel_type: (locked_icon, unlocked_icon)
-CHANNEL_ICON: Dict[ChannelType, Tuple[str, str]] = {
-    ChannelType.text:           ("<:ltc:828149291533074544> ", "<:tc:828149291812913152> "),
-    ChannelType.voice:          ("<:lvc:828149291628625960> ", "<:vc:828151635791839252> "),
-    ChannelType.stage_voice:    ("<:lsc:828149291590746112> ", "<:sc:828149291750785055> "),
-    ChannelType.news:           ("<:lac:828149291578556416> ", "<:ac:828419969133314098> "),
-    ChannelType.forum:          ("<:lfc:1027959771124469790> ", "<:fc:999410787540021308> "),
-
-    # Either has no locked icon version or has no icon at all.
-    ChannelType.category:       ("",) * 2,
-    ChannelType.public_thread:  ("<:thc:1010161857409056778> ",) * 2,
-    ChannelType.private_thread: ("<:thc:1010161857409056778> ",) * 2,
-}
-
-
-# channel_type: nsfw_icon
-CHANNEL_NSFW_ICON: Dict[ChannelType, str] = {
-    ChannelType.text:     "<:ntc:828149291683807282> ",
-    ChannelType.voice:    "<:nvc:1027959769568391320> ",
-    ChannelType.news:     "<:nac:1027959772294692895> ",
-    ChannelType.forum:    "<:nfc:1027959768867942462> ",
-    ChannelType.category: "",  # No NSFW icon, but has NSFW status.
+# channel_type: icon
+CHANNEL_ICON: Dict[str, str] = {
+    "text":           "<:tc:828149291812913152>",
+    "voice":          "<:vc:828151635791839252>",
+    "stage_voice":    "<:sc:828149291750785055>",
+    "news":           "<:ac:828419969133314098>",
+    "forum":          "<:fc:999410787540021308>",
+    "category":       "\N{CARD INDEX DIVIDERS}",
+    "public_thread":  "<:thc:1010161857409056778>",
+    "private_thread": "<:thc:1010161857409056778>",
 }
 
 
@@ -421,25 +409,23 @@ class Meta(commands.Cog):
     @staticmethod
     def _get_channel_icon(
         channel: Union[GuildChannel, discord.Thread],
-        permissions: Optional[discord.Permissions] = None,
+        viewer: Union[discord.Member, discord.Role],
     ) -> str:
-        # This is ordered by which icon would show up on the Discord
-        # desktop client given the conditions.
-        guild = channel.guild
+        # Skip cache lookup and just use the ID itself directly.
+        if channel.id == channel.guild._rules_channel_id:
+            return "<:rc:828149291712774164>"
 
-        # Doing this eliminates a channel cache lookup as we just use
-        # the ID itself directly.
-        if channel.id == guild._rules_channel_id:
-            return "<:rc:828149291712774164> "
+        icon = CHANNEL_ICON[channel.type.name]
 
-        if hasattr(channel, "is_nsfw") and channel.is_nsfw():  # type: ignore
-            return CHANNEL_NSFW_ICON[channel.type]
+        if channel.type.name != "category":
+            perms = channel.permissions_for(viewer)
 
-        if permissions is None:
-            permissions = channel.permissions_for(guild.default_role)
+            if not (perms.connect or perms.read_messages):
+                icon += "\N{LOCK}"
+            elif channel.is_nsfw():  # type: ignore -- all channel types should have this.
+                icon += "\N{NO ONE UNDER EIGHTEEN SYMBOL}"
 
-        viewable_state = int(permissions.connect or permissions.read_messages)
-        return CHANNEL_ICON[channel.type][viewable_state]
+        return icon
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
@@ -694,12 +680,12 @@ class Meta(commands.Cog):
             f"\n<:bt:833117614690533386> {sum(m.bot for m in members):,d}"
             f" \N{BULLET} <:nb:829503770060390471> {len(guild.premium_subscribers):,d}"
             f"\n`Channels:` {sum(channels.values())}"
-            f"\n\N{CARD INDEX DIVIDERS} {channels[discord.CategoryChannel]}"
-            f" \N{BULLET} <:tc:828149291812913152> {channels[discord.TextChannel]}"
-            f" \N{BULLET} <:vc:828151635791839252> {channels[discord.VoiceChannel]}"
-            f"\n<:sc:828149291750785055> {channels[discord.StageChannel]}"
-            f" \N{BULLET} <:thc:1010161857409056778> {len(guild.threads):,d}"
-            f" \N{BULLET} <:fc:999410787540021308> {channels[discord.ForumChannel]}"
+            f"\n{CHANNEL_ICON['category']} {channels[discord.CategoryChannel]}"
+            f" \N{BULLET} {CHANNEL_ICON['text']} {channels[discord.TextChannel]}"
+            f" \N{BULLET} {CHANNEL_ICON['voice']} {channels[discord.VoiceChannel]}"
+            f"\n{CHANNEL_ICON['stage_voice']} {channels[discord.StageChannel]}"
+            f" \N{BULLET} {CHANNEL_ICON['public_thread']} {len(guild.threads):,d}"
+            f" \N{BULLET} {CHANNEL_ICON['forum']} {channels[discord.ForumChannel]}"
             f"\n`Roles:` {len(guild.roles)}"
             f"\n`Emojis:` {total_emojis} / {guild.emoji_limit * 2}"
             f"\n\u251D`Regular:` {total_emojis - animated}"
@@ -780,22 +766,22 @@ class Meta(commands.Cog):
         (Bot Needs: Embed Links)
         """
         tree = WrappedPaginator(prefix="", suffix="")
+        guild = ctx.guild
         total = 0
 
-        for category, channels in ctx.guild.by_category():
+        for category, channels in guild.by_category():
             if category is not None:
                 total += 1
                 tree.add_line(f"**{category.name}**")
 
             for channel in channels:
                 total += 1
-                icon = self._get_channel_icon(channel)
-
-                tree.add_line(f"{icon}{channel.name}")
+                icon = self._get_channel_icon(channel, guild.default_role)
+                tree.add_line(f"{icon} {channel.name}")
 
         for page in tree.pages:
             embed = Embed(description=page, colour=Colour.dark_embed())
-            embed.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon)
+            embed.set_author(name=guild.name, icon_url=guild.icon)
             embed.set_footer(text=f"{total} total channels.")
 
             await ctx.send(embed=embed)
@@ -870,38 +856,45 @@ class Meta(commands.Cog):
                     name=f"Roles \N{BULLET} {r_count}", value=r_shown, inline=False
                 )
 
+            # fmt: off
             # status_type: emoji
-            status_emojis = {
-                Status.dnd: "<:dnd:786093986900738079>",
-                Status.idle: "<:idle:786093987148202035>",
-                Status.offline: "<:offline:786093987227893790>",
-                Status.online: "<:online:786093986975711272>",
+            status_icons = {
+                "dnd":     "<:dnd:786093986900738079>",
+                "idle":    "<:idle:786093987148202035>",
+                "offline": "<:offline:786093987227893790>",
+                "online":  "<:online:786093986975711272>",
             }
+            # fmt: on
 
             embed.add_field(
                 name="Status",
-                value=f"{status_emojis[user.mobile_status]} | \N{MOBILE PHONE} Mobile"
-                f"\n{status_emojis[user.desktop_status]} | \N{DESKTOP COMPUTER}\ufe0f Desktop"
-                f"\n{status_emojis[user.web_status]} | \N{GLOBE WITH MERIDIANS} Web",
+                value=(
+                    f"{status_icons[user.mobile_status.name]} | \N{MOBILE PHONE}"
+                    f"\n{status_icons[user.desktop_status.name]} | \N{DESKTOP COMPUTER}"
+                    f"\n{status_icons[user.web_status.name]} | \N{GLOBE WITH MERIDIANS}"
+                ),
             )
 
             if user.activity is not None:
-                if isinstance(user.activity, discord.CustomActivity):
-                    embed.add_field(name="Custom Activity", value=str(user.activity))
+                activity = user.activity
+
+                if activity.type.name in ("custom", "unknown"):
+                    embed.add_field(name="Activity", value=str(activity))
                 else:
+                    # fmt: off
                     # activity_type: verb
                     activity_verbs = {
-                        ActivityType.unknown: "",
-                        ActivityType.playing: "**Playing** ",
-                        ActivityType.streaming: "**Streaming** ",
-                        ActivityType.watching: "**Watching** ",
-                        ActivityType.listening: "**Listening to** ",
-                        ActivityType.competing: "**Competing in** ",
+                        "playing":   "Playing",
+                        "streaming": "Streaming",
+                        "watching":  "Watching",
+                        "listening": "Listening to",
+                        "competing": "Competing in",
                     }
+                    # fmt: on
 
                     embed.add_field(
                         name="Activity",
-                        value=f"{activity_verbs[user.activity.type]}{user.activity.name}",
+                        value=f"**{activity_verbs[activity.type.name]}** {activity.name}",
                     )
 
         await ctx.send(embed=embed)
