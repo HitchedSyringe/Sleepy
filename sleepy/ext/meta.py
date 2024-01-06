@@ -192,7 +192,7 @@ class _HelpView(PaginationView):
 
         super()._do_items_setup()
 
-    @discord.ui.select(placeholder="Select a category...")
+    @discord.ui.select(placeholder="Select a category...")  # type: ignore
     async def category_select(
         self, itn: discord.Interaction, select: Select["_HelpView"]
     ) -> None:
