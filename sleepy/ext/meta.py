@@ -22,6 +22,7 @@ from __future__ import annotations
 import difflib
 import inspect
 import itertools
+import re
 import time
 from collections import Counter
 from os import path
@@ -88,31 +89,33 @@ BADGES: Dict[str, str] = {
 # fmt: on
 
 
-class HomePageSource(PageSource):
-    def __init__(self, *, prefix: str) -> None:
-        self.prefix: str = prefix
+class _HomePageSource(PageSource):
+    async def format_page(self, menu: "_HelpView", entries: None) -> Embed:
+        prefix = menu.prefix
 
-    async def format_page(self, menu: "BotHelpView", entries: None) -> Embed:
         embed = Embed(
-            title="Hello! Welcome to the help menu.",
-            description="Select a category using the dropdown menu below."
-            f" Alternatively, you can also use `{self.prefix}help"
-            " <command|category>` to view more information about"
-            " a command or category.",
+            title="Welcome to the help menu!",
+            description=(
+                "Select a category using the dropdown below."
+                f"\nUse `{prefix}help <category>` to see more info about a category."
+                f"\nUse `{prefix}help <command>` to see more info about a command."
+            ),
             colour=Colour.dark_embed(),
         )
-        embed.set_footer(text="Check out our links using the buttons below!")
 
         embed.add_field(
-            name="How do I read the command syntax?",
-            value="Understanding my command syntax is quite simple:"
-            "\n```lasso"
-            "\n<argument> means the argument is 𝗿𝗲𝗾𝘂𝗶𝗿𝗲𝗱."
-            "\n[argument] means the argument is 𝗼𝗽𝘁𝗶𝗼𝗻𝗮𝗹."
-            "\n[A|B] means 𝗲𝗶𝘁𝗵𝗲𝗿 𝗔 𝗼𝗿 𝗕."
-            "\n[argument...] means 𝗺𝘂𝗹𝘁𝗶𝗽𝗹𝗲 arguments can be entered."
-            "```"
-            "\nWhatever you do, **do not include the brackets.**",
+            name="How do I read the command signature?",
+            value=(
+                "Understanding the command signature is quite simple:"
+                "\n`<argument>` \N{EM DASH} `argument` is **required**."
+                "\n`[argument]` \N{EM DASH} `argument` is **optional**"
+                "\n\u2570 `[argument=X]` \N{EM DASH} `argument` defaults to `X` if omitted."
+                "\n`<A|B>` \N{EM DASH} argument can be **either** `A` or `B`."
+                "\n`<argument...>` \N{EM DASH} multiple arguments can be entered."
+                "\n`<name: <argument>>` \N{EM DASH} `name` is a flag."
+                "\n\u2570 Flags can be used in any order unless said otherwise."
+                "\n**Please do not include the brackets.**"
+            ),
             inline=False,
         )
 
@@ -127,55 +130,58 @@ class HomePageSource(PageSource):
         pass
 
 
-class GroupPageSource(ListPageSource):
+class _CommandSource(ListPageSource):
     def __init__(
         self,
-        group: Union[commands.Group, commands.Cog],
+        embed: Embed,
+        prefix: str,
         cmds: List[commands.Command],
         *,
-        per_page: int = 6,
+        per_page: int = 10,
     ) -> None:
         super().__init__(cmds, per_page=per_page)
 
-        self.title: str = group.qualified_name
-        self.description: str = group.description
-        self.formatted_aliases: Optional[str] = None
-
-        if isinstance(group, commands.Group):
-            self.formatted_aliases = ", ".join(group.aliases)
-
+        self.embed: Embed = embed
+        self.prefix: str = prefix
         self.cmds: List[commands.Command] = cmds
 
     async def format_page(
         self, menu: PaginationView, cmds: List[commands.Command]
     ) -> Embed:
-        embed = Embed(
-            title=self.title, description=self.description, colour=Colour.dark_embed()
+        embed = self.embed.copy()
+        embed.set_footer(
+            text=f'Use "{self.prefix}help <command>" to see more info about a command.'
         )
 
-        if self.formatted_aliases is not None:
-            embed.set_footer(text=f"Aliases: {self.formatted_aliases}")
-
-        for cmd in cmds:
+        if cmds:
+            fmt_cmds = "\n".join(
+                f"`{c.qualified_name}` \N{EM DASH} {c.short_doc or '???'}" for c in cmds
+            )
             embed.add_field(
-                name=f"{cmd.qualified_name} {cmd.signature}",
-                value=cmd.short_doc or "No help given.",
-                inline=False,
+                name=f"Commands ({len(self.cmds)} total)", value=fmt_cmds, inline=False
             )
 
         return embed
 
 
-class CategorySelect(Select["BotHelpView"]):
+class _HelpView(PaginationView):
     def __init__(
-        self,
-        bot: Sleepy,
-        mapping: Dict[commands.Cog, List[commands.Command]],
+        self, ctx: SleepyContext, mapping: Dict[commands.Cog, List[commands.Command]]
     ) -> None:
-        self.bot: Sleepy = bot
-        self.mapping: Dict[commands.Cog, List[commands.Command]] = mapping
+        bot = ctx.bot
 
-        options = [
+        self.bot: Sleepy = bot
+        self.prefix: str = ctx.clean_prefix
+        self.mapping: Dict[commands.Cog, List[commands.Command]] = mapping
+        self._use_home_page_layout: bool = True
+
+        super().__init__(
+            _HomePageSource(),
+            owner_ids={ctx.author.id, bot.owner_id, *bot.owner_ids},  # type: ignore
+        )
+
+        # Have to do this here since AttributeError is raised otherwise.
+        self.category_select.options = [
             SelectOption(
                 label=cog.qualified_name,
                 description=cog.description.split("\n", 1)[0] or None,
@@ -185,10 +191,24 @@ class CategorySelect(Select["BotHelpView"]):
             if cmds
         ]
 
-        super().__init__(placeholder="Select a category...", options=options)
+    def _do_items_setup(self) -> None:
+        self.add_item(self.category_select)
 
-    async def callback(self, itn: discord.Interaction) -> None:
-        cog = self.bot.get_cog(self.values[0])
+        if self._use_home_page_layout:
+            bot_links = BotLinksView(self.bot.application_id)  # type: ignore
+
+            for button in bot_links.children:
+                self.add_item(button)
+
+            self._use_home_page_layout = False
+
+        super()._do_items_setup()
+
+    @discord.ui.select(placeholder="Select a category...")
+    async def category_select(
+        self, itn: discord.Interaction, select: Select["_HelpView"]
+    ) -> None:
+        cog = self.bot.get_cog(select.values[0])
 
         # The cog may have been unloaded while this was open.
         if cog is None:
@@ -205,112 +225,124 @@ class CategorySelect(Select["BotHelpView"]):
             )
             return
 
-        source = GroupPageSource(cog, cmds)
-
-        # View shouldn't be None by the time we're here.
-        await self.view.change_source(source, itn)  # type: ignore
-
-
-class BotHelpView(PaginationView):
-    def __init__(
-        self, ctx: SleepyContext, mapping: Dict[commands.Cog, List[commands.Command]]
-    ) -> None:
-        bot = ctx.bot
-
-        self.bot: Sleepy = bot
-        self.mapping: Dict[commands.Cog, List[commands.Command]] = mapping
-        self._use_home_page_layout: bool = True
-
-        source = HomePageSource(prefix=ctx.clean_prefix)
-
-        super().__init__(
-            source,
-            owner_ids={ctx.author.id, bot.owner_id, *bot.owner_ids},  # type: ignore
+        embed = Embed(
+            title=cog.qualified_name,
+            description=cog.description,
+            colour=Colour.dark_embed(),
         )
-
-    def _do_items_setup(self) -> None:
-        self.add_item(CategorySelect(self.bot, self.mapping))
-
-        if self._use_home_page_layout:
-            bot_links = BotLinksView(self.bot.application_id)  # type: ignore
-
-            for button in bot_links.children:
-                self.add_item(button)
-
-            self._use_home_page_layout = False
-
-        super()._do_items_setup()
+        source = _CommandSource(embed, self.prefix, cmds)
+        await self.change_source(source, itn)
 
 
 class SleepyHelpCommand(commands.HelpCommand):
 
-    context: SleepyContext
+    if TYPE_CHECKING:
+        context: SleepyContext
 
     def __init__(self) -> None:
         command_attrs = {
-            "cooldown": commands.CooldownMapping.from_cooldown(
-                1, 3, commands.BucketType.user
-            ),
-            # fmt: off
-            "checks": (
-                commands.bot_has_permissions(embed_links=True).predicate,
-            ),
-            # fmt: on
+            "checks": (commands.bot_has_permissions(embed_links=True).predicate,),
             "help": "Shows help about me, a command, or a category.",
         }
 
         super().__init__(command_attrs=command_attrs)
 
-    def _apply_formatting(
-        self,
-        embed_like: Union[Embed, GroupPageSource],
-        command: commands.Command,
-    ) -> None:
-        embed_like.title = self.get_command_signature(command)
+    def _format_command(self, command: commands.Command) -> Embed:
+        embed = Embed(
+            title=command.qualified_name,
+            description=command.help or "No help given.",
+            colour=Colour.dark_embed(),
+        )
+        embed.add_field(
+            name="Usage",
+            value=f"```ansi\n{self.get_command_signature(command)} ```",
+            inline=False,
+        )
 
-        if command.description:
-            embed_like.description = f"{command.description}\n\n{command.help}"
-        else:
-            embed_like.description = command.help or "No help given."
+        if command.aliases:
+            fmt_aliases = " ".join(f"`{a}`" for a in command.aliases)
+            embed.add_field(name="Aliases", value=fmt_aliases)
+
+        cog = command.cog
+        if cog is not None:
+            icon = getattr(cog, "ICON", "\N{GEAR}")
+            embed.add_field(name="Category", value=f"{icon} {cog.qualified_name}")
+
+        return embed
 
     async def command_not_found(self, string: str) -> str:
         cmds = await self.filter_commands(self.context.bot.commands)
+
         close = difflib.get_close_matches(string, (c.name for c in cmds))
+        if close:
+            fmt_close = "\n".join(f"\N{BULLET} {m}" for m in close)
+            return f"That command wasn't found. Did you mean...\n{fmt_close}"
 
-        if not close:
-            return "That command wasn't found."
-
-        return (
-            "That command wasn't found. Did you mean...\n```bnf\n"
-            + "\n".join(f"<{i}> {c}" for i, c in enumerate(close, 1))
-            + "```"
-        )
+        return "That command wasn't found."
 
     async def subcommand_not_found(self, command: commands.Command, string: str) -> str:
         if not isinstance(command, commands.Group):
             return "That command isn't a group command."
 
-        if subcmds := await self.filter_commands(command.commands):
+        subcmds = await self.filter_commands(command.commands)
+        if subcmds:
             close = difflib.get_close_matches(string, (c.name for c in subcmds))
+            if close:
+                fmt_close = "\n".join(f"\N{BULLET} {m}" for m in close)
+                return f"That subcommand wasn't found. Did you mean...\n{fmt_close}"
 
-            if not close:
-                return "That subcommand wasn't found."
-
-            return (
-                "That subcommand wasn't found. Did you mean...\n```bnf\n"
-                + "\n".join(f"<{i}> {c}" for i, c in enumerate(close, 1))
-                + "```"
-            )
+            return "That subcommand wasn't found."
 
         return "That command has no visible subcommands."
 
     def get_command_signature(self, command: commands.Command) -> str:
-        cmd_fmt = f"{command.name} {command.signature}"
+        ctx = self.context
+        sig = command.signature
 
-        if parent := command.full_parent_name:
-            return f"{parent} {cmd_fmt}"
+        # Don't bother with the fancypants formatting if the user is on a phone,
+        # since Discord still has yet to bother with proper codeblock formatting
+        # on the mobile app. Unfortunately this also only works if the user used
+        # this command in a guild channel.
+        if isinstance(ctx.author, discord.Member) and ctx.author.is_on_mobile():
+            return f"{ctx.clean_prefix}{command.qualified_name} {sig}"
 
-        return cmd_fmt
+        def colourize_param(m: re.Match) -> str:
+            """Assumes that parameters are formatted in one of the following ways:
+            - `<X>`
+            - `<X...>`
+            - `<X>...`
+            - `[X]`
+            - `[X...]`
+            - `[X]...`
+
+            Where `X` can be one or more characters from the set `\\w\\s-|.()<>="'`.
+            """
+            opening, body, closing = m.groups()
+            name, _, default = body.partition("=")
+
+            # Colour the param name either blue or yellow, depending on whether
+            # the param is optional or required, respectively.
+            middle = f"\u001b[0;{'34' if opening == '[' else '33'}m"
+
+            if name.endswith("..."):
+                # Colour the trailing ellipses in param names grey.
+                middle += f"{name[:-3]}\u001b[30m..."
+            else:
+                middle += name
+
+            if default:
+                # Colour the equals sign grey and the default value fuchsia.
+                middle += f"\u001b[30m=\u001b[35m{default}"
+
+            return f"\u001b[30m{opening}{middle}\u001b[30;1m{closing}"
+
+        fmt_sig = re.sub(r"(\[|<)([\w\s\-|.()<>=\"']+)(\]|>)", colourize_param, sig)
+
+        # Make the command signature grey if nothing ended up being substituted.
+        if fmt_sig == sig:
+            fmt_sig = f"\u001b[0;30m{sig}"
+
+        return f"\u001b[0;37;1m{ctx.clean_prefix}\u001b[32m{command.qualified_name} {fmt_sig}"
 
     async def send_bot_help(
         self, mapping: Mapping[Optional[commands.Cog], List[commands.Command]]
@@ -329,7 +361,7 @@ class SleepyHelpCommand(commands.HelpCommand):
             cog = ctx.bot.get_cog(cog_name)
             sorted_mapping[cog] = sorted(cmds, key=lambda c: c.qualified_name)
 
-        view = BotHelpView(ctx, sorted_mapping)
+        view = _HelpView(ctx, sorted_mapping)
         await view.send_to(ctx)
 
     async def send_cog_help(self, cog: commands.Cog) -> None:
@@ -340,17 +372,15 @@ class SleepyHelpCommand(commands.HelpCommand):
             await ctx.send("That category has no visible commands.")
             return
 
-        await ctx.paginate(GroupPageSource(cog, cmds))
+        embed = Embed(
+            title=cog.qualified_name,
+            description=cog.description,
+            colour=Colour.dark_embed(),
+        )
+        await ctx.paginate(_CommandSource(embed, ctx.clean_prefix, cmds))
 
     async def send_command_help(self, command: commands.Command) -> None:
-        embed = Embed(colour=Colour.dark_embed())
-
-        if command.aliases:
-            embed.set_footer(text=f"Aliases: {', '.join(command.aliases)}")
-
-        self._apply_formatting(embed, command)
-
-        await self.context.send(embed=embed)
+        await self.context.send(embed=self._format_command(command))
 
     async def send_group_help(self, group: commands.Group) -> None:
         cmds = await self.filter_commands(group.commands, sort=True)
@@ -359,10 +389,8 @@ class SleepyHelpCommand(commands.HelpCommand):
             await self.send_command_help(group)
             return
 
-        source = GroupPageSource(group, cmds)
-
-        self._apply_formatting(source, group)
-
+        embed = self._format_command(group)
+        source = _CommandSource(embed, self.context.clean_prefix, cmds)
         await self.context.paginate(source)
 
 
