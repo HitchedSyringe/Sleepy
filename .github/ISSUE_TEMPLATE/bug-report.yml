@@ -6,8 +6,6 @@ body:
     attributes:
       value: >
         Thanks for taking the time to fill out this bug report!
-        If you have any questions or need real-time support,
-        please join our [Discord server](https://discord.gg/xHgh2Xg).
 
         **Please note that this form is for bugs only!**
   - type: input

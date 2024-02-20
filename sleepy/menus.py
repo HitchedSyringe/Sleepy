@@ -284,17 +284,27 @@ class BotLinksView(View):
 
         invite = oauth_url(client_id, permissions=discord.Permissions(INVITE_PERMISSIONS))
 
-        buttons = (
+        buttons = [
             Button(label="Invite me!", emoji="\N{INBOX TRAY}", url=invite),
-            Button(
-                label="Support Server",
-                emoji="<:dc:871952362175086624>",
-                url=DISCORD_SERVER_URL,
-            ),
-            Button(
-                label="Source Code", emoji="<:gh:871952362019901502>", url=SOURCE_CODE_URL
-            ),
-        )
+        ]
+
+        if DISCORD_SERVER_URL:
+            buttons.append(
+                Button(
+                    label="Support Server",
+                    emoji="<:dc:871952362175086624>",
+                    url=DISCORD_SERVER_URL,
+                )
+            )
+
+        if SOURCE_CODE_URL:
+            buttons.append(
+                Button(
+                    label="Source Code",
+                    emoji="<:gh:871952362019901502>",
+                    url=SOURCE_CODE_URL,
+                )
+            )
 
         for button in buttons:
             self.add_item(button)

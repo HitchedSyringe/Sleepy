@@ -76,7 +76,8 @@ if TYPE_CHECKING:
 
 
 # fmt: off
-DISCORD_SERVER_URL: str = "https://discord.gg/xHgh2Xg"
+# TODO: Make these configurable rather than hard-coded here.
+DISCORD_SERVER_URL: str = ""
 SOURCE_CODE_URL:    str = "https://github.com/HitchedSyringe/Sleepy"
 
 INVITE_PERMISSIONS: int = 0b0000_0000_0000_0000_0000_0000_0100_0000_0000_0000_0000_0101_1110_1100_0100_0110

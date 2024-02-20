@@ -8,21 +8,16 @@
 [python-s]: https://img.shields.io/badge/python-3.8%2b-blue?logo=python
 [license]: https://github.com/HitchedSyringe/Sleepy/blob/master/LICENSE
 [license-s]: https://img.shields.io/github/license/HitchedSyringe/Sleepy
-[discord]: https://discord.com/invite/xHgh2Xg
-[discord-s]: https://discord.com/api/guilds/495593721371295755/widget.png?style=shield
 
 [![sleepy-s][]][sleepy]
 [![python-s][]][python]
 [![license-s][]][license]
-[![discord-s][]][discord]
 
 </div>
 
 ⚠️ **WARNING:** This version of the bot is currently work in progress and is highly unstable. Please check the releases or other branches for stable versions. ⚠️
 
 A Discord bot with server moderation, fun commands, image manipulation, and much more, all designed with user-friendliness and simplicity in mind.
-
-For more information, feel free to check out the bot's [support server][discord].
 
 ## NOTICE - 17th February 2023
 
